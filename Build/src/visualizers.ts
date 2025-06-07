@@ -5,8 +5,10 @@ interface VisualizerDrawFunction {
     ctx: CanvasRenderingContext2D,
     bufferLength: number,
     dataArray: Uint8Array,
-    dataType: 'time' | 'frequency'
+    dataType: 'time' | 'frequency',
+    settings?: Record<string, any>
   ): void;
+
 }
 
 interface VisualizerType {
@@ -38,29 +40,36 @@ const visualizerStates: Map<string, VisualizerState> = new Map();
 export const spectrogramTypes: SpectrogramTypes = {
   oscilloscope: {
     name: 'Oscilloscope',
-    draw: function (analyser, canvas, ctx, bufferLength, timeDataArray, dataType) {
+    draw: function (analyser, canvas, ctx, bufferLength, timeDataArray, dataType, settings = {}) {
+      const {
+        lineColor = 'rgb(0, 0, 0)',
+        backgroundColor = 'rgb(200, 200, 200)',
+        lineWidth = 2
+      } = settings;
+
       analyser.getByteTimeDomainData(timeDataArray);
 
-      ctx.fillStyle = 'rgb(200, 200, 200)';
+      ctx.fillStyle = backgroundColor;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      ctx.lineWidth = 2;
-      ctx.strokeStyle = 'rgb(0, 0, 0)';
+      ctx.lineWidth = lineWidth;
+      ctx.strokeStyle = lineColor;
       ctx.beginPath();
 
       const sliceWidth = canvas.width / bufferLength;
       let x = 0;
 
-      for(let i = 0; i < bufferLength; i++) {
+      for (let i = 0; i < bufferLength; i++) {
         const v = timeDataArray[i] / 128.0;
-        const y = v * canvas.height/2;
+        const y = v * canvas.height / 2;
 
-        if(i === 0) ctx.moveTo(x, y);
+        if (i === 0) ctx.moveTo(x, y);
         else ctx.lineTo(x, y);
+
         x += sliceWidth;
       }
 
-      ctx.lineTo(canvas.width, canvas.height/2);
+      ctx.lineTo(canvas.width, canvas.height / 2);
       ctx.stroke();
     }
   },

@@ -5,6 +5,7 @@ import { initPlaylists } from './playlists';
 import { initTracks } from './tracks';
 import { initUI } from './ui';
 import { VisualizerManager } from './visualizerManager';
+import VisualizerControls from './visualizerControls';
 
 export interface AppState {
   currentTrack: string | null;
@@ -13,6 +14,7 @@ export interface AppState {
   setCurrentTrack: (track: string | null) => void;
   setIsPlaying: (playing: boolean) => void;
   setTheme: (theme: string) => void;
+  visualizer?: VisualizerManager | null;
 }
 
 const useStore = create<AppState>((set) => ({
@@ -26,46 +28,68 @@ const useStore = create<AppState>((set) => ({
 
 // Enhanced visualizer wrapper to work with Howl.js
 class HowlVisualizerAdapter {
-  private visualizerManager: any = null; // VisualizerManager instance
+  private visualizerManager: VisualizerManager | null = null;
   private howlInstance: any = null;
   private audioContext: AudioContext | null = null;
   private analyser: AnalyserNode | null = null;
   private source: MediaElementAudioSourceNode | null = null;
+  private canvasContainer: HTMLElement;
+
+  // New callback that app sets to be notified when visualizerManager is ready
+  public onVisualizerManagerReady?: (manager: VisualizerManager) => void;
 
   constructor(canvasContainer: HTMLElement) {
-    // We'll initialize the visualizer manager when we get a Howl instance
+    this.canvasContainer = canvasContainer;
     this.setupCanvasContainer(canvasContainer);
   }
 
   private setupCanvasContainer(container: HTMLElement) {
-    // Ensure container has proper styling for visualizer
     if (!container.style.position) {
       container.style.position = 'relative';
+    }
+    // Ensure container has a visible height or else canvas won't show
+    if (!container.style.height) {
+      container.style.height = '200px'; // default height
     }
   }
 
   public setHowlInstance(howl: any) {
     this.howlInstance = howl;
-    this.setupVisualizerConnection();
+
+    // Wait until the Howl sound is playing (audio element ready)
+    if (this.howlInstance) {
+      this.howlInstance.once('play', () => {
+        this.setupVisualizerConnection();
+      });
+
+      // If already playing, setup immediately
+      if (this.howlInstance.playing()) {
+        this.setupVisualizerConnection();
+      }
+    }
   }
 
   public setupVisualizerConnection() {
     if (!this.howlInstance) return;
 
     try {
-      // Get the underlying HTML audio element from Howl
       const audioElement = this.getAudioElementFromHowl();
-      
-      if (audioElement && !this.visualizerManager) {
-        const canvasContainer = document.getElementById('visualizer-container');
-        if (canvasContainer) {
-          // Now we can create the VisualizerManager with the audio element
-          this.visualizerManager = new VisualizerManager(audioElement, canvasContainer);
-          console.log('Visualizer manager would be created here with audio element');
-          
-          // For now, let's set up Web Audio API connection manually
-          // this.setupWebAudioConnection(audioElement);
+
+      if (audioElement) {
+        if (!this.visualizerManager) {
+          this.visualizerManager = new VisualizerManager(audioElement, this.canvasContainer);
+          this.visualizerManager.initialize();
+
+          // Start with a default visualizer, e.g., 'oscilloscope'
+          this.visualizerManager.addVisualizer('oscilloscope');
+
+          // Notify that visualizerManager is ready
+          if (this.onVisualizerManagerReady) {
+            this.onVisualizerManagerReady(this.visualizerManager);
+          }
         }
+      } else {
+        console.warn('Audio element from Howl not ready yet');
       }
     } catch (error) {
       console.error('Error setting up visualizer connection:', error);
@@ -74,39 +98,13 @@ class HowlVisualizerAdapter {
 
   private getAudioElementFromHowl(): HTMLAudioElement | null {
     try {
-      // Access the internal HTML audio element from Howl
       if (this.howlInstance && this.howlInstance._sounds && this.howlInstance._sounds[0]) {
-        return this.howlInstance._sounds[0]._node;
+        return this.howlInstance._sounds[0]._node || null;
       }
     } catch (error) {
       console.error('Error accessing audio element from Howl:', error);
     }
     return null;
-  }
-
-  private setupWebAudioConnection(audioElement: HTMLAudioElement) {
-    try {
-      // Use Howler's existing audio context if available
-      this.audioContext = (window as any).Howler?.ctx || new (window.AudioContext || (window as any).webkitAudioContext)();
-      
-      if (!this.analyser) {
-        if (!this.audioContext) {
-          console.error('AudioContext is not available');
-          return;
-        }
-        this.analyser = this.audioContext.createAnalyser();
-        this.analyser.fftSize = 2048;
-        
-        // Create source from audio element
-        this.source = this.audioContext.createMediaElementSource(audioElement);
-        this.source.connect(this.analyser);
-        this.analyser.connect(this.audioContext.destination);
-        
-        console.log('Web Audio API connection established for visualizer');
-      }
-    } catch (error) {
-      console.error('Error setting up Web Audio API:', error);
-    }
   }
 
   public setVisualizerType(type: string) {
@@ -118,32 +116,21 @@ class HowlVisualizerAdapter {
   }
 
   public updateSettings(settings: any) {
-    // Handle visualizer settings updates
     console.log('Updating visualizer settings:', settings);
   }
 
   public getAnalyserNode(): AnalyserNode | null {
-    return this.analyser;
+    return this.visualizerManager?.analyser || null;
   }
 
   public getAudioContext(): AudioContext | null {
-    return this.audioContext;
+    return this.visualizerManager?.audioContext || null;
   }
 
   public destroy() {
     if (this.visualizerManager) {
-      // Clean up visualizer manager
+      this.visualizerManager.destroy();
       this.visualizerManager = null;
-    }
-    
-    if (this.source) {
-      this.source.disconnect();
-      this.source = null;
-    }
-    
-    if (this.analyser) {
-      this.analyser.disconnect();
-      this.analyser = null;
     }
   }
 }
@@ -154,25 +141,31 @@ async function initApp() {
   initSettings(useStore);
   initPlaylists(useStore);
   initTracks(useStore);
-  
+
   // Initialize player
   const playerInstance = initPlayer(useStore);
-  
+
   // Initialize visualizer adapter
   const visualizerContainer = document.getElementById('visualizer-container');
+
   if (visualizerContainer && playerInstance) {
     const visualizerAdapter = new HowlVisualizerAdapter(visualizerContainer);
-    
+
     // Connect the visualizer adapter to the player
     if (typeof playerInstance.setVisualizerInstance === 'function') {
       playerInstance.setVisualizerInstance(visualizerAdapter);
       console.log('Visualizer adapter connected to audio player');
     }
-    
-    // Set up visualizer controls
-    setupVisualizerControls(visualizerAdapter);
+
+    // Wait for visualizerManager before setting up controls
+    visualizerAdapter.onVisualizerManagerReady = (manager) => {
+      console.log('VisualizerManager ready, setting up controls');
+      setupVisualizerControls(visualizerAdapter);
+    };
+
+    // Do NOT call setupVisualizerControls immediately here
   }
-  
+
   setupAddMusicButton();
 
   // Keyboard controls
@@ -185,30 +178,41 @@ async function initApp() {
       }
     }
   });
-  
+
   // Handle window resize for visualizer
   window.addEventListener('resize', () => {
-    // If you have a visualizer manager, call its resize method
-    // visualizerManager?.resizeCanvas();
+    if (visualizerContainer) {
+      const canvas = visualizerContainer.querySelector('canvas');
+      if (canvas) {
+        canvas.width = visualizerContainer.clientWidth;
+        canvas.height = visualizerContainer.clientHeight;
+      }
+    }
   });
 }
 
 function setupVisualizerControls(visualizerAdapter: HowlVisualizerAdapter) {
-  // Example: Add buttons to switch visualizer types
-  const visualizerButtons = document.querySelectorAll('[data-visualizer-type]');
-  
-  visualizerButtons.forEach(button => {
-    button.addEventListener('click', (e) => {
-      const target = e.target as HTMLElement;
-      const type = target.dataset.visualizerType;
-      if (type) {
-        visualizerAdapter.setVisualizerType(type);
-        
-        // Update button states
-        visualizerButtons.forEach(btn => btn.classList.remove('active'));
-        target.classList.add('active');
-      }
-    });
+  const container = document.getElementById('visualizer-controls');
+  const canvasContainer = document.getElementById('visualizer-container');
+
+  if (!container || !canvasContainer) {
+    console.warn('VisualizerControls container not found');
+    return;
+  }
+
+  const visualizerManager = visualizerAdapter['visualizerManager'];
+  if (!visualizerManager) {
+    console.warn('VisualizerManager not initialized in adapter');
+    return;
+  }
+
+  const controls = new VisualizerControls({
+    container,
+    visualizerManager,
+    onTypeChange: (type) => visualizerAdapter.setVisualizerType(type as string),
+    onSettingsChange: (key, value) => {
+      visualizerAdapter.updateSettings({ [key]: value });
+    },
   });
 }
 

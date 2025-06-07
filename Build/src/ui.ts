@@ -2,7 +2,6 @@ import { StoreApi, UseBoundStore } from 'zustand';
 import { AppState } from './main';
 import { debounce } from 'lodash';
 import VisualizerControls from './visualizerControls';
-import { VisualizerType } from './visualizerManager';
 
 export function initUI(store: UseBoundStore<StoreApi<AppState>>) {
   // Cache DOM elements
@@ -26,16 +25,14 @@ export function initUI(store: UseBoundStore<StoreApi<AppState>>) {
   // Create controls instance with callbacks to update visualizer
   const controls = new VisualizerControls({
     container,
-    currentType: 'waveform',
+    currentType: 'oscilloscope', // Use a valid type from spectrogramTypes
+    visualizerManager: visualizerInstance!,
     onTypeChange: (type) => {
-      const validType = ['waveform', 'bars', 'circular', 'spectrum', 'mirror', 'particles'].includes(type) 
-        ? type as VisualizerType 
-        : 'waveform';
-      visualizerInstance?.setVisualizerType(validType);
+      visualizerInstance?.addVisualizer(type as string); // Trust VisualizerType union
     },
     onSettingsChange: (setting, value) => {
       visualizerInstance?.updateSettings({ [setting]: value });
-    }
+    },
   });
 
   // Handle modal opening

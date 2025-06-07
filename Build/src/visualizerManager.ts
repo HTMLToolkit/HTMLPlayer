@@ -159,6 +159,7 @@ export class VisualizerManager {
     const bufferLength = this.analyser.frequencyBinCount;
     const timeDataArray = new Uint8Array(bufferLength);
     const freqDataArray = new Uint8Array(bufferLength);
+    const dataType = this.activeVisualizer === 'oscilloscope' || this.activeVisualizer === 'waveform' ? 'time' : 'frequency';
 
     const animate = (): void => {
       this.animationFrame = requestAnimationFrame(animate);
@@ -173,10 +174,10 @@ export class VisualizerManager {
           // Get the appropriate data array based on visualizer type
           if (this.activeVisualizer === 'oscilloscope' || this.activeVisualizer === 'waveform') {
             this.analyser!.getByteTimeDomainData(timeDataArray);
-            visualizer.draw(this.analyser!, this.canvas, this.context, bufferLength, timeDataArray);
+            visualizer.draw(this.analyser!, this.canvas, this.context, bufferLength, timeDataArray, dataType, this.currentSettings);
           } else {
             this.analyser!.getByteFrequencyData(freqDataArray);
-            visualizer.draw(this.analyser!, this.canvas, this.context, bufferLength, freqDataArray);
+            visualizer.draw(this.analyser!, this.canvas, this.context, bufferLength, freqDataArray, dataType);
           }
         } catch (error) {
           console.error('Error in visualizer draw function:', error);
@@ -218,6 +219,14 @@ export class VisualizerManager {
   getAvailableVisualizers(): string[] {
     return Object.keys(spectrogramTypes);
   }
+
+  private currentSettings: Record<string, any> = {};
+
+  public updateSettings(settings: Record<string, any>): void {
+    this.currentSettings = { ...this.currentSettings, ...settings };
+    console.log('Updated settings:', this.currentSettings);
+  }
+
 
   destroy(): void {
     this.stopAnimation();

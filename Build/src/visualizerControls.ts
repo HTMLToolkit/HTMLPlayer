@@ -1,7 +1,8 @@
 import { VisualizerManager } from './visualizerManager';
+import { spectrogramTypes } from './visualizers';
 
-// Updated types to match the new visualizer system
-export type VisualizerType = 'oscilloscope' | 'spectrum' | 'bars' | 'waveform';
+// Define VisualizerType as keys of spectrogramTypes
+export type VisualizerType = keyof typeof spectrogramTypes;
 
 export interface VisualizerSettings {
   type: VisualizerType;
@@ -39,20 +40,20 @@ class VisualizerControls {
   private showSettings: boolean = false;
   private settings: VisualizerSettings;
 
-  private readonly visualizerTypes: VisualizerTypeInfo[] = [
-    { id: 'waveform', name: 'Waveform', icon: '〰️', description: 'Audio waveform visualization' },
-    { id: 'oscilloscope', name: 'Oscilloscope', icon: '📺', description: 'Time-domain waveform display' },
-    { id: 'spectrum', name: 'Spectrum', icon: '📊', description: 'Colorful frequency spectrum' },
-    { id: 'bars', name: 'Frequency Bars', icon: '📈', description: 'Gradient frequency bars' }
-  ] as const;
+  private readonly visualizerTypes: VisualizerTypeInfo[] = Object.entries(spectrogramTypes).map(([id, { name }]) => ({
+    id: id as VisualizerType,
+    name,
+    icon: this.getVisualizerIcon(id as VisualizerType),
+    description: this.getVisualizerDescription(id as VisualizerType),
+  }));
 
   constructor(options: VisualizerControlsOptions) {
     this.container = options.container;
     this.visualizerManager = options.visualizerManager;
-    this.currentType = options.currentType || 'waveform';
+    this.currentType = options.currentType || 'oscilloscope'; // Default to 'oscilloscope'
     this.onTypeChange = options.onTypeChange;
     this.onSettingsChange = options.onSettingsChange;
-    
+
     this.settings = {
       type: this.currentType,
       height: 200,
@@ -62,18 +63,53 @@ class VisualizerControls {
       particleCount: 100,
       waveColor: '#4a9eff',
       progressColor: '#006EE6',
-      backgroundColor: '#000000'
+      backgroundColor: '#000000',
     };
 
     this.init();
   }
 
+  private getVisualizerIcon(id: VisualizerType): string {
+    const iconMap: Partial<Record<VisualizerType, string>> = {
+      oscilloscope: '〰️',
+      circularSpectrogram: '⭕',
+      waterfall: '🌊',
+      barGraph: '📊',
+      voronoiSpectrum: '🔲',
+      fluidSpectrogram: '💧',
+      LayeredRippleVoronoi: '🌐',
+      waterSpectrogram: '🌊',
+      topwaterSpectrogram: '🌀',
+      fractalSpectrogram: '🌳',
+      spiralSpectrogram: '🌀',
+      // Add more icons for other visualizers as needed
+    };
+    return iconMap[id] || '🎨';
+  }
+
+  private getVisualizerDescription(id: VisualizerType): string {
+    const descriptionMap: Partial<Record<VisualizerType, string>> = {
+      oscilloscope: 'Time-domain waveform display',
+      circularSpectrogram: 'Circular frequency spectrum visualization',
+      waterfall: 'Scrolling frequency waterfall display',
+      barGraph: 'Gradient frequency bars',
+      voronoiSpectrum: 'Voronoi diagram with frequency-driven colors',
+      fluidSpectrogram: 'Particle-based fluid dynamics visualization',
+      LayeredRippleVoronoi: 'Layered Voronoi with ripple effects',
+      waterSpectrogram: '3D water-like frequency visualization',
+      topwaterSpectrogram: 'Top-down circular wave visualization',
+      fractalSpectrogram: 'Fractal tree driven by frequency data',
+      spiralSpectrogram: 'Spiral pattern with frequency amplitudes',
+      // Add more descriptions for other visualizers as needed
+    };
+    return descriptionMap[id] || 'Audio visualization';
+  }
+
   private init(): void {
     this.render();
     this.attachEventListeners();
-    // Initialize with current type
     if (this.visualizerManager) {
-      this.visualizerManager.addVisualizer(this.currentType);
+      this.visualizerManager.addVisualizer(this.currentType as string);
     } else {
       console.warn('Visualizer manager not initialized yet');
     }
@@ -95,14 +131,14 @@ class VisualizerControls {
         </div>
 
         <!-- Visualizer Type Selection -->
-        <div class="visualizer-types grid grid-cols-2 md:grid-cols-2 gap-2">
+        <div class="visualizer-types grid grid-cols-2 md:grid-cols-3 gap-2 max-h-64 overflow-y-auto">
           ${this.renderVisualizerTypes()}
         </div>
 
         <!-- Settings Panel -->
         <div id="settings-panel" class="settings-panel border-t border-gray-700 pt-4 space-y-4" style="display: ${this.showSettings ? 'block' : 'none'}">
           <h4 class="text-white font-medium">Visualizer Settings</h4>
-          
+
           <!-- Sensitivity -->
           <div class="space-y-2">
             <label class="text-gray-300 text-sm">Sensitivity: <span id="sensitivity-value">${this.settings.sensitivity}</span></label>
@@ -115,10 +151,16 @@ class VisualizerControls {
             <input id="smoothing-slider" type="range" min="0" max="1" step="0.1" value="${this.settings.smoothing}" class="w-full accent-blue-500">
           </div>
 
-          <!-- Bar Count (only for spectrum and bars types) -->
+          <!-- Bar Count -->
           <div id="bar-count-container" class="space-y-2" style="display: ${this.shouldShowBarCount() ? 'block' : 'none'}">
             <label class="text-gray-300 text-sm">Bar Count: <span id="bar-count-value">${this.settings.barCount}</span></label>
             <input id="bar-count-slider" type="range" min="16" max="128" step="8" value="${this.settings.barCount}" class="w-full accent-blue-500">
+          </div>
+
+          <!-- Particle Count -->
+          <div id="particle-count-container" class="space-y-2" style="display: ${this.shouldShowParticleCount() ? 'block' : 'none'}">
+            <label class="text-gray-300 text-sm">Particle Count: <span id="particle-count-value">${this.settings.particleCount}</span></label>
+            <input id="particle-count-slider" type="range" min="50" max="500" step="10" value="${this.settings.particleCount}" class="w-full accent-blue-500">
           </div>
 
           <!-- Color Controls -->
@@ -127,12 +169,10 @@ class VisualizerControls {
               <label class="text-gray-300 text-sm">Primary Color</label>
               <input id="wave-color" type="color" value="${this.settings.waveColor}" class="w-full h-8 rounded border border-gray-600">
             </div>
-            
             <div class="space-y-2">
               <label class="text-gray-300 text-sm">Secondary Color</label>
               <input id="progress-color" type="color" value="${this.settings.progressColor}" class="w-full h-8 rounded border border-gray-600">
             </div>
-            
             <div class="space-y-2">
               <label class="text-gray-300 text-sm">Background</label>
               <input id="background-color" type="color" value="${this.settings.backgroundColor}" class="w-full h-8 rounded border border-gray-600">
@@ -158,13 +198,10 @@ class VisualizerControls {
         </div>
 
         <!-- Usage Instructions -->
-        <div class="bg-gray-800 border border-gray-600 rounded-lg p-3">
+        <div class="bg-gray-800 border border-gray-600 rounded-lg p-3 max-h-64 overflow-y-auto">
           <h5 class="text-gray-300 font-medium mb-2">Visualizer Types:</h5>
           <div class="text-xs text-gray-400 space-y-1">
-            <p><strong>Waveform:</strong> Cyan audio waveform with fade effect</p>
-            <p><strong>Oscilloscope:</strong> Green time-domain oscilloscope display</p>
-            <p><strong>Spectrum:</strong> Colorful frequency spectrum with dynamic colors</p>
-            <p><strong>Frequency Bars:</strong> Gradient bars showing frequency distribution</p>
+            ${this.renderVisualizerDescriptions()}
           </div>
         </div>
       </div>
@@ -187,8 +224,18 @@ class VisualizerControls {
     `).join('');
   }
 
+  private renderVisualizerDescriptions(): string {
+    return this.visualizerTypes
+      .map(({ name, description }) => `<p><strong>${name}:</strong> ${description}</p>`)
+      .join('');
+  }
+
   private shouldShowBarCount(): boolean {
-    return ['spectrum', 'bars'].includes(this.currentType);
+    return ['barGraph', 'spectrum'].includes(this.currentType as string);
+  }
+
+  private shouldShowParticleCount(): boolean {
+    return ['fluidSpectrogram', 'voronoiSpectrum', 'LayeredRippleVoronoi'].includes(this.currentType as string);
   }
 
   private attachEventListeners(): void {
@@ -209,6 +256,7 @@ class VisualizerControls {
     this.attachSliderListener('sensitivity-slider', 'sensitivity', (value) => parseFloat(value));
     this.attachSliderListener('smoothing-slider', 'smoothing', (value) => parseFloat(value));
     this.attachSliderListener('bar-count-slider', 'barCount', (value) => parseInt(value));
+    this.attachSliderListener('particle-count-slider', 'particleCount', (value) => parseInt(value));
     this.attachSliderListener('height-slider', 'height', (value) => parseInt(value));
 
     // Color inputs
@@ -228,7 +276,7 @@ class VisualizerControls {
     // Close button logic
     const closeBtn = this.container.querySelector('#closeVisualizerControls') as HTMLButtonElement;
     const modal = document.getElementById('visualizer-controls-modal');
-    
+
     closeBtn?.addEventListener('click', () => {
       modal?.classList.add('hidden');
     });
@@ -247,23 +295,22 @@ class VisualizerControls {
   }
 
   private attachSliderListener<K extends keyof VisualizerSettings>(
-    sliderId: string, 
-    settingKey: K, 
+    sliderId: string,
+    settingKey: K,
     parser: (value: string) => VisualizerSettings[K]
   ): void {
     const slider = this.container.querySelector(`#${sliderId}`) as HTMLInputElement;
     const valueSpan = this.container.querySelector(`#${sliderId.replace('-slider', '-value')}`) as HTMLSpanElement;
-    
+
     slider?.addEventListener('input', (e) => {
       const target = e.target as HTMLInputElement;
       const value = parser(target.value);
-      if (value == null) return; // Ignore invalid values
+      if (value == null) return;
       this.handleSettingChange(settingKey, value);
       if (valueSpan) {
         valueSpan.textContent = settingKey === 'height' ? `${value}px` : value.toString();
       }
-      
-      // Apply height changes immediately to canvas container
+
       if (settingKey === 'height') {
         this.visualizerManager.canvasContainer.style.height = `${value}px`;
         this.visualizerManager.resizeCanvas();
@@ -288,29 +335,24 @@ class VisualizerControls {
   }
 
   private handleTypeChange(type: VisualizerType): void {
-    // Remove current visualizer
-    if (this.currentType) {
-      this.visualizerManager.removeVisualizer(this.currentType);
-    }
-    
-    // Update current type
-    this.currentType = type;
-    this.settings.type = type;
-    
-    // Add new visualizer
     if (this.visualizerManager) {
-      this.visualizerManager.addVisualizer(type);
+      if (this.currentType) {
+        this.visualizerManager.removeVisualizer(this.currentType as string);
+      }
+
+      this.currentType = type;
+      this.settings.type = type;
+
+      this.visualizerManager.addVisualizer(type as string);
     } else {
       console.warn('Visualizer manager not initialized yet');
     }
-    
-    // Notify callback
+
     this.onTypeChange?.(type);
-    
-    // Update UI
     this.updateVisualizerTypeButtons();
     this.updateConditionalSettings();
   }
+
 
   private handleSettingChange<K extends keyof VisualizerSettings>(key: K, value: VisualizerSettings[K]): void {
     this.settings[key] = value;
@@ -324,16 +366,20 @@ class VisualizerControls {
       if (type === this.currentType) {
         button.className = 'visualizer-type-btn p-3 rounded-lg border transition-all duration-200 text-left border-blue-500 bg-blue-500/20 text-blue-300';
       } else {
-        button.className = 'visualizer-type-btn p-3 rounded-lg border transition-all duration-200 text-left border-gray-600 bg-gray-800 text-gray-300 hover:border-gray-500 hover:bg-gray-700';
+        button.className = 'visualizer-type-btn p-3 rounded-lg border transition-all duration-200 text-left border-gray-600 bg-gray-800 text-white';
       }
     });
   }
 
   private updateConditionalSettings(): void {
     const barCountContainer = this.container.querySelector('#bar-count-container') as HTMLElement;
+    const particleCountContainer = this.container.querySelector('#particle-count-container') as HTMLElement;
 
     if (barCountContainer) {
       barCountContainer.style.display = this.shouldShowBarCount() ? 'block' : 'none';
+    }
+    if (particleCountContainer) {
+      particleCountContainer.style.display = this.shouldShowParticleCount() ? 'block' : 'none';
     }
   }
 
@@ -342,7 +388,7 @@ class VisualizerControls {
       ocean: { waveColor: '#4a9eff', progressColor: '#006EE6', backgroundColor: '#000000' },
       crimson: { waveColor: '#ff6b6b', progressColor: '#ff5252', backgroundColor: '#1a1a1a' },
       teal: { waveColor: '#4ecdc4', progressColor: '#26d0ce', backgroundColor: '#0d1421' },
-      golden: { waveColor: '#ffd93d', progressColor: '#ffb300', backgroundColor: '#2c1810' }
+      golden: { waveColor: '#ffd93d', progressColor: '#ffb300', backgroundColor: '#2c1810' },
     };
 
     const theme = themes[themeName];
@@ -364,7 +410,6 @@ class VisualizerControls {
     if (backgroundColorInput && theme.backgroundColor) backgroundColorInput.value = theme.backgroundColor;
   }
 
-  // Public methods
   public getCurrentType(): VisualizerType {
     return this.currentType;
   }
@@ -394,26 +439,5 @@ class VisualizerControls {
     this.container.innerHTML = '';
   }
 }
-
-// Usage example:
-/*
-const audioElement = document.getElementById('audio') as HTMLAudioElement;
-const canvasContainer = document.getElementById('visualizer-canvas');
-const controlsContainer = document.getElementById('visualizer-controls');
-
-const visualizerManager = new VisualizerManager(audioElement, canvasContainer!);
-
-const controls = new VisualizerControls({
-  container: controlsContainer!,
-  visualizerManager: visualizerManager,
-  currentType: 'waveform',
-  onTypeChange: (type) => {
-    console.log('Visualizer type changed to:', type);
-  },
-  onSettingsChange: (setting, value) => {
-    console.log('Setting changed:', setting, '=', value);
-  }
-});
-*/
 
 export default VisualizerControls;

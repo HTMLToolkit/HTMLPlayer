@@ -4,7 +4,8 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "vite build && ./postbuild-cleanup.sh"
+    "build": "vite build && ./postbuild-cleanup.sh",
+    "start": "cd dist && python3 -m http.server 8000"
   },
   "keywords": [],
   "author": "",
