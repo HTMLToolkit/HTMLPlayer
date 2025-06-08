@@ -2875,5 +2875,5 @@ export const spectrogramTypes: SpectrogramTypes = {
       }
     }
   }
-
+ 
 };
