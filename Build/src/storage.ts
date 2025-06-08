@@ -12,7 +12,7 @@ interface Playlist {
 interface Track {
   id: string;
   url: string;
-  title: string;
+  name: string;
   artist?: string;
   album?: string;
   duration?: number;
@@ -147,7 +147,7 @@ export async function deletePlaylist(id: string): Promise<boolean> {
 // Enhanced track operations
 export async function saveTrack(track: Track): Promise<boolean> {
   return withErrorHandling(async () => {
-    if (!track.id || !track.url || !track.title.trim()) {
+    if (!track.id || !track.url || !track.name.trim()) {
       throw new Error('Invalid track data');
     }
 
@@ -155,7 +155,7 @@ export async function saveTrack(track: Track): Promise<boolean> {
     const now = Date.now();
     const sanitizedTrack = {
       ...track,
-      title: DOMPurify.sanitize(track.title.trim()),
+      name: DOMPurify.sanitize(track.name.trim()),
       artist: track.artist ? DOMPurify.sanitize(track.artist.trim()) : undefined,
       album: track.album ? DOMPurify.sanitize(track.album.trim()) : undefined,
       updatedAt: now,
@@ -193,7 +193,7 @@ export async function searchTracks(query: string): Promise<Track[]> {
     const searchTerm = query.toLowerCase().trim();
     
     return tracks.filter(track => 
-      track.title.toLowerCase().includes(searchTerm) ||
+      track.name.toLowerCase().includes(searchTerm) ||
       track.artist?.toLowerCase().includes(searchTerm) ||
       track.album?.toLowerCase().includes(searchTerm)
     );

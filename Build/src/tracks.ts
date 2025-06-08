@@ -4,17 +4,8 @@ import { fileOpen } from 'browser-fs-access';
 import { StoreApi, UseBoundStore } from 'zustand';
 import { AppState } from './main';
 import { saveTrack, loadTracks } from './storage';
-
+import type { Track } from './main';
 declare const jsmediatags: any;
-
-interface Track {
-  id: string;
-  url: string;
-  title: string;
-  art?: string;
-  rating?: number;
-  deleted?: boolean;
-}
 
 let tracks: Track[] = [];
 let bulkDeleteTracks = false;
@@ -50,10 +41,10 @@ export function initTracks(store: UseBoundStore<StoreApi<AppState>>) {
   const renderTracks = async () => {
     tracks = await loadTracks();
     tracksEl.innerHTML = `<ul id="tracks">${tracks.map((track, index) => `
-      <li draggable="true" data-index="${index}" data-id="${track.id}" class="${store.getState().currentTrack === track.url ? 'active' : ''}">
+      <li draggable="true" data-index="${index}" data-id="${track.id}" class="${store.getState().currentTrack?.url === track.url ? 'active' : ''}">
         ${bulkDeleteTracks ? `<input type="checkbox" class="track-checkbox" ${selectedTracks.has(track.id) ? 'checked' : ''}>` : ''}
         <img src="${track.art || 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIGZpbGw9IiMzMzMiIC8+PHBhdGggZD0iTTE2IDE2aDgiIHN0cm9rZT0iI2YxZjFmMSIgc3Ryb2tlLXdpZHRoPSIyIiBmaWxsPSJub25lIiAvPjwvc3ZnPg=='}" loading="lazy">
-        <span class="track-info">${DOMPurify.sanitize(track.title)}</span>
+        <span class="track-info">${DOMPurify.sanitize(track.name)}</span>
         <div class="rating-container">
           <button class="rating-btn" title="Like" data-rating="1">
             <svg viewBox="0 0 24 24" style="fill: ${track.rating === 1 ? '#2196F3' : '#f1f1f1'}">
@@ -78,7 +69,7 @@ export function initTracks(store: UseBoundStore<StoreApi<AppState>>) {
         if (!bulkDeleteTracks) {
           const track = tracks[parseInt(li.dataset.index || '-1')];
           if (track) {
-            store.getState().setCurrentTrack(track.url);
+            store.getState().setCurrentTrack(track);
             store.getState().setIsPlaying(true);
           }
         }
@@ -164,12 +155,12 @@ export function initTracks(store: UseBoundStore<StoreApi<AppState>>) {
         await saveTrack({ 
           id, 
           url, 
-          title: tags.title || file.name,
+          name: tags.title || file.name,
           art: tags.art
         });
       } catch (error) {
         console.warn('Failed to read metadata, falling back to file name:', error);
-        await saveTrack({ id, url, title: file.name });
+        await saveTrack({ id, url, name: file.name });
       }
     }
 
@@ -211,7 +202,7 @@ export function initTracks(store: UseBoundStore<StoreApi<AppState>>) {
     trackItems.forEach(li => {
       const track = tracks[parseInt(li.dataset.index || '-1')];
       if (track) {
-        li.classList.toggle('active', track.url === state.currentTrack);
+        li.classList.toggle('active', state.currentTrack?.url === track.url);
       }
     });
   });
@@ -230,11 +221,11 @@ export function initTracks(store: UseBoundStore<StoreApi<AppState>>) {
           await saveTrack({ 
             id, 
             url, 
-            title: tags.title || file.name,
+            name: tags.title || file.name,
             art: tags.art
           });
         } catch (error) {
-          await saveTrack({ id, url, title: file.name });
+          await saveTrack({ id, url, name: file.name });
         }
         count++;
         addingPopup.textContent = `Adding... ${count} entries`;

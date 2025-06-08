@@ -158,13 +158,13 @@ class SettingsManager {
     
     try {
       // Update UI immediately for responsiveness
-      this.store.getState().setTheme(theme);
+      this.store.getState().setTheme(theme as AppState['theme']);
       
       // Save with debouncing
       await this.debouncedSave(newSettings);
     } catch (error) {
       // Revert UI change if save failed
-      this.store.getState().setTheme(currentSettings.theme);
+      this.store.getState().setTheme(currentSettings.theme as AppState['theme']);
       throw error;
     }
   }
