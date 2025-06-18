@@ -75,19 +75,11 @@
   **Improvement**: Let user skip or continue when they have duplicate tracks.
 
 ### 7. **Feature Enhancements**
-- **Search Functionality**  
-  **Issue**: No way to search for tracks or playlists.  
-  **Improvement**: Add a search bar for filtering tracks and playlists.  
-
 - **Sort Tracks**  
   **Issue**: Tracks cannot be sorted (e.g., by name, rating).  
   **Improvement**: Add sorting options.  
  
 ### 8. **Responsive Design Improvements**
-- **Collapsible Playlist Panel**  
-  **Issue**: The playlist panel takes up significant space on small screens.  
-  **Improvement**: Add a toggle button to collapse the playlist panel on mobile devices.  
-
 - **Adaptive Progress Bar**  
   **Issue**: Progress bar width is not optimal for very wide screens.  
   **Improvement**: Cap the maximum width more dynamically.  
@@ -149,18 +141,9 @@
   ```
 
 ### 12. **Visual and Styling Improvements**
-- **Consistent Icon Sizes**  
-  **Issue**: Icon sizes vary slightly across different elements.  
-  **Improvement**: Standardize icon sizes using CSS variables.  
-
 - **Theme Support**  
   **Issue**: Only a dark theme is provided.  
   **Improvement**: Add different themes using different styles.css files.
-
-### 13. **Testing and Documentation**
-- **Code Comments and Documentation**  
-  **Issue**: Code lacks detailed comments for complex functions.  
-  **Improvement**: Add JSDoc comments for better maintainability.  
 
 ### 14. **Additional Features**
 - **Equalizer Settings**  
