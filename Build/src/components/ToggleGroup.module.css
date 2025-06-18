@@ -1,0 +1,44 @@
+@layer base {
+  .toggleGroup {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: var(--spacing-1);
+    align-items: center;
+    position: relative;
+    width: fit-content;
+  }
+  
+  /* Horizontal orientation (default) */
+  .toggleGroup[data-orientation="horizontal"] {
+    flex-direction: row;
+  }
+  
+  /* Vertical orientation */
+  .toggleGroup[data-orientation="vertical"] {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  /* When the group has a single value selection mode */
+  .toggleGroup[data-type="single"] {
+    position: relative;
+  }
+  
+  /* When the group has multiple selection mode */
+  .toggleGroup[data-type="multiple"] {
+    position: relative;
+  }
+  
+  /* Adjust spacing for different sizes */
+  .toggleGroup:has(.toggle-size-sm) {
+    gap: var(--spacing-1);
+  }
+  
+  .toggleGroup:has(.toggle-size-md) {
+    gap: var(--spacing-2);
+  }
+  
+  .toggleGroup:has(.toggle-size-lg) {
+    gap: var(--spacing-3);
+  }
+}

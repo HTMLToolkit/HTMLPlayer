@@ -1,0 +1,55 @@
+@layer base {
+  .content {
+    position: relative;
+    z-index: var(--z-overlay);
+    min-width: 12rem;
+    max-width: 24rem;
+    pointer-events: all;
+    transform-origin: var(--radix-popover-content-transform-origin);
+    animation: contentFadeIn var(--animation-duration-normal)
+      cubic-bezier(0.16, 1, 0.3, 1);
+    will-change: transform, opacity;
+    box-shadow: var(--shadow-md);
+    border-radius: var(--radius);
+    outline: none;
+    color: var(--popup-foreground);
+  }
+
+  .withBackgroundAndPadding {
+    background-color: var(--popup);
+    padding: var(--spacing-4);
+    border: 1px solid var(--border);
+  }
+
+  .content:focus-visible {
+    box-shadow: var(--shadow-focus);
+  }
+
+  @keyframes contentFadeIn {
+    from {
+      opacity: 0;
+      transform: scale(0.96);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  /* Ensure the popover closes properly when clicking outside */
+  .content[data-state="closed"] {
+    animation: contentFadeOut var(--animation-duration-fast)
+      cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  @keyframes contentFadeOut {
+    from {
+      opacity: 1;
+      transform: scale(1);
+    }
+    to {
+      opacity: 0;
+      transform: scale(0.96);
+    }
+  }
+}

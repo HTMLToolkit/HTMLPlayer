@@ -1,0 +1,131 @@
+@layer base {
+  .root {
+    width: 100%;
+    margin: var(--spacing-2) 0;
+  }
+
+  .content {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-1);
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .item {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 2.25rem;
+    height: 2.25rem;
+    padding: 0 var(--spacing-2);
+    font-family: var(--font-family-base);
+    font-size: 0.875rem;
+    font-weight: 500;
+    text-decoration: none;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    background-color: transparent;
+    color: var(--foreground);
+    cursor: pointer;
+    transition:
+      background-color var(--animation-duration-fast) ease,
+      border-color var(--animation-duration-fast) ease,
+      color var(--animation-duration-fast) ease;
+  }
+
+  .link:hover {
+    background-color: var(--muted);
+    color: var(--foreground);
+  }
+
+    .link:active {
+    background-color: color-mix(in srgb, var(--muted) 80%, white);
+  }
+
+  .link:focus-visible {
+    outline: none;
+    box-shadow: var(--shadow-focus);
+  }
+
+  .active {
+    background-color: var(--primary);
+    border-color: var(--primary);
+    color: var(--primary-foreground);
+  }
+
+    .active:hover {
+    background-color: color-mix(in srgb, var(--primary) 90%, black);
+    border-color: color-mix(in srgb, var(--primary) 90%, black);
+    color: var(--primary-foreground);
+  }
+
+  .active:active {
+    background-color: color-mix(in srgb, var(--primary) 80%, black);
+    border-color: color-mix(in srgb, var(--primary) 80%, black);
+  }
+
+  .icon {
+    width: 1rem;
+    height: 1rem;
+    flex-shrink: 0;
+  }
+
+  .ellipsis {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 2.25rem;
+    padding: 0 var(--spacing-1);
+    color: var(--surface-foreground);
+  }
+
+  /* Previous and Next buttons */
+  .link span {
+    display: inline-flex;
+    align-items: center;
+  }
+
+  .link span + .icon {
+    margin-left: var(--spacing-1);
+  }
+
+  .icon + span {
+    margin-left: var(--spacing-1);
+  }
+
+  /* Responsive adjustments */
+  @media (max-width: 640px) {
+    .link span:not(.icon) {
+      display: none;
+    }
+
+    .link {
+      min-width: 2rem;
+      height: 2rem;
+      padding: 0;
+    }
+
+    .ellipsis {
+      height: 2rem;
+    }
+  }
+
+  /* Dark mode adjustments */
+  :global(.dark) .link:hover {
+    background-color: var(--muted);
+  }
+
+    :global(.dark) .link:active {
+    background-color: color-mix(in srgb, var(--muted) 80%, black);
+  }
+}

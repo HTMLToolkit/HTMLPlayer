@@ -1,0 +1,21 @@
+@layer base {
+  .progress {
+    width: 100%;
+    height: 0.5rem;
+    background-color: var(--muted);
+    border-radius: var(--radius-full);
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    position: relative;
+  }
+  
+  .indicator {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background-color: var(--primary);
+    border-radius: var(--radius-full);
+    transform: translateX(-100%);
+    transition: transform var(--animation-duration-normal) ease-out;
+  }
+}

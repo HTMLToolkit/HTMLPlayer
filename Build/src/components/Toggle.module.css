@@ -1,0 +1,172 @@
+@layer base {
+  .toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-2);
+    font-family: var(--font-family-base);
+    font-weight: 500;
+    border-radius: var(--radius);
+    white-space: nowrap;
+    text-decoration: none;
+    cursor: pointer;
+    transition:
+      background-color var(--animation-duration-fast) ease,
+      border-color var(--animation-duration-fast) ease,
+      color var(--animation-duration-fast) ease,
+      box-shadow var(--animation-duration-fast) ease;
+    outline: none;
+    border: 1px solid transparent;
+    user-select: none;
+  }
+
+  /* Focus styles */
+  .toggle:focus-visible {
+    box-shadow: var(--shadow-focus);
+  }
+
+  /* Size variants */
+  .toggle-size-sm {
+    height: 2rem;
+    min-width: 2rem;
+    padding: 0 var(--spacing-1);
+    font-size: 0.875rem;
+    border-radius: var(--radius-sm);
+  }
+
+  .toggle-size-md {
+    height: 2.5rem;
+    min-width: 2.5rem;
+    padding: 0 var(--spacing-2);
+    font-size: 0.9375rem;
+  }
+
+  .toggle-size-lg {
+    height: 3rem;
+    min-width: 3rem;
+    padding: 0 var(--spacing-3);
+    font-size: 1rem;
+    border-radius: var(--radius-md);
+  }
+
+  /* Icon sizing */
+  .toggle svg {
+    flex-shrink: 0;
+  }
+
+  .toggle-size-sm svg {
+    width: 1rem;
+    height: 1rem;
+  }
+
+  .toggle-size-md svg {
+    width: 1.25rem;
+    height: 1.25rem;
+  }
+
+  .toggle-size-lg svg {
+    width: 1.5rem;
+    height: 1.5rem;
+  }
+
+  /* Variant styles */
+  .toggle-variant-default {
+    background-color: transparent;
+    color: var(--foreground);
+  }
+
+  .toggle-variant-default:hover {
+    background-color: var(--muted);
+  }
+
+    .toggle-variant-default:active {
+    background-color: color-mix(in srgb, var(--muted) 80%, white);
+  }
+
+  .toggle-variant-default[data-state="on"] {
+    background-color: var(--primary);
+    color: var(--primary-foreground);
+  }
+
+    .toggle-variant-default[data-state="on"]:hover {
+    background-color: color-mix(in srgb, var(--primary) 90%, black);
+  }
+
+  .toggle-variant-default[data-state="on"]:active {
+    background-color: color-mix(in srgb, var(--primary) 80%, black);
+  }
+
+  .toggle-variant-outline {
+    background-color: transparent;
+    border-color: var(--border);
+    color: var(--foreground);
+  }
+
+  .toggle-variant-outline:hover {
+    background-color: var(--muted);
+  }
+
+    .toggle-variant-outline:active {
+    background-color: color-mix(in srgb, var(--muted) 80%, white);
+  }
+
+  .toggle-variant-outline[data-state="on"] {
+    background-color: var(--muted);
+    border-color: var(--primary);
+    color: var(--foreground);
+  }
+
+    .toggle-variant-outline[data-state="on"]:hover {
+    background-color: color-mix(in srgb, var(--muted) 80%, white);
+  }
+
+  .toggle-variant-outline[data-state="on"]:active {
+    background-color: color-mix(in srgb, var(--muted) 75%, white);
+  }
+
+  /* Disabled state */
+  .toggle[disabled] {
+    opacity: 0.6;
+    cursor: not-allowed;
+    pointer-events: none;
+  }
+
+  /* Dark mode adjustments */
+  :global(.dark) .toggle-variant-default {
+    color: var(--foreground);
+  }
+
+  :global(.dark) .toggle-variant-default:hover {
+    background-color: var(--muted);
+  }
+
+    :global(.dark) .toggle-variant-default:active {
+    background-color: color-mix(in srgb, var(--muted) 80%, black);
+  }
+
+  :global(.dark) .toggle-variant-outline {
+    border-color: var(--border);
+    color: var(--foreground);
+  }
+
+  :global(.dark) .toggle-variant-outline:hover {
+    background-color: var(--muted);
+  }
+
+    :global(.dark) .toggle-variant-outline:active {
+    background-color: color-mix(in srgb, var(--muted) 80%, black);
+  }
+
+  :global(.dark) .toggle-variant-outline[data-state="on"] {
+    background-color: var(--muted);
+    border-color: var(--primary);
+  }
+
+    :global(.dark) .toggle-variant-outline[data-state="on"]:hover {
+    background-color: color-mix(in srgb, var(--muted) 80%, black);
+  }
+
+  :global(.dark) .toggle-variant-outline[data-state="on"]:active {
+    background-color: color-mix(in srgb, var(--muted) 70%, black);
+  }
+}

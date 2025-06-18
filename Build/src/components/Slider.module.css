@@ -1,0 +1,61 @@
+@layer base {
+  .slider {
+    position: relative;
+    display: flex;
+    align-items: center;
+    min-width: 12rem;
+    height: 1.5rem;
+    touch-action: none;
+    user-select: none;
+    cursor: pointer;
+  }
+  
+  .track {
+    position: absolute;
+    height: 0.375rem;
+    width: 100%;
+    background-color: var(--muted);
+    border-radius: var(--radius-full);
+    transition: background-color var(--animation-duration-fast) ease;
+  }
+  
+  .range {
+    position: absolute;
+    height: 100%;
+    background-color: var(--primary);
+    border-radius: var(--radius-full);
+    transition: background-color var(--animation-duration-fast) ease;
+  }
+  
+  .thumb {
+    display: block;
+    width: 1rem;
+    height: 1rem;
+    background-color: var(--primary);
+    border-radius: var(--radius-full);
+    border: 2px solid var(--background);
+    box-shadow: var(--shadow);
+    transition: 
+      transform var(--animation-duration-fast) ease,
+      box-shadow var(--animation-duration-fast) ease;
+  }
+  
+  .slider:hover .track {
+    background-color: var(--muted-foreground);
+  }
+  
+  .slider:hover .thumb,
+  .slider:focus-visible .thumb {
+    transform: scale(1.1);
+    box-shadow: var(--shadow-md);
+  }
+  
+  .slider:focus-visible {
+    outline: none;
+  }
+  
+  .slider:focus-visible .track {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+  }
+}

@@ -1,0 +1,257 @@
+.mainContent {
+  flex: 1;
+  padding: var(--spacing-6);
+  overflow-y: auto;
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  background: transparent;
+  backdrop-filter: blur(10px);
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-6);
+  flex-wrap: wrap;
+  gap: var(--spacing-4);
+}
+
+.title {
+  font-family: var(--font-family-heading);
+  font-size: 2rem;
+  font-weight: 800;
+  color: white;
+  margin: 0;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.actions {
+  display: flex;
+  gap: var(--spacing-3);
+  align-items: center;
+}
+
+.searchWrapper {
+  position: relative;
+}
+
+.searchIcon {
+  position: absolute;
+  left: var(--spacing-3);
+  top: 50%;
+  transform: translateY(-50%);
+  color: rgba(255, 255, 255, 0.6);
+  pointer-events: none;
+}
+
+.searchInput {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: white;
+  padding-left: calc(var(--spacing-3) * 2 + 16px);
+  min-width: 200px;
+}
+
+.searchInput::placeholder {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.actionButton {
+  background: rgba(0, 191, 255, 0.25);
+  border: 1px solid rgba(0, 191, 255, 0.4);
+  color: white;
+  font-weight: 500;
+}
+
+.actionButton:hover {
+  background: rgba(0, 191, 255, 0.35);
+  border-color: rgba(0, 191, 255, 0.5);
+}
+
+.songList {
+  background: rgba(30, 58, 138, 0.35);
+  border-radius: var(--radius-lg);
+  border: 1px solid rgba(0, 191, 255, 0.25);
+}
+
+.songListHeader {
+  display: grid;
+  grid-template-columns: 2fr 1fr 120px;
+  gap: var(--spacing-4);
+  padding: var(--spacing-4);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.columnHeader {
+  font-family: var(--font-family-base);
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.songItem {
+  display: grid;
+  grid-template-columns: 2fr 1fr 120px;
+  gap: var(--spacing-4);
+  padding: var(--spacing-4);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  transition: background-color var(--animation-duration-fast) ease;
+}
+
+.songItem {
+  cursor: pointer;
+}
+
+.songItem:hover {
+  background: rgba(0, 191, 255, 0.1);
+  border-radius: var(--radius);
+}
+
+.songItem.currentSong {
+  background: rgba(0, 191, 255, 0.15);
+  border-radius: var(--radius);
+  border: 1px solid rgba(0, 191, 255, 0.3);
+}
+
+.songItem:last-child {
+  border-bottom: none;
+}
+
+.songInfo {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+}
+
+.albumArt {
+  width: 40px;
+  height: 40px;
+  background: linear-gradient(135deg, #1E3A8A 0%, #1E40AF 100%);
+  border-radius: var(--radius);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 1.5rem;
+  font-weight: 900;
+  position: relative;
+}
+
+.albumArt::before,
+.albumArt::after {
+  content: '';
+  position: absolute;
+  background: white;
+  border-radius: 1px;
+}
+
+.albumArt::before {
+  width: 16px;
+  height: 3px;
+  transform: rotate(45deg);
+}
+
+.albumArt::after {
+  width: 16px;
+  height: 3px;
+  transform: rotate(-45deg);
+}
+
+.songDetails {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1);
+}
+
+.songTitle {
+  font-family: var(--font-family-base);
+  font-weight: 500;
+  color: white;
+  font-size: 0.9375rem;
+}
+
+.songArtist {
+  font-family: var(--font-family-base);
+  font-size: 0.8125rem;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.artistName {
+  display: flex;
+  align-items: center;
+  font-family: var(--font-family-base);
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.875rem;
+}
+
+.songActions {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-1);
+}
+
+.songActionButton {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.songActionButton:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.songActionButton.active {
+  color: #00BFFF;
+  background: rgba(0, 191, 255, 0.2);
+}
+
+.songActionButton.favorited {
+  color: #ff6b6b;
+  background: rgba(255, 107, 107, 0.2);
+}
+
+.actionButton.active {
+  background: rgba(0, 191, 255, 0.4);
+  border-color: rgba(0, 191, 255, 0.6);
+  color: white;
+}
+
+.noResults {
+  padding: var(--spacing-6);
+  text-align: center;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 1rem;
+  grid-column: 1 / -1;
+}
+
+@media (max-width: 768px) {
+  .mainContent {
+    padding: var(--spacing-4);
+  }
+  
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+  
+  .songListHeader {
+    grid-template-columns: 2fr 1fr 80px;
+    gap: var(--spacing-2);
+  }
+  
+  .songItem {
+    grid-template-columns: 2fr 1fr 80px;
+    gap: var(--spacing-2);
+  }
+  
+  .songActions {
+    gap: 0;
+  }
+}

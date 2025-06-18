@@ -1,0 +1,59 @@
+@layer base {
+  .formItem {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-2);
+    margin-bottom: var(--spacing-4);
+  }
+
+  .formLabel {
+    font-family: var(--font-family-base);
+    font-weight: 500;
+    font-size: 0.875rem;
+    line-height: 1.5;
+    color: var(--foreground);
+    transition: color var(--animation-duration-fast) ease;
+  }
+
+  .formLabel.error {
+    color: var(--error);
+  }
+
+  .formControl {
+    width: 100%;
+  }
+
+  .formControl.error:not(button) {
+    border-color: var(--error);
+    box-shadow: 0 0 0 1px var(--error);
+  }
+
+  .formDescription {
+    font-size: 0.75rem;
+    line-height: 1.5;
+    color: var(--muted-foreground);
+    margin-top: var(--spacing-1);
+    font-family: var(--font-family-base);
+  }
+
+  .formMessage {
+    font-size: 0.75rem;
+    line-height: 1.5;
+    font-weight: 500;
+    color: var(--error);
+    animation: slideIn var(--animation-duration-normal) ease;
+    margin-top: var(--spacing-1);
+    font-family: var(--font-family-base);
+  }
+
+  @keyframes slideIn {
+    from {
+      opacity: 0;
+      transform: translateY(-0.25rem);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+}

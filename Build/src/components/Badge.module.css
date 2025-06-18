@@ -1,0 +1,56 @@
+@layer base {
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-full);
+    padding: var(--spacing-1) var(--spacing-3);
+    font-size: 0.875rem;
+    font-weight: 500;
+    line-height: 1.25;
+    white-space: nowrap;
+    transition: background-color var(--animation-duration-fast) ease-in-out;
+    cursor: default;
+    user-select: none;
+  }
+
+  .default {
+    background-color: color-mix(in srgb, var(--primary) 15%, transparent);
+    color: var(--primary);
+    border: 1px solid color-mix(in srgb, var(--primary) 20%, transparent);
+  }
+
+  .default:hover {
+    background-color: color-mix(in srgb, var(--primary) 25%, transparent);
+  }
+
+  .destructive {
+    background-color: color-mix(in srgb, var(--error) 15%, transparent);
+    color: var(--error);
+    border: 1px solid color-mix(in srgb, var(--error) 20%, transparent);
+  }
+
+  .destructive:hover {
+    background-color: color-mix(in srgb, var(--error) 25%, transparent);
+  }
+
+  .secondary {
+    background-color: color-mix(in srgb, var(--secondary) 15%, transparent);
+    color: var(--secondary);
+    border: 1px solid color-mix(in srgb, var(--secondary) 20%, transparent);
+  }
+
+  .secondary:hover {
+    background-color: color-mix(in srgb, var(--secondary) 25%, transparent);
+  }
+
+  .outline {
+    background-color: transparent;
+    color: var(--foreground);
+    border: 1px solid var(--border);
+  }
+
+  .outline:hover {
+    background-color: color-mix(in srgb, var(--foreground) 5%, transparent);
+  }
+}

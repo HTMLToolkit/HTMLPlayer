@@ -1,0 +1,136 @@
+@layer base {
+  .tabsList {
+    display: flex;
+    overflow-x: auto;
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE and Edge */
+    margin: 0;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+
+  .tabsList::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Opera */
+  }
+
+  .tabsTrigger {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-family-base);
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--muted-foreground);
+    background-color: transparent;
+    padding: var(--spacing-3) var(--spacing-4);
+    border: none;
+    border-radius: 0;
+    cursor: pointer;
+    position: relative;
+    transition: color var(--animation-duration-normal)
+      cubic-bezier(0.22, 1, 0.36, 1);
+    white-space: nowrap;
+  }
+
+  .tabsTrigger:hover {
+    color: var(--foreground);
+  }
+
+  .tabsTrigger[data-state="active"] {
+    color: var(--primary);
+    font-weight: 600;
+  }
+
+  /* Modern indicator with better animation */
+  .tabsTrigger[data-state="active"]::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background-color: var(--primary);
+    transform-origin: center;
+    transition: transform var(--animation-duration-normal)
+      cubic-bezier(0.22, 1, 0.36, 1);
+    transform: scaleX(1);
+  }
+
+  /* Subtle hover indicator */
+  .tabsTrigger:not([data-state="active"]):hover::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background-color: color-mix(
+      in srgb,
+      var(--muted-foreground) 30%,
+      transparent
+    );
+    transform-origin: center;
+    transform: scaleX(0.6);
+    transition:
+      transform var(--animation-duration-normal) cubic-bezier(0.22, 1, 0.36, 1),
+      background-color var(--animation-duration-normal)
+        cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .tabsTrigger:focus-visible {
+    outline: none;
+    box-shadow: var(--shadow-focus);
+    border-radius: var(--radius-sm);
+  }
+
+  .tabsTrigger[disabled] {
+    opacity: 0.5;
+    cursor: not-allowed;
+    color: var(--muted-foreground);
+  }
+
+  .tabsContent {
+    color: var(--foreground);
+    outline: none;
+  }
+
+  .tabsContent[hidden] {
+    display: none !important;
+  }
+
+  /* Pill style variant - keeping existing variant */
+  .tabsList[data-variant="pill"] {
+    background-color: var(--surface);
+    padding: var(--spacing-2);
+    border-radius: var(--radius-full);
+    border-bottom: none;
+    gap: var(--spacing-1);
+  }
+
+  .tabsList[data-variant="pill"] .tabsTrigger {
+    border-radius: var(--radius-full);
+    padding: var(--spacing-2) var(--spacing-4);
+  }
+
+  .tabsList[data-variant="pill"] .tabsTrigger[data-state="active"] {
+    background-color: var(--primary);
+    color: var(--primary-foreground);
+  }
+
+  .tabsList[data-variant="pill"] .tabsTrigger[data-state="active"]::after {
+    display: none;
+  }
+
+  /* Dark mode improvements */
+  :global(.dark) .tabsTrigger[data-state="active"]::after {
+    background-color: var(--primary);
+  }
+
+  :global(.dark) .tabsTrigger:not([data-state="active"]):hover::after {
+    background-color: color-mix(
+      in srgb,
+      var(--muted-foreground) 40%,
+      transparent
+    );
+  }
+}

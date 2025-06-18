@@ -1,0 +1,124 @@
+@layer base {
+  .overlay {
+    position: fixed;
+    inset: 0;
+    background-color: color-mix(in srgb, black 50%, transparent);
+    z-index: var(--z-overlay);
+    animation: overlayShow var(--animation-duration-normal)
+      cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .content {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    max-width: 90vw;
+    max-height: 85vh;
+    width: 32rem;
+    background-color: var(--popup);
+    color: var(--popup-foreground);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-lg);
+    z-index: var(--z-overlay);
+    overflow: auto;
+    padding: var(--spacing-6);
+    animation: contentShow var(--animation-duration-normal)
+      cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .close {
+    position: absolute;
+    top: var(--spacing-4);
+    right: var(--spacing-4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    border-radius: var(--radius-full);
+    background-color: var(--muted);
+    color: var(--muted-foreground);
+    border: none;
+    cursor: pointer;
+    transition:
+      background-color var(--animation-duration-fast) ease,
+      color var(--animation-duration-fast) ease,
+      transform var(--animation-duration-fast) ease;
+  }
+
+  .close:hover {
+    background-color: var(--muted-foreground);
+    color: var(--muted);
+    transform: scale(1.05);
+  }
+
+  .close:focus-visible {
+    outline: none;
+    box-shadow: var(--shadow-focus);
+  }
+
+  .closeIcon {
+    width: 1rem;
+    height: 1rem;
+  }
+
+  .header {
+    margin-bottom: var(--spacing-4);
+  }
+
+  .footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--spacing-2);
+    margin-top: var(--spacing-6);
+  }
+
+  .title {
+    font-family: var(--font-family-heading);
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--popup-foreground);
+    line-height: 1.4;
+    margin-bottom: var(--spacing-2);
+  }
+
+  .description {
+    font-size: 0.875rem;
+    color: var(--muted-foreground);
+    line-height: 1.5;
+    margin-bottom: var(--spacing-4);
+  }
+
+  .screenReaderText {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+  }
+
+  @keyframes overlayShow {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes contentShow {
+    from {
+      opacity: 0;
+      scale: 0.95;
+    }
+    to {
+      opacity: 1;
+      scale: 1;
+    }
+  }
+}

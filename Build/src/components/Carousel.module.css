@@ -1,0 +1,127 @@
+@layer base {
+  .carousel {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+  }
+
+  .viewport {
+    width: 100%;
+    height: 100%;
+  }
+
+  .container {
+    display: flex;
+    height: 100%;
+    width: 100%;
+    backface-visibility: hidden;
+  }
+
+  .container.horizontal {
+    flex-direction: row;
+  }
+
+  .container.vertical {
+    flex-direction: column;
+  }
+
+  .item {
+    flex: 0 0 auto;
+    min-width: 0;
+    position: relative;
+  }
+
+  .item.horizontal {
+    width: 100%;
+  }
+
+  .item.vertical {
+    height: 100%;
+  }
+
+  .previousButtonContainer,
+  .nextButtonContainer {
+    position: absolute;
+    z-index: var(--z-content);
+    transform: translateY(-50%);
+  }
+
+  .horizontalNav.previousButtonContainer {
+    left: var(--spacing-2);
+    top: 50%;
+  }
+
+  .horizontalNav.nextButtonContainer {
+    right: var(--spacing-2);
+    top: 50%;
+  }
+
+  .verticalNav.previousButtonContainer {
+    top: var(--spacing-2);
+    left: 50%;
+    transform: translateX(-50%);
+  }
+
+  .verticalNav.nextButtonContainer {
+    bottom: var(--spacing-2);
+    left: 50%;
+    transform: translateX(-50%);
+  }
+
+  .previous,
+  .next {
+    background-color: var(--card);
+    color: var(--card-foreground);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-full);
+    box-shadow: var(--shadow);
+    transition: all var(--animation-duration-normal) ease;
+  }
+
+  .previous:hover:not(:disabled),
+  .next:hover:not(:disabled) {
+    background-color: var(--primary);
+    color: var(--primary-foreground);
+    border-color: var(--primary);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+  }
+
+  .previous:active:not(:disabled),
+  .next:active:not(:disabled) {
+    transform: translateY(0);
+    box-shadow: var(--shadow);
+  }
+
+  .previous:focus-visible,
+  .next:focus-visible {
+    box-shadow: var(--shadow-focus);
+    outline: none;
+  }
+
+  .previous:disabled,
+  .next:disabled {
+    background-color: var(--muted);
+    color: var(--muted-foreground);
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
+
+  .icon {
+    width: 1rem;
+    height: 1rem;
+  }
+
+  .srOnly {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+  }
+}

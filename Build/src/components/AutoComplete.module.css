@@ -1,0 +1,101 @@
+@layer base {
+  .autoComplete {
+    position: relative;
+    width: 100%;
+  }
+
+  .inputWrapper {
+    width: 100%;
+  }
+
+  .customInput {
+    font-family: var(--font-family-base);
+    font-size: 1rem;
+    line-height: 1.5;
+    color: var(--foreground);
+    background-color: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: var(--spacing-2) var(--spacing-3);
+    width: 100%;
+    transition:
+      border-color var(--animation-duration-normal) ease,
+      background-color var(--animation-duration-normal) ease,
+      box-shadow var(--animation-duration-normal) ease;
+    outline: none;
+    height: 2.5rem;
+    box-shadow:
+      inset 0 1px 2px rgba(0, 0, 0, 0.02),
+      0 1px 0 rgba(255, 255, 255, 0.3);
+  }
+
+  .customInput::placeholder {
+    color: var(--muted-foreground);
+    opacity: 0.7;
+  }
+
+  .customInput:hover {
+    border-color: color-mix(in srgb, var(--primary) 80%, transparent);
+    background-color: color-mix(in srgb, var(--card) 98%, var(--primary) 2%);
+    box-shadow:
+      inset 0 1px 2px rgba(0, 0, 0, 0.02),
+      0 2px 4px rgba(0, 0, 0, 0.05);
+  }
+
+  .customInput:focus {
+    border-color: var(--primary);
+    box-shadow:
+      0 0 0 3px color-mix(in srgb, var(--primary) 15%, transparent),
+      0 2px 4px rgba(0, 0, 0, 0.05);
+    background-color: var(--card);
+  }
+
+  .customInput:disabled {
+    background-color: var(--muted);
+    color: var(--muted-foreground);
+    cursor: not-allowed;
+    opacity: 0.75;
+    box-shadow: none;
+  }
+
+  /* Dark mode adjustments */
+  :global(.dark) .customInput {
+    background-color: color-mix(in srgb, var(--background) 80%, black);
+    box-shadow:
+      inset 0 1px 2px rgba(0, 0, 0, 0.1),
+      0 1px 0 rgba(255, 255, 255, 0.05);
+  }
+
+  :global(.dark) .customInput:hover {
+    background-color: color-mix(in srgb, var(--background) 75%, black);
+    border-color: color-mix(in srgb, var(--primary) 90%, white);
+    box-shadow:
+      inset 0 1px 2px rgba(0, 0, 0, 0.1),
+      0 2px 4px rgba(0, 0, 0, 0.15);
+  }
+
+  :global(.dark) .customInput:focus {
+    background-color: color-mix(in srgb, var(--background) 80%, black);
+    box-shadow:
+      0 0 0 3px color-mix(in srgb, var(--primary) 25%, transparent),
+      0 2px 4px rgba(0, 0, 0, 0.15);
+  }
+
+  .popoverContent {
+    width: var(--radix-popover-trigger-width);
+    max-width: none;
+    min-width: var(--radix-popover-trigger-width);
+    background-color: var(--popup);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+  }
+
+  .commandList {
+    border: none;
+    padding: var(--spacing-1);
+  }
+
+  .loadingContainer {
+    padding: var(--spacing-2);
+  }
+}

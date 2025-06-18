@@ -1,0 +1,190 @@
+@layer base {
+  .overlay {
+    position: fixed;
+    inset: 0;
+    z-index: var(--z-overlay);
+    background-color: color-mix(in srgb, black 50%, transparent);
+    backdrop-filter: blur(2px);
+    animation: overlayShow var(--animation-duration-normal)
+      cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .content {
+    position: fixed;
+    z-index: var(--z-overlay);
+    display: flex;
+    flex-direction: column;
+    background-color: var(--popup);
+    color: var(--popup-foreground);
+    box-shadow: var(--shadow-lg);
+    transition: transform var(--animation-duration-normal)
+      cubic-bezier(0.16, 1, 0.3, 1);
+    overflow-y: auto;
+  }
+
+  .top {
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 80vh;
+    max-height: 500px;
+    border-bottom-left-radius: var(--radius-md);
+    border-bottom-right-radius: var(--radius-md);
+    animation: slideDownAndFade var(--animation-duration-normal)
+      cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .bottom {
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 80vh;
+    max-height: 500px;
+    border-top-left-radius: var(--radius-md);
+    border-top-right-radius: var(--radius-md);
+    animation: slideUpAndFade var(--animation-duration-normal)
+      cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .left {
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    max-width: 400px;
+    border-top-right-radius: var(--radius-md);
+    border-bottom-right-radius: var(--radius-md);
+    animation: slideRightAndFade var(--animation-duration-normal)
+      cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .right {
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    max-width: 400px;
+    border-top-left-radius: var(--radius-md);
+    border-bottom-left-radius: var(--radius-md);
+    animation: slideLeftAndFade var(--animation-duration-normal)
+      cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .close {
+    position: absolute;
+    top: var(--spacing-4);
+    right: var(--spacing-4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    border-radius: var(--radius-full);
+    background-color: var(--muted);
+    color: var(--muted-foreground);
+    border: none;
+    cursor: pointer;
+    transition:
+      background-color var(--animation-duration-fast) ease,
+      transform var(--animation-duration-fast) ease;
+  }
+
+  .close:hover {
+    background-color: var(--muted-foreground);
+    color: var(--muted);
+    transform: scale(1.05);
+  }
+
+  .close:focus-visible {
+    outline: none;
+    box-shadow: var(--shadow-focus);
+  }
+
+  .closeIcon {
+    width: 1rem;
+    height: 1rem;
+  }
+
+  .header {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-2);
+    padding: var(--spacing-6);
+    padding-right: var(--spacing-12);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .footer {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-3);
+    margin-top: auto;
+    padding: var(--spacing-6);
+    border-top: 1px solid var(--border);
+  }
+
+  .title {
+    font-family: var(--font-family-heading);
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--popup-foreground);
+  }
+
+  .description {
+    font-size: 0.875rem;
+    color: var(--muted-foreground);
+    line-height: 1.5;
+  }
+
+  @keyframes overlayShow {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes slideUpAndFade {
+    from {
+      transform: translateY(100%);
+    }
+    to {
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes slideDownAndFade {
+    from {
+      transform: translateY(-100%);
+    }
+    to {
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes slideLeftAndFade {
+    from {
+      transform: translateX(100%);
+    }
+    to {
+      transform: translateX(0);
+    }
+  }
+
+  @keyframes slideRightAndFade {
+    from {
+      transform: translateX(-100%);
+    }
+    to {
+      transform: translateX(0);
+    }
+  }
+
+  @media (max-width: 640px) {
+    .left,
+    .right {
+      max-width: 100%;
+    }
+  }
+}

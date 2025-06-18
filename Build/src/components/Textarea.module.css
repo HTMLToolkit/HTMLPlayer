@@ -1,0 +1,79 @@
+@layer base {
+  .textarea {
+    font-family: var(--font-family-base);
+    font-size: 1rem;
+    line-height: 1.5;
+    color: var(--foreground);
+    background-color: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: var(--spacing-2);
+    width: 100%;
+    min-height: 6rem;
+    resize: vertical;
+    transition:
+      border-color var(--animation-duration-normal) ease,
+      background-color var(--animation-duration-normal) ease;
+    outline: none;
+  }
+
+  .textarea::placeholder {
+    color: var(--muted-foreground);
+  }
+
+    .textarea:hover {
+    border-color: color-mix(in srgb, var(--primary) 80%, transparent);
+    background-color: color-mix(in srgb, var(--card) 98%, var(--primary) 2%);
+  }
+
+  .textarea:focus {
+    border-color: var(--primary);
+    box-shadow:
+      0 0 0 3px color-mix(in srgb, var(--primary) 15%, transparent);
+    background-color: var(--card);
+  }
+
+  .textarea:disabled {
+    background-color: var(--muted);
+    color: var(--muted-foreground);
+    cursor: not-allowed;
+    opacity: 0.75;
+    box-shadow: none;
+  }
+
+  .noResize {
+    resize: none;
+  }
+
+  .clear {
+    background-color: transparent;
+    border: none;
+    padding: 0;
+    box-shadow: none;
+    border-radius: 0;
+  }
+
+  .clear:hover,
+  .clear:focus {
+    background-color: transparent;
+    border: none;
+    box-shadow: none;
+  }
+
+    /* Dark mode adjustments */
+  :global(.dark) .textarea {
+    background-color: color-mix(in srgb, var(--background) 80%, black);
+  }
+
+  :global(.dark) .textarea:hover {
+    background-color: color-mix(in srgb, var(--background) 75%, black);
+    border-color: color-mix(in srgb, var(--primary) 90%, white);
+  }
+
+  :global(.dark) .textarea:focus {
+    background-color: color-mix(in srgb, var(--background) 80%, black);
+    box-shadow:
+      inset 0 1px 2px color-mix(in srgb, black 5%, transparent),
+      0 0 0 3px color-mix(in srgb, var(--primary) 25%, transparent);
+  }
+}
