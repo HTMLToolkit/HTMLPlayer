@@ -1,5 +1,6 @@
 .player {
   height: 180px;
+  position: relative;
   background: rgba(30, 58, 138, 0.45);
   backdrop-filter: blur(10px);
   border-top: 1px solid rgba(0, 191, 255, 0.4);
@@ -320,7 +321,7 @@
 
 .visualizerOverlay {
   position: absolute;
-  bottom: 100%;
+  bottom: 100%; /* place above the player */
   left: 0;
   right: 0;
   height: 300px;
@@ -328,16 +329,10 @@
   backdrop-filter: blur(10px);
   border: 1px solid rgba(0, 191, 255, 0.3);
   border-bottom: none;
-  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0; /* rounded top corners */
   z-index: var(--z-content);
   animation: slideUp var(--animation-duration-normal) ease-out;
 }
-
-.visualizer {
-  width: 100%;
-  height: 100%;
-}
-
 @keyframes slideUp {
   from {
     transform: translateY(100%);
@@ -348,6 +343,14 @@
     opacity: 1;
   }
 }
+
+
+.visualizer {
+  width: 100%;
+  height: 100%;
+}
+
+
 
 @media (max-width: 768px) {
   .player {

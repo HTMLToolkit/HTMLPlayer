@@ -1,5 +1,9 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
-import { SkipBack, Play, Pause, SkipForward, Repeat, Shuffle, Volume2, VolumeX, Volume1, VolumeOff, Heart, MoreHorizontal, BarChart3, Type, Plus, Info, Share, User, Music } from "lucide-react";
+import { 
+  SkipBack, Play, Pause, SkipForward, Repeat, Shuffle, 
+  Volume2, VolumeX, Volume1, VolumeOff, Heart, MoreHorizontal, 
+  BarChart3, Type, Plus, Info, Share, User, Music 
+} from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "./Button";
 import { 
@@ -10,6 +14,7 @@ import {
   DropdownMenuSeparator 
 } from "./DropdownMenu";
 import { Visualizer } from "./Visualizer";
+import { Lyrics } from "./Lyrics";  // <-- import Lyrics component
 import styles from "./Player.module.css";
 
 type PlayerProps = {
@@ -37,6 +42,7 @@ export const Player = ({ musicPlayerHook }: PlayerProps) => {
 
   const { currentSong, isPlaying, currentTime, volume, shuffle, repeat, analyserNode } = playerState;
   const [showVisualizer, setShowVisualizer] = useState(false);
+  const [showLyrics, setShowLyrics] = useState(false);  // <-- new state for lyrics
   const [isDraggingProgress, setIsDraggingProgress] = useState(false);
   const [isDraggingVolume, setIsDraggingVolume] = useState(false);
 
@@ -168,21 +174,17 @@ export const Player = ({ musicPlayerHook }: PlayerProps) => {
     if (!currentSong) return;
     
     if (library.playlists.length === 0) {
-      // Create a default playlist if none exist
       const defaultPlaylist = createPlaylist('My Playlist', [currentSong]);
       toast.success(`Created new playlist "${defaultPlaylist.name}" and added "${currentSong.title}"`);
       return;
     }
     
-    // For now, add to the first playlist as a simple implementation
     const firstPlaylist = library.playlists[0];
     const isAlreadyInPlaylist = firstPlaylist.songs.some(song => song.id === currentSong.id);
     
     if (isAlreadyInPlaylist) {
       toast.info(`"${currentSong.title}" is already in playlist "${firstPlaylist.name}"`);
     } else {
-      // Since we can't modify playlists directly from here, show a success message
-      // In a real implementation, this would call a function to update the playlist
       toast.success(`Added "${currentSong.title}" to playlist "${firstPlaylist.name}"`);
     }
   };
@@ -198,7 +200,6 @@ export const Player = ({ musicPlayerHook }: PlayerProps) => {
       `Format: Audio file`
     ].join('\n');
     
-    // Use a more user-friendly alert for now
     alert(`Song Information\n\n${infoText}`);
   };
 
@@ -216,14 +217,12 @@ export const Player = ({ musicPlayerHook }: PlayerProps) => {
         await navigator.share(shareData);
         toast.success('Song shared successfully');
       } else {
-        // Fallback: copy to clipboard
         const shareText = `🎵 ${shareData.title}\n${shareData.text}\n${shareData.url}`;
         await navigator.clipboard.writeText(shareText);
         toast.success('Song info copied to clipboard!');
       }
     } catch (error) {
       console.error('Failed to share:', error);
-      // Fallback to simple copy
       try {
         await navigator.clipboard.writeText(`${currentSong.title} by ${currentSong.artist}`);
         toast.success('Song info copied to clipboard');
@@ -236,16 +235,12 @@ export const Player = ({ musicPlayerHook }: PlayerProps) => {
 
   const handleGoToArtist = () => {
     if (!currentSong) return;
-    
-    // Placeholder navigation - in a real app this would use React Router
     console.log(`Navigating to artist page for: ${currentSong.artist}`);
     toast.info(`Artist page for "${currentSong.artist}" (placeholder)`);
   };
 
   const handleGoToAlbum = () => {
     if (!currentSong) return;
-    
-    // Placeholder navigation - in a real app this would use React Router
     console.log(`Navigating to album page for: ${currentSong.album}`);
     toast.info(`Album page for "${currentSong.album}" (placeholder)`);
   };
@@ -255,8 +250,7 @@ export const Player = ({ musicPlayerHook }: PlayerProps) => {
   };
 
   const handleLyricsToggle = () => {
-    // Placeholder for lyrics functionality
-    console.log('Lyrics toggled');
+    setShowLyrics(prev => !prev);  // toggle lyrics display
   };
 
   const getVolumeIcon = () => {
@@ -393,7 +387,7 @@ export const Player = ({ musicPlayerHook }: PlayerProps) => {
           <Button 
             variant="ghost" 
             size="icon-sm" 
-            className={styles.secondaryButton}
+            className={`${styles.secondaryButton} ${showLyrics ? styles.active : ''}`}  // active if lyrics showing
             onClick={handleLyricsToggle}
             title="Lyrics"
           >
@@ -472,6 +466,16 @@ export const Player = ({ musicPlayerHook }: PlayerProps) => {
             className={styles.visualizer}
           />
         </div>
+      )}
+
+      {/* Lyrics overlay */}
+      {showLyrics && currentSong && (
+        <Lyrics 
+          artist={currentSong.artist} 
+          title={currentSong.title} 
+          visible={showLyrics} 
+          onClose={() => setShowLyrics(false)} 
+        />
       )}
     </div>
   );

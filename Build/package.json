@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "vite build && ./build.sh",
     "start": "cd dist && python3 -m http.server 8000",
     "preview": "vite preview",
     "test": "react-scripts test",
