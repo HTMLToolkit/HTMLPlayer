@@ -1,4 +1,4 @@
-import { CommandGroup, CommandItem, CommandList } from "./Command";
+import { CommandGroup, CommandItem, CommandList } from "../components/Command";
 import { Command as CommandPrimitive } from "cmdk";
 import {
   useState,
@@ -7,9 +7,9 @@ import {
   type KeyboardEvent,
   type ReactNode,
 } from "react";
-import { Popover, PopoverContent, PopoverTrigger } from "./Popover";
+import { Popover, PopoverContent, PopoverTrigger } from "../components/Popover";
 
-import { Skeleton } from "./Skeleton";
+import { Skeleton } from "../components/Skeleton";
 import styles from "./AutoComplete.module.css";
 
 export type Option<T = unknown> = {

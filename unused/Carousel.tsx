@@ -13,7 +13,7 @@ import {
   ChevronUp,
   ChevronDown,
 } from "lucide-react";
-import { Button } from "./Button";
+import { Button } from "../components/Button";
 import styles from "./Carousel.module.css";
 
 type CarouselProps = {

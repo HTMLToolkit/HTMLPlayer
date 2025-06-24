@@ -271,7 +271,7 @@ export const MainContent = ({ musicPlayerHook }: MainContentProps) => {
               placeholder="Search songs..." 
               className={styles.searchInput}
               value={songSearchQuery}
-              onChange={(e) => handleSongSearch(e.target.value)}
+              onChange={(e: any) => handleSongSearch(e.target.value)}
             />
           </div>
           <Button 
@@ -332,7 +332,7 @@ export const MainContent = ({ musicPlayerHook }: MainContentProps) => {
                 variant="ghost" 
                 size="icon-sm" 
                 className={`${styles.songActionButton} ${isFavorited(song.id) ? styles.favorited : ''}`}
-                onClick={(e) => handleToggleFavorite(song.id, e)}
+                onClick={(e: any) => handleToggleFavorite(song.id, e)}
                 title={isFavorited(song.id) ? "Remove from favorites" : "Add to favorites"}
               >
                 <Heart size={14} fill={isFavorited(song.id) ? "currentColor" : "none"} />

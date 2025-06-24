@@ -137,7 +137,7 @@ export const Sidebar = ({ musicPlayerHook, onCollapseChange }: SidebarProps) => 
             placeholder="Search playlists..." 
             className={styles.searchInput}
             value={playlistSearchQuery}
-            onChange={(e) => handlePlaylistSearch(e.target.value)}
+            onChange={(e: any) => handlePlaylistSearch(e.target.value)}
           />
         </div>
         <Button 
@@ -237,8 +237,8 @@ export const Sidebar = ({ musicPlayerHook, onCollapseChange }: SidebarProps) => 
             <Input
               placeholder="Playlist name..."
               value={newPlaylistName}
-              onChange={(e) => setNewPlaylistName(e.target.value)}
-              onKeyDown={(e) => {
+              onChange={(e: any) => setNewPlaylistName(e.target.value)}
+              onKeyDown={(e: any) => {
                 if (e.key === 'Enter') {
                   handleCreatePlaylistConfirm();
                 }
