@@ -1,3 +1,4 @@
+import parse from 'id3-parser';
 export type AudioFile = {
   file: File;
   name: string;
@@ -63,44 +64,51 @@ export function pickAudioFiles(): Promise<AudioFile[]> {
 }
 
 export async function extractAudioMetadata(file: File): Promise<AudioMetadata> {
-  return new Promise((resolve, reject) => {
-    const audio = new Audio();
-    const url = URL.createObjectURL(file);
-    
+  // Read file as ArrayBuffer for id3-parser
+  let id3Tags: any = null;
+  try {
+    const arrayBuffer = await file.arrayBuffer();
+    // id3-parser expects a Buffer, which is available in Node.js, but in browser we use Uint8Array
+    id3Tags = await parse(new Uint8Array(arrayBuffer));
+  } catch (e) {
+    // ignore, fallback to filename
+  }
+
+  // Fallbacks
+  const fileName = file.name.replace(/\.[^/.]+$/, '');
+  let title = fileName;
+  let artist = 'Unknown Artist';
+  let album = 'Unknown Album';
+
+  if (id3Tags) {
+    if (id3Tags.artist && typeof id3Tags.artist === 'string') artist = id3Tags.artist;
+    if (id3Tags.title && typeof id3Tags.title === 'string') title = id3Tags.title;
+    if (id3Tags.album && typeof id3Tags.album === 'string') album = id3Tags.album;
+  } else if (fileName.includes(' - ')) {
+    // Try to parse filename patterns like "Artist - Title" or "Title - Artist"
+    const parts = fileName.split(' - ');
+    if (parts.length >= 2) {
+      artist = parts[0].trim();
+      title = parts[1].trim();
+    }
+  }
+
+  // Get duration using Audio element
+  const url = URL.createObjectURL(file);
+  const audio = new Audio();
+  const duration = await new Promise<number>((resolve) => {
     audio.onloadedmetadata = () => {
-      // Extract metadata from filename as fallback
-      const fileName = file.name.replace(/\.[^/.]+$/, ''); // Remove extension
-      let title = fileName;
-      let artist = 'Unknown Artist';
-      let album = 'Unknown Album';
-      
-      // Try to parse filename patterns like "Artist - Title" or "Title - Artist"
-      if (fileName.includes(' - ')) {
-        const parts = fileName.split(' - ');
-        if (parts.length >= 2) {
-          artist = parts[0].trim();
-          title = parts[1].trim();
-        }
-      }
-      
-      const metadata: AudioMetadata = {
-        title,
-        artist,
-        album,
-        duration: audio.duration || 0
-      };
-      
+      resolve(audio.duration || 0);
       URL.revokeObjectURL(url);
-      resolve(metadata);
     };
-    
     audio.onerror = () => {
+      resolve(0);
       URL.revokeObjectURL(url);
-      reject(new Error(`Failed to load audio metadata for ${file.name}`));
     };
-    
     audio.src = url;
   });
+
+  return { title, artist, album, duration };
 }
 
 export function createAudioUrl(file: File): string {

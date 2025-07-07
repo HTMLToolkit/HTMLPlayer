@@ -95,6 +95,8 @@
   --chart-color-3: hsl(330, 80%, 60%);
   --chart-color-4: hsl(145, 65%, 42%);
   --chart-color-5: hsl(38, 95%, 60%);
+  --sidebar-width: 250px;
+  --sidebar-collapsed-width: 40px;
 }
 
 .dark {
@@ -143,6 +145,15 @@
   --shadow-focus: 0 0 0 2px hsla(215, 70%, 60%, 0.25),
     0 1px 2px hsla(220, 15%, 0%, 0.1);
 }
+
 body {
   font-family: var(--font-family-base);
+}
+
+body[data-sidebar="expanded"] {
+  --current-sidebar-width: var(--sidebar-width);
+}
+
+body[data-sidebar="collapsed"] {
+  --current-sidebar-width: var(--sidebar-collapsed-width);
 }

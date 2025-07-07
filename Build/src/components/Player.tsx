@@ -287,177 +287,7 @@ export const Player = ({ musicPlayerHook }: PlayerProps) => {
   const isFavorite = library.favorites.includes(currentSong.id);
 
   return (
-    <div className={styles.player}>
-      <div className={styles.currentSong}>
-        <div className={styles.albumArt}></div>
-        <div className={styles.songInfo}>
-          <div className={styles.songTitle}>{currentSong.title}</div>
-          <div className={styles.artistName}>{currentSong.artist}</div>
-        </div>
-        <Button 
-          variant="ghost" 
-          size="icon-sm" 
-          className={`${styles.favoriteButton} ${isFavorite ? styles.favorited : ''}`}
-          onClick={handleFavorite}
-          title="Add to favorites"
-        >
-          <Heart size={16} />
-        </Button>
-      </div>
-
-      <div className={styles.controls}>
-        <div className={styles.playbackButtons}>
-          <Button 
-            variant="ghost" 
-            size="icon-sm" 
-            className={`${styles.controlButton} ${shuffle ? styles.active : ''}`}
-            onClick={toggleShuffle}
-            title={`Shuffle: ${shuffle ? 'On' : 'Off'}`}
-          >
-            <Shuffle size={16} />
-          </Button>
-          <Button 
-            variant="ghost" 
-            size="icon-md" 
-            className={styles.controlButton}
-            onClick={playPrevious}
-            title="Previous"
-          >
-            <SkipBack size={18} />
-          </Button>
-          <Button 
-            variant="primary" 
-            size="icon-lg" 
-            className={styles.playButton}
-            onClick={togglePlayPause}
-            title={isPlaying ? 'Pause' : 'Play'}
-          >
-            {isPlaying ? <Pause size={20} /> : <Play size={20} />}
-          </Button>
-          <Button 
-            variant="ghost" 
-            size="icon-md" 
-            className={styles.controlButton}
-            onClick={playNext}
-            title="Next"
-          >
-            <SkipForward size={18} />
-          </Button>
-          <Button 
-            variant="ghost" 
-            size="icon-sm" 
-            className={`${styles.controlButton} ${repeat !== 'off' ? styles.active : ''} ${repeat === 'one' ? styles.repeatOne : ''}`}
-            onClick={toggleRepeat}
-            title={getRepeatTitle()}
-          >
-            <Repeat size={16} />
-          </Button>
-        </div>
-        
-        <div className={styles.progressSection}>
-          <span className={styles.timeDisplay}>{formatTime(currentTime)}</span>
-          <div 
-            className={`${styles.progressBar} ${isDraggingProgress ? styles.dragging : ''}`}
-            ref={progressRef}
-            onClick={handleProgressClick}
-            onMouseDown={handleProgressMouseDown}
-            onTouchStart={handleProgressTouchStart}
-            title="Seek"
-          >
-            <div 
-              className={styles.progressFill}
-              style={{ width: `${progressPercentage}%` }}
-            ></div>
-          </div>
-          <span className={styles.timeDisplay}>{formatTime(currentSong.duration)}</span>
-        </div>
-      </div>
-
-      <div className={styles.rightSection}>
-        <div className={styles.secondaryControls}>
-          <Button 
-            variant="ghost" 
-            size="icon-sm" 
-            className={`${styles.secondaryButton} ${showVisualizer ? styles.active : ''}`}
-            onClick={handleVisualizerToggle}
-            title="Visualizer"
-          >
-            <BarChart3 size={16} />
-          </Button>
-          <Button 
-            variant="ghost" 
-            size="icon-sm" 
-            className={`${styles.secondaryButton} ${showLyrics ? styles.active : ''}`}  // active if lyrics showing
-            onClick={handleLyricsToggle}
-            title="Lyrics"
-          >
-            <Type size={16} />
-          </Button>
-        </div>
-        
-        <div className={styles.volumeControls}>
-          <Button 
-            variant="ghost" 
-            size="icon-sm" 
-            className={styles.volumeButton}
-            onClick={handleVolumeToggle}
-            title={volume === 0 ? 'Unmute' : 'Mute'}
-          >
-            {getVolumeIcon()}
-          </Button>
-          <div 
-            className={`${styles.volumeBar} ${isDraggingVolume ? styles.dragging : ''}`}
-            ref={volumeRef}
-            onClick={handleVolumeClick}
-            onMouseDown={handleVolumeMouseDown}
-            onTouchStart={handleVolumeTouchStart}
-            title="Volume"
-          >
-            <div 
-              className={styles.volumeFill}
-              style={{ width: `${volumePercentage}%` }}
-            ></div>
-          </div>
-        </div>
-        
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button 
-              variant="ghost" 
-              size="icon-sm" 
-              className={styles.moreButton}
-              title="More options"
-            >
-              <MoreHorizontal size={16} />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" sideOffset={8}>
-            <DropdownMenuItem onClick={handleAddToPlaylist}>
-              <Plus size={16} style={{ marginRight: 8 }} />
-              Add to playlist
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={handleShowSongInfo}>
-              <Info size={16} style={{ marginRight: 8 }} />
-              Song info
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={handleShare}>
-              <Share size={16} style={{ marginRight: 8 }} />
-              Share
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={handleGoToArtist}>
-              <User size={16} style={{ marginRight: 8 }} />
-              Go to artist
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={handleGoToAlbum}>
-              <Music size={16} style={{ marginRight: 8 }} />
-              Go to album
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
-      
+    <>
       {showVisualizer && (
         <div className={styles.visualizerOverlay}>
           <Visualizer 
@@ -467,16 +297,187 @@ export const Player = ({ musicPlayerHook }: PlayerProps) => {
           />
         </div>
       )}
+      <div className={styles.player}>
+        <div className={styles.currentSong}>
+          <div className={styles.albumArt}></div>
+          <div className={styles.songInfo}>
+            <div className={styles.songTitle}>{currentSong.title}</div>
+            <div className={styles.artistName}>{currentSong.artist}</div>
+          </div>
+          <Button 
+            variant="ghost" 
+            size="icon-sm" 
+            className={`${styles.favoriteButton} ${isFavorite ? styles.favorited : ''}`}
+            onClick={handleFavorite}
+            title="Add to favorites"
+          >
+            <Heart size={16} />
+          </Button>
+        </div>
 
-      {/* Lyrics overlay */}
-      {showLyrics && currentSong && (
-        <Lyrics 
-          artist={currentSong.artist} 
-          title={currentSong.title} 
-          visible={showLyrics} 
-          onClose={() => setShowLyrics(false)} 
-        />
-      )}
-    </div>
+        <div className={styles.controls}>
+          <div className={styles.playbackButtons}>
+            <Button 
+              variant="ghost" 
+              size="icon-sm" 
+              className={`${styles.controlButton} ${shuffle ? styles.active : ''}`}
+              onClick={toggleShuffle}
+              title={`Shuffle: ${shuffle ? 'On' : 'Off'}`}
+            >
+              <Shuffle size={16} />
+            </Button>
+            <Button 
+              variant="ghost" 
+              size="icon-md" 
+              className={styles.controlButton}
+              onClick={playPrevious}
+              title="Previous"
+            >
+              <SkipBack size={18} />
+            </Button>
+            <Button 
+              variant="primary" 
+              size="icon-lg" 
+              className={styles.playButton}
+              onClick={togglePlayPause}
+              title={isPlaying ? 'Pause' : 'Play'}
+            >
+              {isPlaying ? <Pause size={20} /> : <Play size={20} />}
+            </Button>
+            <Button 
+              variant="ghost" 
+              size="icon-md" 
+              className={styles.controlButton}
+              onClick={playNext}
+              title="Next"
+            >
+              <SkipForward size={18} />
+            </Button>
+            <Button 
+              variant="ghost" 
+              size="icon-sm" 
+              className={`${styles.controlButton} ${repeat !== 'off' ? styles.active : ''} ${repeat === 'one' ? styles.repeatOne : ''}`}
+              onClick={toggleRepeat}
+              title={getRepeatTitle()}
+            >
+              <Repeat size={16} />
+            </Button>
+          </div>
+          
+          <div className={styles.progressSection}>
+            <span className={styles.timeDisplay}>{formatTime(currentTime)}</span>
+            <div 
+              className={`${styles.progressBar} ${isDraggingProgress ? styles.dragging : ''}`}
+              ref={progressRef}
+              onClick={handleProgressClick}
+              onMouseDown={handleProgressMouseDown}
+              onTouchStart={handleProgressTouchStart}
+              title="Seek"
+            >
+              <div 
+                className={styles.progressFill}
+                style={{ width: `${progressPercentage}%` }}
+              ></div>
+            </div>
+            <span className={styles.timeDisplay}>{formatTime(currentSong.duration)}</span>
+          </div>
+        </div>
+
+        <div className={styles.rightSection}>
+          <div className={styles.secondaryControls}>
+            <Button 
+              variant="ghost" 
+              size="icon-sm" 
+              className={`${styles.secondaryButton} ${showVisualizer ? styles.active : ''}`}
+              onClick={handleVisualizerToggle}
+              title="Visualizer"
+            >
+              <BarChart3 size={16} />
+            </Button>
+            <Button 
+              variant="ghost" 
+              size="icon-sm" 
+              className={`${styles.secondaryButton} ${showLyrics ? styles.active : ''}`}  // active if lyrics showing
+              onClick={handleLyricsToggle}
+              title="Lyrics"
+            >
+              <Type size={16} />
+            </Button>
+          </div>
+          
+          <div className={styles.volumeControls}>
+            <Button 
+              variant="ghost" 
+              size="icon-sm" 
+              className={styles.volumeButton}
+              onClick={handleVolumeToggle}
+              title={volume === 0 ? 'Unmute' : 'Mute'}
+            >
+              {getVolumeIcon()}
+            </Button>
+            <div 
+              className={`${styles.volumeBar} ${isDraggingVolume ? styles.dragging : ''}`}
+              ref={volumeRef}
+              onClick={handleVolumeClick}
+              onMouseDown={handleVolumeMouseDown}
+              onTouchStart={handleVolumeTouchStart}
+              title="Volume"
+            >
+              <div 
+                className={styles.volumeFill}
+                style={{ width: `${volumePercentage}%` }}
+              ></div>
+            </div>
+          </div>
+          
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button 
+                variant="ghost" 
+                size="icon-sm" 
+                className={styles.moreButton}
+                title="More options"
+              >
+                <MoreHorizontal size={16} />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" sideOffset={8}>
+              <DropdownMenuItem onClick={handleAddToPlaylist}>
+                <Plus size={16} style={{ marginRight: 8 }} />
+                Add to playlist
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={handleShowSongInfo}>
+                <Info size={16} style={{ marginRight: 8 }} />
+                Song info
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={handleShare}>
+                <Share size={16} style={{ marginRight: 8 }} />
+                Share
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={handleGoToArtist}>
+                <User size={16} style={{ marginRight: 8 }} />
+                Go to artist
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={handleGoToAlbum}>
+                <Music size={16} style={{ marginRight: 8 }} />
+                Go to album
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+        
+        {/* Lyrics overlay */}
+        {showLyrics && currentSong && (
+          <Lyrics 
+            artist={currentSong.artist} 
+            title={currentSong.title} 
+            visible={showLyrics} 
+            onClose={() => setShowLyrics(false)} 
+          />
+        )}
+      </div>
+    </>
   );
 };

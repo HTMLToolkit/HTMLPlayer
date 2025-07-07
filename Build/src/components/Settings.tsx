@@ -28,15 +28,28 @@ import {
 } from "lucide-react";
 import styles from "./Settings.module.css";
 
-import { PlayerSettings } from "../helpers/musicPlayerHook";
+
+
+export type PlayerSettings = {
+  volume: number;
+  audioQuality: 'low' | 'medium' | 'high' | 'lossless';
+  crossfade: number;
+  defaultShuffle: boolean;
+  defaultRepeat: 'off' | 'one' | 'all';
+  autoPlayNext: boolean;
+  compactMode: boolean;
+  showAlbumArt: boolean;
+  showLyrics: boolean;
+};
 
 export interface SettingsProps {
   className?: string;
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
-  settings?: PlayerSettings;
-  onSettingsChange?: (settings: Partial<PlayerSettings>) => void;
+  settings: PlayerSettings;
+  onSettingsChange: (settings: Partial<PlayerSettings>) => void;
 }
+
 
 export const Settings = ({ 
   className, 
@@ -45,37 +58,22 @@ export const Settings = ({
   settings,
   onSettingsChange 
 }: SettingsProps) => {
-  // Use settings from props or defaults
-  const currentSettings = settings || {
-    volume: 0.75,
-    audioQuality: 'high' as const,
-    crossfade: 3,
-    defaultShuffle: false,
-    defaultRepeat: 'off' as const,
-    autoPlayNext: true,
-    compactMode: false,
-    showAlbumArt: true,
-    showLyrics: false,
-  };
-
   // Convert volume to percentage for display
-  const volume = [Math.round(currentSettings.volume * 100)];
-  const audioQuality = currentSettings.audioQuality;
-  const crossfade = [currentSettings.crossfade];
-  const defaultShuffle = currentSettings.defaultShuffle;
-  const defaultRepeat = currentSettings.defaultRepeat;
-  const autoPlayNext = currentSettings.autoPlayNext;
-  const compactMode = currentSettings.compactMode;
-  const showAlbumArt = currentSettings.showAlbumArt;
-  const showLyrics = currentSettings.showLyrics;
+  const volume = [Math.round(settings.volume * 100)];
+  const audioQuality = settings.audioQuality;
+  const crossfade = [settings.crossfade];
+  const defaultShuffle = settings.defaultShuffle;
+  const defaultRepeat = settings.defaultRepeat;
+  const autoPlayNext = settings.autoPlayNext;
+  const compactMode = settings.compactMode;
+  const showAlbumArt = settings.showAlbumArt;
+  const showLyrics = settings.showLyrics;
 
-  // Data management state
-  const [cacheSize] = useState("2.3 GB");
-  const [storageUsed] = useState("4.7 GB");
+  // Remove no-op data management state and stub handlers
 
+  // Handlers that actually call onSettingsChange
   const handleResetSettings = () => {
-    console.log("Resetting settings to defaults");
-    const defaultSettings: PlayerSettings = {
+    onSettingsChange({
       volume: 0.75,
       audioQuality: 'high',
       crossfade: 3,
@@ -85,59 +83,43 @@ export const Settings = ({
       compactMode: false,
       showAlbumArt: true,
       showLyrics: false,
-    };
-    onSettingsChange?.(defaultSettings);
+    });
   };
 
   const handleVolumeChange = (newVolume: number[]) => {
-    onSettingsChange?.({ volume: newVolume[0] / 100 });
+    onSettingsChange({ volume: newVolume[0] / 100 });
   };
 
   const handleAudioQualityChange = (quality: string) => {
-    onSettingsChange?.({ audioQuality: quality as PlayerSettings['audioQuality'] });
+    onSettingsChange({ audioQuality: quality as SettingsProps["settings"]["audioQuality"] });
   };
 
   const handleCrossfadeChange = (newCrossfade: number[]) => {
-    onSettingsChange?.({ crossfade: newCrossfade[0] });
+    onSettingsChange({ crossfade: newCrossfade[0] });
   };
 
   const handleShuffleChange = (shuffle: boolean) => {
-    onSettingsChange?.({ defaultShuffle: shuffle });
+    onSettingsChange({ defaultShuffle: shuffle });
   };
 
   const handleRepeatChange = (repeat: string) => {
-    onSettingsChange?.({ defaultRepeat: repeat as PlayerSettings['defaultRepeat'] });
+    onSettingsChange({ defaultRepeat: repeat as SettingsProps["settings"]["defaultRepeat"] });
   };
 
   const handleAutoPlayChange = (autoPlay: boolean) => {
-    onSettingsChange?.({ autoPlayNext: autoPlay });
+    onSettingsChange({ autoPlayNext: autoPlay });
   };
 
   const handleCompactModeChange = (compact: boolean) => {
-    onSettingsChange?.({ compactMode: compact });
+    onSettingsChange({ compactMode: compact });
   };
 
   const handleShowAlbumArtChange = (show: boolean) => {
-    onSettingsChange?.({ showAlbumArt: show });
+    onSettingsChange({ showAlbumArt: show });
   };
 
   const handleShowLyricsChange = (show: boolean) => {
-    onSettingsChange?.({ showLyrics: show });
-  };
-
-  const handleExportSettings = () => {
-    console.log("Exporting settings");
-    // Implementation would export settings to file
-  };
-
-  const handleImportSettings = () => {
-    console.log("Importing settings");
-    // Implementation would import settings from file
-  };
-
-  const handleClearCache = () => {
-    console.log("Clearing cache");
-    // Implementation would clear application cache
+    onSettingsChange({ showLyrics: show });
   };
 
   return (
@@ -321,61 +303,6 @@ export const Settings = ({
                   checked={showLyrics}
                   onCheckedChange={handleShowLyricsChange}
                 />
-              </div>
-            </section>
-
-            {/* Data Management Section */}
-            <section className={styles.section}>
-              <div className={styles.sectionHeader}>
-                <Database className={styles.sectionIcon} />
-                <h3 className={styles.sectionTitle}>Data Management</h3>
-              </div>
-
-              <div className={styles.settingItem}>
-                <div className={styles.settingInfo}>
-                  <label>Storage Usage</label>
-                  <p className={styles.settingDescription}>
-                    Cache: {cacheSize} • Total: {storageUsed}
-                  </p>
-                </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleClearCache}
-                  className={styles.actionButton}
-                >
-                  <Trash2 size={16} />
-                  Clear Cache
-                </Button>
-              </div>
-
-              <div className={styles.settingItem}>
-                <div className={styles.settingInfo}>
-                  <label>Settings Backup</label>
-                  <p className={styles.settingDescription}>
-                    Export or import your settings configuration
-                  </p>
-                </div>
-                <div className={styles.buttonGroup}>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleExportSettings}
-                    className={styles.actionButton}
-                  >
-                    <Download size={16} />
-                    Export
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleImportSettings}
-                    className={styles.actionButton}
-                  >
-                    <Upload size={16} />
-                    Import
-                  </Button>
-                </div>
               </div>
             </section>
           </div>

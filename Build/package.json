@@ -40,6 +40,7 @@
     "cmdk": "^1.0.4",
     "embla-carousel": "^8.5.2",
     "embla-carousel-react": "^8.5.2",
+    "id3-parser": "^3.0.0",
     "lucide-react": "^0.477.0",
     "pixi.js": "7.4.3",
     "react": "^19.1.0",

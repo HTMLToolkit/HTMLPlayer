@@ -15,11 +15,12 @@
 
 .controls {
   position: absolute;
-  top: var(--spacing-4);
-  left: var(--spacing-4);
+  bottom: var(--spacing-4);
+  right: var(--spacing-4);
   display: flex;
   gap: var(--spacing-2);
   z-index: var(--z-content);
+  flex-direction: row-reverse;
 }
 
 .dropdownTrigger {
@@ -38,12 +39,12 @@
 
 .settingsPanel {
   position: absolute;
-  top: calc(var(--spacing-4) * 2 + 40px);
-  left: var(--spacing-4);
+  bottom: calc(var(--spacing-4) * 2 + 40px); /* Space above the button */
+  right: var(--spacing-4);
   background: rgba(var(--card-rgb), 0.8);
   backdrop-filter: blur(8px);
   border: 1px solid var(--border);
-  border-radius: var(--radius-md);
+  border-radius: 0 0 var(--radius-md) var(--radius-md); /* Only bottom corners rounded */
   padding: var(--spacing-4);
   z-index: var(--z-content);
   display: flex;
@@ -51,7 +52,10 @@
   gap: var(--spacing-3);
   max-width: 300px;
   color: var(--foreground);
+  transform-origin: top right;
+  animation: slideDownFade 0.25s ease-out;
 }
+
 
 .settingsPanel h4 {
   margin: 0 0 var(--spacing-2) 0;
@@ -127,4 +131,15 @@
 
 .dropdownContent::-webkit-scrollbar-thumb:hover {
   background-color: var(--muted-foreground);
+}
+
+@keyframes slideDownFade {
+  from {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }

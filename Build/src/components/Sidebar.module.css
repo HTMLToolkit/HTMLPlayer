@@ -1,5 +1,5 @@
 .sidebar {
-  width: 250px;
+  width: var(--sidebar-width);
   height: 100vh;
   background: rgba(30, 58, 138, 0.4);
   backdrop-filter: blur(10px);
@@ -12,7 +12,7 @@
 }
 
 .sidebarCollapsed {
-  width: 40px;
+  width: var(--sidebar-collapsed-width);
   height: 100vh;
   background: rgba(30, 58, 138, 0.4);
   backdrop-filter: blur(10px);
