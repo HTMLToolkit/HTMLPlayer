@@ -1,7 +1,7 @@
 [package]
-name = "htmlplayer"
-version = "0.1.0"
-description = "A Tauri App"
+name = "HTMLPlayer"
+version = "2.0.0"
+description = "A React Local Music App"
 authors = ["you"]
 edition = "2021"
 
