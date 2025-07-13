@@ -1,0 +1,169 @@
+@import url(https://fonts.googleapis.com/css2?family=Inter&display=swap);
+@import url(https://fonts.googleapis.com/css2?family=Poppins&display=swap);
+@import url(https://fonts.googleapis.com/css2?family=JetBrains+Mono&display=swap);
+@import url(https://fonts.googleapis.com/css2?family=Caveat&display=swap);
+:root {
+  /* Content layers */
+  --z-content-low: 10; /* Minor elevated content */
+  --z-content: 20; /* Standard elevated content */
+  --z-content-high: 30; /* Important content that needs prominence */
+
+  /* Navigation layers */
+  --z-nav-low: 100; /* Secondary navigation components */
+  --z-nav: 200; /* Primary navigation bars */
+  --z-nav-sticky: 300; /* Sticky navigation elements */
+
+  --z-overlay: 400; /* All overlays like dropdowns, dialogs, popovers */
+
+  --z-spotlight: 1000; /* Tutorial spotlights/guided help */
+
+  /* System layers */
+  --z-critical: 2000; /* Critical system notifications */
+}
+
+:root {
+  --background: hsl(210, 20%, 98%);
+  --themegradient: linear-gradient(135deg, #00bfff, #1e3a8a);
+  --themecolor: hsl(195, 100%, 50%);
+  --themecolor2: hsl(224, 64%, 33%);
+  --themecolor3: hsl(199, 89%, 48%);
+  --foreground: hsl(220, 15%, 20%);
+  --surface: hsl(210, 15%, 96%);
+  --surface-foreground: var(--foreground);
+  --sidebar: hsl(215, 25%, 27%);
+  --sidebar-foreground: hsl(210, 15%, 95%);
+  --card: hsl(0, 0%, 100%);
+  --card-rgb: 85, 146, 203;
+  --card-foreground: var(--foreground);
+  --popup: hsl(0, 0%, 100%);
+  --popup-foreground: var(--foreground);
+  --primary: hsl(215, 70%, 50%);
+  --primary-foreground: hsl(0, 0%, 100%);
+  --secondary: hsl(250, 65%, 60%);
+  --secondary-foreground: hsl(0, 0%, 100%);
+  --accent: hsl(330, 80%, 60%);
+  --accent-foreground: hsl(0, 0%, 100%);
+  --muted: hsl(220, 15%, 85%);
+  --muted-foreground: hsl(220, 10%, 40%);
+  --success: hsl(145, 65%, 42%);
+  --success-foreground: hsl(0, 0%, 100%);
+  --error: hsl(358, 75%, 55%);
+  --error-foreground: hsl(0, 0%, 100%);
+  --warning: hsl(38, 95%, 60%);
+  --warning-foreground: hsl(38, 40%, 20%);
+  --info: hsl(200, 75%, 55%);
+  --info-foreground: hsl(0, 0%, 100%);
+  --info-hover: hsl(200, 75%, 50%);
+  --info-active: hsl(200, 75%, 45%);
+  --analytics: hsl(275, 65%, 55%);
+  --analytics-foreground: hsl(0, 0%, 100%);
+  --dashboard: hsl(190, 70%, 50%);
+  --dashboard-foreground: hsl(0, 0%, 100%);
+  --border: hsl(220, 15%, 90%);
+  --font-family-base: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI",
+    Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+  --font-family-heading: "Poppins", -apple-system, BlinkMacSystemFont,
+    "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans",
+    "Helvetica Neue", sans-serif;
+  --font-family-monospace: "JetBrains Mono", SFMono-Regular, Consolas,
+    "Liberation Mono", Menlo, monospace;
+  --font-family-cursive: "Caveat", cursive;
+  --radius-sm: 0.25rem;
+  --radius: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-full: 9999px;
+  --shadow: 0 1px 2px hsla(220, 15%, 5%, 0.05),
+    0 3px 6px hsla(220, 15%, 5%, 0.07);
+  --shadow-md: 0 1px 3px hsla(220, 15%, 5%, 0.05),
+    0 10px 15px -5px hsla(220, 15%, 5%, 0.05),
+    0 20px 25px -5px hsla(220, 15%, 5%, 0.04);
+  --shadow-lg: 0 1px 3px hsla(220, 15%, 5%, 0.05),
+    0 20px 25px -5px hsla(220, 15%, 5%, 0.07),
+    0 30px 40px -5px hsla(220, 15%, 5%, 0.05);
+  --shadow-focus: 0 0 0 2px hsla(215, 70%, 50%, 0.25),
+    0 1px 2px hsla(220, 15%, 5%, 0.05);
+  --animation-duration-fast: 150ms;
+  --animation-duration-normal: 250ms;
+  --animation-duration-slow: 350ms;
+  --spacing-1: 0.25rem;
+  --spacing-2: 0.5rem;
+  --spacing-3: 0.75rem;
+  --spacing-4: 1rem;
+  --spacing-6: 1.5rem;
+  --spacing-8: 2rem;
+  --spacing-12: 3rem;
+  --spacing-16: 4rem;
+  --chart-color-1: hsl(215, 70%, 50%);
+  --chart-color-2: hsl(250, 65%, 60%);
+  --chart-color-3: hsl(330, 80%, 60%);
+  --chart-color-4: hsl(145, 65%, 42%);
+  --chart-color-5: hsl(38, 95%, 60%);
+  --sidebar-width: 250px;
+  --sidebar-collapsed-width: 40px;
+  --certain-icons: var(--themecolor);
+}
+
+.dark {
+  --background: hsl(220, 15%, 10%);
+  --themegradient: linear-gradient(135deg, #0a192f 0%, #1f2937 100%);
+  --themecolor: hsl(217, 66%, 19%);
+  --themecolor2: hsl(216, 33%, 22%);
+  --themecolor3: hsl(199, 100%, 12%);
+  --foreground: hsl(210, 15%, 90%);
+  --surface: hsl(220, 15%, 13%);
+  --surface-foreground: var(--foreground);
+  --sidebar: hsl(215, 25%, 15%);
+  --sidebar-foreground: hsl(210, 15%, 90%);
+  --card: hsl(220, 15%, 15%);
+  --card-rgb: 40, 117, 189;
+  --card-foreground: var(--foreground);
+  --popup: hsl(220, 15%, 15%);
+  --popup-foreground: var(--foreground);
+  --primary: hsl(215, 70%, 60%);
+  --primary-foreground: hsl(0, 0%, 100%);
+  --secondary: hsl(250, 65%, 65%);
+  --secondary-foreground: hsl(0, 0%, 100%);
+  --accent: hsl(330, 80%, 65%);
+  --accent-foreground: hsl(0, 0%, 100%);
+  --muted: hsl(220, 15%, 25%);
+  --muted-foreground: hsl(220, 10%, 70%);
+  --success: hsl(145, 65%, 45%);
+  --success-foreground: hsl(0, 0%, 100%);
+  --error: hsl(358, 75%, 60%);
+  --error-foreground: hsl(0, 0%, 100%);
+  --warning: hsl(38, 95%, 50%);
+  --warning-foreground: hsl(38, 40%, 90%);
+  --info: hsl(200, 75%, 60%);
+  --info-foreground: hsl(0, 0%, 100%);
+  --info-hover: hsl(200, 75%, 55%);
+  --info-active: hsl(200, 75%, 50%);
+  --analytics: hsl(275, 65%, 60%);
+  --analytics-foreground: hsl(0, 0%, 100%);
+  --dashboard: hsl(190, 70%, 55%);
+  --dashboard-foreground: hsl(0, 0%, 100%);
+  --border: hsl(220, 15%, 20%);
+  --shadow: 0 1px 2px hsla(220, 15%, 0%, 0.1),
+    0 3px 6px hsla(220, 15%, 0%, 0.15);
+  --shadow-md: 0 1px 3px hsla(220, 15%, 0%, 0.1),
+    0 10px 15px -5px hsla(220, 15%, 0%, 0.1),
+    0 20px 25px -5px hsla(220, 15%, 0%, 0.08);
+  --shadow-lg: 0 1px 3px hsla(220, 15%, 0%, 0.1),
+    0 20px 25px -5px hsla(220, 15%, 0%, 0.15),
+    0 30px 40px -5px hsla(220, 15%, 0%, 0.1);
+  --shadow-focus: 0 0 0 2px hsla(215, 70%, 60%, 0.25),
+    0 1px 2px hsla(220, 15%, 0%, 0.1);
+  --certain-icons: hsl(195, 100%, 50%);
+}
+
+body {
+  font-family: var(--font-family-base);
+}
+
+body[data-sidebar="expanded"] {
+  --current-sidebar-width: var(--sidebar-width);
+}
+
+body[data-sidebar="collapsed"] {
+  --current-sidebar-width: var(--sidebar-collapsed-width);
+}

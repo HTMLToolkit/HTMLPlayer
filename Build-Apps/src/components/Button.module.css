@@ -1,0 +1,210 @@
+@layer base {
+  .button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-2);
+    font-family: var(--font-family-base);
+    font-weight: 500;
+    border-radius: var(--radius);
+    white-space: nowrap;
+    text-decoration: none;
+    cursor: pointer;
+    transition:
+      background-color var(--animation-duration-fast) ease,
+      border-color var(--animation-duration-fast) ease,
+      color var(--animation-duration-fast) ease;
+    outline: none;
+    border: 1px solid transparent;
+  }
+
+  /* Focus styles */
+  .button:focus-visible {
+    box-shadow: var(--shadow-focus);
+  }
+
+  /* Size variants */
+  .sm {
+    height: 1.5rem;
+    padding: 0 var(--spacing-2);
+    font-size: 0.875rem;
+  }
+
+  .md {
+    height: 2.5rem;
+    padding: 0 var(--spacing-3);
+    font-size: 0.9375rem;
+  }
+
+  .lg {
+    height: 3rem;
+    padding: 0 var(--spacing-4);
+    font-size: 1rem;
+    border-radius: var(--radius-md);
+  }
+
+  /* Icon button sizes */
+  .icon,
+  .icon-md {
+    width: 2rem;
+    height: 2rem;
+    padding: 0;
+  }
+
+  .icon-sm {
+    width: 1.5rem;
+    height: 1.5rem;
+    padding: 0;
+  }
+
+  .icon-lg {
+    width: 2.5rem;
+    height: 2.5rem;
+    padding: 0;
+    border-radius: var(--radius-md);
+  }
+
+  /* Icon sizing */
+  .button svg {
+    flex-shrink: 0;
+  }
+
+  .sm svg,
+  .icon-sm svg {
+    width: 1rem;
+    height: 1rem;
+  }
+
+  .md svg,
+  .icon svg,
+  .icon-md svg {
+    width: 1.25rem;
+    height: 1.25rem;
+  }
+
+  .lg svg,
+  .icon-lg svg {
+    width: 1.5rem;
+    height: 1.5rem;
+  }
+
+  /* Variant styles */
+  .primary {
+    background-color: var(--primary);
+    color: var(--primary-foreground);
+    --spinner-color: var(--primary-foreground);
+  }
+
+  .primary:hover {
+    background-color: color-mix(in srgb, var(--primary), black 10%);
+  }
+
+  .primary:active {
+    background-color: color-mix(in srgb, var(--primary), black 20%);
+  }
+
+  .secondary {
+    background-color: var(--secondary);
+    color: var(--secondary-foreground);
+    --spinner-color: var(--secondary-foreground);
+  }
+
+  .secondary:hover {
+    background-color: color-mix(in srgb, var(--secondary), black 10%);
+  }
+
+  .secondary:active {
+    background-color: color-mix(in srgb, var(--secondary), black 20%);
+  }
+
+  .destructive {
+    background-color: var(--error);
+    color: var(--error-foreground);
+    --spinner-color: var(--error-foreground);
+  }
+
+  .destructive:hover {
+    background-color: color-mix(in srgb, var(--error), black 10%);
+  }
+
+  .destructive:active {
+    background-color: color-mix(in srgb, var(--error), black 20%);
+  }
+
+  .outline {
+    background-color: transparent;
+    border-color: var(--border);
+    color: var(--foreground);
+    --spinner-color: var(--primary);
+  }
+
+  .outline:hover {
+    background-color: var(--muted);
+    color: var(--foreground);
+  }
+
+  .outline:active {
+    background-color: color-mix(in srgb, var(--muted), black 10%);
+  }
+
+  .ghost {
+    background-color: transparent;
+    color: var(--foreground);
+    --spinner-color: var(--primary);
+  }
+
+  .ghost:hover {
+    background-color: var(--muted);
+  }
+
+  .ghost:active {
+    background-color: color-mix(in srgb, var(--muted), black 10%);
+  }
+
+  .link {
+    background-color: transparent;
+    color: var(--primary);
+    height: auto;
+    padding: 0;
+    text-decoration: none;
+    --spinner-color: var(--primary);
+  }
+
+  .link:hover {
+    text-decoration: underline;
+    color: color-mix(in srgb, var(--primary), black 10%);
+  }
+
+  .link:active {
+    color: color-mix(in srgb, var(--primary), black 20%);
+  }
+
+  /* Disabled state */
+  .disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    pointer-events: none;
+  }
+
+  /* Dark mode adjustments */
+  :global(.dark) .outline {
+    border-color: var(--border);
+    color: var(--foreground);
+  }
+
+  :global(.dark) .outline:hover {
+    background-color: var(--muted);
+  }
+
+  :global(.dark) .outline:active {
+    background-color: color-mix(in srgb, var(--muted), black 20%);
+  }
+
+  :global(.dark) .ghost:hover {
+    background-color: var(--muted);
+  }
+
+  :global(.dark) .ghost:active {
+    background-color: color-mix(in srgb, var(--muted), black 20%);
+  }
+}
