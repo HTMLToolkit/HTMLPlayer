@@ -6,7 +6,7 @@ const host = process.env.TAURI_DEV_HOST;
 
 // https://vitejs.dev/config/
 export default defineConfig(async () => ({
-  root: 'public',  // project root folder
+  root: '',  // project root folder
   plugins: [react()],
   resolve: {
     alias: {
@@ -37,7 +37,7 @@ export default defineConfig(async () => ({
   },
   build: {
     sourcemap: true, // Optional: generates source maps
-    outDir: '../dist',
+    outDir: 'dist',
     emptyOutDir: true,
   },
 }));

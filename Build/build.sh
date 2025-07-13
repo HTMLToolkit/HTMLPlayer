@@ -13,7 +13,11 @@ cp "$SRC_DIR/robots.txt" "$DIST_DIR/"
 cp "$SRC_DIR/favicon.ico" "$ASSETS_DIR/"
 cp "$SRC_DIR/favicon.png" "$ASSETS_DIR/"
 
-# Find and replace "/a with "a in dist/index.html
-sed -i 's/\/a/a/g' "$DIST_DIR/index.html"
+# Detect platform and run sed with correct -i syntax
+if [[ "$OSTYPE" == "darwin"* ]]; then
+    sed -i '' 's/\/a/a/g' "$DIST_DIR/index.html"  # macOS/BSD sed
+else
+    sed -i 's/\/a/a/g' "$DIST_DIR/index.html"     # GNU/Linux sed
+fi
 
 echo "Files copied successfully."

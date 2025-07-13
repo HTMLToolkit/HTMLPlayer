@@ -1,7 +1,7 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "htmlplayer",
-  "version": "0.1.0",
+  "productName": "HTMLPlayer",
+  "version": "2.0.0",
   "identifier": "com.nellowtcs.htmlplayer",
   "build": {
     "beforeDevCommand": "npm run dev",
@@ -12,9 +12,9 @@
   "app": {
     "windows": [
       {
-        "title": "htmlplayer",
-        "width": 800,
-        "height": 600
+        "title": "HTMLPlayer",
+        "width": 1000,
+        "height": 700
       }
     ],
     "security": {
