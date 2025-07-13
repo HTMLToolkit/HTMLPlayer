@@ -24,6 +24,7 @@ export type PlayerSettings = {
   crossfade: number; // seconds
   defaultShuffle: boolean;
   defaultRepeat: 'off' | 'one' | 'all';
+  themeMode: 'light' | 'dark' | 'auto';
   autoPlayNext: boolean;
   compactMode: boolean;
   showAlbumArt: boolean;
@@ -78,6 +79,7 @@ export const useMusicPlayer = () => {
     defaultShuffle: false,
     defaultRepeat: 'off',
     autoPlayNext: true,
+    themeMode: 'auto',
     compactMode: false,
     showAlbumArt: true,
     showLyrics: false,

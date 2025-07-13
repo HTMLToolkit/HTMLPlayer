@@ -1,6 +1,3 @@
-* settings menu
-* visualizers
-
 # 1. **Performance Optimizations**
 - **Debounce Rapid Clicks on Controls**  
   **Issue**: Rapid clicks on buttons like play/pause, next, or previous can cause unintended behavior or race conditions.  

@@ -110,6 +110,7 @@ describe('musicIndexedDbHelper', () => {
       crossfade: 3,
       defaultShuffle: false,
       defaultRepeat: 'off',
+      themeMode: 'auto', // Added themeMode to match updated PlayerSettings type
       autoPlayNext: true,
       compactMode: false,
       showAlbumArt: true,

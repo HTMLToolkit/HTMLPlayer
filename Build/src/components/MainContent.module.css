@@ -203,7 +203,7 @@
 }
 
 .songActionButton.active {
-  color: #00BFFF;
+  color: var(--themecolor);
   background: rgba(0, 191, 255, 0.2);
 }
 

@@ -14,6 +14,9 @@ type SidebarProps = {
   onCollapseChange?: (isCollapsed: boolean) => void;
 };
 
+const COLLAPSED_WIDTH = '40px';
+const EXPANDED_WIDTH = '250px';
+
 export const Sidebar = ({ musicPlayerHook, onCollapseChange }: SidebarProps) => {
   const [playlistSearchQuery, setPlaylistSearchQuery] = useState("");
   const [showAbout, setShowAbout] = useState(false);
@@ -62,11 +65,20 @@ export const Sidebar = ({ musicPlayerHook, onCollapseChange }: SidebarProps) => 
     const newCollapsedState = !isCollapsed;
     setIsCollapsed(newCollapsedState);
     onCollapseChange?.(newCollapsedState);
+
+    // Update CSS variable for sidebar width:
+    document.documentElement.style.setProperty(
+      '--sidebar-width',
+      newCollapsedState ? COLLAPSED_WIDTH : EXPANDED_WIDTH
+    );
   };
 
   const handleSliverClick = () => {
     setIsCollapsed(false);
     onCollapseChange?.(false);
+
+    // Reset CSS variable to expanded width
+    document.documentElement.style.setProperty('--sidebar-width', EXPANDED_WIDTH);
   };
 
   const handleAllSongsClick = () => {
@@ -201,6 +213,14 @@ export const Sidebar = ({ musicPlayerHook, onCollapseChange }: SidebarProps) => 
           <Info size={16} />
           About
         </Button>
+        <Button
+          variant="ghost"
+          className={styles.footerButton}
+          onClick={handleSettings}
+        >
+          <Settings size={16} />
+          Settings
+        </Button>
         <SettingsComponent 
           open={showSettings}
           onOpenChange={setShowSettings}
@@ -209,13 +229,14 @@ export const Sidebar = ({ musicPlayerHook, onCollapseChange }: SidebarProps) => 
         />
       </div>
 
+
       {/* About Modal */}
       <Dialog open={showAbout} onOpenChange={setShowAbout}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>About HTMLPlayer</DialogTitle>
             <DialogDescription>
-              HTMLPlayer v1.0 - A modern music streaming interface built with React
+              HTMLPlayer v2.0 - A modern music streaming interface built with React
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>

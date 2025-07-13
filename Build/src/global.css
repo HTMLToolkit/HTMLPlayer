@@ -23,6 +23,10 @@
 
 :root {
   --background: hsl(210, 20%, 98%);
+  --themegradient: linear-gradient(135deg, #00bfff, #1e3a8a);
+  --themecolor: hsl(195, 100%, 50%);
+  --themecolor2: hsl(224, 64%, 33%);
+  --themecolor3: hsl(199, 89%, 48%);
   --foreground: hsl(220, 15%, 20%);
   --surface: hsl(210, 15%, 96%);
   --surface-foreground: var(--foreground);
@@ -97,10 +101,15 @@
   --chart-color-5: hsl(38, 95%, 60%);
   --sidebar-width: 250px;
   --sidebar-collapsed-width: 40px;
+  --certain-icons: var(--themecolor);
 }
 
 .dark {
   --background: hsl(220, 15%, 10%);
+  --themegradient: linear-gradient(135deg, #0a192f 0%, #1f2937 100%);
+  --themecolor: hsl(217, 66%, 19%);
+  --themecolor2: hsl(216, 33%, 22%);
+  --themecolor3: hsl(199, 100%, 12%);
   --foreground: hsl(210, 15%, 90%);
   --surface: hsl(220, 15%, 13%);
   --surface-foreground: var(--foreground);
@@ -144,6 +153,7 @@
     0 30px 40px -5px hsla(220, 15%, 0%, 0.1);
   --shadow-focus: 0 0 0 2px hsla(215, 70%, 60%, 0.25),
     0 1px 2px hsla(220, 15%, 0%, 0.1);
+  --certain-icons: hsl(195, 100%, 50%);
 }
 
 body {

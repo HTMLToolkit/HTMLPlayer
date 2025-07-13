@@ -85,7 +85,7 @@
 }
 
 .controlButton.active {
-  color: #00BFFF;
+  color: var(--certain-icons);
   background: rgba(0, 191, 255, 0.2);
 }
 
@@ -100,7 +100,7 @@
   font-weight: bold;
   bottom: 1px;
   right: 1px;
-  color: #00BFFF;
+  color: var(--certain-icons);
   background: rgba(15, 23, 42, 0.8);
   border-radius: 50%;
   width: 14px;
@@ -144,13 +144,19 @@
 }
 
 .playButton {
-  background: linear-gradient(135deg, #00BFFF 0%, #0EA5E9 100%);
+  background: linear-gradient(135deg, var(--themecolor) 0%, var(--themecolor3) 100%);
   color: white;
   box-shadow: 0 4px 12px rgba(0, 191, 255, 0.3);
 }
 
+.playButton:dark {
+  background: linear-gradient(135deg, var(--themecolor) 0%, var(--themecolor3) 100%);
+  color: white;
+  box-shadow: 0 4px 12px rgba(24, 81, 100, 0.385);
+}
+
 .playButton:hover {
-  background: linear-gradient(135deg, #00BFFF 0%, #0EA5E9 90%);
+  background: linear-gradient(135deg, var(--themecolor) 0%, var(--themecolor3) 90%);
   box-shadow: 0 6px 16px rgba(0, 191, 255, 0.4);
   transform: translateY(-1px);
 }
@@ -192,7 +198,7 @@
 
 .progressFill {
   height: 100%;
-  background: linear-gradient(135deg, #00BFFF 0%, #0EA5E9 100%);
+  background: linear-gradient(135deg, var(--themecolor) 0%, var(--themecolor3) 100%);
   border-radius: var(--radius-full);
   position: relative;
 }
@@ -241,7 +247,7 @@
 }
 
 .secondaryButton.active {
-  color: #00BFFF;
+  color: var(--themecolor);
   background: rgba(0, 191, 255, 0.2);
 }
 
@@ -285,7 +291,7 @@
 
 .volumeFill {
   height: 100%;
-  background: linear-gradient(135deg, #00BFFF 0%, #0EA5E9 100%);
+  background: linear-gradient(135deg, var(--themecolor) 0%, var(--themecolor3) 100%);
   border-radius: var(--radius-full);
   position: relative;
 }
@@ -334,6 +340,7 @@
   z-index: 9999;
   animation: slideDown var(--animation-duration-normal) ease-out;
   transform: none;
+  transition: width var(--animation-duration-normal) ease-in-out;
 }
 
 @keyframes slideDown {

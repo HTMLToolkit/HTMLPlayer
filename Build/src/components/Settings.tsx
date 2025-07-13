@@ -36,6 +36,7 @@ export type PlayerSettings = {
   crossfade: number;
   defaultShuffle: boolean;
   defaultRepeat: 'off' | 'one' | 'all';
+  themeMode: 'light' | 'dark' | 'auto';
   autoPlayNext: boolean;
   compactMode: boolean;
   showAlbumArt: boolean;
@@ -68,8 +69,6 @@ export const Settings = ({
   const compactMode = settings.compactMode;
   const showAlbumArt = settings.showAlbumArt;
   const showLyrics = settings.showLyrics;
-
-  // Remove no-op data management state and stub handlers
 
   // Handlers that actually call onSettingsChange
   const handleResetSettings = () => {
@@ -122,14 +121,13 @@ export const Settings = ({
     onSettingsChange({ showLyrics: show });
   };
 
+  const handleThemeModeChange = (mode: string) => {
+    onSettingsChange({ themeMode: mode as PlayerSettings["themeMode"] });
+  };
+
   return (
     <div className={`${styles.container} ${className || ""}`}>
       <Sheet open={open} onOpenChange={onOpenChange}>
-        <SheetTrigger asChild>
-          <Button variant="ghost" size="icon-md" aria-label="Open settings">
-            <SettingsIcon className={styles.triggerIcon} />
-          </Button>
-        </SheetTrigger>
         <SheetContent side="left" className={styles.sheetContent}>
           <SheetHeader>
             <SheetTitle>Settings</SheetTitle>
@@ -260,7 +258,10 @@ export const Settings = ({
                     Choose your preferred color theme
                   </p>
                 </div>
-                <ThemeModeSwitch />
+                <ThemeModeSwitch
+                  value={settings.themeMode}
+                  onChange={handleThemeModeChange}
+                />
               </div>
 
               <div className={styles.settingItem}>
