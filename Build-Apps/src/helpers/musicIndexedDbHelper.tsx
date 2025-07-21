@@ -102,13 +102,26 @@ const loadFromIndexedDB = async (storeName: string, key: string): Promise<any> =
     if (key === 'musicLibrary' && result?.songs) {
       const restoredSongs = result.songs.map((song: any) => {
         if (song.fileData && song.mimeType) {
-          return {
-            ...song,
-            url: '' // defer to musicPlayerHook for blob creation
-          };
+          try {
+            // Recreate blob URL from stored ArrayBuffer
+            const blob = new Blob([song.fileData], { type: song.mimeType });
+            const newUrl = URL.createObjectURL(blob);
+            console.log('Recreated blob URL for song: ${song.title}');
+            return {
+              ...song,
+              url: newUrl
+            };
+          } catch (error) {
+            console.error('Failed to recreate blob URL for song: ${song.title}, error');
+            // Return song without URL - it will be filtered out or handled gracefully
+            return {
+              ...song,
+              url: '' // Mark as invalid
+            };
+          }
         }
         return song;
-      });
+      }).filter((song: any) => song.url !== ''); // Remove songs with invalid URLs
 
       return {
         ...result,
