@@ -29,6 +29,8 @@ export type PlayerSettings = {
   compactMode: boolean;
   showAlbumArt: boolean;
   showLyrics: boolean;
+  lastPlayedSongId?: string;
+  lastPlayedPlaylistId?: string;
 };
 
 export type PlayerState = {
@@ -80,6 +82,8 @@ export const useMusicPlayer = () => {
     compactMode: false,
     showAlbumArt: true,
     showLyrics: false,
+    lastPlayedSongId: 'none',
+    lastPlayedPlaylistId: 'none',
   });
 
   const [library, setLibrary] = useState<MusicLibrary>({
@@ -98,20 +102,40 @@ export const useMusicPlayer = () => {
     const loadPersistedData = async () => {
       try {
         const persistedLibrary = await musicIndexedDbHelper.loadLibrary();
+        const persistedSettings = await musicIndexedDbHelper.loadSettings();
+
         if (persistedLibrary) {
           const validLibrary = {
             ...persistedLibrary,
-            songs: persistedLibrary.songs.filter(
-              (song: Song) => song.url && song.url !== ''
-            ),
+            songs: persistedLibrary.songs.filter((song: Song) => song.url && song.url !== ''),
           };
           setLibrary(validLibrary);
+
+          let songToPlay: Song | null = null;
+          let playlistToSet: Playlist | null = null;
+
+          if (persistedSettings?.lastPlayedSongId) {
+            songToPlay = validLibrary.songs.find(s => s.id === persistedSettings.lastPlayedSongId) || null;
+          }
+          if (persistedSettings?.lastPlayedPlaylistId) {
+            playlistToSet = validLibrary.playlists.find(p => p.id === persistedSettings.lastPlayedPlaylistId) || null;
+          }
+
+          if (!songToPlay && validLibrary.songs.length > 0) {
+            songToPlay = validLibrary.songs[0];
+          }
+
+          setPlayerState(prev => ({
+            ...prev,
+            currentSong: songToPlay,
+            currentPlaylist: playlistToSet,
+            isPlaying: false,
+            currentTime: 0,
+            duration: songToPlay?.duration || 0,
+          }));
         }
 
-        const persistedSettings = await musicIndexedDbHelper.loadSettings();
-        if (persistedSettings) {
-          setSettings(persistedSettings);
-        }
+        if (persistedSettings) setSettings(persistedSettings);
       } catch (error) {
         console.error('Failed to load persisted data:', error);
       } finally {
@@ -235,6 +259,17 @@ export const useMusicPlayer = () => {
       repeat: settings.defaultRepeat,
     }));
   }, [settings.volume, settings.defaultShuffle, settings.defaultRepeat]);
+
+  useEffect(() => {
+    if (!isInitialized) return;
+    // Update last played song and playlist IDs in settings when they change
+    setSettings(prev => ({
+      ...prev,
+      lastPlayedSongId: playerState.currentSong?.id ?? prev.lastPlayedSongId,
+      lastPlayedPlaylistId: playerState.currentPlaylist?.id ?? prev.lastPlayedPlaylistId,
+    }));
+  }, [playerState.currentSong, playerState.currentPlaylist, isInitialized]);
+
 
   const playSong = useCallback(
     (song: Song, playlist?: Playlist) => {

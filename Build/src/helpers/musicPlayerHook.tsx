@@ -29,6 +29,8 @@ export type PlayerSettings = {
   compactMode: boolean;
   showAlbumArt: boolean;
   showLyrics: boolean;
+  lastPlayedSongId?: string;
+  lastPlayedPlaylistId?: string;
 };
 
 export type PlayerState = {
@@ -53,6 +55,7 @@ export const useMusicPlayer = () => {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
   const sourceNodeRef = useRef<MediaElementAudioSourceNode | null>(null);
+
   const [isInitialized, setIsInitialized] = useState(false);
   const playNextRef = useRef<(() => void) | null>(null);
 
@@ -79,6 +82,8 @@ export const useMusicPlayer = () => {
     compactMode: false,
     showAlbumArt: true,
     showLyrics: false,
+    lastPlayedSongId: 'none',
+    lastPlayedPlaylistId: 'none',
   });
 
   const [library, setLibrary] = useState<MusicLibrary>({
@@ -93,22 +98,44 @@ export const useMusicPlayer = () => {
   const playerStateRef = useRef(playerState);
   const libraryRef = useRef(library);
 
-  // Load persisted data
   useEffect(() => {
     const loadPersistedData = async () => {
       try {
         const persistedLibrary = await musicIndexedDbHelper.loadLibrary();
+        const persistedSettings = await musicIndexedDbHelper.loadSettings();
+
         if (persistedLibrary) {
           const validLibrary = {
             ...persistedLibrary,
             songs: persistedLibrary.songs.filter((song: Song) => song.url && song.url !== ''),
           };
           setLibrary(validLibrary);
+
+          let songToPlay: Song | null = null;
+          let playlistToSet: Playlist | null = null;
+
+          if (persistedSettings?.lastPlayedSongId) {
+            songToPlay = validLibrary.songs.find(s => s.id === persistedSettings.lastPlayedSongId) || null;
+          }
+          if (persistedSettings?.lastPlayedPlaylistId) {
+            playlistToSet = validLibrary.playlists.find(p => p.id === persistedSettings.lastPlayedPlaylistId) || null;
+          }
+
+          if (!songToPlay && validLibrary.songs.length > 0) {
+            songToPlay = validLibrary.songs[0];
+          }
+
+          setPlayerState(prev => ({
+            ...prev,
+            currentSong: songToPlay,
+            currentPlaylist: playlistToSet,
+            isPlaying: false,
+            currentTime: 0,
+            duration: songToPlay?.duration || 0,
+          }));
         }
-        const persistedSettings = await musicIndexedDbHelper.loadSettings();
-        if (persistedSettings) {
-          setSettings(persistedSettings);
-        }
+
+        if (persistedSettings) setSettings(persistedSettings);
       } catch (error) {
         console.error('Failed to load persisted data:', error);
       } finally {
@@ -118,7 +145,6 @@ export const useMusicPlayer = () => {
     loadPersistedData();
   }, []);
 
-  // Save library with debounce
   useEffect(() => {
     if (!isInitialized) return;
     const saveLibrary = async () => {
@@ -132,7 +158,6 @@ export const useMusicPlayer = () => {
     return () => clearTimeout(timeoutId);
   }, [library, isInitialized]);
 
-  // Save settings immediately on change
   useEffect(() => {
     if (!isInitialized) return;
     const saveSettings = async () => {
@@ -157,22 +182,30 @@ export const useMusicPlayer = () => {
 
       sourceNodeRef.current.connect(analyser);
       analyser.connect(context.destination);
+
       audioContextRef.current = context;
-      setPlayerState(prev => ({ ...prev, analyserNode: analyser }));
+      setPlayerState((prev) => ({ ...prev, analyserNode: analyser }));
     }
   }, []);
 
   useEffect(() => {
     audioRef.current = new Audio();
-    audioRef.current.crossOrigin = 'anonymous';
+    audioRef.current.crossOrigin = "anonymous";
+
     const audio = audioRef.current;
 
     const handleTimeUpdate = () => {
-      setPlayerState(prev => ({ ...prev, currentTime: audio.currentTime }));
+      setPlayerState((prev) => ({
+        ...prev,
+        currentTime: audio.currentTime,
+      }));
     };
 
     const handleLoadedMetadata = () => {
-      setPlayerState(prev => ({ ...prev, duration: audio.duration }));
+      setPlayerState((prev) => ({
+        ...prev,
+        duration: audio.duration,
+      }));
     };
 
     const handleEnded = () => {
@@ -219,7 +252,7 @@ export const useMusicPlayer = () => {
   }, [settings.volume]);
 
   useEffect(() => {
-    setPlayerState(prev => ({
+    setPlayerState((prev) => ({
       ...prev,
       volume: settings.volume,
       shuffle: settings.defaultShuffle,
@@ -227,76 +260,16 @@ export const useMusicPlayer = () => {
     }));
   }, [settings.volume, settings.defaultShuffle, settings.defaultRepeat]);
 
-  // Memory-efficient preload of songs around current song and shuffle picks
-  const preloadSongsAroundCurrent = useCallback(async () => {
-    if (!playerState.currentPlaylist || !playerState.currentSong) return;
-
-    const songs = playerState.currentPlaylist.songs;
-    const currentIndex = songs.findIndex(s => s.id === playerState.currentSong!.id);
-    if (currentIndex === -1) return;
-
-    // Indices to keep loaded: previous 4, current, next 2
-    const preloadRange = new Set<number>();
-    for (let i = currentIndex - 4; i <= currentIndex + 2; i++) {
-      if (i >= 0 && i < songs.length) preloadRange.add(i);
-    }
-
-    // If shuffle, preload 2 additional random songs (different from current)
-    if (playerState.shuffle) {
-      const available = songs.filter(s => s.id !== playerState.currentSong!.id);
-      for (let i = 0; i < 2 && available.length > 0; i++) {
-        const randomIndex = Math.floor(Math.random() * available.length);
-        const songIndex = songs.findIndex(s => s.id === available[randomIndex].id);
-        if (songIndex !== -1) preloadRange.add(songIndex);
-      }
-    }
-
-    setLibrary(prev => {
-      const newSongs = prev.songs.map((song, idx) => {
-        if (!preloadRange.has(idx)) {
-          // Clear fileData and URL for songs outside range to save memory
-          if (song.fileData || song.url.startsWith('blob:')) {
-            if (song.url.startsWith('blob:')) {
-              URL.revokeObjectURL(song.url);
-            }
-            return { ...song, fileData: undefined, url: '' };
-          }
-          return song;
-        } else {
-          // For songs in range, ensure fileData and url exist (preload)
-          if (!song.fileData && song.url.startsWith('blob:')) {
-            fetch(song.url)
-              .then(res => {
-                return res.arrayBuffer().then(buf => {
-                  setLibrary(current => ({
-                    ...current,
-                    songs: current.songs.map(s =>
-                      s.id === song.id
-                        ? { ...s, fileData: buf, mimeType: res.headers.get('content-type') || 'audio/mpeg' }
-                        : s
-                    ),
-                  }));
-                });
-              })
-              .catch(() => {});
-          }
-          if (!song.url && song.fileData) {
-            const blob = new Blob([song.fileData], { type: song.mimeType || 'audio/mpeg' });
-            const url = URL.createObjectURL(blob);
-            return { ...song, url };
-          }
-          return song;
-        }
-      });
-
-      return { ...prev, songs: newSongs };
-    });
-  }, [playerState.currentPlaylist, playerState.currentSong, playerState.shuffle]);
-
-  // Call preload when current song or shuffle changes
   useEffect(() => {
-    preloadSongsAroundCurrent();
-  }, [playerState.currentSong, playerState.shuffle, preloadSongsAroundCurrent]);
+    if (!isInitialized) return;
+    // Update last played song and playlist IDs in settings when they change
+    setSettings(prev => ({
+      ...prev,
+      lastPlayedSongId: playerState.currentSong?.id ?? prev.lastPlayedSongId,
+      lastPlayedPlaylistId: playerState.currentPlaylist?.id ?? prev.lastPlayedPlaylistId,
+    }));
+  }, [playerState.currentSong, playerState.currentPlaylist, isInitialized]);
+
 
   const playSong = useCallback(
     (song: Song, playlist?: Playlist) => {
@@ -305,33 +278,37 @@ export const useMusicPlayer = () => {
       if (audioContextRef.current?.state === 'suspended') {
         audioContextRef.current.resume();
       }
-      setPlayerState(prev => ({
+
+      setPlayerState((prev) => ({
         ...prev,
         currentSong: song,
         currentPlaylist: playlist || prev.currentPlaylist,
         isPlaying: true,
         currentTime: 0,
       }));
+
       if (audioRef.current) {
         audioRef.current.src = song.url;
-        audioRef.current.play().catch(async error => {
+        audioRef.current.play().catch(async (error) => {
           if (error.name === 'NotSupportedError' && song.fileData && song.mimeType) {
             try {
               const blob = new Blob([song.fileData], { type: song.mimeType });
               const newUrl = URL.createObjectURL(blob);
               const updatedSong = { ...song, url: newUrl };
-              setPlayerState(prev => ({ ...prev, currentSong: updatedSong }));
-              setLibrary(prev => ({
+
+              setPlayerState((prev) => ({ ...prev, currentSong: updatedSong }));
+              setLibrary((prev) => ({
                 ...prev,
-                songs: prev.songs.map(s => (s.id === song.id ? updatedSong : s)),
+                songs: prev.songs.map((s) => (s.id === song.id ? updatedSong : s)),
               }));
+
               audioRef.current!.src = newUrl;
               await audioRef.current!.play();
             } catch {
-              setPlayerState(prev => ({ ...prev, isPlaying: false }));
+              setPlayerState((prev) => ({ ...prev, isPlaying: false }));
             }
           } else {
-            setPlayerState(prev => ({ ...prev, isPlaying: false }));
+            setPlayerState((prev) => ({ ...prev, isPlaying: false }));
           }
         });
       }
@@ -346,19 +323,22 @@ export const useMusicPlayer = () => {
     }
     if (playerState.isPlaying) {
       audioRef.current.pause();
-      setPlayerState(prev => ({ ...prev, isPlaying: false }));
+      setPlayerState((prev) => ({ ...prev, isPlaying: false }));
     } else {
-      audioRef.current.play().catch(() => setPlayerState(prev => ({ ...prev, isPlaying: false })));
-      setPlayerState(prev => ({ ...prev, isPlaying: true }));
+      audioRef.current
+        .play()
+        .catch(() => setPlayerState((prev) => ({ ...prev, isPlaying: false })));
+      setPlayerState((prev) => ({ ...prev, isPlaying: true }));
     }
   }, [playerState.isPlaying, playerState.currentSong]);
 
   const playNext = useCallback(() => {
     if (!playerState.currentPlaylist || !playerState.currentSong) return;
     const songs = playerState.currentPlaylist.songs;
-    const currentIndex = songs.findIndex(s => s.id === playerState.currentSong!.id);
+    const currentIndex = songs.findIndex((s) => s.id === playerState.currentSong!.id);
+
     if (playerState.shuffle) {
-      const available = songs.filter(s => s.id !== playerState.currentSong!.id);
+      const available = songs.filter((s) => s.id !== playerState.currentSong!.id);
       if (available.length > 0) {
         const randomIndex = Math.floor(Math.random() * available.length);
         playSong(available[randomIndex], playerState.currentPlaylist);
@@ -379,9 +359,10 @@ export const useMusicPlayer = () => {
   const playPrevious = useCallback(() => {
     if (!playerState.currentPlaylist || !playerState.currentSong) return;
     const songs = playerState.currentPlaylist.songs;
-    const currentIndex = songs.findIndex(s => s.id === playerState.currentSong!.id);
+    const currentIndex = songs.findIndex((s) => s.id === playerState.currentSong!.id);
+
     if (playerState.shuffle) {
-      const available = songs.filter(s => s.id !== playerState.currentSong!.id);
+      const available = songs.filter((s) => s.id !== playerState.currentSong!.id);
       if (available.length > 0) {
         const randomIndex = Math.floor(Math.random() * available.length);
         playSong(available[randomIndex], playerState.currentPlaylist);
@@ -397,29 +378,29 @@ export const useMusicPlayer = () => {
 
   const setVolume = useCallback((volume: number) => {
     const clamped = Math.max(0, Math.min(1, volume));
-    setSettings(prev => ({ ...prev, volume: clamped }));
+    setSettings((prev) => ({ ...prev, volume: clamped }));
     if (audioRef.current) audioRef.current.volume = clamped;
   }, []);
 
   const toggleShuffle = useCallback(() => {
-    setPlayerState(prev => ({ ...prev, shuffle: !prev.shuffle }));
+    setPlayerState((prev) => ({ ...prev, shuffle: !prev.shuffle }));
   }, []);
 
   const toggleRepeat = useCallback(() => {
-    setPlayerState(prev => ({
+    setPlayerState((prev) => ({
       ...prev,
       repeat: prev.repeat === 'off' ? 'all' : prev.repeat === 'all' ? 'one' : 'off',
     }));
   }, []);
 
   const updateSettings = useCallback((newSettings: Partial<PlayerSettings>) => {
-    setSettings(prev => ({ ...prev, ...newSettings }));
+    setSettings((prev) => ({ ...prev, ...newSettings }));
   }, []);
 
   const seekTo = useCallback((time: number) => {
     if (audioRef.current) {
       audioRef.current.currentTime = time;
-      setPlayerState(prev => ({ ...prev, currentTime: time }));
+      setPlayerState((prev) => ({ ...prev, currentTime: time }));
     }
   }, []);
 
@@ -432,18 +413,18 @@ export const useMusicPlayer = () => {
         songWithData = { ...song, fileData: buf, mimeType: res.headers.get('content-type') || 'audio/mpeg' };
       } catch {}
     }
-    setLibrary(prev => ({ ...prev, songs: [...prev.songs, songWithData] }));
+    setLibrary((prev) => ({ ...prev, songs: [...prev.songs, songWithData] }));
   }, []);
 
   const removeSong = useCallback((songId: string) => {
-    setLibrary(prev => ({
+    setLibrary((prev) => ({
       ...prev,
-      songs: prev.songs.filter(s => s.id !== songId),
-      playlists: prev.playlists.map(p => ({
+      songs: prev.songs.filter((s) => s.id !== songId),
+      playlists: prev.playlists.map((p) => ({
         ...p,
-        songs: p.songs.filter(s => s.id !== songId),
+        songs: p.songs.filter((s) => s.id !== songId),
       })),
-      favorites: prev.favorites.filter(id => id !== songId),
+      favorites: prev.favorites.filter((id) => id !== songId),
     }));
   }, []);
 
@@ -453,64 +434,55 @@ export const useMusicPlayer = () => {
       name,
       songs,
     };
-    setLibrary(prev => ({ ...prev, playlists: [...prev.playlists, newPlaylist] }));
+    setLibrary((prev) => ({ ...prev, playlists: [...prev.playlists, newPlaylist] }));
     return newPlaylist;
   }, []);
 
   const removePlaylist = useCallback((playlistId: string) => {
-    setLibrary(prev => ({
+    setLibrary((prev) => ({
       ...prev,
-      playlists: prev.playlists.filter(p => p.id !== playlistId),
+      playlists: prev.playlists.filter((p) => p.id !== playlistId),
     }));
   }, []);
 
   const addToFavorites = useCallback((songId: string) => {
-    setLibrary(prev => ({
+    setLibrary((prev) => ({
       ...prev,
       favorites: prev.favorites.includes(songId) ? prev.favorites : [...prev.favorites, songId],
     }));
   }, []);
 
   const removeFromFavorites = useCallback((songId: string) => {
-    setLibrary(prev => ({
+    setLibrary((prev) => ({
       ...prev,
-      favorites: prev.favorites.filter(id => id !== songId),
+      favorites: prev.favorites.filter((id) => id !== songId),
     }));
   }, []);
 
-  const toggleFavorite = useCallback(
-    (songId: string) => {
-      const isFav = library.favorites.includes(songId);
-      if (isFav) removeFromFavorites(songId);
-      else addToFavorites(songId);
-      return !isFav;
-    },
-    [library.favorites, addToFavorites, removeFromFavorites]
-  );
+  const toggleFavorite = useCallback((songId: string) => {
+    const isFav = library.favorites.includes(songId);
+    if (isFav) removeFromFavorites(songId);
+    else addToFavorites(songId);
+    return !isFav;
+  }, [library.favorites, addToFavorites, removeFromFavorites]);
 
-  const isFavorited = useCallback(
-    (songId: string) => {
-      return library.favorites.includes(songId);
-    },
-    [library.favorites]
-  );
+  const isFavorited = useCallback((songId: string) => {
+    return library.favorites.includes(songId);
+  }, [library.favorites]);
 
   const getFavoriteSongs = useCallback(() => {
-    return library.songs.filter(s => library.favorites.includes(s.id));
+    return library.songs.filter((s) => library.favorites.includes(s.id));
   }, [library]);
 
-  const searchSongs = useCallback(
-    (query: string) => {
-      setSearchQuery(query);
-      if (!query.trim()) return library.songs;
-      return library.songs.filter(
-        s =>
-          s.title.toLowerCase().includes(query.toLowerCase()) ||
-          s.artist.toLowerCase().includes(query.toLowerCase())
-      );
-    },
-    [library.songs]
-  );
+  const searchSongs = useCallback((query: string) => {
+    setSearchQuery(query);
+    if (!query.trim()) return library.songs;
+    return library.songs.filter(
+      (s) =>
+        s.title.toLowerCase().includes(query.toLowerCase()) ||
+        s.artist.toLowerCase().includes(query.toLowerCase())
+    );
+  }, [library.songs]);
 
   const getSearchResults = useCallback(() => {
     return searchSongs(searchQuery);

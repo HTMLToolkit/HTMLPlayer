@@ -41,6 +41,8 @@ export type PlayerSettings = {
   compactMode: boolean;
   showAlbumArt: boolean;
   showLyrics: boolean;
+  lastPlayedSongId?: string;
+  lastPlayedPlaylistId?: string;
 };
 
 export interface SettingsProps {

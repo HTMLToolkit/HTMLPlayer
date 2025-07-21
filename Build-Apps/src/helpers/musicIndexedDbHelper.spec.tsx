@@ -115,6 +115,8 @@ describe('musicIndexedDbHelper', () => {
       compactMode: false,
       showAlbumArt: true,
       showLyrics: false,
+      lastPlayedSongId: 'none',
+      lastPlayedPlaylistId: 'none',
     };
 
     await musicIndexedDbHelper.saveSettings(testSettings);
