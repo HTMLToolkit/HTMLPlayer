@@ -1,100 +1,104 @@
 @layer base {
-  .overlay {
+  .backdrop {
     position: fixed;
-    inset: 0;
-    background-color: color-mix(in srgb, black 50%, transparent);
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
     z-index: var(--z-overlay);
-    animation: overlayShow var(--animation-duration-normal)
+    background-color: color-mix(in srgb, transparent 50%, black);
+    animation: backdropFadeIn var(--animation-duration-normal)
       cubic-bezier(0.16, 1, 0.3, 1);
   }
 
-  .content {
+  .modal {
     position: fixed;
-    top: 50%;
     left: 50%;
-    transform: translate(-50%, -50%);
+    top: 50%;
+    transform: translateX(-50%) translateY(-50%);
+    width: 32rem;
     max-width: 90vw;
     max-height: 85vh;
-    width: 32rem;
+    z-index: var(--z-overlay);
+    border-radius: var(--radius-md);
     background-color: var(--popup);
     color: var(--popup-foreground);
-    border-radius: var(--radius-md);
     box-shadow: var(--shadow-lg);
-    z-index: var(--z-overlay);
     overflow: auto;
-    padding: var(--spacing-6);
-    animation: contentShow var(--animation-duration-normal)
+    padding-block: var(--spacing-6);
+    padding-inline: var(--spacing-6);
+    animation: modalSlideIn var(--animation-duration-normal)
       cubic-bezier(0.16, 1, 0.3, 1);
   }
 
-  .close {
+  .dismissButton {
     position: absolute;
-    top: var(--spacing-4);
     right: var(--spacing-4);
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    top: var(--spacing-4);
     width: 2rem;
-    height: 2rem;
+    min-height: 2rem;
     border-radius: var(--radius-full);
     background-color: var(--muted);
     color: var(--muted-foreground);
     border: none;
     cursor: pointer;
-    transition:
-      background-color var(--animation-duration-fast) ease,
-      color var(--animation-duration-fast) ease,
-      transform var(--animation-duration-fast) ease;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition-property: background-color, color, transform;
+    transition-duration: var(--animation-duration-fast);
+    transition-timing-function: ease;
   }
 
-  .close:hover {
+  .dismissButton:focus-visible {
+    outline: none;
+    box-shadow: var(--shadow-focus);
+  }
+
+  .dismissButton:hover {
     background-color: var(--muted-foreground);
     color: var(--muted);
     transform: scale(1.05);
   }
 
-  .close:focus-visible {
-    outline: none;
-    box-shadow: var(--shadow-focus);
-  }
-
-  .closeIcon {
+  .dismissIcon {
     width: 1rem;
-    height: 1rem;
+    min-height: 1rem;
   }
 
-  .header {
+  .headerSection {
     margin-bottom: var(--spacing-4);
   }
 
-  .footer {
+  .footerSection {
     display: flex;
-    justify-content: flex-end;
     gap: var(--spacing-2);
+    justify-content: flex-end;
     margin-top: var(--spacing-6);
   }
 
-  .title {
+  .modalTitle {
     font-family: var(--font-family-heading);
     font-size: 1.25rem;
     font-weight: 600;
-    color: var(--popup-foreground);
     line-height: 1.4;
+    color: var(--popup-foreground);
     margin-bottom: var(--spacing-2);
   }
 
-  .description {
+  .modalDescription {
     font-size: 0.875rem;
-    color: var(--muted-foreground);
     line-height: 1.5;
+    color: var(--muted-foreground);
     margin-bottom: var(--spacing-4);
   }
 
-  .screenReaderText {
+  .visuallyHidden {
     position: absolute;
     width: 1px;
-    height: 1px;
-    padding: 0;
+    min-height: 1px;
+    padding-block: 0;
+    padding-inline: 0;
     margin: -1px;
     overflow: hidden;
     clip: rect(0, 0, 0, 0);
@@ -102,21 +106,21 @@
     border-width: 0;
   }
 
-  @keyframes overlayShow {
-    from {
+  @keyframes backdropFadeIn {
+    0% {
       opacity: 0;
     }
-    to {
+    100% {
       opacity: 1;
     }
   }
 
-  @keyframes contentShow {
-    from {
+  @keyframes modalSlideIn {
+    0% {
       opacity: 0;
       scale: 0.95;
     }
-    to {
+    100% {
       opacity: 1;
       scale: 1;
     }
