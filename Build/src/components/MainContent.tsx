@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { Search, Trash2, Plus, ThumbsUp, ThumbsDown, MoreHorizontal, Heart, Filter, Info, Share, User, Music } from "lucide-react";
+import { Search, Trash2, Plus, ThumbsUp, ThumbsDown, Heart, Filter, Music } from "lucide-react";
+import { SongActionsDropdown } from "./SongActionsDropdown";
 import { pickAudioFiles, extractAudioMetadata, createAudioUrl, generateUniqueId } from "../helpers/filePickerHelper";
 import { toast } from "sonner";
 import { Button } from "./Button";
@@ -37,11 +38,39 @@ export const MainContent = ({ musicPlayerHook }: MainContentProps) => {
     toggleFavorite,
     isFavorited,
     getFavoriteSongs,
-    createPlaylist
+    createPlaylist,
+    addToPlaylist,
+    navigateToArtist,
+    navigateToAlbum,
+    navigateToSongs
   } = musicPlayerHook;
 
-  // Get songs to display (from current playlist, favorites, or all songs)
-  let songsToDisplay = playerState.currentPlaylist ? playerState.currentPlaylist.songs : library.songs;
+  // Add navigation event listener
+  React.useEffect(() => {
+    const handleNavigate = (e: CustomEvent<{ view: 'artist' | 'album', value: string }>) => {
+      if (e.detail.view === 'artist') {
+        navigateToArtist(e.detail.value);
+      } else if (e.detail.view === 'album') {
+        navigateToAlbum(e.detail.value);
+      }
+    };
+
+    window.addEventListener('navigate', handleNavigate as EventListener);
+    return () => window.removeEventListener('navigate', handleNavigate as EventListener);
+  }, [navigateToArtist, navigateToAlbum]);
+
+  // Get initial songs list based on current view
+  let songsToDisplay = React.useMemo(() => {
+    if (playerState.view === 'artist' && playerState.currentArtist) {
+      return library.songs.filter(song => song.artist === playerState.currentArtist);
+    } else if (playerState.view === 'album' && playerState.currentAlbum) {
+      return library.songs.filter(song => song.album === playerState.currentAlbum);
+    } else if (playerState.currentPlaylist) {
+      return playerState.currentPlaylist.songs;
+    } else {
+      return library.songs;
+    }
+  }, [playerState.view, playerState.currentArtist, playerState.currentAlbum, playerState.currentPlaylist, library.songs]);
   
   // Filter to show only favorites if enabled
   if (showFavoritesOnly) {
@@ -121,36 +150,48 @@ export const MainContent = ({ musicPlayerHook }: MainContentProps) => {
         return;
       }
 
-      toast.loading(`Processing ${audioFiles.length} file(s)...`);
-      
+      const BATCH_SIZE = 3; // Process 3 files at a time
       let successCount = 0;
       let errorCount = 0;
+      let currentBatch = 1;
+      const totalBatches = Math.ceil(audioFiles.length / BATCH_SIZE);
       
-      for (const audioFile of audioFiles) {
-        try {
-          console.log(`Processing file: ${audioFile.name}`);
-          
-          const metadata = await extractAudioMetadata(audioFile.file);
-          const audioUrl = createAudioUrl(audioFile.file);
-          
-          const song: Song = {
-            id: generateUniqueId(),
-            title: metadata.title,
-            artist: metadata.artist,
-            album: metadata.album || "Unknown Album",
-            duration: metadata.duration,
-            url: audioUrl
-          };
-          
-          addSong(song);
-          
-          successCount++;
-          console.log(`Successfully processed: ${song.title}`);
-          
-        } catch (error) {
-          console.error(`Failed to process ${audioFile.name}:`, error);
-          errorCount++;
-        }
+      // Process files in batches
+      for (let i = 0; i < audioFiles.length; i += BATCH_SIZE) {
+        const batch = audioFiles.slice(i, i + BATCH_SIZE);
+        toast.loading(`Processing batch ${currentBatch} of ${totalBatches}...`);
+        
+        // Process current batch
+        const batchPromises = batch.map(async (audioFile) => {
+          try {
+            console.log(`Processing file: ${audioFile.name}`);
+            
+            const metadata = await extractAudioMetadata(audioFile.file);
+            const audioUrl = createAudioUrl(audioFile.file);
+            
+            const song: Song = {
+              id: generateUniqueId(),
+              title: metadata.title,
+              artist: metadata.artist,
+              album: metadata.album || "Unknown Album",
+              duration: metadata.duration,
+              url: audioUrl,
+              albumArt: metadata.albumArt
+            };
+            
+            await addSong(song);
+            successCount++;
+            console.log(`Successfully processed: ${song.title}`);
+            
+          } catch (error) {
+            console.error(`Failed to process ${audioFile.name}:`, error);
+            errorCount++;
+          }
+        });
+        
+        // Wait for current batch to complete
+        await Promise.all(batchPromises);
+        currentBatch++;
       }
       
       toast.dismiss();
@@ -170,86 +211,7 @@ export const MainContent = ({ musicPlayerHook }: MainContentProps) => {
     }
   };
 
-  const handleMoreOptionsAction = (song: Song, action: string) => {
-    switch (action) {
-      case 'favorite':
-        const wasAdded = toggleFavorite(song.id);
-        toast.success(wasAdded ? `Added "${song.title}" to favorites` : `Removed "${song.title}" from favorites`);
-        break;
-      case 'info':
-        setSelectedSongInfo(song);
-        setShowSongInfo(true);
-        break;
-      case 'share':
-        handleShareSong(song);
-        break;
-      case 'addToPlaylist':
-        handleAddToPlaylist(song);
-        break;
-      case 'goToArtist':
-        handleGoToArtist(song);
-        break;
-      case 'goToAlbum':
-        handleGoToAlbum(song);
-        break;
-    }
-  };
-
-  const handleShareSong = async (song: Song) => {
-    const shareData = {
-      title: `${song.title} - ${song.artist}`,
-      text: `Listen to "${song.title}" by ${song.artist}`,
-      url: window.location.href
-    };
-    
-    try {
-      if (navigator.share && navigator.canShare && navigator.canShare(shareData)) {
-        await navigator.share(shareData);
-        toast.success('Song shared successfully');
-      } else {
-        // Fallback: copy to clipboard
-        const shareText = `🎵 ${shareData.title}\n${shareData.text}\n${shareData.url}`;
-        await navigator.clipboard.writeText(shareText);
-        toast.success('Song info copied to clipboard!');
-      }
-    } catch (error) {
-      console.error('Failed to share:', error);
-      try {
-        await navigator.clipboard.writeText(`${song.title} by ${song.artist}`);
-        toast.success('Song info copied to clipboard');
-      } catch (clipboardError) {
-        console.error('Failed to copy to clipboard:', clipboardError);
-        toast.error('Failed to share or copy song info');
-      }
-    }
-  };
-
-  const handleAddToPlaylist = (song: Song) => {
-    if (library.playlists.length === 0) {
-      const defaultPlaylist = createPlaylist('My Playlist', [song]);
-      toast.success(`Created new playlist "${defaultPlaylist.name}" and added "${song.title}"`);
-      return;
-    }
-    
-    const firstPlaylist = library.playlists[0];
-    const isAlreadyInPlaylist = firstPlaylist.songs.some(s => s.id === song.id);
-    
-    if (isAlreadyInPlaylist) {
-      toast.info(`"${song.title}" is already in playlist "${firstPlaylist.name}"`);
-    } else {
-      toast.success(`Added "${song.title}" to playlist "${firstPlaylist.name}"`);
-    }
-  };
-
-  const handleGoToArtist = (song: Song) => {
-    console.log(`Navigating to artist page for: ${song.artist}`);
-    toast.info(`Artist page for "${song.artist}" (placeholder)`);
-  };
-
-  const handleGoToAlbum = (song: Song) => {
-    console.log(`Navigating to album page for: ${song.album}`);
-    toast.info(`Album page for "${song.album}" (placeholder)`);
-  };
+  // Song action handlers moved to SongActionsDropdown component
 
   const formatDuration = (seconds: number) => {
     const roundedSeconds = Math.round(seconds);
@@ -261,9 +223,25 @@ export const MainContent = ({ musicPlayerHook }: MainContentProps) => {
   return (
     <div className={styles.mainContent}>
       <div className={styles.header}>
-        <h1 className={styles.title}>
-          HTMLPlayer
-        </h1>
+        <div className={styles.titleArea}>
+          {playerState.view === 'songs' ? (
+            <h1 className={styles.title}>HTMLPlayer</h1>
+          ) : playerState.view === 'artist' ? (
+            <>
+              <Button variant="link" onClick={navigateToSongs} className={styles.backLink}>
+                All Songs
+              </Button>
+              <h1 className={styles.title}>Artist: {playerState.currentArtist}</h1>
+            </>
+          ) : playerState.view === 'album' ? (
+            <>
+              <Button variant="link" onClick={navigateToSongs} className={styles.backLink}>
+                All Songs
+              </Button>
+              <h1 className={styles.title}>Album: {playerState.currentAlbum}</h1>
+            </>
+          ) : null}
+        </div>
         <div className={styles.actions}>
           <div className={styles.searchWrapper}>
             <Search className={styles.searchIcon} size={16} />
@@ -318,7 +296,15 @@ export const MainContent = ({ musicPlayerHook }: MainContentProps) => {
             onClick={() => handleSongClick(song)}
           >
             <div className={styles.songInfo}>
-              <div className={styles.albumArt}></div>
+              <div className={styles.albumArt}>
+                {song.albumArt && (
+                  <img 
+                    src={song.albumArt} 
+                    alt={`${song.title} album art`} 
+                    style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 'inherit' }} 
+                  />
+                )}
+              </div>
               <div className={styles.songDetails}>
                 <div className={styles.songTitle}>{song.title}</div>
                 <div className={styles.songArtist}>
@@ -355,42 +341,15 @@ export const MainContent = ({ musicPlayerHook }: MainContentProps) => {
               >
                 <ThumbsDown size={14} />
               </Button>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button 
-                    variant="ghost" 
-                    size="icon-sm" 
-                    className={styles.songActionButton}
-                    title="More options"
-                  >
-                    <MoreHorizontal size={14} />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" sideOffset={8}>
-                  <DropdownMenuItem onClick={() => handleMoreOptionsAction(song, 'addToPlaylist')}>
-                    <Plus size={14} style={{ marginRight: 8 }} />
-                    Add to playlist
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => handleMoreOptionsAction(song, 'info')}>
-                    <Info size={14} style={{ marginRight: 8 }} />
-                    Song info
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => handleMoreOptionsAction(song, 'share')}>
-                    <Share size={14} style={{ marginRight: 8 }} />
-                    Share
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => handleMoreOptionsAction(song, 'goToArtist')}>
-                    <User size={14} style={{ marginRight: 8 }} />
-                    Go to artist
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => handleMoreOptionsAction(song, 'goToAlbum')}>
-                    <Music size={14} style={{ marginRight: 8 }} />
-                    Go to album
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+              <SongActionsDropdown 
+                song={song}
+                library={library}
+                onCreatePlaylist={createPlaylist}
+                onAddToPlaylist={addToPlaylist}
+                onPlaySong={playSong}
+                size={14}
+                className={styles.songActionButton}
+              />
             </div>
           </div>
         ))}

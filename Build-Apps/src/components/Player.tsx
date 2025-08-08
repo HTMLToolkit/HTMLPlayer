@@ -16,6 +16,7 @@ import {
 import { Visualizer } from "./Visualizer";
 import { Lyrics } from "./Lyrics";  // <-- import Lyrics component
 import styles from "./Player.module.css";
+import { SongActionsDropdown } from './SongActionsDropdown';
 
 type PlayerProps = {
   musicPlayerHook: ReturnType<typeof import("../helpers/musicPlayerHook").useMusicPlayer>;
@@ -37,7 +38,9 @@ export const Player = ({ musicPlayerHook }: PlayerProps) => {
     removeFromFavorites,
     toggleShuffle,
     toggleRepeat,
-    createPlaylist
+    createPlaylist,
+    addToPlaylist,
+    playSong
   } = musicPlayerHook;
 
   const { currentSong, isPlaying, currentTime, volume, shuffle, repeat, analyserNode } = playerState;
@@ -170,80 +173,7 @@ export const Player = ({ musicPlayerHook }: PlayerProps) => {
     }
   };
 
-  const handleAddToPlaylist = () => {
-    if (!currentSong) return;
-    
-    if (library.playlists.length === 0) {
-      const defaultPlaylist = createPlaylist('My Playlist', [currentSong]);
-      toast.success(`Created new playlist "${defaultPlaylist.name}" and added "${currentSong.title}"`);
-      return;
-    }
-    
-    const firstPlaylist = library.playlists[0];
-    const isAlreadyInPlaylist = firstPlaylist.songs.some(song => song.id === currentSong.id);
-    
-    if (isAlreadyInPlaylist) {
-      toast.info(`"${currentSong.title}" is already in playlist "${firstPlaylist.name}"`);
-    } else {
-      toast.success(`Added "${currentSong.title}" to playlist "${firstPlaylist.name}"`);
-    }
-  };
-
-  const handleShowSongInfo = () => {
-    if (!currentSong) return;
-    
-    const infoText = [
-      `Title: ${currentSong.title}`,
-      `Artist: ${currentSong.artist}`,
-      `Album: ${currentSong.album}`,
-      `Duration: ${formatTime(currentSong.duration)}`,
-      `Format: Audio file`
-    ].join('\n');
-    
-    alert(`Song Information\n\n${infoText}`);
-  };
-
-  const handleShare = async () => {
-    if (!currentSong) return;
-    
-    const shareData = {
-      title: `${currentSong.title} - ${currentSong.artist}`,
-      text: `Listen to "${currentSong.title}" by ${currentSong.artist}`,
-      url: window.location.href
-    };
-    
-    try {
-      if (navigator.share && navigator.canShare && navigator.canShare(shareData)) {
-        await navigator.share(shareData);
-        toast.success('Song shared successfully');
-      } else {
-        const shareText = `🎵 ${shareData.title}\n${shareData.text}\n${shareData.url}`;
-        await navigator.clipboard.writeText(shareText);
-        toast.success('Song info copied to clipboard!');
-      }
-    } catch (error) {
-      console.error('Failed to share:', error);
-      try {
-        await navigator.clipboard.writeText(`${currentSong.title} by ${currentSong.artist}`);
-        toast.success('Song info copied to clipboard');
-      } catch (clipboardError) {
-        console.error('Failed to copy to clipboard:', clipboardError);
-        toast.error('Failed to share or copy song info');
-      }
-    }
-  };
-
-  const handleGoToArtist = () => {
-    if (!currentSong) return;
-    console.log(`Navigating to artist page for: ${currentSong.artist}`);
-    toast.info(`Artist page for "${currentSong.artist}" (placeholder)`);
-  };
-
-  const handleGoToAlbum = () => {
-    if (!currentSong) return;
-    console.log(`Navigating to album page for: ${currentSong.album}`);
-    toast.info(`Album page for "${currentSong.album}" (placeholder)`);
-  };
+  // Removed handlers as they're now in SongActionsDropdown component
 
   const handleVisualizerToggle = () => {
     setShowVisualizer(prev => !prev);
@@ -299,7 +229,15 @@ export const Player = ({ musicPlayerHook }: PlayerProps) => {
       )}
       <div className={styles.player}>
         <div className={styles.currentSong}>
-          <div className={styles.albumArt}></div>
+          <div className={styles.albumArt}>
+            {currentSong.albumArt && (
+              <img 
+                src={currentSong.albumArt} 
+                alt={`${currentSong.title} album art`} 
+                style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 'inherit' }} 
+              />
+            )}
+          </div>
           <div className={styles.songInfo}>
             <div className={styles.songTitle}>{currentSong.title}</div>
             <div className={styles.artistName}>{currentSong.artist}</div>
@@ -430,42 +368,15 @@ export const Player = ({ musicPlayerHook }: PlayerProps) => {
             </div>
           </div>
           
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button 
-                variant="ghost" 
-                size="icon-sm" 
-                className={styles.moreButton}
-                title="More options"
-              >
-                <MoreHorizontal size={16} />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" sideOffset={8}>
-              <DropdownMenuItem onClick={handleAddToPlaylist}>
-                <Plus size={16} style={{ marginRight: 8 }} />
-                Add to playlist
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={handleShowSongInfo}>
-                <Info size={16} style={{ marginRight: 8 }} />
-                Song info
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={handleShare}>
-                <Share size={16} style={{ marginRight: 8 }} />
-                Share
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={handleGoToArtist}>
-                <User size={16} style={{ marginRight: 8 }} />
-                Go to artist
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={handleGoToAlbum}>
-                <Music size={16} style={{ marginRight: 8 }} />
-                Go to album
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <SongActionsDropdown 
+            song={currentSong}
+            library={library}
+            onCreatePlaylist={createPlaylist}
+            onAddToPlaylist={addToPlaylist}
+            onPlaySong={playSong}
+            size={16}
+            className={styles.moreButton}
+          />
         </div>
         
         {/* Lyrics overlay */}

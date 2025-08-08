@@ -16,13 +16,33 @@
   gap: var(--spacing-4);
 }
 
+.titleArea {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-4);
+}
+
 .title {
-  font-family: var(--font-family-heading);
-  font-size: 2rem;
-  font-weight: 800;
+  font-size: 1.5rem;
+  font-weight: 600;
   color: white;
   margin: 0;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.backLink {
+  font-size: 1rem;
+  color: var(--themecolor2);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  padding: 0;
+  text-decoration: underline;
+}
+
+.backLink:hover {
+  color: var(--primary);
+  font-weight: bold;
+  text-decoration: underline;
 }
 
 .actions {
@@ -140,21 +160,21 @@
   position: relative;
 }
 
-.albumArt::before,
-.albumArt::after {
+.albumArt:not(:has(img))::before,
+.albumArt:not(:has(img))::after {
   content: '';
   position: absolute;
   background: white;
   border-radius: 1px;
 }
 
-.albumArt::before {
+.albumArt:not(:has(img))::before {
   width: 16px;
   height: 3px;
   transform: rotate(45deg);
 }
 
-.albumArt::after {
+.albumArt:not(:has(img))::after {
   width: 16px;
   height: 3px;
   transform: rotate(-45deg);

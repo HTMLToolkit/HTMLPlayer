@@ -72,9 +72,9 @@
 
   .footerSection {
     display: flex;
-    gap: var(--spacing-2);
+    gap: var(--spacing-4);
     justify-content: flex-end;
-    margin-top: var(--spacing-6);
+    margin-top: var(--spacing-8);
   }
 
   .modalTitle {
@@ -90,7 +90,36 @@
     font-size: 0.875rem;
     line-height: 1.5;
     color: var(--muted-foreground);
+    margin-bottom: var(--spacing-6);
+  }
+
+  /* Add utility classes */
+  .spaceY4 > *:not(:last-child) {
+    margin-bottom: var(--spacing-6);
+  }
+
+  .spaceY2 > *:not(:last-child) {
     margin-bottom: var(--spacing-4);
+  }
+
+  .flex {
+    display: flex;
+  }
+
+  .gap2 {
+    gap: var(--spacing-2);
+  }
+
+  .gap4 {
+    gap: var(--spacing-4);
+  }
+
+  .w-full {
+    width: 100%;
+  }
+
+  .justify-start {
+    justify-content: flex-start;
   }
 
   .visuallyHidden {

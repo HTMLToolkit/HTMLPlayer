@@ -33,21 +33,21 @@
   position: relative;
 }
 
-.albumArt::before,
-.albumArt::after {
+.albumArt:not(:has(img))::before,
+.albumArt:not(:has(img))::after {
   content: '';
   position: absolute;
   background: white;
   border-radius: 1px;
 }
 
-.albumArt::before {
+.albumArt:not(:has(img))::before {
   width: 30px;
   height: 6px;
   transform: rotate(45deg);
 }
 
-.albumArt::after {
+.albumArt:not(:has(img))::after {
   width: 30px;
   height: 6px;
   transform: rotate(-45deg);

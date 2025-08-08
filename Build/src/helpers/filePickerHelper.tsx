@@ -11,6 +11,7 @@ export type AudioMetadata = {
   artist: string;
   album: string;
   duration: number;
+  albumArt?: string;
 };
 
 export function pickAudioFiles(): Promise<AudioFile[]> {
@@ -66,12 +67,28 @@ export function pickAudioFiles(): Promise<AudioFile[]> {
 export async function extractAudioMetadata(file: File): Promise<AudioMetadata> {
   // Read file as ArrayBuffer for id3-parser
   let id3Tags: any = null;
+  let albumArt: string | undefined = undefined;
+  
   try {
     const arrayBuffer = await file.arrayBuffer();
     // id3-parser expects a Buffer, which is available in Node.js, but in browser we use Uint8Array
     id3Tags = await parse(new Uint8Array(arrayBuffer));
+    
+    // Extract album art if available
+    if (id3Tags && id3Tags.image) {
+      const { data, format } = id3Tags.image;
+      if (data) {
+        // Convert image data to base64
+        let base64String = '';
+        for (let i = 0; i < data.length; i++) {
+          base64String += String.fromCharCode(data[i]);
+        }
+        albumArt = `data:${format};base64,${btoa(base64String)}`;
+      }
+    }
   } catch (e) {
     // ignore, fallback to filename
+    console.warn('Failed to parse ID3 tags:', e);
   }
 
   // Fallbacks
@@ -108,7 +125,7 @@ export async function extractAudioMetadata(file: File): Promise<AudioMetadata> {
     audio.src = url;
   });
 
-  return { title, artist, album, duration };
+  return { title, artist, album, duration, albumArt };
 }
 
 export function createAudioUrl(file: File): string {

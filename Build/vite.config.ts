@@ -2,7 +2,7 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
 export default defineConfig({
-  root: 'public',  // project root folder
+  root: './',  // project root folder
   plugins: [react()],
   resolve: {
     alias: {

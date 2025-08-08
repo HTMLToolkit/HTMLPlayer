@@ -1,12 +1,10 @@
 import React, { useState } from "react";
-import { Search, Menu, Settings, Info, Music, Heart, List, Plus, ChevronRight } from "lucide-react";
-import { Input } from "./Input";
+import { Menu, Settings as SettingsIcon, Info, ChevronRight } from "lucide-react";
 import { Button } from "./Button";
 import { Separator } from "./Separator";
 import { Settings as SettingsComponent } from "./Settings";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "./Dialog";
-import { Song, Playlist } from "../helpers/musicPlayerHook";
-import { toast } from "sonner";
+import { PlaylistComponent } from "./Playlist";
 import styles from "./Sidebar.module.css";
 
 type SidebarProps = {
@@ -18,40 +16,14 @@ const COLLAPSED_WIDTH = '40px';
 const EXPANDED_WIDTH = '250px';
 
 export const Sidebar = ({ musicPlayerHook, onCollapseChange }: SidebarProps) => {
-  const [playlistSearchQuery, setPlaylistSearchQuery] = useState("");
   const [showAbout, setShowAbout] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
-  const [showCreatePlaylist, setShowCreatePlaylist] = useState(false);
-  const [newPlaylistName, setNewPlaylistName] = useState("");
   const [isCollapsed, setIsCollapsed] = useState(false);
 
   const {
-    library,
-    playerState,
-    playSong,
-    addSong,
-    createPlaylist,
-    searchQuery,
-    setSearchQuery,
     settings,
-    updateSettings,
-    getFavoriteSongs
+    updateSettings
   } = musicPlayerHook;
-
-  // Filter playlists based on search
-  const filteredPlaylists = library.playlists.filter((playlist: Playlist) =>
-    playlist.name.toLowerCase().includes(playlistSearchQuery.toLowerCase())
-  );
-
-  const handlePlaylistSearch = (query: string) => {
-    setPlaylistSearchQuery(query);
-  };
-
-  const handlePlaylistSelect = (playlist: Playlist) => {
-    if (playlist.songs.length > 0) {
-      playSong(playlist.songs[0], playlist);
-    }
-  };
 
   const handleAbout = () => {
     setShowAbout(true);
@@ -81,43 +53,6 @@ export const Sidebar = ({ musicPlayerHook, onCollapseChange }: SidebarProps) => 
     document.documentElement.style.setProperty('--sidebar-width', EXPANDED_WIDTH);
   };
 
-  const handleAllSongsClick = () => {
-    // Clear current playlist and show all songs
-    const allSongs = library.songs;
-    if (allSongs.length > 0) {
-      const allSongsPlaylist: Playlist = {
-        id: 'all-songs',
-        name: 'All Songs',
-        songs: allSongs
-      };
-      playSong(allSongs[0], allSongsPlaylist);
-    }
-  };
-
-  const handleAddPlaylist = () => {
-    setShowCreatePlaylist(true);
-    setNewPlaylistName("");
-  };
-
-  const handleCreatePlaylistConfirm = () => {
-    if (newPlaylistName && newPlaylistName.trim()) {
-      createPlaylist(newPlaylistName.trim());
-      setShowCreatePlaylist(false);
-      setNewPlaylistName("");
-    }
-  };
-
-  const handleCreatePlaylistCancel = () => {
-    setShowCreatePlaylist(false);
-    setNewPlaylistName("");
-  };
-
-  const getPlaylistIcon = (playlistName: string) => {
-    if (playlistName.toLowerCase().includes("favorite")) return <Heart size={16} />;
-    if (playlistName.toLowerCase().includes("made")) return <List size={16} />;
-    return <Music size={16} />;
-  };
-
   if (isCollapsed) {
     return (
       <div className={styles.sidebarCollapsed} onClick={handleSliverClick}>
@@ -142,66 +77,7 @@ export const Sidebar = ({ musicPlayerHook, onCollapseChange }: SidebarProps) => 
         <h2 className={styles.title}>Playlists</h2>
       </div>
 
-      <div className={styles.searchContainer}>
-        <div className={styles.searchWrapper}>
-          <Search className={styles.searchIcon} size={16} />
-          <Input 
-            placeholder="Search playlists..." 
-            className={styles.searchInput}
-            value={playlistSearchQuery}
-            onChange={(e: any) => handlePlaylistSearch(e.target.value)}
-          />
-        </div>
-        <Button 
-          className={styles.addPlaylistButton}
-          onClick={handleAddPlaylist}
-        >
-          <Plus size={16} />
-          Add Playlist
-        </Button>
-      </div>
-
-      <div className={styles.playlistList}>
-        {/* All Songs section */}
-        <button 
-          className={`${styles.playlistItem} ${styles.allSongsItem}`}
-          onClick={handleAllSongsClick}
-        >
-          <Music size={16} />
-          <span>All Songs</span>
-          <span className={styles.songCount}>({library.songs.length})</span>
-        </button>
-
-        {/* Favorites section */}
-        <button 
-          className={`${styles.playlistItem} ${styles.favoritesItem}`}
-          onClick={() => {
-            const favoriteSongs = getFavoriteSongs();
-            if (favoriteSongs.length > 0) {
-              playSong(favoriteSongs[0], { id: 'favorites', name: 'Favorites', songs: favoriteSongs });
-            }
-          }}
-        >
-          <Heart size={16} />
-          <span>Favorites</span>
-          <span className={styles.songCount}>({library.favorites.length})</span>
-        </button>
-        
-        {filteredPlaylists.map((playlist: Playlist) => (
-          <button 
-            key={playlist.id} 
-            className={`${styles.playlistItem} ${playerState.currentPlaylist?.id === playlist.id ? styles.active : ''}`}
-            onClick={() => handlePlaylistSelect(playlist)}
-          >
-            {getPlaylistIcon(playlist.name)}
-            <span>{playlist.name}</span>
-            <span className={styles.songCount}>({playlist.songs.length})</span>
-          </button>
-        ))}
-        {filteredPlaylists.length === 0 && playlistSearchQuery && (
-          <div className={styles.noResults}>No playlists found</div>
-        )}
-      </div>
+      <PlaylistComponent musicPlayerHook={musicPlayerHook} />
 
       <div className={styles.footer}>
         <Separator />
@@ -218,7 +94,7 @@ export const Sidebar = ({ musicPlayerHook, onCollapseChange }: SidebarProps) => 
           className={styles.footerButton}
           onClick={handleSettings}
         >
-          <Settings size={16} />
+          <SettingsIcon size={16} />
           Settings
         </Button>
         <SettingsComponent 
@@ -228,7 +104,6 @@ export const Sidebar = ({ musicPlayerHook, onCollapseChange }: SidebarProps) => 
           onSettingsChange={updateSettings}
         />
       </div>
-
 
       {/* About Modal */}
       <Dialog open={showAbout} onOpenChange={setShowAbout}>
@@ -241,42 +116,6 @@ export const Sidebar = ({ musicPlayerHook, onCollapseChange }: SidebarProps) => 
           </DialogHeader>
           <DialogFooter>
             <Button onClick={() => setShowAbout(false)}>Close</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Create Playlist Modal */}
-      <Dialog open={showCreatePlaylist} onOpenChange={setShowCreatePlaylist}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Create New Playlist</DialogTitle>
-            <DialogDescription>
-              Enter a name for your new playlist
-            </DialogDescription>
-          </DialogHeader>
-          <div style={{ margin: "var(--spacing-4) 0" }}>
-            <Input
-              placeholder="Playlist name..."
-              value={newPlaylistName}
-              onChange={(e: any) => setNewPlaylistName(e.target.value)}
-              onKeyDown={(e: any) => {
-                if (e.key === 'Enter') {
-                  handleCreatePlaylistConfirm();
-                }
-              }}
-              autoFocus
-            />
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={handleCreatePlaylistCancel}>
-              Cancel
-            </Button>
-            <Button 
-              onClick={handleCreatePlaylistConfirm}
-              disabled={!newPlaylistName.trim()}
-            >
-              Create
-            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
