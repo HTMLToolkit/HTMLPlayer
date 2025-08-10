@@ -1,4 +1,6 @@
 import parse from 'id3-parser';
+import { toast } from 'sonner';
+
 export type AudioFile = {
   file: File;
   name: string;
@@ -18,48 +20,64 @@ export function pickAudioFiles(): Promise<AudioFile[]> {
   return new Promise((resolve, reject) => {
     const input = document.createElement('input');
     input.type = 'file';
-    input.accept = 'audio/*';
+    // Allow specific audio types only (case insensitive)
+    input.accept = '.mp3,.wav,.m4a,.flac,.aif,.aiff,.ogg';
     input.multiple = true;
-    
+
     input.onchange = (event) => {
       const target = event.target as HTMLInputElement;
       const files = target.files;
-      
+
       if (!files || files.length === 0) {
         resolve([]);
         return;
       }
-      
+
       const audioFiles: AudioFile[] = [];
-      
+      const audioTest = document.createElement('audio');
+
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
-        
-        // Validate audio file type
-        if (!file.type.startsWith('audio/')) {
-          console.warn(`Skipping non-audio file: ${file.name}`);
+
+        // Validate audio file type by MIME type prefix
+        const allowedExtensions = ['mp3', 'wav', 'm4a', 'flac', 'aif', 'aiff', 'ogg'];
+
+        const fileExtension = file.name.split('.').pop()?.toLowerCase();
+
+        if (
+          !file.type.startsWith('audio/') &&
+          !(fileExtension && allowedExtensions.includes(fileExtension))
+        ) {
+          toast.error(`Skipping non-audio file: ${file.name}`);
           continue;
         }
-        
+
+        // Check if browser can play the file type
+        const canPlay = audioTest.canPlayType(file.type);
+        if (canPlay !== 'probably' && canPlay !== 'maybe') {
+          toast.error(`Skipping unsupported audio format by browser: ${file.name} (${file.type})`);
+          continue;
+        }
+
         audioFiles.push({
           file,
           name: file.name,
           size: file.size,
-          type: file.type
+          type: file.type,
         });
       }
-      
+
       resolve(audioFiles);
     };
-    
+
     input.onerror = () => {
       reject(new Error('File selection failed'));
     };
-    
+
     input.oncancel = () => {
       resolve([]);
     };
-    
+
     input.click();
   });
 }
@@ -68,12 +86,11 @@ export async function extractAudioMetadata(file: File): Promise<AudioMetadata> {
   // Read file as ArrayBuffer for id3-parser
   let id3Tags: any = null;
   let albumArt: string | undefined = undefined;
-  
+
   try {
     const arrayBuffer = await file.arrayBuffer();
-    // id3-parser expects a Buffer, which is available in Node.js, but in browser we use Uint8Array
     id3Tags = await parse(new Uint8Array(arrayBuffer));
-    
+
     // Extract album art if available
     if (id3Tags && id3Tags.image) {
       const { data, format } = id3Tags.image;
@@ -87,11 +104,9 @@ export async function extractAudioMetadata(file: File): Promise<AudioMetadata> {
       }
     }
   } catch (e) {
-    // ignore, fallback to filename
     console.warn('Failed to parse ID3 tags:', e);
   }
 
-  // Fallbacks
   const fileName = file.name.replace(/\.[^/.]+$/, '');
   let title = fileName;
   let artist = 'Unknown Artist';
@@ -102,7 +117,6 @@ export async function extractAudioMetadata(file: File): Promise<AudioMetadata> {
     if (id3Tags.title && typeof id3Tags.title === 'string') title = id3Tags.title;
     if (id3Tags.album && typeof id3Tags.album === 'string') album = id3Tags.album;
   } else if (fileName.includes(' - ')) {
-    // Try to parse filename patterns like "Artist - Title" or "Title - Artist"
     const parts = fileName.split(' - ');
     if (parts.length >= 2) {
       artist = parts[0].trim();
@@ -110,7 +124,6 @@ export async function extractAudioMetadata(file: File): Promise<AudioMetadata> {
     }
   }
 
-  // Get duration using Audio element
   const url = URL.createObjectURL(file);
   const audio = new Audio();
   const duration = await new Promise<number>((resolve) => {
