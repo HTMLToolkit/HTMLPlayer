@@ -10,7 +10,7 @@ A React and TypeScript powered music player with many extra features and an amaz
 - [ ] ⏫ I originally, (in [v1](https://htmltoolkit.github.io/HTMLPlayer/)) just added a checkbox to the songs and you could select as many as you wanted. Reimplement this for v2.
 - [ ] 🔼 A "select all" button would solve the folder issue altogether as well
 - [ ] 🔽 I should probably add a hours counter for time
-- [ ] 🔼 (when HTMLPlayer is almost ready) add [[HTMLPlayer Store]]
+- [ ] 🔼 (when HTMLPlayer is almost ready) add HTMLPlayer Store (below)
 
 ### Store
 - [ ] a basic store for Themes, Icons, and Visualizers
@@ -28,25 +28,25 @@ A React and TypeScript powered music player with many extra features and an amaz
     - [ ] clicking/tapping on name (ex NellowTCS) causes artist page to open
 
 #### Dev Details
-- [ ] need good API or SDK if I want this
-  - [ ] ##### Icons
+- [ ] need good API or SDK if I want this (not the current visualizer stuff 🫣)
+  - ##### Icons
     - [ ] in each file that uses icons, have, instead of lucide-react, have one file with a bunch of references
       ```json
       {
-        "settingsIcon": lucide-react.Gear,
+        "settingsIcon": "lucide-react.Gear",
         %% etc... %%
       }
       ```
     - [ ] like i18n
     - [ ] to be easily configurable and/or swappable
     - [ ] can also link to images
-  - [ ] ##### Themes
+  - ##### Themes
     - [ ] use CSS vars <u>everywhere</u>
     - [ ] have some preinstalled themes for sure
-      - [ ] colors: Red, Orange, Yellow, Green, Blue (default), Purple, Pink, Grey, Black, maybe a custom color?
+      - [ ] colors: Red, Orange, Yellow, Green, Blue (default), Purple, Pink, Grey, Black, maybe a custom one?
       - [ ] picture backgrounds
-  - [ ] ##### Visualizers
-    - [ ] main Visualizer.tsx has `import.glob...` for preinstalled visualizers
+  - ##### Visualizers
+    - [X] A visualizerLoader.tsx with `import.glob...` for preinstalled visualizers
 - [ ] IndexedDB as storage for all three
 - [ ] themes
 - [ ] idk
