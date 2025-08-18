@@ -56,9 +56,15 @@ export const Sidebar = ({ musicPlayerHook, onCollapseChange }: SidebarProps) => 
   if (isCollapsed) {
     return (
       <div className={styles.sidebarCollapsed} onClick={handleSliverClick}>
-        <div className={styles.expandButton}>
+        <Button
+          variant="ghost"
+          size="icon-sm"
+          className={`${styles.expandButton} ${styles.noHover}`}
+          onClick={handleSliverClick}
+          aria-label="Expand sidebar"
+        >
           <ChevronRight size={16} />
-        </div>
+        </Button>
       </div>
     );
   }
@@ -66,11 +72,12 @@ export const Sidebar = ({ musicPlayerHook, onCollapseChange }: SidebarProps) => 
   return (
     <div className={styles.sidebar}>
       <div className={styles.header}>
-        <Button 
-          variant="ghost" 
-          size="icon-sm" 
+        <Button
+          variant="ghost"
+          size="icon-sm"
           className={styles.menuButton}
           onClick={handleMenuClick}
+          aria-label="Menu"
         >
           <Menu size={16} />
         </Button>
@@ -81,8 +88,8 @@ export const Sidebar = ({ musicPlayerHook, onCollapseChange }: SidebarProps) => 
 
       <div className={styles.footer}>
         <Separator />
-        <Button 
-          variant="ghost" 
+        <Button
+          variant="ghost"
           className={styles.footerButton}
           onClick={handleAbout}
         >
@@ -97,7 +104,7 @@ export const Sidebar = ({ musicPlayerHook, onCollapseChange }: SidebarProps) => 
           <SettingsIcon size={16} />
           Settings
         </Button>
-        <SettingsComponent 
+        <SettingsComponent
           open={showSettings}
           onOpenChange={setShowSettings}
           settings={settings}
@@ -111,7 +118,8 @@ export const Sidebar = ({ musicPlayerHook, onCollapseChange }: SidebarProps) => 
           <DialogHeader>
             <DialogTitle>About HTMLPlayer</DialogTitle>
             <DialogDescription>
-              HTMLPlayer v2.0 - A modern music streaming interface built with React
+              HTMLPlayer v2.0 - A modern music streaming interface built with
+              React
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
