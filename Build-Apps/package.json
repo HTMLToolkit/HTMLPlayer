@@ -60,6 +60,7 @@
   },
   "devDependencies": {
     "@tauri-apps/cli": "^2",
+    "@types/jasmine": "^5.1.9",
     "@types/jest": "^27.5.2",
     "@types/node": "^20.19.1",
     "@types/react": "^19.1.8",

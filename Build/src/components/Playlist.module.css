@@ -78,7 +78,7 @@
   height: 40px;
   flex-shrink: 0;
   border-radius: var(--radius);
-  background: linear-gradient(135deg, #1E3A8A 0%, #1E40AF 100%);
+  background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
   overflow: hidden;
 }
 

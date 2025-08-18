@@ -342,8 +342,7 @@ export const useMusicPlayer = () => {
         console.error('Failed to persist library data:', error);
       }
     };
-    const timeoutId = setTimeout(saveLibrary, 500);
-    return () => clearTimeout(timeoutId);
+    saveLibrary();
   }, [library, isInitialized]);
 
   useEffect(() => {

@@ -13,7 +13,13 @@ import {
 import { Button } from "./Button";
 import { Switch } from "./Switch";
 import { Slider } from "./Slider";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./Select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "./Select";
 import { ThemeModeSwitch } from "./ThemeModeSwitch";
 import {
   Settings as SettingsIcon,
@@ -28,15 +34,13 @@ import {
 } from "lucide-react";
 import styles from "./Settings.module.css";
 
-
-
 export type PlayerSettings = {
   volume: number;
-  audioQuality: 'low' | 'medium' | 'high' | 'lossless';
+  audioQuality: "low" | "medium" | "high" | "lossless";
   crossfade: number;
   defaultShuffle: boolean;
-  defaultRepeat: 'off' | 'one' | 'all';
-  themeMode: 'light' | 'dark' | 'auto';
+  defaultRepeat: "off" | "one" | "all";
+  themeMode: "light" | "dark" | "auto";
   autoPlayNext: boolean;
   compactMode: boolean;
   showAlbumArt: boolean;
@@ -53,13 +57,12 @@ export interface SettingsProps {
   onSettingsChange: (settings: Partial<PlayerSettings>) => void;
 }
 
-
-export const Settings = ({ 
-  className, 
-  open, 
-  onOpenChange, 
+export const Settings = ({
+  className,
+  open,
+  onOpenChange,
   settings,
-  onSettingsChange 
+  onSettingsChange,
 }: SettingsProps) => {
   // Convert volume to percentage for display
   const volume = [Math.round(settings.volume * 100)];
@@ -76,10 +79,10 @@ export const Settings = ({
   const handleResetSettings = () => {
     onSettingsChange({
       volume: 0.75,
-      audioQuality: 'high',
+      audioQuality: "high",
       crossfade: 3,
       defaultShuffle: false,
-      defaultRepeat: 'off',
+      defaultRepeat: "off",
       autoPlayNext: true,
       compactMode: false,
       showAlbumArt: true,
@@ -92,7 +95,9 @@ export const Settings = ({
   };
 
   const handleAudioQualityChange = (quality: string) => {
-    onSettingsChange({ audioQuality: quality as SettingsProps["settings"]["audioQuality"] });
+    onSettingsChange({
+      audioQuality: quality as SettingsProps["settings"]["audioQuality"],
+    });
   };
 
   const handleCrossfadeChange = (newCrossfade: number[]) => {
@@ -104,7 +109,9 @@ export const Settings = ({
   };
 
   const handleRepeatChange = (repeat: string) => {
-    onSettingsChange({ defaultRepeat: repeat as SettingsProps["settings"]["defaultRepeat"] });
+    onSettingsChange({
+      defaultRepeat: repeat as SettingsProps["settings"]["defaultRepeat"],
+    });
   };
 
   const handleAutoPlayChange = (autoPlay: boolean) => {
@@ -165,7 +172,10 @@ export const Settings = ({
                 <div className={styles.settingLabel}>
                   <label htmlFor="audio-quality">Audio Quality</label>
                 </div>
-                <Select value={audioQuality} onValueChange={handleAudioQualityChange}>
+                <Select
+                  value={audioQuality}
+                  onValueChange={handleAudioQualityChange}
+                >
                   <SelectTrigger id="audio-quality">
                     <SelectValue />
                   </SelectTrigger>
@@ -219,7 +229,10 @@ export const Settings = ({
                 <div className={styles.settingLabel}>
                   <label htmlFor="default-repeat">Default Repeat Mode</label>
                 </div>
-                <Select value={defaultRepeat} onValueChange={handleRepeatChange}>
+                <Select
+                  value={defaultRepeat}
+                  onValueChange={handleRepeatChange}
+                >
                   <SelectTrigger id="default-repeat">
                     <SelectValue />
                   </SelectTrigger>

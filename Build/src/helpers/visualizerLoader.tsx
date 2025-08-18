@@ -6,7 +6,7 @@ interface VisualizerDrawFunction {
     bufferLength: number,
     dataArray: Uint8Array | Float32Array,
     dataType: "time" | "frequency",
-    settings: Record<string, any> | undefined,
+    settings: Record<string, any> | undefined
   ): void;
 }
 

@@ -1,106 +1,124 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import * as DialogPrimitive from "@radix-ui/react-dialog"
-import { X } from "lucide-react"
-import styles from "./Dialog.module.css"
+import { forwardRef } from "react";
+import * as ModalPrimitive from "@radix-ui/react-dialog";
+import { X } from "lucide-react";
+import modalStyles from "./Dialog.module.css";
 
-const Dialog = DialogPrimitive.Root
+const ModalComponent = ModalPrimitive.Root;
 
-const DialogTrigger = DialogPrimitive.Trigger
+const ModalActivator = ModalPrimitive.Trigger;
 
-const DialogPortal = DialogPrimitive.Portal
+const ModalRenderer = ModalPrimitive.Portal;
 
-const DialogClose = DialogPrimitive.Close
+const ModalDismisser = ModalPrimitive.Close;
 
-const DialogOverlay = React.forwardRef<
-  React.ElementRef<typeof DialogPrimitive.Overlay>,
-  React.ComponentPropsWithoutRef<typeof DialogPrimitive.Overlay>
->(({ className, ...props }, ref) => (
-  <DialogPrimitive.Overlay
-    ref={ref}
-    className={`${styles.overlay} ${className || ''}`}
-    {...props}
-  />
-))
-DialogOverlay.displayName = DialogPrimitive.Overlay.displayName
+const ModalBackdrop = forwardRef<
+  React.ElementRef<typeof ModalPrimitive.Overlay>,
+  React.ComponentPropsWithoutRef<typeof ModalPrimitive.Overlay>
+>((props, forwardedRef) => {
+  const { className, ...restProps } = props;
+  return (
+    <ModalPrimitive.Overlay
+      ref={forwardedRef}
+      className={[modalStyles.backdrop, className].filter(Boolean).join(" ")}
+      {...restProps}
+    />
+  );
+});
+ModalBackdrop.displayName = ModalPrimitive.Overlay.displayName;
 
-const DialogContent = React.forwardRef<
-  React.ElementRef<typeof DialogPrimitive.Content>,
-  React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content>
->(({ className, children, ...props }, ref) => (
-  <DialogPortal>
-    <DialogOverlay />
-    <DialogPrimitive.Content
-      ref={ref}
-      className={`${styles.content} ${className || ''}`}
-      {...props}
-    >
-      {children}
-      <DialogPrimitive.Close className={styles.close}>
-        <X className={styles.closeIcon} />
-        <span className={styles.screenReaderText}>Close</span>
-      </DialogPrimitive.Close>
-    </DialogPrimitive.Content>
-  </DialogPortal>
-))
-DialogContent.displayName = DialogPrimitive.Content.displayName
+const ModalContainer = forwardRef<
+  React.ElementRef<typeof ModalPrimitive.Content>,
+  React.ComponentPropsWithoutRef<typeof ModalPrimitive.Content>
+>((props, forwardedRef) => {
+  const { className, children, ...restProps } = props;
+  return (
+    <ModalRenderer>
+      <ModalBackdrop />
+      <ModalPrimitive.Content
+        ref={forwardedRef}
+        className={[modalStyles.modal, className].filter(Boolean).join(" ")}
+        {...restProps}
+      >
+        {children}
+        <ModalPrimitive.Close className={modalStyles.dismissButton}>
+          <X className={modalStyles.dismissIcon} />
+          <span className={modalStyles.visuallyHidden}>Close</span>
+        </ModalPrimitive.Close>
+      </ModalPrimitive.Content>
+    </ModalRenderer>
+  );
+});
+ModalContainer.displayName = ModalPrimitive.Content.displayName;
 
-const DialogHeader = ({
-  className,
-  ...props
-}: React.HTMLAttributes<HTMLDivElement>) => (
-  <div
-    className={`${styles.header} ${className || ''}`}
-    {...props}
-  />
-)
-DialogHeader.displayName = "DialogHeader"
+const ModalHeaderSection = (props: React.HTMLAttributes<HTMLDivElement>) => {
+  const { className, ...restProps } = props;
+  return (
+    <div
+      className={[modalStyles.headerSection, className]
+        .filter(Boolean)
+        .join(" ")}
+      {...restProps}
+    />
+  );
+};
+ModalHeaderSection.displayName = "DialogHeader";
 
-const DialogFooter = ({
-  className,
-  ...props
-}: React.HTMLAttributes<HTMLDivElement>) => (
-  <div
-    className={`${styles.footer} ${className || ''}`}
-    {...props}
-  />
-)
-DialogFooter.displayName = "DialogFooter"
+const ModalFooterSection = (props: React.HTMLAttributes<HTMLDivElement>) => {
+  const { className, ...restProps } = props;
+  return (
+    <div
+      className={[modalStyles.footerSection, className]
+        .filter(Boolean)
+        .join(" ")}
+      {...restProps}
+    />
+  );
+};
+ModalFooterSection.displayName = "DialogFooter";
 
-const DialogTitle = React.forwardRef<
-  React.ElementRef<typeof DialogPrimitive.Title>,
-  React.ComponentPropsWithoutRef<typeof DialogPrimitive.Title>
->(({ className, ...props }, ref) => (
-  <DialogPrimitive.Title
-    ref={ref}
-    className={`${styles.title} ${className || ''}`}
-    {...props}
-  />
-))
-DialogTitle.displayName = DialogPrimitive.Title.displayName
+const ModalHeading = forwardRef<
+  React.ElementRef<typeof ModalPrimitive.Title>,
+  React.ComponentPropsWithoutRef<typeof ModalPrimitive.Title>
+>((props, forwardedRef) => {
+  const { className, ...restProps } = props;
+  return (
+    <ModalPrimitive.Title
+      ref={forwardedRef}
+      className={[modalStyles.modalTitle, className].filter(Boolean).join(" ")}
+      {...restProps}
+    />
+  );
+});
+ModalHeading.displayName = ModalPrimitive.Title.displayName;
 
-const DialogDescription = React.forwardRef<
-  React.ElementRef<typeof DialogPrimitive.Description>,
-  React.ComponentPropsWithoutRef<typeof DialogPrimitive.Description>
->(({ className, ...props }, ref) => (
-  <DialogPrimitive.Description
-    ref={ref}
-    className={`${styles.description} ${className || ''}`}
-    {...props}
-  />
-))
-DialogDescription.displayName = DialogPrimitive.Description.displayName
+const ModalSubtext = forwardRef<
+  React.ElementRef<typeof ModalPrimitive.Description>,
+  React.ComponentPropsWithoutRef<typeof ModalPrimitive.Description>
+>((props, forwardedRef) => {
+  const { className, ...restProps } = props;
+  return (
+    <ModalPrimitive.Description
+      ref={forwardedRef}
+      className={[modalStyles.modalDescription, className]
+        .filter(Boolean)
+        .join(" ")}
+      {...restProps}
+    />
+  );
+});
+ModalSubtext.displayName = ModalPrimitive.Description.displayName;
 
 export {
-  Dialog,
-  DialogPortal,
-  DialogOverlay,
-  DialogTrigger,
-  DialogClose,
-  DialogContent,
-  DialogHeader,
-  DialogFooter,
-  DialogTitle,
-  DialogDescription,
-}
+  ModalComponent as Dialog,
+  ModalRenderer as DialogPortal,
+  ModalBackdrop as DialogOverlay,
+  ModalActivator as DialogTrigger,
+  ModalDismisser as DialogClose,
+  ModalContainer as DialogContent,
+  ModalHeaderSection as DialogHeader,
+  ModalFooterSection as DialogFooter,
+  ModalHeading as DialogTitle,
+  ModalSubtext as DialogDescription,
+};

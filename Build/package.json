@@ -55,6 +55,7 @@
     "zod": "^3.24.2"
   },
   "devDependencies": {
+    "@types/jasmine": "^5.1.9",
     "@types/jest": "^27.5.2",
     "@types/node": "^20.19.1",
     "@types/react": "^19.1.8",

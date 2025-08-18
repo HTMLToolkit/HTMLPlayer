@@ -8,7 +8,8 @@
   display: flex;
   flex-direction: column;
   padding: var(--spacing-4);
-  transition: width var(--animation-duration-normal) ease-in-out, padding var(--animation-duration-normal) ease-in-out;
+  transition: width var(--animation-duration-normal) ease-in-out,
+    padding var(--animation-duration-normal) ease-in-out;
 }
 
 .sidebarCollapsed {
@@ -22,7 +23,8 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: width var(--animation-duration-normal) ease, background-color var(--animation-duration-fast) ease;
+  transition: width var(--animation-duration-normal) ease,
+    background-color var(--animation-duration-fast) ease;
   position: relative;
 }
 

@@ -148,7 +148,7 @@
 .albumArt {
   width: 40px;
   height: 40px;
-  background: linear-gradient(135deg, #1E3A8A 0%, #1E40AF 100%);
+  background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
   border-radius: var(--radius);
   flex-shrink: 0;
   display: flex;
@@ -162,7 +162,7 @@
 
 .albumArt:not(:has(img))::before,
 .albumArt:not(:has(img))::after {
-  content: '';
+  content: "";
   position: absolute;
   background: white;
   border-radius: 1px;
@@ -250,27 +250,27 @@
   .mainContent {
     padding: var(--spacing-4);
   }
-  
+
   .header {
     flex-direction: column;
     align-items: flex-start;
   }
-  
+
   .actions {
     width: 100%;
     justify-content: space-between;
   }
-  
+
   .songListHeader {
     grid-template-columns: 2fr 1fr 80px;
     gap: var(--spacing-2);
   }
-  
+
   .songItem {
     grid-template-columns: 2fr 1fr 80px;
     gap: var(--spacing-2);
   }
-  
+
   .songActions {
     gap: 0;
   }

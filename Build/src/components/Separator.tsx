@@ -15,7 +15,9 @@ export const Separator = ({
 }: SeparatorProps) => {
   return (
     <SeparatorPrimitive.Root
-      className={`${styles.separator} ${styles[orientation]} ${className ?? ""}`}
+      className={`${styles.separator} ${styles[orientation]} ${
+        className ?? ""
+      }`}
       orientation={orientation}
       decorative={decorative}
     />

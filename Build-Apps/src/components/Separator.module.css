@@ -4,24 +4,24 @@
     width: 100%;
     border: none;
     background: linear-gradient(
-      to right, 
-      transparent, 
-      var(--border) 10%, 
-      var(--border) 90%, 
+      to right,
+      transparent,
+      var(--border) 10%,
+      var(--border) 90%,
       transparent
     );
     height: 1px;
     opacity: 0.6;
   }
-  
+
   .separator.vertical {
     width: 1px;
     height: 100%;
     background: linear-gradient(
-      to bottom, 
-      transparent, 
-      var(--border) 10%, 
-      var(--border) 90%, 
+      to bottom,
+      transparent,
+      var(--border) 10%,
+      var(--border) 90%,
       transparent
     );
   }

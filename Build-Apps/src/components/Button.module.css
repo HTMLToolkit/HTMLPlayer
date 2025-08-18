@@ -1,70 +1,76 @@
 @layer base {
+  /* Core button foundation */
   .button {
+    position: relative;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: var(--spacing-2);
     font-family: var(--font-family-base);
     font-weight: 500;
-    border-radius: var(--radius);
     white-space: nowrap;
     text-decoration: none;
     cursor: pointer;
-    transition:
-      background-color var(--animation-duration-fast) ease,
-      border-color var(--animation-duration-fast) ease,
-      color var(--animation-duration-fast) ease;
     outline: none;
     border: 1px solid transparent;
+    border-radius: var(--radius);
+    transition: all var(--animation-duration-fast) ease;
   }
 
-  /* Focus styles */
+  /* Interactive states */
   .button:focus-visible {
     box-shadow: var(--shadow-focus);
   }
 
-  /* Size variants */
+  .button:disabled,
+  .disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    pointer-events: none;
+  }
+
+  /* Dimension configurations */
   .sm {
-    height: 1.5rem;
-    padding: 0 var(--spacing-2);
+    min-height: 1.5rem;
+    padding-inline: var(--spacing-2);
     font-size: 0.875rem;
   }
 
   .md {
-    height: 2.5rem;
-    padding: 0 var(--spacing-3);
+    min-height: 2.5rem;
+    padding-inline: var(--spacing-3);
     font-size: 0.9375rem;
   }
 
   .lg {
-    height: 3rem;
-    padding: 0 var(--spacing-4);
+    min-height: 3rem;
+    padding-inline: var(--spacing-4);
     font-size: 1rem;
     border-radius: var(--radius-md);
   }
 
-  /* Icon button sizes */
+  /* Square icon variants */
   .icon,
   .icon-md {
+    aspect-ratio: 1;
     width: 2rem;
-    height: 2rem;
     padding: 0;
   }
 
   .icon-sm {
+    aspect-ratio: 1;
     width: 1.5rem;
-    height: 1.5rem;
     padding: 0;
   }
 
   .icon-lg {
+    aspect-ratio: 1;
     width: 2.5rem;
-    height: 2.5rem;
     padding: 0;
     border-radius: var(--radius-md);
   }
 
-  /* Icon sizing */
+  /* SVG icon dimensions */
   .button svg {
     flex-shrink: 0;
   }
@@ -88,81 +94,80 @@
     height: 1.5rem;
   }
 
-  /* Variant styles */
+  /* Theme variants */
   .primary {
-    background-color: var(--primary);
+    background: var(--primary);
     color: var(--primary-foreground);
     --spinner-color: var(--primary-foreground);
   }
 
-  .primary:hover {
-    background-color: color-mix(in srgb, var(--primary), black 10%);
+  .primary:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--primary) 90%, black);
   }
 
-  .primary:active {
-    background-color: color-mix(in srgb, var(--primary), black 20%);
+  .primary:active:not(:disabled) {
+    background: color-mix(in srgb, var(--primary) 80%, black);
   }
 
   .secondary {
-    background-color: var(--secondary);
+    background: var(--secondary);
     color: var(--secondary-foreground);
     --spinner-color: var(--secondary-foreground);
   }
 
-  .secondary:hover {
-    background-color: color-mix(in srgb, var(--secondary), black 10%);
+  .secondary:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--secondary) 90%, black);
   }
 
-  .secondary:active {
-    background-color: color-mix(in srgb, var(--secondary), black 20%);
+  .secondary:active:not(:disabled) {
+    background: color-mix(in srgb, var(--secondary) 80%, black);
   }
 
   .destructive {
-    background-color: var(--error);
+    background: var(--error);
     color: var(--error-foreground);
     --spinner-color: var(--error-foreground);
   }
 
-  .destructive:hover {
-    background-color: color-mix(in srgb, var(--error), black 10%);
+  .destructive:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--error) 90%, black);
   }
 
-  .destructive:active {
-    background-color: color-mix(in srgb, var(--error), black 20%);
+  .destructive:active:not(:disabled) {
+    background: color-mix(in srgb, var(--error) 80%, black);
   }
 
   .outline {
-    background-color: transparent;
+    background: transparent;
     border-color: var(--border);
     color: var(--foreground);
     --spinner-color: var(--primary);
   }
 
-  .outline:hover {
-    background-color: var(--muted);
-    color: var(--foreground);
+  .outline:hover:not(:disabled) {
+    background: var(--muted);
   }
 
-  .outline:active {
-    background-color: color-mix(in srgb, var(--muted), black 10%);
+  .outline:active:not(:disabled) {
+    background: color-mix(in srgb, var(--muted) 90%, black);
   }
 
   .ghost {
-    background-color: transparent;
+    background: transparent;
     color: var(--foreground);
     --spinner-color: var(--primary);
   }
 
-  .ghost:hover {
-    background-color: var(--muted);
+  .ghost:hover:not(:disabled) {
+    background: var(--muted);
   }
 
-  .ghost:active {
-    background-color: color-mix(in srgb, var(--muted), black 10%);
+  .ghost:active:not(:disabled) {
+    background: color-mix(in srgb, var(--muted) 90%, black);
   }
 
   .link {
-    background-color: transparent;
+    background: transparent;
     color: var(--primary);
     height: auto;
     padding: 0;
@@ -170,41 +175,31 @@
     --spinner-color: var(--primary);
   }
 
-  .link:hover {
+  .link:hover:not(:disabled) {
     text-decoration: underline;
-    color: color-mix(in srgb, var(--primary), black 10%);
+    color: color-mix(in srgb, var(--primary) 90%, black);
   }
 
-  .link:active {
-    color: color-mix(in srgb, var(--primary), black 20%);
+  .link:active:not(:disabled) {
+    color: color-mix(in srgb, var(--primary) 80%, black);
   }
 
-  /* Disabled state */
-  .disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-    pointer-events: none;
-  }
+  /* Dark theme adaptations */
+  @media (prefers-color-scheme: dark) {
+    :global(.dark) .outline:hover:not(:disabled) {
+      background: var(--muted);
+    }
 
-  /* Dark mode adjustments */
-  :global(.dark) .outline {
-    border-color: var(--border);
-    color: var(--foreground);
-  }
+    :global(.dark) .outline:active:not(:disabled) {
+      background: color-mix(in srgb, var(--muted) 80%, black);
+    }
 
-  :global(.dark) .outline:hover {
-    background-color: var(--muted);
-  }
+    :global(.dark) .ghost:hover:not(:disabled) {
+      background: var(--muted);
+    }
 
-  :global(.dark) .outline:active {
-    background-color: color-mix(in srgb, var(--muted), black 20%);
-  }
-
-  :global(.dark) .ghost:hover {
-    background-color: var(--muted);
-  }
-
-  :global(.dark) .ghost:active {
-    background-color: color-mix(in srgb, var(--muted), black 20%);
+    :global(.dark) .ghost:active:not(:disabled) {
+      background: color-mix(in srgb, var(--muted) 80%, black);
+    }
   }
 }

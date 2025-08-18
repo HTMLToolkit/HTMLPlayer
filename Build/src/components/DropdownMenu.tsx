@@ -7,7 +7,7 @@ import styles from "./DropdownMenu.module.css";
 
 const DropdownMenu = DropdownMenuPrimitive.Root;
 
-const DropdownMenuTrigger = DropdownMenuPrimitive.Trigger
+const DropdownMenuTrigger = DropdownMenuPrimitive.Trigger;
 
 const DropdownMenuGroup = DropdownMenuPrimitive.Group;
 
@@ -25,7 +25,9 @@ const DropdownMenuSubTrigger = React.forwardRef<
 >(({ className, inset, children, ...props }, ref) => (
   <DropdownMenuPrimitive.SubTrigger
     ref={ref}
-    className={`${styles.subTrigger} ${inset ? styles.inset : ""} ${className || ""}`}
+    className={`${styles.subTrigger} ${inset ? styles.inset : ""} ${
+      className || ""
+    }`}
     {...props}
   >
     {children}
@@ -122,7 +124,9 @@ const DropdownMenuLabel = React.forwardRef<
 >(({ className, inset, ...props }, ref) => (
   <DropdownMenuPrimitive.Label
     ref={ref}
-    className={`${styles.label} ${inset ? styles.inset : ""} ${className || ""}`}
+    className={`${styles.label} ${inset ? styles.inset : ""} ${
+      className || ""
+    }`}
     {...props}
   />
 ));

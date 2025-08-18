@@ -12,8 +12,7 @@
     border: 1px solid var(--border);
     border-radius: var(--radius);
     padding: var(--spacing-2) var(--spacing-3);
-    transition:
-      border-color var(--animation-duration-normal) ease,
+    transition: border-color var(--animation-duration-normal) ease,
       background-color var(--animation-duration-normal) ease;
     outline: none;
     cursor: pointer;
@@ -133,8 +132,7 @@
     user-select: none;
     outline: none;
     cursor: pointer;
-    transition:
-      background-color var(--animation-duration-fast) ease,
+    transition: background-color var(--animation-duration-fast) ease,
       color var(--animation-duration-fast) ease;
   }
 
@@ -186,8 +184,7 @@
 
   :global(.dark) .selectTrigger:focus {
     background-color: color-mix(in srgb, var(--background) 80%, black);
-    box-shadow:
-      inset 0 1px 2px color-mix(in srgb, black 5%, transparent),
+    box-shadow: inset 0 1px 2px color-mix(in srgb, black 5%, transparent),
       0 0 0 3px color-mix(in srgb, var(--primary) 25%, transparent);
   }
 }

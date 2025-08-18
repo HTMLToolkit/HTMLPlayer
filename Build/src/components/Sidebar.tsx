@@ -1,29 +1,43 @@
 import React, { useState } from "react";
-import { Menu, Settings as SettingsIcon, Info, ChevronRight } from "lucide-react";
+import {
+  Menu,
+  Settings as SettingsIcon,
+  Info,
+  ChevronRight,
+} from "lucide-react";
 import { Button } from "./Button";
 import { Separator } from "./Separator";
 import { Settings as SettingsComponent } from "./Settings";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "./Dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "./Dialog";
 import { PlaylistComponent } from "./Playlist";
 import styles from "./Sidebar.module.css";
 
 type SidebarProps = {
-  musicPlayerHook: ReturnType<typeof import("../helpers/musicPlayerHook").useMusicPlayer>;
+  musicPlayerHook: ReturnType<
+    typeof import("../helpers/musicPlayerHook").useMusicPlayer
+  >;
   onCollapseChange?: (isCollapsed: boolean) => void;
 };
 
-const COLLAPSED_WIDTH = '40px';
-const EXPANDED_WIDTH = '250px';
+const COLLAPSED_WIDTH = "40px";
+const EXPANDED_WIDTH = "250px";
 
-export const Sidebar = ({ musicPlayerHook, onCollapseChange }: SidebarProps) => {
+export const Sidebar = ({
+  musicPlayerHook,
+  onCollapseChange,
+}: SidebarProps) => {
   const [showAbout, setShowAbout] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
 
-  const {
-    settings,
-    updateSettings
-  } = musicPlayerHook;
+  const { settings, updateSettings } = musicPlayerHook;
 
   const handleAbout = () => {
     setShowAbout(true);
@@ -40,7 +54,7 @@ export const Sidebar = ({ musicPlayerHook, onCollapseChange }: SidebarProps) => 
 
     // Update CSS variable for sidebar width:
     document.documentElement.style.setProperty(
-      '--sidebar-width',
+      "--sidebar-width",
       newCollapsedState ? COLLAPSED_WIDTH : EXPANDED_WIDTH
     );
   };
@@ -50,7 +64,10 @@ export const Sidebar = ({ musicPlayerHook, onCollapseChange }: SidebarProps) => 
     onCollapseChange?.(false);
 
     // Reset CSS variable to expanded width
-    document.documentElement.style.setProperty('--sidebar-width', EXPANDED_WIDTH);
+    document.documentElement.style.setProperty(
+      "--sidebar-width",
+      EXPANDED_WIDTH
+    );
   };
 
   if (isCollapsed) {

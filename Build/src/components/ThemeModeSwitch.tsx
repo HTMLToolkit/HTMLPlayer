@@ -76,9 +76,7 @@ export const ThemeModeSwitch = ({
           >
             <Sun size={16} className={styles.menuIcon} />
             Light
-            {value === "light" && (
-              <span className={styles.checkmark}>✓</span>
-            )}
+            {value === "light" && <span className={styles.checkmark}>✓</span>}
           </DropdownMenuItem>
           <DropdownMenuItem
             className={value === "dark" ? styles.activeItem : ""}
@@ -86,9 +84,7 @@ export const ThemeModeSwitch = ({
           >
             <Moon size={16} className={styles.menuIcon} />
             Dark
-            {value === "dark" && (
-              <span className={styles.checkmark}>✓</span>
-            )}
+            {value === "dark" && <span className={styles.checkmark}>✓</span>}
           </DropdownMenuItem>
           <DropdownMenuItem
             className={value === "auto" ? styles.activeItem : ""}
@@ -96,9 +92,7 @@ export const ThemeModeSwitch = ({
           >
             <SunMoon size={16} className={styles.menuIcon} />
             Auto
-            {value === "auto" && (
-              <span className={styles.checkmark}>✓</span>
-            )}
+            {value === "auto" && <span className={styles.checkmark}>✓</span>}
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

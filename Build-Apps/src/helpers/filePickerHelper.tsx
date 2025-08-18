@@ -1,5 +1,5 @@
-import parse from 'id3-parser';
-import { toast } from 'sonner';
+import parse from "id3-parser";
+import { toast } from "sonner";
 
 export type AudioFile = {
   file: File;
@@ -18,10 +18,10 @@ export type AudioMetadata = {
 
 export function pickAudioFiles(): Promise<AudioFile[]> {
   return new Promise((resolve, reject) => {
-    const input = document.createElement('input');
-    input.type = 'file';
+    const input = document.createElement("input");
+    input.type = "file";
     // Allow specific audio types only (case insensitive)
-    input.accept = '.mp3,.wav,.m4a,.flac,.aif,.aiff,.ogg';
+    input.accept = ".mp3,.wav,.m4a,.flac,.aif,.aiff,.ogg";
     input.multiple = true;
 
     input.onchange = (event) => {
@@ -34,18 +34,26 @@ export function pickAudioFiles(): Promise<AudioFile[]> {
       }
 
       const audioFiles: AudioFile[] = [];
-      const audioTest = document.createElement('audio');
+      const audioTest = document.createElement("audio");
 
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
 
         // Validate audio file type by MIME type prefix
-        const allowedExtensions = ['mp3', 'wav', 'm4a', 'flac', 'aif', 'aiff', 'ogg'];
+        const allowedExtensions = [
+          "mp3",
+          "wav",
+          "m4a",
+          "flac",
+          "aif",
+          "aiff",
+          "ogg",
+        ];
 
-        const fileExtension = file.name.split('.').pop()?.toLowerCase();
+        const fileExtension = file.name.split(".").pop()?.toLowerCase();
 
         if (
-          !file.type.startsWith('audio/') &&
+          !file.type.startsWith("audio/") &&
           !(fileExtension && allowedExtensions.includes(fileExtension))
         ) {
           toast.error(`Skipping non-audio file: ${file.name}`);
@@ -54,8 +62,10 @@ export function pickAudioFiles(): Promise<AudioFile[]> {
 
         // Check if browser can play the file type
         const canPlay = audioTest.canPlayType(file.type);
-        if (canPlay !== 'probably' && canPlay !== 'maybe') {
-          toast.error(`Skipping unsupported audio format by browser: ${file.name} (${file.type})`);
+        if (canPlay !== "probably" && canPlay !== "maybe") {
+          toast.error(
+            `Skipping unsupported audio format by browser: ${file.name} (${file.type})`
+          );
           continue;
         }
 
@@ -71,7 +81,7 @@ export function pickAudioFiles(): Promise<AudioFile[]> {
     };
 
     input.onerror = () => {
-      reject(new Error('File selection failed'));
+      reject(new Error("File selection failed"));
     };
 
     input.oncancel = () => {
@@ -96,7 +106,7 @@ export async function extractAudioMetadata(file: File): Promise<AudioMetadata> {
       const { data, format } = id3Tags.image;
       if (data) {
         // Convert image data to base64
-        let base64String = '';
+        let base64String = "";
         for (let i = 0; i < data.length; i++) {
           base64String += String.fromCharCode(data[i]);
         }
@@ -104,20 +114,23 @@ export async function extractAudioMetadata(file: File): Promise<AudioMetadata> {
       }
     }
   } catch (e) {
-    console.warn('Failed to parse ID3 tags:', e);
+    console.warn("Failed to parse ID3 tags:", e);
   }
 
-  const fileName = file.name.replace(/\.[^/.]+$/, '');
+  const fileName = file.name.replace(/\.[^/.]+$/, "");
   let title = fileName;
-  let artist = 'Unknown Artist';
-  let album = 'Unknown Album';
+  let artist = "Unknown Artist";
+  let album = "Unknown Album";
 
   if (id3Tags) {
-    if (id3Tags.artist && typeof id3Tags.artist === 'string') artist = id3Tags.artist;
-    if (id3Tags.title && typeof id3Tags.title === 'string') title = id3Tags.title;
-    if (id3Tags.album && typeof id3Tags.album === 'string') album = id3Tags.album;
-  } else if (fileName.includes(' - ')) {
-    const parts = fileName.split(' - ');
+    if (id3Tags.artist && typeof id3Tags.artist === "string")
+      artist = id3Tags.artist;
+    if (id3Tags.title && typeof id3Tags.title === "string")
+      title = id3Tags.title;
+    if (id3Tags.album && typeof id3Tags.album === "string")
+      album = id3Tags.album;
+  } else if (fileName.includes(" - ")) {
+    const parts = fileName.split(" - ");
     if (parts.length >= 2) {
       artist = parts[0].trim();
       title = parts[1].trim();

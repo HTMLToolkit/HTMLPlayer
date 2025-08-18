@@ -25,7 +25,11 @@
 .activeItem {
   font-weight: 500;
   color: var(--primary);
-  background-color: color-mix(in srgb, var(--primary), transparent 90%) !important;
+  background-color: color-mix(
+    in srgb,
+    var(--primary),
+    transparent 90%
+  ) !important;
 }
 
 .checkmark {

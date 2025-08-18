@@ -202,7 +202,7 @@ const TITLE_CLEANUP_PATTERNS = [
   / Streaming$/i,
   / - Exclusive$/i,
   / Exclusive$/i,
-  
+
   // Remove parenthetical content that's likely not part of the song title
   / \(Official Video\)$/i,
   / \(Official Music Video\)$/i,
@@ -247,53 +247,61 @@ const TITLE_CLEANUP_PATTERNS = [
 
 const cleanArtistName = (artist: string): string => {
   let cleaned = artist.trim();
-  
+
   // Apply all artist cleanup patterns
   for (const pattern of ARTIST_CLEANUP_PATTERNS) {
-    cleaned = cleaned.replace(pattern, '');
+    cleaned = cleaned.replace(pattern, "");
   }
-  
+
   // Remove extra whitespace and normalize
-  cleaned = cleaned.trim().replace(/\s+/g, ' ');
-  
+  cleaned = cleaned.trim().replace(/\s+/g, " ");
+
   return cleaned;
 };
 
 const cleanTitle = (title: string, artist?: string): string => {
   let cleaned = title.trim();
-  
+
   // If artist is provided and not "Unknown Artist", remove it from the beginning of the title
-  if (artist && artist.trim().toLowerCase() !== 'unknown artist') {
+  if (artist && artist.trim().toLowerCase() !== "unknown artist") {
     const artistClean = artist.trim();
-    
+
     // Remove "Artist - Title" pattern
-    const dashPattern = new RegExp(`^${escapeRegExp(artistClean)}\\s*-\\s*`, 'i');
-    cleaned = cleaned.replace(dashPattern, '');
-    
+    const dashPattern = new RegExp(
+      `^${escapeRegExp(artistClean)}\\s*-\\s*`,
+      "i"
+    );
+    cleaned = cleaned.replace(dashPattern, "");
+
     // Remove "Artist: Title" pattern
-    const colonPattern = new RegExp(`^${escapeRegExp(artistClean)}\\s*:\\s*`, 'i');
-    cleaned = cleaned.replace(colonPattern, '');
-    
+    const colonPattern = new RegExp(
+      `^${escapeRegExp(artistClean)}\\s*:\\s*`,
+      "i"
+    );
+    cleaned = cleaned.replace(colonPattern, "");
+
     // Remove "Artist | Title" pattern
-    const pipePattern = new RegExp(`^${escapeRegExp(artistClean)}\\s*\\|\\s*`, 'i');
-    cleaned = cleaned.replace(pipePattern, '');
+    const pipePattern = new RegExp(
+      `^${escapeRegExp(artistClean)}\\s*\\|\\s*`,
+      "i"
+    );
+    cleaned = cleaned.replace(pipePattern, "");
   }
-  
+
   // Apply all title cleanup patterns
   for (const pattern of TITLE_CLEANUP_PATTERNS) {
-    cleaned = cleaned.replace(pattern, '');
+    cleaned = cleaned.replace(pattern, "");
   }
-  
+
   // Remove extra whitespace and normalize
-  cleaned = cleaned.trim().replace(/\s+/g, ' ');
-  
+  cleaned = cleaned.trim().replace(/\s+/g, " ");
+
   return cleaned;
 };
 
-
 // Helper function to escape special regex characters
 const escapeRegExp = (string: string): string => {
-  return string.replace(/[.*+?^${}()|[\]\\]/g, '');
+  return string.replace(/[.*+?^${}()|[\]\\]/g, "");
 };
 
 export const Lyrics = ({ artist, title, visible, onClose }: LyricsProps) => {
@@ -309,14 +317,14 @@ export const Lyrics = ({ artist, title, visible, onClose }: LyricsProps) => {
     const controller = new AbortController();
     abortControllerRef.current = controller;
 
-    setState(prev => ({ ...prev, loading: true, error: null }));
+    setState((prev) => ({ ...prev, loading: true, error: null }));
 
     // Skip API call if artist is "Unknown Artist" - lyrics.ovh won't have results
-    if (artist.trim().toLowerCase() === 'unknown artist') {
-      setState(prev => ({ 
-        ...prev, 
-        error: "Cannot search for lyrics without a known artist", 
-        loading: false 
+    if (artist.trim().toLowerCase() === "unknown artist") {
+      setState((prev) => ({
+        ...prev,
+        error: "Cannot search for lyrics without a known artist",
+        loading: false,
       }));
       return;
     }
@@ -329,58 +337,67 @@ export const Lyrics = ({ artist, title, visible, onClose }: LyricsProps) => {
     const searchCombinations = [
       { artist: cleanedArtist, title: cleanedTitle },
       // Fallback to original if cleaning changed them
-      ...(cleanedArtist !== artist || cleanedTitle !== title ? [{ artist, title }] : []),
+      ...(cleanedArtist !== artist || cleanedTitle !== title
+        ? [{ artist, title }]
+        : []),
       // Additional fallbacks with partial cleaning
       ...(cleanedArtist !== artist ? [{ artist: cleanedArtist, title }] : []),
       ...(cleanedTitle !== title ? [{ artist, title: cleanedTitle }] : []),
       // Try with original artist but title cleaned with original artist name
-      ...(cleanTitle(title, artist) !== title ? [{ artist, title: cleanTitle(title, artist) }] : []),
+      ...(cleanTitle(title, artist) !== title
+        ? [{ artist, title: cleanTitle(title, artist) }]
+        : []),
     ];
 
     let lastError: Error | null = null;
 
-    for (const { artist: searchArtist, title: searchTitle } of searchCombinations) {
+    for (const {
+      artist: searchArtist,
+      title: searchTitle,
+    } of searchCombinations) {
       try {
         const response = await fetch(
-          `https://api.lyrics.ovh/v1/${encodeURIComponent(searchArtist)}/${encodeURIComponent(searchTitle)}`,
+          `https://api.lyrics.ovh/v1/${encodeURIComponent(
+            searchArtist
+          )}/${encodeURIComponent(searchTitle)}`,
           { signal: controller.signal }
         );
 
         if (response.ok) {
           const data: LyricsResponse = await response.json();
-          
+
           if (data.lyrics && data.lyrics.trim() !== "") {
-            setState(prev => ({ 
-              ...prev, 
-              lyrics: data.lyrics.trim(), 
-              loading: false 
+            setState((prev) => ({
+              ...prev,
+              lyrics: data.lyrics.trim(),
+              loading: false,
             }));
             return; // Success - exit the loop
           }
         }
-        
+
         // Store the error for potential use later
         lastError = new Error(
-          response.status === 404 
-            ? "Lyrics not found for this song" 
+          response.status === 404
+            ? "Lyrics not found for this song"
             : `Failed to fetch lyrics (${response.status})`
         );
-        
       } catch (error) {
         // Don't update state if request was aborted
-        if (error instanceof Error && error.name === 'AbortError') {
+        if (error instanceof Error && error.name === "AbortError") {
           return;
         }
-        
-        lastError = error instanceof Error ? error : new Error("Failed to load lyrics");
+
+        lastError =
+          error instanceof Error ? error : new Error("Failed to load lyrics");
       }
     }
 
     // If we get here, all combinations failed
-    setState(prev => ({ 
-      ...prev, 
-      error: lastError?.message || "Failed to load lyrics", 
-      loading: false 
+    setState((prev) => ({
+      ...prev,
+      error: lastError?.message || "Failed to load lyrics",
+      loading: false,
     }));
   }, []);
 
@@ -405,13 +422,13 @@ export const Lyrics = ({ artist, title, visible, onClose }: LyricsProps) => {
     if (!visible || !onClose) return;
 
     const handleEscapeKey = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
+      if (event.key === "Escape") {
         onClose();
       }
     };
 
-    document.addEventListener('keydown', handleEscapeKey);
-    return () => document.removeEventListener('keydown', handleEscapeKey);
+    document.addEventListener("keydown", handleEscapeKey);
+    return () => document.removeEventListener("keydown", handleEscapeKey);
   }, [visible, onClose]);
 
   const handleRetry = useCallback(() => {
@@ -420,12 +437,15 @@ export const Lyrics = ({ artist, title, visible, onClose }: LyricsProps) => {
     }
   }, [artist, title, fetchLyrics]);
 
-  const handleOverlayClick = useCallback((event: React.MouseEvent) => {
-    // Close on backdrop click
-    if (event.target === event.currentTarget && onClose) {
-      onClose();
-    }
-  }, [onClose]);
+  const handleOverlayClick = useCallback(
+    (event: React.MouseEvent) => {
+      // Close on backdrop click
+      if (event.target === event.currentTarget && onClose) {
+        onClose();
+      }
+    },
+    [onClose]
+  );
 
   if (!visible) return null;
 
@@ -457,21 +477,17 @@ export const Lyrics = ({ artist, title, visible, onClose }: LyricsProps) => {
           )}
         </header>
 
-        <div 
-          id="lyrics-content" 
-          className={styles.lyricsContent}
-          role="main"
-        >
+        <div id="lyrics-content" className={styles.lyricsContent} role="main">
           {loading && (
             <div className={styles.loading} role="status" aria-live="polite">
               <span>Loading lyrics...</span>
             </div>
           )}
-          
+
           {error && (
             <div className={styles.error} role="alert">
               <p>{error}</p>
-              <button 
+              <button
                 onClick={handleRetry}
                 className={styles.retryButton}
                 aria-label="Retry loading lyrics"
@@ -480,13 +496,13 @@ export const Lyrics = ({ artist, title, visible, onClose }: LyricsProps) => {
               </button>
             </div>
           )}
-          
+
           {!loading && !error && lyrics && (
             <div className={styles.lyricsText}>
               <pre aria-label="Song lyrics">{lyrics}</pre>
             </div>
           )}
-          
+
           {!loading && !error && !lyrics && (
             <div className={styles.error} role="alert">
               No lyrics available for this song.

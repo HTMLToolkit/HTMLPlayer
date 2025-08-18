@@ -1,25 +1,34 @@
-import React, { useState } from 'react';
-import { Plus, Info, Share, User, Music, MoreHorizontal, PlusCircle, Trash2 } from 'lucide-react';
-import { toast } from 'sonner';
-import { Button } from './Button';
-import { Input } from './Input';
-import { 
+import React, { useState } from "react";
+import {
+  Plus,
+  Info,
+  Share,
+  User,
+  Music,
+  MoreHorizontal,
+  PlusCircle,
+  Trash2,
+} from "lucide-react";
+import { toast } from "sonner";
+import { Button } from "./Button";
+import { Input } from "./Input";
+import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogDescription,
   DialogFooter,
-} from './Dialog';
-import modalStyles from './Dialog.module.css';
-import { 
-  DropdownMenu, 
-  DropdownMenuTrigger, 
-  DropdownMenuContent, 
-  DropdownMenuItem, 
-  DropdownMenuSeparator 
-} from './DropdownMenu';
-import { Song, Playlist, MusicLibrary } from '../helpers/musicPlayerHook';
+} from "./Dialog";
+import modalStyles from "./Dialog.module.css";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+} from "./DropdownMenu";
+import { Song, Playlist, MusicLibrary } from "../helpers/musicPlayerHook";
 
 interface SongActionsDropdownProps {
   song: Song;
@@ -31,22 +40,22 @@ interface SongActionsDropdownProps {
   className?: string;
 }
 
-export const SongActionsDropdown = ({ 
+export const SongActionsDropdown = ({
   song,
   library,
   onCreatePlaylist,
   onAddToPlaylist,
   onPlaySong,
   size = 16,
-  className = ''
+  className = "",
 }: SongActionsDropdownProps) => {
   const [showPlaylistDialog, setShowPlaylistDialog] = useState(false);
-  const [newPlaylistName, setNewPlaylistName] = useState('');
+  const [newPlaylistName, setNewPlaylistName] = useState("");
   const [isCreatingNew, setIsCreatingNew] = useState(false);
 
   const handleAddToPlaylist = (playlist?: Playlist) => {
     if (playlist) {
-      const isAlreadyInPlaylist = playlist.songs.some(s => s.id === song.id);
+      const isAlreadyInPlaylist = playlist.songs.some((s) => s.id === song.id);
       if (isAlreadyInPlaylist) {
         toast.info(`"${song.title}" is already in playlist "${playlist.name}"`);
       } else {
@@ -59,12 +68,14 @@ export const SongActionsDropdown = ({
 
   const handleCreateNewPlaylist = () => {
     if (!newPlaylistName.trim()) {
-      toast.error('Please enter a playlist name');
+      toast.error("Please enter a playlist name");
       return;
     }
     const newPlaylist = onCreatePlaylist(newPlaylistName, [song]);
-    toast.success(`Created new playlist "${newPlaylist.name}" and added "${song.title}"`);
-    setNewPlaylistName('');
+    toast.success(
+      `Created new playlist "${newPlaylist.name}" and added "${song.title}"`
+    );
+    setNewPlaylistName("");
     setIsCreatingNew(false);
     setShowPlaylistDialog(false);
   };
@@ -73,7 +84,7 @@ export const SongActionsDropdown = ({
     const roundedSeconds = Math.round(seconds);
     const mins = Math.floor(roundedSeconds / 60);
     const secs = roundedSeconds % 60;
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
+    return `${mins}:${secs.toString().padStart(2, "0")}`;
   };
 
   const handleShowSongInfo = () => {
@@ -82,9 +93,9 @@ export const SongActionsDropdown = ({
       `Artist: ${song.artist}`,
       `Album: ${song.album}`,
       `Duration: ${formatTime(song.duration)}`,
-      `Format: Audio file`
-    ].join('\n');
-    
+      `Format: Audio file`,
+    ].join("\n");
+
     alert(`Song Information\n\n${infoText}`);
   };
 
@@ -92,44 +103,56 @@ export const SongActionsDropdown = ({
     const shareData = {
       title: `${song.title} - ${song.artist}`,
       text: `Listen to "${song.title}" by ${song.artist}`,
-      url: window.location.href
+      url: window.location.href,
     };
-    
+
     try {
-      if (navigator.share && navigator.canShare && navigator.canShare(shareData)) {
+      if (
+        navigator.share &&
+        navigator.canShare &&
+        navigator.canShare(shareData)
+      ) {
         await navigator.share(shareData);
-        toast.success('Song shared successfully');
+        toast.success("Song shared successfully");
       } else {
         const shareText = `🎵 ${shareData.title}\n${shareData.text}\n${shareData.url}`;
         await navigator.clipboard.writeText(shareText);
-        toast.success('Song info copied to clipboard!');
+        toast.success("Song info copied to clipboard!");
       }
     } catch (error) {
-      console.error('Failed to share:', error);
+      console.error("Failed to share:", error);
       try {
         await navigator.clipboard.writeText(`${song.title} by ${song.artist}`);
-        toast.success('Song info copied to clipboard');
+        toast.success("Song info copied to clipboard");
       } catch (clipboardError) {
-        console.error('Failed to copy to clipboard:', clipboardError);
-        toast.error('Failed to share or copy song info');
+        console.error("Failed to copy to clipboard:", clipboardError);
+        toast.error("Failed to share or copy song info");
       }
     }
   };
 
   const handleGoToArtist = () => {
-    window.dispatchEvent(new CustomEvent('navigate', { detail: { view: 'artist', value: song.artist } }));
+    window.dispatchEvent(
+      new CustomEvent("navigate", {
+        detail: { view: "artist", value: song.artist },
+      })
+    );
   };
 
   const handleGoToAlbum = () => {
-    window.dispatchEvent(new CustomEvent('navigate', { detail: { view: 'album', value: song.album } }));
+    window.dispatchEvent(
+      new CustomEvent("navigate", {
+        detail: { view: "album", value: song.album },
+      })
+    );
   };
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button 
-          variant="ghost" 
-          size="icon-sm" 
+        <Button
+          variant="ghost"
+          size="icon-sm"
           className={className}
           title="More options"
         >
@@ -179,7 +202,10 @@ export const SongActionsDropdown = ({
                 onChange={(e: any) => setNewPlaylistName(e.target.value)}
               />
               <div className={`${modalStyles.flex} ${modalStyles.gap2}`}>
-                <Button variant="outline" onClick={() => setIsCreatingNew(false)}>
+                <Button
+                  variant="outline"
+                  onClick={() => setIsCreatingNew(false)}
+                >
                   Cancel
                 </Button>
                 <Button onClick={handleCreateNewPlaylist}>
@@ -189,12 +215,16 @@ export const SongActionsDropdown = ({
             </div>
           ) : (
             <div className={modalStyles.spaceY4}>
-              {library.playlists.filter(p => p.id !== 'all-songs').length > 0 ? (
+              {library.playlists.filter((p) => p.id !== "all-songs").length >
+              0 ? (
                 <div className={modalStyles.spaceY2}>
                   {library.playlists
-                    .filter(playlist => playlist.id !== 'all-songs')
+                    .filter((playlist) => playlist.id !== "all-songs")
                     .map((playlist) => (
-                      <div key={playlist.name} className={`${modalStyles.flex} ${modalStyles.gap2}`}>
+                      <div
+                        key={playlist.name}
+                        className={`${modalStyles.flex} ${modalStyles.gap2}`}
+                      >
                         <Button
                           variant="outline"
                           className={`${modalStyles["w-full"]} ${modalStyles["justify-start"]}`}
@@ -206,9 +236,11 @@ export const SongActionsDropdown = ({
                     ))}
                 </div>
               ) : (
-                <p className={modalStyles.muted}>No playlists yet. Create your first one!</p>
+                <p className={modalStyles.muted}>
+                  No playlists yet. Create your first one!
+                </p>
               )}
-              
+
               <Button
                 variant="outline"
                 className={modalStyles["w-full"]}
