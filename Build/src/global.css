@@ -27,6 +27,9 @@
   --themecolor: hsl(195, 100%, 50%);
   --themecolor2: hsl(224, 64%, 33%);
   --themecolor3: hsl(199, 89%, 48%);
+  --themecolor1-transparent: hsla(195, 100%, 50%, 0.5);
+  --themecolor2-transparent: hsla(224, 64%, 33%, 0.5);
+  --themecolor3-transparent: hsla(199, 89%, 48%, 0.5);
   --foreground: hsl(220, 15%, 20%);
   --surface: hsl(210, 15%, 96%);
   --surface-foreground: var(--foreground);
@@ -39,6 +42,7 @@
   --popup-foreground: var(--foreground);
   --primary: hsl(215, 70%, 50%);
   --primary-foreground: hsl(0, 0%, 100%);
+  --primary-transparent: rgba(0, 191, 255, 0.25);
   --secondary: hsl(250, 65%, 60%);
   --secondary-foreground: hsl(0, 0%, 100%);
   --accent: hsl(330, 80%, 60%);

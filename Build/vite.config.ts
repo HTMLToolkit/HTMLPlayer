@@ -15,8 +15,8 @@ export default defineConfig({
         short_name: 'HTMLPlayerBeta',
         start_url: './',  // <- relative start URL
         display: 'standalone',
-        theme_color: '#000000',
-        background_color: '#ffffff',
+        theme_color: '#00bfff',
+        background_color: '#00bfff',
       },
       pwaAssets: {
         image: 'public/icon-1024.png',
@@ -40,6 +40,6 @@ export default defineConfig({
     }),
   ],
   resolve: { alias: { '@': '/src' } },
-  server: { open: true },
+  server: { open: true, allowedHosts:true },
   build: { sourcemap: true, outDir: './dist', emptyOutDir: true },
 });
