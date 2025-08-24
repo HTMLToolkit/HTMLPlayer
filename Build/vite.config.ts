@@ -1,20 +1,45 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
+import { VitePWA } from 'vite-plugin-pwa';
 
 export default defineConfig({
-  root: './',  // project root folder
-  plugins: [react()],
-  resolve: {
-    alias: {
-      '@': '/src',
-    },
-  },
-  server: {
-    open: true, // Opens browser on start
-  },
-  build: {
-    sourcemap: true,
-    outDir: './dist',
-    emptyOutDir: true,
-  },
+  root: './',
+  base: './',  // <- relative base
+  plugins: [
+    react(),
+    VitePWA({
+      registerType: 'autoUpdate',
+      includeAssets: ['robots.txt'],
+      manifest: {
+        name: 'HTMLPlayerBeta',
+        short_name: 'HTMLPlayerBeta',
+        start_url: './',  // <- relative start URL
+        display: 'standalone',
+        theme_color: '#000000',
+        background_color: '#ffffff',
+      },
+      pwaAssets: {
+        image: 'public/icon-1024.png',
+        preset: 'minimal-2023',
+        includeHtmlHeadLinks: true,
+      },
+      workbox: {
+        runtimeCaching: [
+          {
+            urlPattern: /.*\.(js|css|ts|tsx|html)$/, // remove leading slash
+            handler: 'NetworkFirst',
+            options: { cacheName: 'app-shell' },
+          },
+          {
+            urlPattern: /.*\.(png|ico|json)$/, // remove leading slash
+            handler: 'CacheFirst',
+            options: { cacheName: 'assets' },
+          },
+        ],
+      },
+    }),
+  ],
+  resolve: { alias: { '@': '/src' } },
+  server: { open: true },
+  build: { sourcemap: true, outDir: './dist', emptyOutDir: true },
 });
