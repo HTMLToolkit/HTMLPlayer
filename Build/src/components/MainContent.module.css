@@ -25,7 +25,7 @@
 .title {
   font-size: 1.5rem;
   font-weight: 600;
-  color: white;
+  color: var(--primary-foreground);
   margin: 0;
 }
 
@@ -60,38 +60,38 @@
   left: var(--spacing-3);
   top: 50%;
   transform: translateY(-50%);
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--foreground-subtle);
   pointer-events: none;
 }
 
 .searchInput {
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  color: white;
+  background: var(--surface-transparent-1);
+  border: 1px solid var(--surface-transparent-2);
+  color: var(--primary-foreground);
   padding-left: calc(var(--spacing-3) * 2 + 16px);
   min-width: 200px;
 }
 
 .searchInput::placeholder {
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--foreground-subtle);
 }
 
 .actionButton {
-  background: rgba(0, 191, 255, 0.25);
-  border: 1px solid rgba(0, 191, 255, 0.4);
-  color: white;
+  background: var(--primary-transparent);
+  border: 1px solid var(--primary-border-strong);
+  color: var(--primary-foreground);
   font-weight: 500;
 }
 
 .actionButton:hover {
-  background: rgba(0, 191, 255, 0.35);
-  border-color: rgba(0, 191, 255, 0.5);
+  background: var(--primary-transparent-stronger);
+  border-color: var(--primary-border-stronger);
 }
 
 .songList {
-  background: rgba(30, 58, 138, 0.35);
+  background: var(--themecolor2-transparent);
   border-radius: var(--radius-lg);
-  border: 1px solid rgba(0, 191, 255, 0.25);
+  border: 1px solid var(--primary-transparent);
 }
 
 .songListHeader {
@@ -99,13 +99,13 @@
   grid-template-columns: 2fr 1fr 120px;
   gap: var(--spacing-4);
   padding: var(--spacing-4);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid var(--surface-transparent-1);
 }
 
 .columnHeader {
   font-family: var(--font-family-base);
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.8);
+  color: var(--foreground-muted);
   font-size: 0.875rem;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -116,23 +116,20 @@
   grid-template-columns: 2fr 1fr 120px;
   gap: var(--spacing-4);
   padding: var(--spacing-4);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid var(--surface-transparent-05);
   transition: background-color var(--animation-duration-fast) ease;
-}
-
-.songItem {
   cursor: pointer;
 }
 
 .songItem:hover {
-  background: rgba(0, 191, 255, 0.1);
+  background: var(--primary-transparent-subtle);
   border-radius: var(--radius);
 }
 
 .songItem.currentSong {
-  background: rgba(0, 191, 255, 0.15);
+  background: var(--primary-transparent-light);
   border-radius: var(--radius);
-  border: 1px solid rgba(0, 191, 255, 0.3);
+  border: 1px solid var(--primary-border);
 }
 
 .songItem:last-child {
@@ -148,13 +145,13 @@
 .albumArt {
   width: 40px;
   height: 40px;
-  background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
+  background: var(--albumart-gradient);
   border-radius: var(--radius);
   flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: white;
+  color: var(--primary-foreground);
   font-size: 1.5rem;
   font-weight: 900;
   position: relative;
@@ -164,7 +161,7 @@
 .albumArt:not(:has(img))::after {
   content: "";
   position: absolute;
-  background: white;
+  background: var(--primary-foreground);
   border-radius: 1px;
 }
 
@@ -189,21 +186,21 @@
 .songTitle {
   font-family: var(--font-family-base);
   font-weight: 500;
-  color: white;
+  color: var(--primary-foreground);
   font-size: 0.9375rem;
 }
 
 .songArtist {
   font-family: var(--font-family-base);
   font-size: 0.8125rem;
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--foreground-subtle);
 }
 
 .artistName {
   display: flex;
   align-items: center;
   font-family: var(--font-family-base);
-  color: rgba(255, 255, 255, 0.8);
+  color: var(--foreground-muted);
   font-size: 0.875rem;
 }
 
@@ -214,34 +211,34 @@
 }
 
 .songActionButton {
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--foreground-subtle);
 }
 
 .songActionButton:hover {
-  background: rgba(255, 255, 255, 0.1);
-  color: rgba(255, 255, 255, 0.8);
+  background: var(--surface-transparent-1);
+  color: var(--foreground-muted);
 }
 
 .songActionButton.active {
   color: var(--themecolor);
-  background: rgba(0, 191, 255, 0.2);
+  background: var(--primary-transparent-light);
 }
 
 .songActionButton.favorited {
-  color: #ff6b6b;
-  background: rgba(255, 107, 107, 0.2);
+  color: var(--favorite);
+  background: var(--favorite-transparent);
 }
 
 .actionButton.active {
-  background: rgba(0, 191, 255, 0.4);
-  border-color: rgba(0, 191, 255, 0.6);
-  color: white;
+  background: var(--primary-transparent-stronger);
+  border-color: var(--primary-border-active);
+  color: var(--primary-foreground);
 }
 
 .noResults {
   padding: var(--spacing-6);
   text-align: center;
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--foreground-subtle);
   font-size: 1rem;
   grid-column: 1 / -1;
 }

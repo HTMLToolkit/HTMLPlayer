@@ -1,9 +1,10 @@
+/* Player container */
 .player {
   height: 180px;
   position: relative;
-  background: rgba(30, 58, 138, 0.45);
+  background: var(--menu-background);
   backdrop-filter: blur(10px);
-  border-top: 1px solid rgba(0, 191, 255, 0.4);
+  border-top: 1px solid var(--primary-border-strong);
   border-radius: 1.5rem 1.5rem 0 0;
   display: flex;
   align-items: center;
@@ -21,13 +22,13 @@
 .albumArt {
   width: 80px;
   height: 80px;
-  background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
+  background: var(--albumart-gradient);
   border-radius: var(--radius-md);
   flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: white;
+  color: var(--primary-foreground);
   font-size: 2.5rem;
   font-weight: 900;
   position: relative;
@@ -37,7 +38,7 @@
 .albumArt:not(:has(img))::after {
   content: "";
   position: absolute;
-  background: white;
+  background: var(--primary-foreground);
   border-radius: 1px;
 }
 
@@ -62,35 +63,37 @@
 .songTitle {
   font-family: var(--font-family-base);
   font-weight: 500;
-  color: white;
+  color: var(--primary-foreground);
   font-size: 1.125rem;
 }
 
 .artistName {
   font-family: var(--font-family-base);
   font-size: 0.875rem;
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--foreground-subtle);
 }
 
 .favoriteButton {
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--foreground-subtle);
 }
 
-.favoriteButton:hover {
-  color: #ff6b6b;
-}
-
+.favoriteButton:hover,
 .favoriteButton.favorited {
-  color: #ff6b6b;
+  color: var(--favorite);
 }
 
 .controlButton.active {
   color: var(--certain-icons);
-  background: rgba(0, 191, 255, 0.2);
+  background: var(--primary-transparent-subtle);
 }
 
 .controlButton {
   position: relative;
+}
+
+.controlButton:hover {
+  color: var(--foreground);
+  background: var(--surface-transparent-1);
 }
 
 .repeatOne::after {
@@ -101,7 +104,7 @@
   bottom: 1px;
   right: 1px;
   color: var(--certain-icons);
-  background: rgba(15, 23, 42, 0.8);
+  background: var(--surface);
   border-radius: 50%;
   width: 14px;
   height: 14px;
@@ -116,7 +119,7 @@
   align-items: center;
   justify-content: center;
   width: 100%;
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--foreground-subtle);
   font-style: italic;
 }
 
@@ -135,44 +138,27 @@
 }
 
 .controlButton {
-  color: rgba(255, 255, 255, 0.8);
+  color: var(--foreground-subtle)
 }
 
 .controlButton:hover {
-  color: white;
-  background: rgba(255, 255, 255, 0.1);
+  color: var(--themecolor);
+  background: var(--surface-transparent-05);
 }
 
 .playButton {
-  background: linear-gradient(
-    135deg,
-    var(--themecolor) 0%,
-    var(--themecolor3) 100%
-  );
-  color: white;
-  box-shadow: 0 4px 12px rgba(0, 191, 255, 0.3);
-}
-
-.playButton:dark {
-  background: linear-gradient(
-    135deg,
-    var(--themecolor) 0%,
-    var(--themecolor3) 100%
-  );
-  color: white;
-  box-shadow: 0 4px 12px rgba(24, 81, 100, 0.385);
+  background: linear-gradient(90deg, var(--themecolor) 0%, var(--themecolor3) 70%);
+  color: var(--primary-foreground);
+  box-shadow: 0 4px 12px var(--primary-transparent-subtle);
 }
 
 .playButton:hover {
-  background: linear-gradient(
-    135deg,
-    var(--themecolor) 0%,
-    var(--themecolor3) 90%
-  );
-  box-shadow: 0 6px 16px rgba(0, 191, 255, 0.4);
+  background: linear-gradient(135deg, var(--themecolor3) 0%, var(--themecolor) 70%);
+  box-shadow: 0 6px 16px var(--primary-transparent-light);
   transform: translateY(-1px);
 }
 
+/* Progress Section */
 .progressSection {
   display: flex;
   align-items: center;
@@ -184,7 +170,7 @@
 .timeDisplay {
   font-family: var(--font-family-base);
   font-size: 0.875rem;
-  color: rgba(255, 255, 255, 0.8);
+  color: var(--foreground-subtle);
   min-width: 45px;
   text-align: center;
 }
@@ -192,7 +178,7 @@
 .progressBar {
   flex: 1;
   height: 6px;
-  background: rgba(255, 255, 255, 0.2);
+  background: var(--surface-transparent-2);
   border-radius: var(--radius-full);
   cursor: pointer;
   position: relative;
@@ -202,19 +188,12 @@
 .progressBar:hover,
 .progressBar.dragging {
   height: 8px;
-}
-
-.progressBar.dragging {
   cursor: grabbing;
 }
 
 .progressFill {
   height: 100%;
-  background: linear-gradient(
-    135deg,
-    var(--themecolor) 0%,
-    var(--themecolor3) 100%
-  );
+  background: linear-gradient(135deg, var(--themecolor) 0%, var(--themecolor3) 100%);
   border-radius: var(--radius-full);
   position: relative;
 }
@@ -227,11 +206,11 @@
   transform: translateY(-50%);
   width: 12px;
   height: 12px;
-  background: white;
+  background: var(--primary-foreground);
   border-radius: 50%;
   opacity: 0;
   transition: opacity var(--animation-duration-fast) ease;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 2px 4px var(--shadow);
 }
 
 .progressBar:hover .progressFill::after,
@@ -239,6 +218,7 @@
   opacity: 1;
 }
 
+/* Right section & secondary controls */
 .rightSection {
   display: flex;
   align-items: center;
@@ -254,42 +234,43 @@
 }
 
 .secondaryButton {
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--foreground-subtle);
 }
 
 .secondaryButton:hover {
-  color: rgba(255, 255, 255, 0.9);
-  background: rgba(255, 255, 255, 0.1);
+  color: var(--themecolor);
+  background: var(--surface-transparent-1);
 }
 
 .secondaryButton.active {
   color: var(--themecolor);
-  background: rgba(0, 191, 255, 0.2);
+  background: var(--primary-transparent-subtle);
 }
 
+/* Volume Controls */
 .volumeControls {
   display: flex;
   align-items: center;
   gap: var(--spacing-2);
   padding: var(--spacing-2);
   border-radius: var(--radius);
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--surface-transparent-05);
+  border: 1px solid var(--surface-transparent-1);
 }
 
 .volumeButton {
-  color: rgba(255, 255, 255, 0.8);
+  color: var(--foreground-subtle);
 }
 
 .volumeButton:hover {
-  color: white;
-  background: rgba(255, 255, 255, 0.1);
+  color: var(--themecolor2);
+  background: var(--surface-transparent-1);
 }
 
 .volumeBar {
   width: 120px;
   height: 6px;
-  background: rgba(255, 255, 255, 0.2);
+  background: var(--surface-transparent-2);
   border-radius: var(--radius-full);
   cursor: pointer;
   position: relative;
@@ -299,19 +280,12 @@
 .volumeBar:hover,
 .volumeBar.dragging {
   height: 8px;
-}
-
-.volumeBar.dragging {
   cursor: grabbing;
 }
 
 .volumeFill {
   height: 100%;
-  background: linear-gradient(
-    135deg,
-    var(--themecolor) 0%,
-    var(--themecolor3) 100%
-  );
+  background: linear-gradient(135deg, var(--themecolor) 0%, var(--themecolor3) 100%);
   border-radius: var(--radius-full);
   position: relative;
 }
@@ -324,11 +298,11 @@
   transform: translateY(-50%);
   width: 10px;
   height: 10px;
-  background: white;
+  background: var(--primary-foreground);
   border-radius: 50%;
   opacity: 0;
   transition: opacity var(--animation-duration-fast) ease;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 2px 4px var(--shadow);
 }
 
 .volumeBar:hover .volumeFill::after,
@@ -337,30 +311,34 @@
 }
 
 .moreButton {
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--foreground-subtle);
 }
 
 .moreButton:hover {
-  color: rgba(255, 255, 255, 0.9);
-  background: rgba(255, 255, 255, 0.1);
+  color: var(--themecolor);
+  background: var(--surface-transparent-05);
 }
 
+/* Visualizer Overlay */
 .visualizerOverlay {
   position: fixed;
   top: 0;
-  right: 0; /* stays pinned to screen edge */
+  right: 0;
   width: calc(100vw - var(--sidebar-width));
-  max-width: none;
   height: 300px;
-  background: rgba(15, 23, 42, 0.95);
+  background: black;
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(0, 191, 255, 0.3);
+  border: 1px solid var(--primary-border);
   border-top: none;
   border-radius: 0 0 var(--radius-lg) var(--radius-lg);
   z-index: 9999;
   animation: slideDown var(--animation-duration-normal) ease-out;
-  transform: none;
   transition: width var(--animation-duration-normal) ease-in-out;
+}
+
+.visualizer {
+  width: 100%;
+  height: 100%;
 }
 
 @keyframes slideDown {
@@ -368,15 +346,11 @@
     transform: translateY(-100%);
     opacity: 0;
   }
+
   to {
     transform: translateY(0);
     opacity: 1;
   }
-}
-
-.visualizer {
-  width: 100%;
-  height: 100%;
 }
 
 @media (max-width: 900px) {

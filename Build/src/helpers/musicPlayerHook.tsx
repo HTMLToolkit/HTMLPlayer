@@ -389,6 +389,7 @@ export const useMusicPlayer = () => {
   useEffect(() => {
     audioRef.current = new Audio();
     audioRef.current.crossOrigin = "anonymous";
+    audioRef.current.controls = true; // Enable browser controls
 
     const audio = audioRef.current;
 
@@ -466,6 +467,36 @@ export const useMusicPlayer = () => {
       lastPlayedSongId: playerState.currentSong?.id ?? prev.lastPlayedSongId,
       lastPlayedPlaylistId: playerState.currentPlaylist?.id ?? prev.lastPlayedPlaylistId,
     }));
+
+    // Update Media Session metadata with album art
+    if ('mediaSession' in navigator && playerState.currentSong) {
+      navigator.mediaSession.metadata = new MediaMetadata({
+        title: playerState.currentSong.title,
+        artist: playerState.currentSong.artist,
+        album: playerState.currentSong.album,
+        artwork: playerState.currentSong.albumArt ? [
+          {
+            src: playerState.currentSong.albumArt,
+          }
+        ] : []
+      });
+
+      // Set up Media Session action handlers for previous and next track
+      navigator.mediaSession.setActionHandler('previoustrack', () => {
+        playPrevious();
+      });
+
+      navigator.mediaSession.setActionHandler('nexttrack', () => {
+        playNext();
+      });
+
+      return () => {
+        if ('mediaSession' in navigator) {
+          navigator.mediaSession.setActionHandler('previoustrack', null);
+          navigator.mediaSession.setActionHandler('nexttrack', null);
+        }
+      };
+    }
   }, [playerState.currentSong, playerState.currentPlaylist, isInitialized]);
 
 
@@ -636,15 +667,15 @@ export const useMusicPlayer = () => {
 
   // Batch size for processing songs
   const BATCH_SIZE = 3; // Process 3 songs at a time
-  
+
   const processAudioBatch = useCallback(async (songs: Song[]): Promise<Song[]> => {
     const processedSongs: Song[] = [];
     const totalSongs = songs.length;
     let processedCount = 0;
-    
+
     // Show initial toast
     const toastId = toast.loading(`Processing 0/${totalSongs} songs...`);
-    
+
     for (const song of songs) {
       if (song.url.startsWith('blob:')) {
         try {
@@ -652,27 +683,27 @@ export const useMusicPlayer = () => {
           const res = await fetch(song.url);
           const buf = await res.arrayBuffer();
           const mimeType = res.headers.get('content-type') || 'audio/mpeg';
-          
+
           // Save to IndexedDB audio store
           await musicIndexedDbHelper.saveSongAudio(song.id, {
             fileData: buf,
             mimeType
           });
-          
+
           // Add processed song without the audio data
           processedSongs.push({
             ...song,
             hasStoredAudio: true,
             albumArt: song.albumArt // Preserve album art when processing
           });
-          
+
           processedCount++;
           // Update toast with progress
           toast.loading(`Processing ${processedCount}/${totalSongs} songs...`, {
             id: toastId,
             description: `Current: ${song.title}`
           });
-          
+
         } catch (error) {
           const err = error as Error;
           console.error(`Failed to process audio for song: ${song.title}`, err);
@@ -686,19 +717,19 @@ export const useMusicPlayer = () => {
         processedCount++;
       }
     }
-    
+
     // Show completion toast
     toast.success(`Processed ${processedCount} songs`, {
       id: toastId
     });
-    
+
     return processedSongs;
   }, []);
-  
+
   const addSong = useCallback(async (song: Song) => {
     // First add the song to show it in the UI immediately
     setLibrary((prev) => ({ ...prev, songs: [...prev.songs, song] }));
-    
+
     // Then process its audio in the background
     try {
       const [processedSong] = await processAudioBatch([song]);

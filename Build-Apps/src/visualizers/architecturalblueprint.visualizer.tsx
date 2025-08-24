@@ -10,7 +10,7 @@ const architecturalBlueprint: VisualizerType = {
     bufferLength,
     freqDataArray,
     dataType,
-    settings = {},
+    settings = {}
   ) {
     const {
       lineColor = "rgba(0, 149, 255, {alpha})",

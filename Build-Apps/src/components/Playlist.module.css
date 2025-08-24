@@ -23,22 +23,28 @@
   left: var(--spacing-3);
   top: 50%;
   transform: translateY(-50%);
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--foreground-subtle);
   pointer-events: none;
 }
 
 .searchInput {
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  color: white;
+  background: var(--surface-transparent-1);
+  border: 1px solid var(--surface-transparent-2);
+  color: var(--primary-foreground);
   padding-left: calc(var(--spacing-3) * 2 + 16px);
   width: 100%;
   border-radius: var(--radius);
   padding: var(--spacing-2) calc(var(--spacing-3) * 2 + 16px);
 }
 
+.searchInput:focus {
+  outline: var(--shadow);
+  border-color: var(--primary-border-strong);
+  box-shadow: 0 0 0 2px var(--primary-transparent-light);
+}
+
 .searchInput::placeholder {
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--foreground-muted);
 }
 
 .playlistList {
@@ -61,10 +67,10 @@
   align-items: center;
   gap: var(--spacing-3);
   padding: var(--spacing-3);
-  background: rgba(0, 191, 255, 0.1);
+  background: var(--primary-transparent);
   border: none;
   border-radius: var(--radius-lg);
-  color: rgba(255, 255, 255, 0.9);
+  color: var(--primary-foreground);
   font-family: var(--font-family-base);
   cursor: pointer;
   transition: background-color var(--animation-duration-fast) ease;
@@ -78,7 +84,7 @@
   height: 40px;
   flex-shrink: 0;
   border-radius: var(--radius);
-  background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
+  background: linear-gradient(135deg, var(--themecolor2) 0%, var(--themecolor4) 100%);
   overflow: hidden;
 }
 
@@ -89,42 +95,42 @@
 }
 
 .playlistItem:hover {
-  background: rgba(0, 191, 255, 0.2);
+  background: var(--primary-transparent-2);
 }
 
 .playlistItem.active {
-  background: rgba(0, 191, 255, 0.3);
-  border: 1px solid rgba(0, 191, 255, 0.5);
+  background: var(--primary-transparent-5);
+  border: 1px solid var(--primary-border-strong);
 }
 
 .songCount {
   margin-left: auto;
   font-size: 0.75rem;
-  color: rgba(255, 255, 255, 0.5);
+  color: var(--foreground-muted);
 }
 
 .allSongsItem {
-  background: rgba(0, 191, 255, 0.15);
-  border: 1px solid rgba(0, 191, 255, 0.3);
+  background: var(--primary-transparent-2);
+  border: 1px solid var(--primary-transparent-5);
 }
 
 .allSongsItem:hover {
-  background: rgba(0, 191, 255, 0.25);
+  background: var(--primary-transparent-4);
 }
 
 .favoritesItem {
-  background: rgba(255, 107, 107, 0.15);
-  border: 1px solid rgba(255, 107, 107, 0.3);
+  background: var(--danger-transparent-1);
+  border: 1px solid var(--danger-transparent-3);
 }
 
 .favoritesItem:hover {
-  background: rgba(255, 107, 107, 0.25);
+  background: var(--danger-transparent-2);
 }
 
 .noResults {
   padding: var(--spacing-3);
   text-align: center;
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--foreground-muted);
   font-size: 0.875rem;
 }
 
@@ -136,12 +142,12 @@
 }
 
 .addPlaylistButton {
-  background: rgba(0, 191, 255, 0.15);
-  border: 1px solid rgba(0, 191, 255, 0.3);
+  background: var(--primary-transparent-2);
+  border: 1px solid var(--primary-transparent-5);
 }
 
 .addPlaylistButton:hover {
-  background: rgba(0, 191, 255, 0.25);
+  background: var(--primary-transparent-4);
 }
 
 .createPlaylistDialog {
@@ -149,18 +155,18 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  background: rgba(30, 58, 138, 0.95);
+  background: var(--themecolor4);
   padding: var(--spacing-4);
   border-radius: var(--radius-lg);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--surface-transparent-1);
   backdrop-filter: blur(10px);
   z-index: 1000;
 }
 
 .createPlaylistInput {
   width: 100%;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: var(--surface-transparent-1);
+  border: 1px solid var(--surface-transparent-2);
   color: white;
   padding: var(--spacing-2);
   border-radius: var(--radius);
@@ -176,15 +182,15 @@
 .createPlaylistButtons button {
   padding: var(--spacing-2) var(--spacing-4);
   border-radius: var(--radius);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--surface-transparent-2);
+  background: var(--surface-transparent-1);
   color: white;
   cursor: pointer;
   transition: all var(--animation-duration-fast) ease;
 }
 
 .createPlaylistButtons button:hover {
-  background: rgba(255, 255, 255, 0.2);
+  background: var(--surface-transparent-2);
 }
 
 .moreButton {
@@ -197,7 +203,7 @@
 }
 
 .deleteMenuItem {
-  color: rgb(255, 85, 85) !important;
+  color: var(--danger-solid);
 }
 
 .playlistItemContainer:hover .moreButton {

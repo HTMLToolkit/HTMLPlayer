@@ -2,23 +2,33 @@
 @import url(https://fonts.googleapis.com/css2?family=Poppins&display=swap);
 @import url(https://fonts.googleapis.com/css2?family=JetBrains+Mono&display=swap);
 @import url(https://fonts.googleapis.com/css2?family=Caveat&display=swap);
+
 :root {
   /* Content layers */
-  --z-content-low: 10; /* Minor elevated content */
-  --z-content: 20; /* Standard elevated content */
-  --z-content-high: 30; /* Important content that needs prominence */
+  --z-content-low: 10;
+  /* Minor elevated content */
+  --z-content: 20;
+  /* Standard elevated content */
+  --z-content-high: 30;
+  /* Important content that needs prominence */
 
   /* Navigation layers */
-  --z-nav-low: 100; /* Secondary navigation components */
-  --z-nav: 200; /* Primary navigation bars */
-  --z-nav-sticky: 300; /* Sticky navigation elements */
+  --z-nav-low: 100;
+  /* Secondary navigation components */
+  --z-nav: 200;
+  /* Primary navigation bars */
+  --z-nav-sticky: 300;
+  /* Sticky navigation elements */
 
-  --z-overlay: 400; /* All overlays like dropdowns, dialogs, popovers */
+  --z-overlay: 400;
+  /* All overlays like dropdowns, dialogs, popovers */
 
-  --z-spotlight: 1000; /* Tutorial spotlights/guided help */
+  --z-spotlight: 1000;
+  /* Tutorial spotlights/guided help */
 
   /* System layers */
-  --z-critical: 2000; /* Critical system notifications */
+  --z-critical: 2000;
+  /* Critical system notifications */
 }
 
 :root {
@@ -27,11 +37,53 @@
   --themecolor: hsl(195, 100%, 50%);
   --themecolor2: hsl(224, 64%, 33%);
   --themecolor3: hsl(199, 89%, 48%);
+  --themecolor4: hsl(226, 71%, 40%);
+  --themecolor1-transparent: hsla(195, 100%, 50%, 0.5);
+  --themecolor2-transparent: hsla(224, 64%, 33%, 0.5);
+  --themecolor3-transparent: hsla(199, 89%, 48%, 0.5);
+  --foreground-muted: hsla(0, 0%, 100%, 0.8);
+  --foreground-subtle: hsla(0, 0%, 100%, 0.6);
+
+  --surface-transparent-05: hsla(0, 0%, 100%, 0.05);
+  --surface-transparent-1: hsla(0, 38%, 85%, 0.1);
+  --surface-transparent-2: hsla(0, 0%, 100%, 0.2);
+
+  --primary-transparent-1: hsla(195, 100%, 50%, 0.1);
+  --primary-transparent-2: hsla(195, 100%, 50%, 0.15);
+  --primary-transparent-3: hsla(195, 100%, 50%, 0.2);
+  --primary-transparent-4: hsla(195, 100%, 50%, 0.25);
+  --primary-transparent-5: hsla(195, 100%, 50%, 0.3);
+  --primary-transparent-subtle: hsla(195, 100%, 50%, 0.1);
+  --primary-transparent-light: hsla(195, 100%, 50%, 0.15);
+  --primary-transparent-stronger: hsla(195, 100%, 50%, 0.35);
+
+  --primary-border: hsla(195, 100%, 50%, 0.3);
+  --primary-border-strong: hsla(195, 100%, 50%, 0.4);
+  --primary-border-stronger: hsla(195, 100%, 50%, 0.5);
+  --primary-border-active: hsla(195, 100%, 50%, 0.6);
+  --menu-background: hsla(224, 64%, 33%, 0.35);
+  --albumart-gradient: linear-gradient(135deg, var(--themecolor2) 0%, var(--themecolor3) 100%);
+  /* Favorites */
+  --favorite: hsl(0, 100%, 71%);
+  --favorite-transparent-1: hsla(0, 100%, 71%, 0.15);
+  --favorite-transparent-2: hsla(0, 100%, 71%, 0.25);
+  --favorite-border: hsla(0, 100%, 71%, 0.3);
+
+  /* Danger */
+  --danger: hsl(0, 100%, 67%);
+  --danger-transparent-1: hsla(0, 100%, 67%, 0.15);
+  --danger-transparent-2: hsla(0, 100%, 67%, 0.25);
+  --danger-border: hsla(0, 100%, 67%, 0.3);
+
   --foreground: hsl(220, 15%, 20%);
+  --foreground-strong: hsla(0, 0%, 100%, 0.8);
+  --foreground-stronger: hsla(0, 0%, 100%, 0.9);
   --surface: hsl(210, 15%, 96%);
   --surface-foreground: var(--foreground);
   --sidebar: hsl(215, 25%, 27%);
   --sidebar-foreground: hsl(210, 15%, 95%);
+  --sidebar-bg-transparent: hsla(224, 64%, 33%, 0.4);
+  --sidebar-bg-hover: hsla(224, 64%, 33%, 0.6);
   --card: hsl(0, 0%, 100%);
   --card-rgb: 85, 146, 203;
   --card-foreground: var(--foreground);
@@ -39,6 +91,7 @@
   --popup-foreground: var(--foreground);
   --primary: hsl(215, 70%, 50%);
   --primary-foreground: hsl(0, 0%, 100%);
+  --primary-transparent: hsla(195, 100%, 50%, 0.25);
   --secondary: hsl(250, 65%, 60%);
   --secondary-foreground: hsl(0, 0%, 100%);
   --accent: hsl(330, 80%, 60%);
@@ -107,25 +160,90 @@
 .dark {
   --background: hsl(220, 15%, 10%);
   --themegradient: linear-gradient(135deg, #0a192f 0%, #1f2937 100%);
+
+  /* Theme colors */
   --themecolor: hsl(217, 66%, 19%);
   --themecolor2: hsl(216, 33%, 22%);
   --themecolor3: hsl(199, 100%, 12%);
+
+  /* Foregrounds */
   --foreground: hsl(210, 15%, 90%);
+  --foreground-muted: hsla(0, 0%, 100%, 0.9);
+  --foreground-subtle: hsla(0, 0%, 100%, 0.6);
+
+  /* Surfaces */
   --surface: hsl(220, 15%, 13%);
   --surface-foreground: var(--foreground);
+  --surface-transparent-05: hsla(0, 0%, 100%, 0.05);
+  --surface-transparent-1: hsla(0, 0%, 100%, 0.1);
+  --surface-transparent-2: hsla(0, 0%, 100%, 0.2);
+
+  /* Sidebar + Cards */
   --sidebar: hsl(215, 25%, 15%);
   --sidebar-foreground: hsl(210, 15%, 90%);
   --card: hsl(220, 15%, 15%);
   --card-rgb: 40, 117, 189;
   --card-foreground: var(--foreground);
+
+  /* Popups / menus */
   --popup: hsl(220, 15%, 15%);
   --popup-foreground: var(--foreground);
+  --menu-background: hsla(224, 64%, 33%, 0.25);
+  /* darkened version for menus */
+
+  /* Primary system */
   --primary: hsl(215, 70%, 60%);
   --primary-foreground: hsl(0, 0%, 100%);
+  --primary-transparent: hsla(195, 100%, 50%, 0.25);
+  --primary-transparent-subtle: hsla(195, 100%, 50%, 0.1);
+  --primary-transparent-light: hsla(195, 100%, 50%, 0.15);
+  --primary-transparent-stronger: hsla(195, 100%, 50%, 0.35);
+
+  /* Primary borders */
+  --primary-border: hsla(195, 100%, 50%, 0.3);
+  --primary-border-strong: hsla(195, 100%, 50%, 0.4);
+  --primary-border-stronger: hsla(195, 100%, 50%, 0.5);
+  --primary-border-active: hsla(195, 100%, 50%, 0.6);
+
+  /* Secondary + accent */
   --secondary: hsl(250, 65%, 65%);
   --secondary-foreground: hsl(0, 0%, 100%);
   --accent: hsl(330, 80%, 65%);
   --accent-foreground: hsl(0, 0%, 100%);
+
+  /* Primary transparency variants */
+  --primary-transparent-2: hsla(195, 100%, 50%, 0.15);
+  --primary-transparent-3: hsla(195, 100%, 50%, 0.2);
+  --primary-transparent-4: hsla(195, 100%, 50%, 0.25);
+  --primary-transparent-5: hsla(195, 100%, 50%, 0.3);
+
+  /* Favorites */
+  --favorite-transparent-1: hsla(0, 100%, 71%, 0.15);
+  --favorite-transparent-2: hsla(0, 100%, 71%, 0.25);
+  --favorite-border: hsla(0, 100%, 71%, 0.3);
+
+  /* Danger */
+  --danger-transparent-1: hsla(0, 100%, 67%, 0.15);
+  --danger-transparent-2: hsla(0, 100%, 67%, 0.25);
+  --danger-border: hsla(0, 100%, 67%, 0.3);
+
+  /* Chart colors */
+  --chart-color-1: hsl(215, 70%, 60%);
+  --chart-color-2: hsl(250, 65%, 65%);
+  --chart-color-3: hsl(330, 80%, 65%);
+  --chart-color-4: hsl(145, 65%, 45%);
+  --chart-color-5: hsl(38, 95%, 60%);
+
+  /* Menu / overlay variants */
+  --menu-background: hsla(224, 64%, 33%, 0.25);
+  --sidebar-bg-transparent: hsla(224, 64%, 33%, 0.3);
+  --sidebar-bg-hover: hsla(224, 64%, 33%, 0.5);
+
+  /* Info hover/active for dark mode */
+  --info-hover: hsl(200, 75%, 55%);
+  --info-active: hsl(200, 75%, 50%);
+
+  /* Utility colors */
   --muted: hsl(220, 15%, 25%);
   --muted-foreground: hsl(220, 10%, 70%);
   --success: hsl(145, 65%, 45%);
@@ -138,10 +256,14 @@
   --info-foreground: hsl(0, 0%, 100%);
   --info-hover: hsl(200, 75%, 55%);
   --info-active: hsl(200, 75%, 50%);
+
+  /* Dashboard + analytics */
   --analytics: hsl(275, 65%, 60%);
   --analytics-foreground: hsl(0, 0%, 100%);
   --dashboard: hsl(190, 70%, 55%);
   --dashboard-foreground: hsl(0, 0%, 100%);
+
+  /* Shadows */
   --border: hsl(220, 15%, 20%);
   --shadow: 0 1px 2px hsla(220, 15%, 0%, 0.1),
     0 3px 6px hsla(220, 15%, 0%, 0.15);
@@ -153,6 +275,16 @@
     0 30px 40px -5px hsla(220, 15%, 0%, 0.1);
   --shadow-focus: 0 0 0 2px hsla(215, 70%, 60%, 0.25),
     0 1px 2px hsla(220, 15%, 0%, 0.1);
+
+  /* Album art */
+  --albumart-gradient: linear-gradient(135deg, #0a192f 0%, #1f2937 100%);
+
+  /* Favorites */
+  --favorite-color: #ff6b6b;
+  --favorite: #ff6b6b;
+  --favorite-transparent: hsla(0, 100%, 71%, 0.2);
+
+  /* Icon highlight */
   --certain-icons: hsl(195, 100%, 50%);
 }
 
