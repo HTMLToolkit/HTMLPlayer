@@ -5,9 +5,9 @@ A React and TypeScript powered music player with many extra features and an amaz
 ## Todo
 ### HTMLPlayer Tasks
 - [ ] ⏫ HTMLPlayer batch upload is wayyyy too slow right now, so I'll have to test to find the sweet spot
-- [ ] 🔼 I'll need to add some sort of quick guide or something to HTMLPlayer.
-- [ ] And currently playlists are kinda like the folders currently, though I do plan to add folders for playlists.
-- [ ] ⏫ I originally, (in [v1](https://htmltoolkit.github.io/HTMLPlayer/)) just added a checkbox to the songs and you could select as many as you wanted. Reimplement this for v2.
+- [ ] 🔼 I'll need to add some sort of quick guide and help menu or something to HTMLPlayer.
+- [ ] add folders for playlists.
+- [X] ⏫ I originally, (in [v1](https://htmltoolkit.github.io/HTMLPlayer/)) just added a checkbox to the songs and you could select as many as you wanted. Reimplement this for v2.
 - [ ] 🔼 A "select all" button would solve the folder issue altogether as well
 - [ ] 🔽 I should probably add a hours counter for time
 - [ ] 🔼 (when HTMLPlayer is almost ready) add HTMLPlayer Store (below)
