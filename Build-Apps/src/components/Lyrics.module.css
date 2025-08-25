@@ -1,21 +1,3 @@
-.lyricsOverlay {
-  position: absolute;
-  bottom: 100%;
-  left: 0;
-  right: 0;
-  height: 300px;
-  background: rgba(var(--card-rgb), 0.92);
-  backdrop-filter: blur(10px);
-  border: 1px solid var(--border);
-  border-bottom: none;
-  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
-  z-index: var(--z-content);
-  animation: slideUp var(--animation-duration-normal) ease-out;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-
 .lyricsHeader {
   display: flex;
   align-items: center;
@@ -25,6 +7,36 @@
   font-weight: 600;
   border-bottom: 1px solid var(--border);
   color: var(--card-foreground);
+  flex-shrink: 0; /* header stays fixed */
+}
+
+.lyricsOverlay {
+  position: absolute;
+  bottom: 100%;
+  left: 0;
+  right: 0;
+  height: 300px; /* keep this */
+  background: rgba(var(--card-rgb), 0.92);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--border);
+  border-bottom: none;
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  z-index: var(--z-content);
+  animation: slideUp var(--animation-duration-normal) ease-out;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden; /* parent hides extra, only child scrolls */
+  overflow-y: auto; /* Temporary */ 
+}
+
+.lyricsContent {
+  flex: 1 1 auto; /* fill remaining space */
+  overflow-y: auto; /* allow scrolling */
+  padding: var(--spacing-4);
+  font-size: 1rem;
+  white-space: pre-wrap;
+  line-height: 1.5;
+  color: var(--foreground);
 }
 
 .lyricsCloseButton {
@@ -42,15 +54,6 @@
   color: var(--foreground);
 }
 
-.lyricsContent {
-  padding: var(--spacing-4);
-  overflow-y: auto;
-  font-size: 1rem;
-  white-space: pre-wrap;
-  line-height: 1.5;
-  color: var(--foreground);
-}
-
 .loading,
 .error {
   color: var(--error-foreground);
@@ -62,6 +65,7 @@
     transform: translateY(100%);
     opacity: 0;
   }
+
   to {
     transform: translateY(0);
     opacity: 1;
