@@ -88,9 +88,9 @@ export const MainContent = ({ musicPlayerHook }: MainContentProps) => {
       }
     };
 
-    window.addEventListener("navigate", handleNavigate as EventListener);
+    window.addEventListener("navigate", handleNavigate);
     return () =>
-      window.removeEventListener("navigate", handleNavigate as EventListener);
+      window.removeEventListener("navigate", handleNavigate);
   }, [navigateToArtist, navigateToAlbum]);
 
   // Get initial songs list based on current view
@@ -192,7 +192,7 @@ export const MainContent = ({ musicPlayerHook }: MainContentProps) => {
         return;
       }
 
-      const BATCH_SIZE = 3; // Process 3 files at a time
+      const BATCH_SIZE = 7; // Process 7 files at a time
       let successCount = 0;
       let errorCount = 0;
       let currentBatch = 1;
@@ -260,6 +260,14 @@ export const MainContent = ({ musicPlayerHook }: MainContentProps) => {
   const handleSelectSongsToggle = () => {
     setIsSelectSongsActive((prev) => !prev);
     setSelectedSongs([]);
+  };
+
+  const handleSelectAll = () => {
+    if (selectedSongs.length === filteredSongs.length) {
+      setSelectedSongs([]);
+    } else {
+      setSelectedSongs(filteredSongs.map((song) => song.id));
+    }
   };
 
   const handleAddToPlaylist = () => {
@@ -368,6 +376,12 @@ export const MainContent = ({ musicPlayerHook }: MainContentProps) => {
             }
             onClose={() => handleSelectSongsToggle()}
           >
+            <Button variant="ghost" onClick={handleSelectAll}>
+              <ListChecks size={16} style={{ marginRight: 8 }} />
+              {selectedSongs.length === filteredSongs.length
+                ? "Deselect All"
+                : "Select All"}
+            </Button>
             <Button variant="ghost" onClick={handleAddToPlaylist}>
               <Plus size={16} style={{ marginRight: 8 }} />
               Add to playlist
@@ -489,6 +503,7 @@ export const MainContent = ({ musicPlayerHook }: MainContentProps) => {
                 library={library}
                 onCreatePlaylist={createPlaylist}
                 onAddToPlaylist={addToPlaylist}
+                onRemoveSong={removeSong}
                 onPlaySong={playSong}
                 size={14}
                 className={styles.songActionButton}

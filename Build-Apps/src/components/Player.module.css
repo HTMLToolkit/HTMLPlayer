@@ -164,7 +164,7 @@
   align-items: center;
   gap: var(--spacing-4);
   width: 100%;
-  max-width: 600px;
+  max-width: clamp(300px, 50%, 600px);
 }
 
 .timeDisplay {

@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
+import { debounce } from "lodash";
 import {
   SkipBack,
   Play,
@@ -59,6 +60,7 @@ export const Player = ({ musicPlayerHook }: PlayerProps) => {
     createPlaylist,
     addToPlaylist,
     playSong,
+    removeSong,
   } = musicPlayerHook;
 
   const {
@@ -77,9 +79,21 @@ export const Player = ({ musicPlayerHook }: PlayerProps) => {
 
   const formatTime = (seconds: number) => {
     const totalSeconds = Math.round(seconds);
-    const mins = Math.floor(totalSeconds / 60);
-    const secs = totalSeconds % 60;
-    return `${mins}:${secs.toString().padStart(2, "0")}`;
+
+    const shouldShowHours = currentSong && currentSong.duration >= 3600;
+
+    if (shouldShowHours) {
+      const hours = Math.floor(totalSeconds / 3600);
+      const mins = Math.floor((totalSeconds % 3600) / 60);
+      const secs = totalSeconds % 60;
+      return `${hours}:${mins.toString().padStart(2, "0")}:${secs
+        .toString()
+        .padStart(2, "0")}`;
+    } else {
+      const mins = Math.floor(totalSeconds / 60);
+      const secs = totalSeconds % 60;
+      return `${mins}:${secs.toString().padStart(2, "0")}`;
+    }
   };
 
   const updateProgress = useCallback(
@@ -270,6 +284,7 @@ export const Player = ({ musicPlayerHook }: PlayerProps) => {
               <img
                 src={currentSong.albumArt}
                 alt={`${currentSong.title} album art`}
+                loading="lazy"
                 style={{
                   width: "100%",
                   height: "100%",
@@ -313,7 +328,7 @@ export const Player = ({ musicPlayerHook }: PlayerProps) => {
               variant="ghost"
               size="icon-md"
               className={styles.controlButton}
-              onClick={playPrevious}
+              onClick={debounce(playPrevious, 200)}
               title="Previous"
             >
               <SkipBack size={18} />
@@ -322,7 +337,7 @@ export const Player = ({ musicPlayerHook }: PlayerProps) => {
               variant="primary"
               size="icon-lg"
               className={styles.playButton}
-              onClick={togglePlayPause}
+              onClick={debounce(togglePlayPause, 200)}
               title={isPlaying ? "Pause" : "Play"}
             >
               {isPlaying ? <Pause size={20} /> : <Play size={20} />}
@@ -331,7 +346,7 @@ export const Player = ({ musicPlayerHook }: PlayerProps) => {
               variant="ghost"
               size="icon-md"
               className={styles.controlButton}
-              onClick={playNext}
+              onClick={debounce(playNext, 200)}
               title="Next"
             >
               <SkipForward size={18} />
@@ -433,6 +448,7 @@ export const Player = ({ musicPlayerHook }: PlayerProps) => {
             onCreatePlaylist={createPlaylist}
             onAddToPlaylist={addToPlaylist}
             onPlaySong={playSong}
+            onRemoveSong={removeSong}
             size={16}
             className={styles.moreButton}
           />

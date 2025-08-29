@@ -39,7 +39,11 @@ export default defineConfig({
       },
     }),
   ],
-  resolve: { alias: { '@': '/src' } },
+  resolve: {
+    alias: {
+      '@': '/src',
+    },
+  },
   server: { open: true, allowedHosts:true },
   build: { sourcemap: true, outDir: './dist', emptyOutDir: true },
 });

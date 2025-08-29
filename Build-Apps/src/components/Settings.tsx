@@ -1,6 +1,5 @@
 "use client";
 
-import React, { useState } from "react";
 import {
   Sheet,
   SheetContent,
@@ -8,7 +7,6 @@ import {
   SheetFooter,
   SheetHeader,
   SheetTitle,
-  SheetTrigger,
 } from "./Sheet";
 import { Button } from "./Button";
 import { Switch } from "./Switch";
@@ -21,17 +19,8 @@ import {
   SelectValue,
 } from "./Select";
 import { ThemeModeSwitch } from "./ThemeModeSwitch";
-import {
-  Settings as SettingsIcon,
-  Volume2,
-  Music,
-  Palette,
-  Database,
-  RotateCcw,
-  Download,
-  Upload,
-  Trash2,
-} from "lucide-react";
+import { useMusicPlayer } from "../helpers/musicPlayerHook";
+import { Volume2, Music, Palette, RotateCcw } from "lucide-react";
 import styles from "./Settings.module.css";
 
 export type PlayerSettings = {

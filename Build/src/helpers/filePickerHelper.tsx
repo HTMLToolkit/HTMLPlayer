@@ -105,12 +105,14 @@ export async function extractAudioMetadata(file: File): Promise<AudioMetadata> {
     if (id3Tags && id3Tags.image) {
       const { data, format } = id3Tags.image;
       if (data) {
-        // Convert image data to base64
-        let base64String = "";
-        for (let i = 0; i < data.length; i++) {
-          base64String += String.fromCharCode(data[i]);
-        }
-        albumArt = `data:${format};base64,${btoa(base64String)}`;
+        // Use FileReader to convert ArrayBuffer to Data URL
+        albumArt = await new Promise<string>((resolve, reject) => {
+          const blob = new Blob([data], { type: format });
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(reader.result as string);
+          reader.onerror = () => reject(reader.error);
+          reader.readAsDataURL(blob);
+        });
       }
     }
   } catch (e) {

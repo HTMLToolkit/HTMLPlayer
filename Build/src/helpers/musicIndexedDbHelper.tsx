@@ -313,4 +313,23 @@ export const musicIndexedDbHelper = {
       throw error;
     }
   },
+
+  async removeSongAudio(songId: string): Promise<void> {
+    try {
+      const db = await openDatabase();
+      const transaction = db.transaction([STORES.AUDIO_DATA], "readwrite");
+      const store = transaction.objectStore(STORES.AUDIO_DATA);
+
+      await new Promise<void>((resolve, reject) => {
+        const request = store.delete(songId);
+        request.onsuccess = () => resolve();
+        request.onerror = () => reject(request.error);
+      });
+
+      db.close();
+    } catch (error) {
+      console.error(`Failed to remove audio data for song ${songId}:`, error);
+      throw error;
+    }
+  },
 };

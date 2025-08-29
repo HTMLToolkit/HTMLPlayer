@@ -2,7 +2,7 @@
 name = "HTMLPlayer"
 version = "2.0.0"
 description = "A React Local Music App"
-authors = ["you"]
+authors = ["NellowTCS"]
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html

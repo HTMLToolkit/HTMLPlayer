@@ -47,6 +47,10 @@ export const PlaylistComponent = ({ musicPlayerHook }: PlaylistProps) => {
   const [playlistImages, setPlaylistImages] = useState<Record<string, string>>(
     {}
   );
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [playlistToDelete, setPlaylistToDelete] = useState<Playlist | null>(
+    null
+  );
 
   const { library, playSong, createPlaylist, removePlaylist } = musicPlayerHook;
 
@@ -147,13 +151,16 @@ export const PlaylistComponent = ({ musicPlayerHook }: PlaylistProps) => {
   };
 
   const handleDeletePlaylist = (playlist: Playlist) => {
-    if (
-      window.confirm(
-        `Are you sure you want to delete playlist "${playlist.name}"?`
-      )
-    ) {
-      removePlaylist(playlist.id);
-      toast.success(`Deleted playlist "${playlist.name}"`);
+    setPlaylistToDelete(playlist);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const handleDeleteConfirm = () => {
+    if (playlistToDelete) {
+      removePlaylist(playlistToDelete.id);
+      toast.success(`Deleted playlist "${playlistToDelete.name}"`);
+      setIsDeleteDialogOpen(false);
+      setPlaylistToDelete(null);
     }
   };
 
@@ -268,7 +275,7 @@ export const PlaylistComponent = ({ musicPlayerHook }: PlaylistProps) => {
             >
               {playlistImages[playlist.id] ? (
                 <div className={styles.playlistImage}>
-                  <img src={playlistImages[playlist.id]} alt="" />
+                  <img src={playlistImages[playlist.id]} alt="" loading="lazy" />
                 </div>
               ) : (
                 getPlaylistIcon(playlist.name)
@@ -346,6 +353,28 @@ export const PlaylistComponent = ({ musicPlayerHook }: PlaylistProps) => {
             >
               Create
             </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Playlist Confirmation Dialog */}
+      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Playlist</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete the playlist "
+              {playlistToDelete?.name}"? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsDeleteDialogOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button onClick={handleDeleteConfirm}>Delete</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

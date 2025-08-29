@@ -35,6 +35,7 @@ interface SongActionsDropdownProps {
   library: MusicLibrary;
   onCreatePlaylist: (name: string, songs: Song[]) => Playlist;
   onAddToPlaylist: (playlistId: string, songId: string) => void;
+  onRemoveSong: (songId: string) => void;
   onPlaySong: (song: Song, playlist?: Playlist) => void;
   size?: number;
   className?: string;
@@ -45,11 +46,14 @@ export const SongActionsDropdown = ({
   library,
   onCreatePlaylist,
   onAddToPlaylist,
+  onRemoveSong,
   onPlaySong,
   size = 16,
   className = "",
 }: SongActionsDropdownProps) => {
   const [showPlaylistDialog, setShowPlaylistDialog] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [showInfoDialog, setShowInfoDialog] = useState(false);
   const [newPlaylistName, setNewPlaylistName] = useState("");
   const [isCreatingNew, setIsCreatingNew] = useState(false);
 
@@ -88,15 +92,7 @@ export const SongActionsDropdown = ({
   };
 
   const handleShowSongInfo = () => {
-    const infoText = [
-      `Title: ${song.title}`,
-      `Artist: ${song.artist}`,
-      `Album: ${song.album}`,
-      `Duration: ${formatTime(song.duration)}`,
-      `Format: Audio file`,
-    ].join("\n");
-
-    alert(`Song Information\n\n${infoText}`);
+    setShowInfoDialog(true);
   };
 
   const handleShare = async () => {
@@ -147,6 +143,16 @@ export const SongActionsDropdown = ({
     );
   };
 
+  const handleDeleteSong = () => {
+    setShowDeleteDialog(true);
+  };
+
+  const handleConfirmDelete = () => {
+    onRemoveSong(song.id);
+    toast.success(`Deleted "${song.title}" from the library`);
+    setShowDeleteDialog(false);
+  };
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -182,7 +188,39 @@ export const SongActionsDropdown = ({
           <Music size={size} style={{ marginRight: 8 }} />
           Go to album
         </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem
+          onClick={handleDeleteSong}
+          className={modalStyles.delete}
+        >
+          <Trash2 size={size} style={{ marginRight: 8 }} />
+          Delete from library
+        </DropdownMenuItem>
       </DropdownMenuContent>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Song</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to permanently delete "{song.title}"? This
+              action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setShowDeleteDialog(false)}
+            >
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={handleConfirmDelete}>
+              Delete
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Playlist Dialog */}
       <Dialog open={showPlaylistDialog} onOpenChange={setShowPlaylistDialog}>
@@ -251,6 +289,49 @@ export const SongActionsDropdown = ({
               </Button>
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Song Info Dialog */}
+      <Dialog open={showInfoDialog} onOpenChange={setShowInfoDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Song Information</DialogTitle>
+            <DialogDescription>
+              Detailed information about the song.
+            </DialogDescription>
+          </DialogHeader>
+          <div style={{ display: "flex", gap: "var(--spacing-4)" }}>
+            {song.albumArt && (
+              <img
+                src={song.albumArt}
+                alt={song.album}
+                style={{
+                  width: "100px",
+                  height: "100px",
+                  objectFit: "cover",
+                  borderRadius: "var(--radius-2)",
+                }}
+              />
+            )}
+            <div className={modalStyles.spaceY4}>
+              <p>
+                <strong>Title:</strong> {song.title}
+              </p>
+              <p>
+                <strong>Artist:</strong> {song.artist}
+              </p>
+              <p>
+                <strong>Album:</strong> {song.album}
+              </p>
+              <p>
+                <strong>Duration:</strong> {formatTime(song.duration)}
+              </p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button onClick={() => setShowInfoDialog(false)}>Close</Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </DropdownMenu>
