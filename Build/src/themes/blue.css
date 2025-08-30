@@ -254,7 +254,7 @@
 
   /* Miscellaneous */
   --certain-icons: hsl(195, 100%, 50%);
-  /* --albumart-gradient: linear-gradient(135deg, #0a192f 0%, #1f2937 100%); */
+  --albumart-gradient: linear-gradient(135deg, #0a192f 0%, #1f2937 100%);
 
   /* Shadows */
   --border: hsl(220, 15%, 20%);
