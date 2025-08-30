@@ -481,6 +481,20 @@ export const useMusicPlayer = () => {
   }, [library]);
 
   useEffect(() => {
+    if (playerState.currentPlaylist) {
+      const updatedPlaylist = library.playlists.find(
+        (p) => p.id === playerState.currentPlaylist?.id
+      );
+      if (updatedPlaylist && updatedPlaylist.songs !== playerState.currentPlaylist.songs) {
+        setPlayerState((prev) => ({
+          ...prev,
+          currentPlaylist: updatedPlaylist,
+        }));
+      }
+    }
+  }, [library.playlists, playerState.currentPlaylist?.id]);
+
+  useEffect(() => {
     if (audioRef.current) {
       audioRef.current.volume = settings.volume;
     }
@@ -861,20 +875,12 @@ export const useMusicPlayer = () => {
         });
       } catch (error) {
         console.error("Failed to process song audio:", error);
-      }
-
-      // Finally, update player state to ensure UI reflects the change
-      const allSongsPlaylist = library.playlists.find(
-        (p) => p.id === "all-songs"
-      );
-      if (allSongsPlaylist) {
-        setPlayerState((prevState) => ({
-          ...prevState,
-          currentPlaylist: allSongsPlaylist,
-        }));
+        toast.error(`Failed to process "${song.title}"`, {
+          description: (error as Error).message || "Unknown error occurred",
+        });
       }
     },
-    [processAudioBatch, prepareSongsForPlaylist, library]
+    [processAudioBatch, prepareSongsForPlaylist]
   );
 
   const removeSong = useCallback(
@@ -900,19 +906,8 @@ export const useMusicPlayer = () => {
       } catch (error) {
         console.error("Failed to remove song audio from IndexedDB:", error);
       }
-
-      // Finally, update player state to ensure UI reflects the change
-      const allSongsPlaylist = library.playlists.find(
-        (p) => p.id === "all-songs"
-      );
-      if (allSongsPlaylist) {
-        setPlayerState((prevState) => ({
-          ...prevState,
-          currentPlaylist: allSongsPlaylist,
-        }));
-      }
     },
-    [library, prepareSongsForPlaylist]
+    []
   );
 
   const createPlaylist = useCallback(

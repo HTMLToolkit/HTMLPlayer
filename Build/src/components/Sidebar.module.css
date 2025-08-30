@@ -126,7 +126,7 @@
 
 .playlistItem.active {
   background: var(--primary-transparent-strong);
-  border: 1px solid var(--primary-transparent-stronger);
+  border: 1px solid var(--primary-transparent-5);
 }
 
 .songCount {
@@ -141,7 +141,7 @@
 }
 
 .allSongsItem:hover {
-  background: var(--primary-transparent-4);
+  background: var(--primary-transparent);
 }
 
 .favoritesItem {

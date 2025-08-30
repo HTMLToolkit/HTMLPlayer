@@ -40,7 +40,7 @@
 .searchInput:focus {
   outline: var(--shadow);
   border-color: var(--primary-border-strong);
-  box-shadow: 0 0 0 2px var(--primary-transparent-light);
+  box-shadow: 0 0 0 2px var(--primary-transparent-2);
 }
 
 .searchInput::placeholder {
@@ -99,7 +99,7 @@
 }
 
 .playlistItem.active {
-  background: var(--primary-transparent-5);
+  background: var(--primary-transparent-4);
   border: 1px solid var(--primary-border-strong);
 }
 
@@ -111,11 +111,11 @@
 
 .allSongsItem {
   background: var(--primary-transparent-2);
-  border: 1px solid var(--primary-transparent-5);
+  border: 1px solid var(--primary-transparent-4);
 }
 
 .allSongsItem:hover {
-  background: var(--primary-transparent-4);
+  background: var(--primary-transparent);
 }
 
 .favoritesItem {
@@ -143,11 +143,11 @@
 
 .addPlaylistButton {
   background: var(--primary-transparent-2);
-  border: 1px solid var(--primary-transparent-5);
+  border: 1px solid var(--primary-transparent-4);
 }
 
 .addPlaylistButton:hover {
-  background: var(--primary-transparent-4);
+  background: var(--primary-transparent);
 }
 
 .createPlaylistDialog {

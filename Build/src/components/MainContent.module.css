@@ -84,7 +84,7 @@
 }
 
 .actionButton:hover {
-  background: var(--primary-transparent-stronger);
+  background: var(--primary-transparent-5);
   border-color: var(--primary-border-stronger);
 }
 
@@ -122,12 +122,12 @@
 }
 
 .songItem:hover {
-  background: var(--primary-transparent-subtle);
+  background: var(--primary-transparent-1);
   border-radius: var(--radius);
 }
 
 .songItem.currentSong {
-  background: var(--primary-transparent-light);
+  background: var(--primary-transparent-2);
   border-radius: var(--radius);
   border: 1px solid var(--primary-border);
 }
@@ -221,7 +221,7 @@
 
 .songActionButton.active {
   color: var(--themecolor);
-  background: var(--primary-transparent-light);
+  background: var(--primary-transparent-2);
 }
 
 .songActionButton.favorited {
@@ -230,7 +230,7 @@
 }
 
 .actionButton.active {
-  background: var(--primary-transparent-stronger);
+  background: var(--primary-transparent-5);
   border-color: var(--primary-border-active);
   color: var(--primary-foreground);
 }

@@ -1,5 +1,5 @@
-import parse from "id3-parser";
 import { toast } from "sonner";
+import * as jsmediatags from "jsmediatags/dist/jsmediatags.min.js";
 
 export type AudioFile = {
   file: File;
@@ -93,21 +93,31 @@ export function pickAudioFiles(): Promise<AudioFile[]> {
 }
 
 export async function extractAudioMetadata(file: File): Promise<AudioMetadata> {
-  // Read file as ArrayBuffer for id3-parser
   let id3Tags: any = null;
   let albumArt: string | undefined = undefined;
 
   try {
-    const arrayBuffer = await file.arrayBuffer();
-    id3Tags = await parse(new Uint8Array(arrayBuffer));
+    id3Tags = await new Promise((resolve) => {
+      new jsmediatags.Reader(file).read({
+        onSuccess: (tag: any) => resolve(tag.tags),
+        onError: (error: any) => {
+          console.warn("Failed to read ID3 tags with jsmediatags:", error);
+          resolve(null);
+        },
+      });
+    }).catch((e) => {
+      console.warn("Error reading ID3 tags with jsmediatags:", e);
+      return null;
+    });
 
     // Extract album art if available
-    if (id3Tags && id3Tags.image) {
-      const { data, format } = id3Tags.image;
+    if (id3Tags && id3Tags.picture) {
+      const { data } = id3Tags.picture;
+      const format = id3Tags.picture.format;
       if (data) {
-        // Use FileReader to convert ArrayBuffer to Data URL
+        // data is an array of bytes, convert it to a blob and then a data URL
+        const blob = new Blob([new Uint8Array(data)], { type: format });
         albumArt = await new Promise<string>((resolve, reject) => {
-          const blob = new Blob([data], { type: format });
           const reader = new FileReader();
           reader.onloadend = () => resolve(reader.result as string);
           reader.onerror = () => reject(reader.error);
@@ -116,7 +126,7 @@ export async function extractAudioMetadata(file: File): Promise<AudioMetadata> {
       }
     }
   } catch (e) {
-    console.warn("Failed to parse ID3 tags:", e);
+    console.warn("Error processing ID3 tags:", e);
   }
 
   const fileName = file.name.replace(/\.[^/.]+$/, "");

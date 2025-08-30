@@ -4,31 +4,26 @@ A React and TypeScript powered music player with many extra features and an amaz
 
 ## Todo
 
-- [ ] And I think that the album art is messed up by either the format, or that the title is in a diff language
 - [ ] maybe research way to have smooth zoom in and out, maybe override browser handler, check if someone did this already
 - [ ] Synced lyrics using id3v2 embedded lyrics
 - [ ] 🔼 (when HTMLPlayer is almost ready) add HTMLPlayer Store (below)
 - [ ] 🔼 I'll need to add some sort of quick guide and help menu or something to HTMLPlayer.
 - [ ] add folders for playlists.
-
 - [ ] **Keyboard Navigation**
 
   **Issue**: The player lacks keyboard shortcuts for accessibility and convenience.
 
   **Improvement**: Add keyboard controls (e.g., space for play/pause, arrow keys for next/prev).
-
 - [ ] **Prevent Duplicate Track Additions**
 
   **Issue**: Tracks with the same name can be added multiple times.
 
   **Improvement**: Let user skip or continue when they have duplicate tracks.
-
 - [ ] **Sort Tracks**
 
   **Issue**: Tracks cannot be sorted (e.g., by name, rating).
 
   **Improvement**: Add sorting options.
-
 - [ ] **Handle Missing Directory Picker**
 
   **Issue**: `showDirectoryPicker` is not supported in all browsers (e.g., Safari).
@@ -58,13 +53,11 @@ A React and TypeScript powered music player with many extra features and an amaz
     }
   };
   ```
-
 - [ ] **Theme Support**
 
   **Issue**: Only a dark theme is provided.
 
   **Improvement**: Add different themes using different styles.css files.
-
 - [ ] **Equalizer Settings**
 
   **Issue**: No audio customization options.
@@ -74,6 +67,7 @@ A React and TypeScript powered music player with many extra features and an amaz
 ### Done:
 
 - [x] I forgot to uncache and recache the smart song caching after the next song, as currently, 4 songs are played, but the next song shows a `Failed to load resource: net::ERR_FILE_NOT_FOUND` error as it never is loaded in.
+- [x] And I think that the album art is messed up by either the format, or that the title is in a diff language
 - [x] ⏫ I originally, (in [v1](https://htmltoolkit.github.io/HTMLPlayer/)) just added a checkbox to the songs and you could select as many as you wanted. Reimplement this for v2.
 - [x] 🔼 A "select all" button would solve the folder issue altogether as well
 - [x] 🔽 I should probably add a hours counter for time
@@ -107,61 +101,51 @@ A React and TypeScript powered music player with many extra features and an amaz
     }
   }
   ```
-
 - [x] **Optimize IndexedDB Transactions**
 
   **Issue**: Multiple simultaneous IndexedDB transactions can degrade performance.
 
   **Improvement**: Batch operations (e.g., saving multiple tracks) into a single transaction where possible.
-
 - [x] **Cache DOM Queries**
 
   **Issue**: Repeated `document.getElementById` calls are inefficient.
 
   **Improvement**: Cache DOM elements in variables at initialization.
-
 - [x] **Visual Feedback for Loading States**
 
   **Issue**: The "Adding..." and "Processing..." popups are basic and may not clearly indicate progress.
 
   **Improvement**: Add a progress bar or spinner to the popups for better feedback.
-
 - [x] **Improved Playlist Creation UX**
 
   **Issue**: Users can create a playlist with an empty name or a duplicate name without clear feedback.
 
   **Improvement**: Add validation and feedback for playlist creation.
-
 - [x] **ARIA Attributes**
 
   **Issue**: The interface lacks ARIA attributes for screen reader compatibility.
 
   **Improvement**: Add ARIA labels and roles to interactive elements.
-
 - [x] **Focus Management**
 
   **Issue**: Keyboard focus is not clearly managed for interactive elements.
 
   **Improvement**: Ensure focus states are visible and logical tab order is maintained.
-
 - [x] **Logging for Debugging**
 
   **Issue**: Debugging is difficult without structured logging.
 
   **Improvement**: Implement a logging system for development.
-
 - [x] **Use Constants for Repeated Values**
 
   **Issue**: Hardcoded values (e.g., colors, sizes) are repeated throughout CSS and JS.
 
   **Improvement**: Define CSS custom properties and JS constants.
-
 - [x] **Comprehensive Error Handling**
 
   **Issue**: Errors (e.g., database failures, file access issues) are minimally handled.
 
   **Improvement**: Add robust error handling with user feedback.
-
 - [x] **Test Audio Format Support**
 
   **Issue**: Some browsers may not support certain audio formats (e.g., OGG).
@@ -190,24 +174,21 @@ A React and TypeScript powered music player with many extra features and an amaz
     });
   };
   ```
-
 - [x] **Debounce Rapid Clicks on Controls**
+
       **Issue**: Rapid clicks on buttons like play/pause, next, or previous can cause unintended behavior or race conditions.
 
   **Improvement**: Add a debounce mechanism to prevent multiple rapid clicks.
-
 - [x] **Lazy Load Playlist Art**
 
   **Issue**: Loading all playlist images at once can slow down rendering, especially with many playlists or large images.
 
   **Improvement**: Use the `loading="lazy"` attribute for playlist and track images to defer offscreen image loading.
-
 - [x] **Handle Missing Track Files**
 
   **Issue**: If a track file is missing or inaccessible, the player may fail silently.
 
   **Improvement**: Add error handling for file access.
-
 - [x] **Adaptive Progress Bar**
 
   **Issue**: Progress bar width is not optimal for very wide screens.
@@ -218,25 +199,26 @@ A React and TypeScript powered music player with many extra features and an amaz
 
 - [ ] a basic store for Themes, Icons, and Visualizers
 - [ ] maybe some paid stuff
-  - [ ] if paid stuff, then a backend is definitely needed
-    - [ ] cloudflare worker to fetch stuff from something and some form of auth
-      - [ ] maybe a personal link
+    - [ ] if paid stuff, then a backend is definitely needed
+        - [ ] cloudflare worker to fetch stuff from something and some form of auth
+            - [ ] maybe a personal link
+- [ ] IndexedDB as storage for all three
+- [ ] combination sets of icons and visualizers
 
 #### UI
 
 - [ ] a similar UI style to HTMLPlayer for sure
-  - [ ] but maybe more white themed
-  - [ ] image here
-  - [ ] hovering on a photo:
+    - [ ] but maybe more white themed
     - [ ] image here
-    - [ ] clicking/tapping on name (ex NellowTCS) causes artist page to open
+    - [ ] hovering on a photo:
+        - [ ] image here
+        - [ ] clicking/tapping on name (ex NellowTCS) causes artist page to open
 
 #### Dev Details
 
-- [ ] need good API or SDK if I want this (not the current visualizer stuff 🫣)
+- [ ] need good API if I want this (not the current visualizer stuff 🫣)
 
-  - ##### Icons
-
+  ##### Icons
     - [ ] in each file that uses icons, have, instead of lucide-react, have one file with a bunch of references
 
       ```json
@@ -245,18 +227,17 @@ A React and TypeScript powered music player with many extra features and an amaz
         %% etc... %%
       }
       ```
-
     - [ ] like i18n
     - [ ] to be easily configurable and/or swappable
     - [ ] can also link to images
 
-- ##### Themes
-  - [ ] use CSS vars <u>everywhere</u>
-  - [ ] have some preinstalled themes for sure
+##### Themes
+
+- [x] use CSS vars <u>everywhere</u>
+- [ ] have some preinstalled themes for sure
     - [ ] colors: Red, Orange, Yellow, Green, Blue (default), Purple, Pink, Grey, Black, maybe a custom one?
     - [ ] picture backgrounds
-- ##### Visualizers
-  - [x] A visualizerLoader.tsx with `import.glob...` for preinstalled visualizers
-- [ ] IndexedDB as storage for all three
-- [ ] themes
-- [ ] idk
+
+##### Visualizers
+
+- [x] A visualizerLoader.tsx with `import.glob...` for preinstalled visualizers

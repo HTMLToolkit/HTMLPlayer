@@ -84,7 +84,7 @@
 
 .controlButton.active {
   color: var(--certain-icons);
-  background: var(--primary-transparent-subtle);
+  background: var(--primary-transparent-1);
 }
 
 .controlButton {
@@ -149,12 +149,12 @@
 .playButton {
   background: linear-gradient(90deg, var(--themecolor) 0%, var(--themecolor3) 70%);
   color: var(--primary-foreground);
-  box-shadow: 0 4px 12px var(--primary-transparent-subtle);
+  box-shadow: 0 4px 12px var(--primary-transparent-1);
 }
 
 .playButton:hover {
   background: linear-gradient(135deg, var(--themecolor3) 0%, var(--themecolor) 70%);
-  box-shadow: 0 6px 16px var(--primary-transparent-light);
+  box-shadow: 0 6px 16px var(--primary-transparent-2);
   transform: translateY(-1px);
 }
 
@@ -244,7 +244,7 @@
 
 .secondaryButton.active {
   color: var(--themecolor);
-  background: var(--primary-transparent-subtle);
+  background: var(--primary-transparent-1);
 }
 
 /* Volume Controls */
@@ -355,7 +355,8 @@
 
 @media (max-width: 900px) {
   .visualizerOverlay {
-    right: 0; /* stays pinned to screen edge */
+    right: 0;
+    /* stays pinned to screen edge */
     width: calc(100vw - var(--sidebar-width));
     max-width: 100vw;
     transform: none;
@@ -385,7 +386,8 @@
   }
 
   .secondaryControls {
-    display: none; /* Hide on mobile to save space */
+    display: none;
+    /* Hide on mobile to save space */
   }
 
   .volumeControls {
@@ -410,7 +412,8 @@
 
   .visualizerOverlay {
     height: 200px;
-    right: 0; /* stays pinned to screen edge */
+    right: 0;
+    /* stays pinned to screen edge */
     width: calc(100vw - var(--sidebar-width));
     max-width: 100vw;
     transform: none;

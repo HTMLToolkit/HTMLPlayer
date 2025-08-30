@@ -19,7 +19,7 @@
     "@radix-ui/react-slot": "^1.1.2",
     "@radix-ui/react-switch": "^1.2.6",
     "@radix-ui/react-tooltip": "^1.2.8",
-    "id3-parser": "^3.0.0",
+    "jsmediatags": "^3.9.7",
     "lodash": "^4.17.21",
     "lucide-react": "^0.542.0",
     "react": "^19.1.1",
@@ -29,6 +29,7 @@
   "devDependencies": {
     "@types/jasmine": "^5.1.9",
     "@types/jest": "^30.0.0",
+    "@types/jsmediatags": "^3.9.6",
     "@types/lodash": "^4.17.20",
     "@types/node": "^24.3.0",
     "@types/react": "^19.1.12",
