@@ -235,7 +235,15 @@ A React and TypeScript powered music player with many extra features and an amaz
 
 - [x] use CSS vars <u>everywhere</u>
 - [ ] have some preinstalled themes for sure
-    - [ ] colors: Red, Orange, Yellow, Green, Blue (default), Purple, Pink, Grey, Black, maybe a custom one?
+    - [ ] system for theme switching.
+    - [x] Red
+    - [x] Orange
+    - [x] Yellow
+    - [x] Green (Verdant)
+    - [x] Blue (default) (ofc it's done)
+    - [x] Purple and Pink in one(Twilight)
+    - [x] Purple and Orange (Lumenis)
+    - [x] Grey, Black, and White in one (Monochrome)
     - [ ] picture backgrounds
 
 ##### Visualizers
