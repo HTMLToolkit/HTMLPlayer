@@ -22,6 +22,8 @@ import { ThemeModeSwitch } from "./ThemeModeSwitch";
 import { useMusicPlayer } from "../helpers/musicPlayerHook";
 import { Volume2, Music, Palette, RotateCcw } from "lucide-react";
 import styles from "./Settings.module.css";
+import { useThemeLoader } from "../helpers/themeLoader";
+import { toast } from "sonner";
 
 export type PlayerSettings = {
   volume: number;
@@ -30,6 +32,7 @@ export type PlayerSettings = {
   defaultShuffle: boolean;
   defaultRepeat: "off" | "one" | "all";
   themeMode: "light" | "dark" | "auto";
+  colorTheme: string;
   autoPlayNext: boolean;
   compactMode: boolean;
   showAlbumArt: boolean;
@@ -64,19 +67,29 @@ export const Settings = ({
   const showAlbumArt = settings.showAlbumArt;
   const showLyrics = settings.showLyrics;
 
-  // Handlers that actually call onSettingsChange
-  const handleResetSettings = () => {
-    onSettingsChange({
-      volume: 0.75,
-      audioQuality: "high",
-      crossfade: 3,
-      defaultShuffle: false,
-      defaultRepeat: "off",
-      autoPlayNext: true,
-      compactMode: false,
-      showAlbumArt: true,
-      showLyrics: false,
-    });
+  // Theme loader
+  const { themes, currentTheme, setTheme } = useThemeLoader();
+
+  // Handlers
+  const handleResetSettings = async () => {
+    const defaultThemeName = "Blue";
+    try {
+      await setTheme(defaultThemeName); // ensure theme is applied first
+      onSettingsChange({
+        volume: 0.75,
+        audioQuality: "high",
+        crossfade: 3,
+        defaultShuffle: false,
+        defaultRepeat: "off",
+        autoPlayNext: true,
+        compactMode: false,
+        showAlbumArt: true,
+        showLyrics: false,
+        colorTheme: defaultThemeName,
+      });
+    } catch {
+      toast.error("Error resetting settings.")
+    }
   };
 
   const handleVolumeChange = (newVolume: number[]) => {
@@ -85,7 +98,7 @@ export const Settings = ({
 
   const handleAudioQualityChange = (quality: string) => {
     onSettingsChange({
-      audioQuality: quality as SettingsProps["settings"]["audioQuality"],
+      audioQuality: quality as PlayerSettings["audioQuality"],
     });
   };
 
@@ -99,7 +112,7 @@ export const Settings = ({
 
   const handleRepeatChange = (repeat: string) => {
     onSettingsChange({
-      defaultRepeat: repeat as SettingsProps["settings"]["defaultRepeat"],
+      defaultRepeat: repeat as PlayerSettings["defaultRepeat"],
     });
   };
 
@@ -123,6 +136,15 @@ export const Settings = ({
     onSettingsChange({ themeMode: mode as PlayerSettings["themeMode"] });
   };
 
+  const handleColorThemeChange = async (themeName: string) => {
+    try {
+      await setTheme(themeName); // wait for CSS to load
+      onSettingsChange({ colorTheme: themeName }); // now update settings
+    } catch {
+      toast.error("Theme load error!",)
+    }
+  };
+
   return (
     <div className={`${styles.container} ${className || ""}`}>
       <Sheet open={open} onOpenChange={onOpenChange}>
@@ -135,7 +157,7 @@ export const Settings = ({
           </SheetHeader>
 
           <div className={styles.settingsContent}>
-            {/* Audio Settings Section */}
+            {/* Audio Settings */}
             <section className={styles.section}>
               <div className={styles.sectionHeader}>
                 <Volume2 className={styles.sectionIcon} />
@@ -193,7 +215,7 @@ export const Settings = ({
               </div>
             </section>
 
-            {/* Playback Settings Section */}
+            {/* Playback Settings */}
             <section className={styles.section}>
               <div className={styles.sectionHeader}>
                 <Music className={styles.sectionIcon} />
@@ -248,7 +270,7 @@ export const Settings = ({
               </div>
             </section>
 
-            {/* Interface Settings Section */}
+            {/* Interface Settings */}
             <section className={styles.section}>
               <div className={styles.sectionHeader}>
                 <Palette className={styles.sectionIcon} />
@@ -256,10 +278,31 @@ export const Settings = ({
               </div>
 
               <div className={styles.settingItem}>
+                <div className={styles.settingLabel}>
+                  <label htmlFor="color-theme">Color Theme</label>
+                </div>
+                <Select
+                  value={currentTheme?.name || settings.colorTheme}
+                  onValueChange={handleColorThemeChange}
+                >
+                  <SelectTrigger id="color-theme">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {themes.map((theme) => (
+                      <SelectItem key={theme.name} value={theme.name}>
+                        {theme.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className={styles.settingItem}>
                 <div className={styles.settingInfo}>
-                  <label>Theme</label>
+                  <label>Theme Mode</label>
                   <p className={styles.settingDescription}>
-                    Choose your preferred color theme
+                    Choose your preferred theme mode
                   </p>
                 </div>
                 <ThemeModeSwitch

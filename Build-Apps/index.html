@@ -4,11 +4,18 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link href="./src/global.css" rel="stylesheet" />
-  <link rel="manifest" href="manifest.json" crossorigin="use-credentials">
   <title>HTMLPlayer</title>
 </head>
 <body>
   <div id="root"></div>
+
+  <!-- Eruda dev console -->
+  <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
+  <script>
+    // Initialize Eruda
+    eruda.init();
+  </script>
+
   <script type="module" src="./src/pages/main.tsx"></script>
 </body>
 </html>

@@ -1,5 +1,3 @@
-"use client";
-
 import { forwardRef } from "react";
 import * as ModalPrimitive from "@radix-ui/react-dialog";
 import { X } from "lucide-react";

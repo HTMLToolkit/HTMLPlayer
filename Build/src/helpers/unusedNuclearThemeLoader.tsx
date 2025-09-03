@@ -37,10 +37,10 @@ interface ThemeLoaderProps {
 // Import theme JSON and CSS
 // ----------------------
 const themeJsonFiles = import.meta.glob('../themes/**/*.theme.json', { eager: true });
-const themeCssFiles = import.meta.glob('../themes/**/*.theme.css');
+const themeCssFiles = import.meta.glob('../themes/**/*.theme.css', { as: 'raw' });
 
 // ----------------------
-// ThemeLoader Component
+// NUCLEAR OPTION (delete everything!!!) - Reset everything every time
 // ----------------------
 export const ThemeLoader: React.FC<ThemeLoaderProps> = ({ 
   defaultTheme, 
@@ -51,13 +51,7 @@ export const ThemeLoader: React.FC<ThemeLoaderProps> = ({
   const [currentTheme, setCurrentTheme] = useState<ThemeMetadata | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  
-  // Track loaded CSS modules to avoid reloading
-  const [loadedCssModules, setLoadedCssModules] = useState<Set<string>>(new Set());
 
-  // ----------------------
-  // Validate theme metadata
-  // ----------------------
   const validateThemeMetadata = (meta: any, path: string): ThemeMetadata | null => {
     if (!meta || typeof meta !== 'object') {
       console.warn(`Theme file ${path}: Invalid metadata format`);
@@ -75,9 +69,6 @@ export const ThemeLoader: React.FC<ThemeLoaderProps> = ({
     return meta as ThemeMetadata;
   };
 
-  // ----------------------
-  // Load themes on mount
-  // ----------------------
   useEffect(() => {
     const loadThemes = async () => {
       try {
@@ -92,15 +83,12 @@ export const ThemeLoader: React.FC<ThemeLoaderProps> = ({
           
           const validatedTheme = validateThemeMetadata(meta, path);
           if (validatedTheme) {
-            // Verify CSS file exists
             const cssExists = Object.keys(themeCssFiles).some(cssPath => 
               cssPath.endsWith(validatedTheme.cssFile)
             );
             
             if (cssExists) {
               loadedThemes.push(validatedTheme);
-            } else {
-              console.warn(`Theme "${validatedTheme.name}": CSS file "${validatedTheme.cssFile}" not found`);
             }
           }
         }
@@ -111,11 +99,10 @@ export const ThemeLoader: React.FC<ThemeLoaderProps> = ({
 
         setThemes(loadedThemes);
 
-        // Load initial theme
         const storedThemeName = localStorage.getItem('selected-color-theme') || defaultTheme;
         const initialTheme = loadedThemes.find(theme => theme.name === storedThemeName) 
                            || loadedThemes.find(theme => theme.name === defaultTheme)
-                           || loadedThemes[0]; // Fallback to first available
+                           || loadedThemes[0];
 
         if (initialTheme) {
           await applyTheme(initialTheme);
@@ -133,11 +120,14 @@ export const ThemeLoader: React.FC<ThemeLoaderProps> = ({
   }, [defaultTheme]);
 
   // ----------------------
-  // Apply theme: dynamically import CSS
+  // NUCLEAR APPROACH: Completely reset CSS every single time
   // ----------------------
   const applyTheme = useCallback(async (theme: ThemeMetadata): Promise<void> => {
+    const themeId = Date.now() + Math.random();
+    console.log(`[${themeId}] Applying theme ${theme.name}`);
+
     try {
-      // Find the matching CSS file
+      // Get CSS content
       const cssPath = Object.keys(themeCssFiles).find(path =>
         path.endsWith(theme.cssFile)
       );
@@ -146,85 +136,97 @@ export const ThemeLoader: React.FC<ThemeLoaderProps> = ({
         throw new Error(`CSS file not found: ${theme.cssFile}`);
       }
 
-      // Remove ALL existing theme stylesheets (in case there are duplicates)
-      const existingLinks = document.querySelectorAll('link[id^="theme-stylesheet"]');
-      existingLinks.forEach(link => link.remove());
+      console.log(`[${themeId}] Loading CSS from: ${cssPath}`);
+      const cssContent = await (themeCssFiles[cssPath] as () => Promise<string>)();
+      console.log(`[${themeId}] CSS loaded: ${cssContent.length} chars`);
 
-      // Load CSS module if not already loaded
-      if (!loadedCssModules.has(cssPath)) {
-        try {
-          await (themeCssFiles[cssPath] as () => Promise<any>)();
-          setLoadedCssModules(prev => new Set([...prev, cssPath]));
-        } catch (moduleError) {
-          console.warn(`Failed to load CSS module for ${cssPath}, trying direct link approach`);
-        }
-      }
-
-      // Create new stylesheet link with unique ID
-      const link = document.createElement('link');
-      link.rel = 'stylesheet';
-      link.id = `theme-stylesheet-${theme.name}`;
+      // Remove EVERYTHING that could be theme-related
+      console.log(`[${themeId}] Cleanup starting...`);
       
-      // Use the original path structure that Vite expects
-      // Remove the '../' and replace with appropriate base path
-      const publicPath = cssPath.startsWith('../') 
-        ? cssPath.substring(3) // Remove '../'
-        : cssPath;
-      
-      link.href = `/${publicPath}?v=${Date.now()}&theme=${encodeURIComponent(theme.name)}`;
-      
-      // Handle load/error events
-      const loadPromise = new Promise<void>((resolve, reject) => {
-        const timeout = setTimeout(() => {
-          reject(new Error(`Timeout loading CSS: ${cssPath}`));
-        }, 5000);
-
-        link.onload = () => {
-          clearTimeout(timeout);
-          resolve();
-        };
-        
-        link.onerror = () => {
-          clearTimeout(timeout);
-          reject(new Error(`Failed to load CSS: ${cssPath}`));
-        };
+      // Remove all style tags with theme data
+      document.querySelectorAll('style[data-theme-name], style[data-theme], style[id*="theme"]').forEach((el, i) => {
+        el.remove();
       });
 
-      document.head.appendChild(link);
-      await loadPromise;
+      // Remove all link tags with theme data
+      document.querySelectorAll('link[data-theme], link[id*="theme"], link[href*="theme"]').forEach((el, i) => {
+        el.remove();
+      });
 
-      // Update state only after successful load
+      // Force DOM to update
+      await new Promise(resolve => setTimeout(resolve, 100));
+      console.info(`[${themeId}] Cleanup complete`);
+
+      // Force browser to recalculate styles
+      console.log(`[${themeId}] Forcing style recalculation...`);
+      document.body.style.display = 'none';
+      document.body.offsetHeight; // Trigger reflow
+      document.body.style.display = '';
+      
+      // Inject new CSS with unique identifiers
+      const uniqueStyleId = `nuclear-theme-${theme.name.replace(/\W/g, '')}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      console.log(`[${themeId}] Creating new style: ${uniqueStyleId}`);
+      
+      const styleElement = document.createElement('style');
+      styleElement.id = uniqueStyleId;
+      styleElement.setAttribute('data-theme-name', theme.name);
+      styleElement.setAttribute('data-nuclear-id', themeId.toString());
+      styleElement.setAttribute('data-applied-at', new Date().toISOString());
+      
+      // Add CSS with some specificity boosting
+      const boostedCSS = cssContent.replace(/([^{}]+){/g, (match, selector) => {
+        // Add body prefix to boost specificity without changing the CSS too much
+        return selector.includes('body') ? match : `body ${match}`;
+      });
+      
+      styleElement.textContent = boostedCSS;
+      
+      console.log(`📋 [${themeId}] CSS preview: ${boostedCSS.substring(0, 100)}...`);
+      
+      // Inject into DOM
+      document.head.appendChild(styleElement);
+      
+      // Force another reflow and verify
+      await new Promise(resolve => setTimeout(resolve, 50));
+      
+      const verifyElement = document.getElementById(uniqueStyleId);
+      if (!verifyElement) {
+        throw new Error(`Style element ${uniqueStyleId} not found after insertion`);
+      }
+      
+      console.log(`[${themeId}] Style verified in DOM with ${verifyElement.textContent?.length} chars`);
+
+      // Force final style recalculation
+      const computedStyle = window.getComputedStyle(document.body);
+      console.log(`[${themeId}] Final body styles - color: ${computedStyle.color}, bg: ${computedStyle.backgroundColor}`);
+
+      // Update state
       setCurrentTheme(theme);
       localStorage.setItem('selected-color-theme', theme.name);
-      
-      // Call optional callback
       onThemeChange?.(theme);
-      
       setError(null);
-      
-      console.log(`Successfully applied theme: ${theme.name}`);
+
+      console.log(`[${themeId}] Theme application complete: ${theme.name}`);
+
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to apply theme';
       setError(errorMessage);
-      console.error('Theme application error:', err);
-      throw err; // Re-throw for caller handling
+      console.error(`[${themeId}] Theme error:`, err);
+      throw err;
     }
-  }, [onThemeChange, loadedCssModules]);
+  }, [onThemeChange]);
 
-  // ----------------------
-  // Set theme by name
-  // ----------------------
   const setTheme = useCallback(async (themeName: string): Promise<void> => {
+    console.log(`setTheme called: ${themeName} (current: ${currentTheme?.name})`);
+    
     const theme = themes.find(t => t.name === themeName);
     if (!theme) {
       throw new Error(`Theme "${themeName}" not found`);
     }
 
-    // Always apply the theme, even if it's the "current" one
-    // This ensures it works even if there were loading issues before
-    console.log(`Switching to theme: ${themeName}`);
+    // ALWAYS apply, no matter what
     await applyTheme(theme);
-  }, [themes, applyTheme]);
+  }, [themes, currentTheme, applyTheme]);
 
   const value: ThemeContextProps = { 
     themes, 
@@ -237,9 +239,6 @@ export const ThemeLoader: React.FC<ThemeLoaderProps> = ({
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
 };
 
-// ----------------------
-// Custom Hook
-// ----------------------
 export const useThemeLoader = () => {
   const context = useContext(ThemeContext);
   if (!context) {

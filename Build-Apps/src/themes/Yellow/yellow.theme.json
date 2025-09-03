@@ -1,0 +1,7 @@
+{
+  "name": "Yellow",
+  "author": "NellowTCS",
+  "description": "A yellow themed version of the Blue theme.",
+  "version": "1.0",
+  "cssFile": "yellow.theme.css"
+}
