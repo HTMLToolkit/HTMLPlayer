@@ -22,6 +22,7 @@ import { ThemeModeSwitch } from "./ThemeModeSwitch";
 import { useMusicPlayer } from "../helpers/musicPlayerHook";
 import { Volume2, Music, Palette, RotateCcw } from "lucide-react";
 import styles from "./Settings.module.css";
+import { useThemeLoader } from "../helpers/themeLoader"; // Import useThemeLoader
 
 export type PlayerSettings = {
   volume: number;
@@ -30,6 +31,7 @@ export type PlayerSettings = {
   defaultShuffle: boolean;
   defaultRepeat: "off" | "one" | "all";
   themeMode: "light" | "dark" | "auto";
+  colorTheme: string; // Add colorTheme to PlayerSettings
   autoPlayNext: boolean;
   compactMode: boolean;
   showAlbumArt: boolean;
@@ -64,6 +66,9 @@ export const Settings = ({
   const showAlbumArt = settings.showAlbumArt;
   const showLyrics = settings.showLyrics;
 
+  // Get themes from themeLoader
+  const { themes, currentTheme, setTheme } = useThemeLoader();
+
   // Handlers that actually call onSettingsChange
   const handleResetSettings = () => {
     onSettingsChange({
@@ -76,6 +81,7 @@ export const Settings = ({
       compactMode: false,
       showAlbumArt: true,
       showLyrics: false,
+      colorTheme: "blue", // Reset to default theme
     });
   };
 
@@ -121,6 +127,12 @@ export const Settings = ({
 
   const handleThemeModeChange = (mode: string) => {
     onSettingsChange({ themeMode: mode as PlayerSettings["themeMode"] });
+  };
+
+  // Add color theme
+  const handleColorThemeChange = (themeName: string) => {
+    setTheme(themeName); // Use the setTheme function from themeLoader
+    onSettingsChange({ colorTheme: themeName }); // Update the settings
   };
 
   return (
@@ -253,6 +265,27 @@ export const Settings = ({
               <div className={styles.sectionHeader}>
                 <Palette className={styles.sectionIcon} />
                 <h3 className={styles.sectionTitle}>Interface Settings</h3>
+              </div>
+              {/* Color Theme Setting */}
+              <div className={styles.settingItem}>
+                <div className={styles.settingLabel}>
+                  <label htmlFor="color-theme">Color Theme</label>
+                </div>
+                <Select
+                  value={settings.colorTheme}
+                  onValueChange={handleColorThemeChange}
+                >
+                  <SelectTrigger id="color-theme">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {themes.map((theme) => (
+                      <SelectItem key={theme.name} value={theme.name}>
+                        {theme.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
               <div className={styles.settingItem}>

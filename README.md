@@ -4,11 +4,40 @@ A React and TypeScript powered music player with many extra features and an amaz
 
 ## Todo
 
+- [ ] 🔺 Make top bar of MainContent separate and floating and  persistent and not a part of the Song Lists
+- [ ] Pitch/Tempo Control (settings)
+- [ ] slow down/speed up tracks without changing pitch (DJ style 😎)
+- [ ] Now Playing Screen (fullscreen, minimal UI)
+- [ ] Compact Mode for tiny screens or embedded view.
+- [ ] Animated album art transitions, like fade/zoom between songs.
+- [ ] increase size of album art
+- [ ] responsive design for mobile/smaller devices
+- [ ] Gapless playback (settings)
+- [ ] Crossfade options (settings)
+- [ ] ReplayGain/volume normalization (maybe)
+- [ ] Smart shuffle
+- [ ] Smart playlists (maybe)
+- [ ] scrobbling (settings)
+- [ ] Export/import playlists
+- [ ] Miniplayer, which can either show the album art or a visualizer as the background
+- [ ] Dynamic theming based on album art colors.  (settings)
+- [ ] Visualizer → audio-reactive backgrounds
+- [ ] Drag-and-drop reordering
+- [ ] Auto-fetch album art from MusicBrainz/Discogs if missing. 
+- [ ] metadata editing.
+- [ ] Duplicate file detection (not just by title but checksum). 
+- [ ] Session restore (settings)
+- [ ] Keyboard shortcuts (settings, duh)
+- [ ] add system right click menu
+- [ ] fix the lyrics popup not having the correct scrolling
+- [ ] fix some themes's visibility issues
+- [ ] Themes
+    - [ ] picture backgrounds
 - [ ] maybe research way to have smooth zoom in and out, maybe override browser handler, check if someone did this already
 - [ ] Synced lyrics using id3v2 embedded lyrics
-- [ ] 🔼 (when HTMLPlayer is almost ready) add HTMLPlayer Store (below)
 - [ ] 🔼 I'll need to add some sort of quick guide and help menu or something to HTMLPlayer.
 - [ ] add folders for playlists.
+- [ ] ⬆️ a Whisper based, fully in browser,  
 - [ ] **Keyboard Navigation**
 
   **Issue**: The player lacks keyboard shortcuts for accessibility and convenience.
@@ -24,9 +53,9 @@ A React and TypeScript powered music player with many extra features and an amaz
   **Issue**: Tracks cannot be sorted (e.g., by name, rating).
 
   **Improvement**: Add sorting options.
-- [ ] **Handle Missing Directory Picker**
+- [ ] **Add showDirectoryPicker API and ponyfil**
 
-  **Issue**: `showDirectoryPicker` is not supported in all browsers (e.g., Safari).
+  **Issue**: `showDirectoryPicker` missing but is not supported in all browsers (e.g., Safari).
 
   **Improvement**: Fallback to file input for unsupported browsers.
 
@@ -53,19 +82,74 @@ A React and TypeScript powered music player with many extra features and an amaz
     }
   };
   ```
-- [ ] **Theme Support**
-
-  **Issue**: Only a dark theme is provided.
-
-  **Improvement**: Add different themes using different styles.css files.
 - [ ] **Equalizer Settings**
 
   **Issue**: No audio customization options.
 
   **Improvement**: Add a equalizer using the Web Audio API or an external library.
+- [ ] 🔼 (when HTMLPlayer is almost ready) add HTMLPlayer Store (below)
 
-### Done:
+### HTMLPlayer Store
 
+- [ ] a basic store for Themes, Icons, and Visualizers
+- [ ] maybe some paid stuff
+    - [ ] if paid stuff, then a backend is definitely needed
+        - [ ] cloudflare worker to fetch stuff from something and some form of auth
+            - [ ] maybe a personal link
+- [ ] IndexedDB as storage for all three
+- [ ] combination sets of icons and visualizers
+
+#### UI
+
+- [ ] a similar UI style to HTMLPlayer for sure
+    - [ ] but maybe more white themed
+    - [ ] image here
+    - [ ] hovering on a photo:
+        - [ ] image here
+        - [ ] clicking/tapping on name (ex NellowTCS) causes artist page to open
+
+#### Dev Details
+
+- [ ] need good API if I want this (not the current visualizer stuff 🫣)
+
+##### Icons
+
+- [ ] in each file that uses icons, have, instead of lucide-react, have one file with a bunch of references
+
+  ```json
+  {
+    "settingsIcon": "lucide-react.Gear",
+    %% etc... %%
+  }
+  ```
+- [ ] like i18n
+- [ ] to be easily configurable and/or swappable
+- [ ] can also link to images
+
+##### Themes
+
+- [ ] picture backgrounds
+- [ ] have some preinstalled themes for sure
+
+## Done:
+
+- [x] use CSS vars <u>everywhere</u>
+- [x] A visualizerLoader.tsx with `import.glob...` for preinstalled visualizers
+- [x] **Theme Support**
+
+  **Issue**: Only a dark theme is provided.
+
+  **Improvement**: Add different themes using different styles.css files.
+    - [x] have some preinstalled themes for sure
+    - [x] system for theme switching.
+    - [x] Red
+    - [x] Orange
+    - [x] Yellow
+    - [x] Green (Verdant)
+    - [x] Blue (default) (ofc it's done)
+    - [x] Purple and Pink in one(Twilight)
+    - [x] Purple and Orange (Lumenis)
+    - [x] Grey, Black, and White in one (Monochrome)
 - [x] I forgot to uncache and recache the smart song caching after the next song, as currently, 4 songs are played, but the next song shows a `Failed to load resource: net::ERR_FILE_NOT_FOUND` error as it never is loaded in.
 - [x] And I think that the album art is messed up by either the format, or that the title is in a diff language
 - [x] ⏫ I originally, (in [v1](https://htmltoolkit.github.io/HTMLPlayer/)) just added a checkbox to the songs and you could select as many as you wanted. Reimplement this for v2.
@@ -178,7 +262,7 @@ A React and TypeScript powered music player with many extra features and an amaz
 
       **Issue**: Rapid clicks on buttons like play/pause, next, or previous can cause unintended behavior or race conditions.
 
-  **Improvement**: Add a debounce mechanism to prevent multiple rapid clicks.
+      **Improvement**: Add a debounce mechanism to prevent multiple rapid clicks.
 - [x] **Lazy Load Playlist Art**
 
   **Issue**: Loading all playlist images at once can slow down rendering, especially with many playlists or large images.
@@ -194,58 +278,3 @@ A React and TypeScript powered music player with many extra features and an amaz
   **Issue**: Progress bar width is not optimal for very wide screens.
 
   **Improvement**: Cap the maximum width more dynamically.
-
-### HTMLPlayer Store
-
-- [ ] a basic store for Themes, Icons, and Visualizers
-- [ ] maybe some paid stuff
-    - [ ] if paid stuff, then a backend is definitely needed
-        - [ ] cloudflare worker to fetch stuff from something and some form of auth
-            - [ ] maybe a personal link
-- [ ] IndexedDB as storage for all three
-- [ ] combination sets of icons and visualizers
-
-#### UI
-
-- [ ] a similar UI style to HTMLPlayer for sure
-    - [ ] but maybe more white themed
-    - [ ] image here
-    - [ ] hovering on a photo:
-        - [ ] image here
-        - [ ] clicking/tapping on name (ex NellowTCS) causes artist page to open
-
-#### Dev Details
-
-- [ ] need good API if I want this (not the current visualizer stuff 🫣)
-
-  ##### Icons
-    - [ ] in each file that uses icons, have, instead of lucide-react, have one file with a bunch of references
-
-      ```json
-      {
-        "settingsIcon": "lucide-react.Gear",
-        %% etc... %%
-      }
-      ```
-    - [ ] like i18n
-    - [ ] to be easily configurable and/or swappable
-    - [ ] can also link to images
-
-##### Themes
-
-- [x] use CSS vars <u>everywhere</u>
-- [ ] have some preinstalled themes for sure
-    - [ ] system for theme switching.
-    - [x] Red
-    - [x] Orange
-    - [x] Yellow
-    - [x] Green (Verdant)
-    - [x] Blue (default) (ofc it's done)
-    - [x] Purple and Pink in one(Twilight)
-    - [x] Purple and Orange (Lumenis)
-    - [x] Grey, Black, and White in one (Monochrome)
-    - [ ] picture backgrounds
-
-##### Visualizers
-
-- [x] A visualizerLoader.tsx with `import.glob...` for preinstalled visualizers
