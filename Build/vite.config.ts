@@ -4,7 +4,7 @@ import { VitePWA } from 'vite-plugin-pwa';
 
 export default defineConfig({
   root: './',
-  base: '/HTMLPlayerBeta/',
+  base: './',
   plugins: [
     react(),
     VitePWA({
