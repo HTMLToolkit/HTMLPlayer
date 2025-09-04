@@ -165,11 +165,7 @@ export const ThemeLoader: React.FC<ThemeLoaderProps> = ({
       link.rel = 'stylesheet';
       link.id = `theme-stylesheet-${theme.name}`;
 
-      // Dynamically determine base path
-      const basePath = import.meta.env.BASE_URL || '/';
-      // Construct final CSS URL relative to base path
-      const publicPath = cssPath.replace(/^(\.\.\/)+themes/, `${basePath}themes`);
-
+      const publicPath = cssPath.replace('../themes', `${import.meta.env.BASE_URL}themes`);
       link.href = `${publicPath}?v=${Date.now()}&theme=${encodeURIComponent(theme.name)}`;
 
       // Handle load/error events
@@ -200,12 +196,13 @@ export const ThemeLoader: React.FC<ThemeLoaderProps> = ({
       onThemeChange?.(theme);
 
       setError(null);
+
       console.log(`Successfully applied theme: ${theme.name}`);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to apply theme';
       setError(errorMessage);
       console.error('Theme application error:', err);
-      throw err;
+      throw err; // Re-throw for caller handling
     }
   }, [onThemeChange, loadedCssModules]);
 
