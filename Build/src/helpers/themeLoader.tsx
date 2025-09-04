@@ -24,7 +24,7 @@ const ThemeContext = createContext<ThemeContextProps>({
   currentTheme: null,
   isLoading: false,
   error: null,
-  setTheme: async () => {},
+  setTheme: async () => { },
 });
 
 interface ThemeLoaderProps {
@@ -42,16 +42,16 @@ const themeCssFiles = import.meta.glob('../themes/**/*.theme.css');
 // ----------------------
 // ThemeLoader Component
 // ----------------------
-export const ThemeLoader: React.FC<ThemeLoaderProps> = ({ 
-  defaultTheme, 
-  children, 
-  onThemeChange 
+export const ThemeLoader: React.FC<ThemeLoaderProps> = ({
+  defaultTheme,
+  children,
+  onThemeChange
 }) => {
   const [themes, setThemes] = useState<ThemeMetadata[]>([]);
   const [currentTheme, setCurrentTheme] = useState<ThemeMetadata | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  
+
   // Track loaded CSS modules to avoid reloading
   const [loadedCssModules, setLoadedCssModules] = useState<Set<string>>(new Set());
 
@@ -83,20 +83,20 @@ export const ThemeLoader: React.FC<ThemeLoaderProps> = ({
       try {
         setIsLoading(true);
         setError(null);
-        
+
         const loadedThemes: ThemeMetadata[] = [];
 
         for (const path in themeJsonFiles) {
           const module = themeJsonFiles[path] as any;
           const meta = module?.default ?? module;
-          
+
           const validatedTheme = validateThemeMetadata(meta, path);
           if (validatedTheme) {
             // Verify CSS file exists
-            const cssExists = Object.keys(themeCssFiles).some(cssPath => 
+            const cssExists = Object.keys(themeCssFiles).some(cssPath =>
               cssPath.endsWith(validatedTheme.cssFile)
             );
-            
+
             if (cssExists) {
               loadedThemes.push(validatedTheme);
             } else {
@@ -113,9 +113,9 @@ export const ThemeLoader: React.FC<ThemeLoaderProps> = ({
 
         // Load initial theme
         const storedThemeName = localStorage.getItem('selected-color-theme') || defaultTheme;
-        const initialTheme = loadedThemes.find(theme => theme.name === storedThemeName) 
-                           || loadedThemes.find(theme => theme.name === defaultTheme)
-                           || loadedThemes[0]; // Fallback to first available
+        const initialTheme = loadedThemes.find(theme => theme.name === storedThemeName)
+          || loadedThemes.find(theme => theme.name === defaultTheme)
+          || loadedThemes[0]; // Fallback to first available
 
         if (initialTheme) {
           await applyTheme(initialTheme);
@@ -164,15 +164,14 @@ export const ThemeLoader: React.FC<ThemeLoaderProps> = ({
       const link = document.createElement('link');
       link.rel = 'stylesheet';
       link.id = `theme-stylesheet-${theme.name}`;
-      
-      // Use the original path structure that Vite expects
-      // Remove the '../' and replace with appropriate base path
-      const publicPath = cssPath.startsWith('../') 
-        ? cssPath.substring(3) // Remove '../'
-        : cssPath;
-      
-      link.href = `/${publicPath}?v=${Date.now()}&theme=${encodeURIComponent(theme.name)}`;
-      
+
+      // Dynamically determine base path
+      const basePath = import.meta.env.BASE_URL || '/';
+      // Construct final CSS URL relative to base path
+      const publicPath = cssPath.replace(/^(\.\.\/)+themes/, `${basePath}themes`);
+
+      link.href = `${publicPath}?v=${Date.now()}&theme=${encodeURIComponent(theme.name)}`;
+
       // Handle load/error events
       const loadPromise = new Promise<void>((resolve, reject) => {
         const timeout = setTimeout(() => {
@@ -183,7 +182,7 @@ export const ThemeLoader: React.FC<ThemeLoaderProps> = ({
           clearTimeout(timeout);
           resolve();
         };
-        
+
         link.onerror = () => {
           clearTimeout(timeout);
           reject(new Error(`Failed to load CSS: ${cssPath}`));
@@ -196,18 +195,17 @@ export const ThemeLoader: React.FC<ThemeLoaderProps> = ({
       // Update state only after successful load
       setCurrentTheme(theme);
       localStorage.setItem('selected-color-theme', theme.name);
-      
+
       // Call optional callback
       onThemeChange?.(theme);
-      
+
       setError(null);
-      
       console.log(`Successfully applied theme: ${theme.name}`);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to apply theme';
       setError(errorMessage);
       console.error('Theme application error:', err);
-      throw err; // Re-throw for caller handling
+      throw err;
     }
   }, [onThemeChange, loadedCssModules]);
 
@@ -226,12 +224,12 @@ export const ThemeLoader: React.FC<ThemeLoaderProps> = ({
     await applyTheme(theme);
   }, [themes, applyTheme]);
 
-  const value: ThemeContextProps = { 
-    themes, 
-    currentTheme, 
-    isLoading, 
-    error, 
-    setTheme 
+  const value: ThemeContextProps = {
+    themes,
+    currentTheme,
+    isLoading,
+    error,
+    setTheme
   };
 
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
