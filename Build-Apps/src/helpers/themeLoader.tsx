@@ -37,7 +37,7 @@ interface ThemeLoaderProps {
 // Import theme JSON and CSS
 // ----------------------
 const themeJsonFiles = import.meta.glob('../themes/**/*.theme.json', { eager: true });
-const themeCssFiles = import.meta.glob('../themes/**/*.theme.css', { as: 'raw', eager: false });
+const themeCssFiles = import.meta.glob('../themes/**/*.theme.css',{ query: '?raw', import: 'default', eager: false });
 
 // ----------------------
 // ThemeLoader Component

@@ -4,56 +4,39 @@ A React and TypeScript powered music player with many extra features and an amaz
 
 ## Todo
 
+## HTMLPlayer v2
 - [ ] 🔺 Make top bar of MainContent separate and floating and  persistent and not a part of the Song Lists
 - [ ] make song name in player controls scroll and/or maybe wrap
 - [ ] Pitch/Tempo Control (settings)
 - [ ] slow down/speed up tracks without changing pitch (DJ style 😎)
-- [ ] Now Playing Screen (fullscreen, minimal UI)
-- [ ] Compact Mode for tiny screens or embedded view.
-- [ ] Animated album art transitions, like fade/zoom between songs.
-- [ ] increase size of album art
 - [ ] responsive design for mobile/smaller devices
 - [ ] Gapless playback (settings)
 - [ ] Crossfade options (settings)
-- [ ] ReplayGain/volume normalization (maybe)
 - [ ] Smart shuffle
-- [ ] Smart playlists (maybe)
-- [ ] scrobbling (settings)
 - [ ] Export/import playlists
 - [ ] Miniplayer, which can either show the album art or a visualizer as the background
 - [ ] Dynamic theming based on album art colors.  (settings)
-- [ ] Visualizer → audio-reactive backgrounds
 - [ ] Drag-and-drop reordering
-- [ ] Auto-fetch album art from MusicBrainz/Discogs if missing.
-- [ ] metadata editing.
-- [ ] Duplicate file detection (not just by title but checksum).
 - [ ] Session restore (settings)
 - [ ] Keyboard shortcuts (settings, duh)
-- [ ] add system right click menu
 - [ ] fix the lyrics popup not having the correct scrolling
 - [ ] fix some themes's visibility issues
-- [ ] Themes
-  - [ ] picture backgrounds
-- [ ] maybe research way to have smooth zoom in and out, maybe override browser handler, check if someone did this already
+- [ ] picture backgrounds in themes
 - [ ] Synced lyrics using id3v2 embedded lyrics
 - [ ] 🔼 I'll need to add some sort of quick guide and help menu or something to HTMLPlayer.
 - [ ] add folders for playlists.
-- [ ] ⬆️ a Whisper based, fully in browser,
-- [ ] **Keyboard Navigation**
-
-  **Issue**: The player lacks keyboard shortcuts for accessibility and convenience.
-
-  **Improvement**: Add keyboard controls (e.g., space for play/pause, arrow keys for next/prev).
-- [ ] **Prevent Duplicate Track Additions**
-
-  **Issue**: Tracks with the same name can be added multiple times.
-
-  **Improvement**: Let user skip or continue when they have duplicate tracks.
+- [ ] ⬆️ a Whisper based, fully in browser, Live Lyrics thing
 - [ ] **Sort Tracks**
 
   **Issue**: Tracks cannot be sorted (e.g., by name, rating).
 
   **Improvement**: Add sorting options.
+
+## Either
+- [ ] add htmlplayer to system right click menu
+- [ ] Animated album art transitions, like fade/zoom between songs.
+- [ ] Auto-fetch album art from MusicBrainz/Discogs if missing.
+- [ ] metadata editing.
 - [ ] **Add showDirectoryPicker API and ponyfil**
 
   **Issue**: `showDirectoryPicker` missing but is not supported in all browsers (e.g., Safari).
@@ -83,6 +66,15 @@ A React and TypeScript powered music player with many extra features and an amaz
     }
   };
   ```
+
+## Future (probably)
+- [ ] Now Playing Screen (fullscreen, minimal UI)
+- [ ] Compact Mode for tiny screens or embedded view.
+- [ ] ReplayGain/volume normalization (maybe)
+- [ ] Smart playlists (maybe)
+- [ ] scrobbling (settings)
+- [ ] Visualizer → audio-reactive backgrounds (basically picture background theme but actually visualizer and not theme)
+- [ ] Duplicate file detection (not just by title but checksum as well).
 - [ ] **Equalizer Settings**
 
   **Issue**: No audio customization options.
@@ -133,7 +125,9 @@ A React and TypeScript powered music player with many extra features and an amaz
 - [X] have some preinstalled themes for sure
 
 ## Done:
-
+- [X] increase size of album art
+- [X] Themes
+- [X] ~~ maybe research way to have smooth zoom in and out, maybe override browser handler, check if someone did this already ~~ impossible without reimplementing zoom in JS, which I don't want to do
 - [X] use CSS vars <u>everywhere</u>
 - [X] A visualizerLoader.tsx with `import.glob...` for preinstalled visualizers
 - [X] **Theme Support**
