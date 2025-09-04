@@ -7,7 +7,7 @@ import { ThemeLoader } from "../helpers/themeLoader";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    <ThemeLoader themeDir="./themes" defaultTheme="Blue">
+    <ThemeLoader defaultTheme="Blue">
       <>
         <Toaster />
         <IndexPage />
