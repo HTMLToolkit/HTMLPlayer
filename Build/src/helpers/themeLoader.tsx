@@ -37,7 +37,7 @@ interface ThemeLoaderProps {
 // Import theme JSON and CSS
 // ----------------------
 const themeJsonFiles = import.meta.glob('../themes/**/*.theme.json', { eager: true });
-const themeCssFiles = import.meta.glob('../themes/**/*.theme.css');
+const themeCssFiles = import.meta.glob('../themes/**/*.theme.css', { as: 'raw', eager: false });
 
 // ----------------------
 // ThemeLoader Component
@@ -50,10 +50,8 @@ export const ThemeLoader: React.FC<ThemeLoaderProps> = ({
   const [themes, setThemes] = useState<ThemeMetadata[]>([]);
   const [currentTheme, setCurrentTheme] = useState<ThemeMetadata | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isThemeLoaded, setIsThemeLoaded] = useState(false); // For FOUC
   const [error, setError] = useState<string | null>(null);
-
-  // Track loaded CSS modules to avoid reloading
-  const [loadedCssModules, setLoadedCssModules] = useState<Set<string>>(new Set());
 
   // ----------------------
   // Validate theme metadata
@@ -133,7 +131,7 @@ export const ThemeLoader: React.FC<ThemeLoaderProps> = ({
   }, [defaultTheme]);
 
   // ----------------------
-  // Apply theme: dynamically import CSS
+  // Apply theme: dynamically import CSS and inject as style tag
   // ----------------------
   const applyTheme = useCallback(async (theme: ThemeMetadata): Promise<void> => {
     try {
@@ -146,49 +144,36 @@ export const ThemeLoader: React.FC<ThemeLoaderProps> = ({
         throw new Error(`CSS file not found: ${theme.cssFile}`);
       }
 
-      // Remove ALL existing theme stylesheets (in case there are duplicates)
-      const existingLinks = document.querySelectorAll('link[id^="theme-stylesheet"]');
-      existingLinks.forEach(link => link.remove());
+      // Remove ALL existing theme stylesheets
+      const existingStyles = document.querySelectorAll('style[id^="theme-stylesheet"], link[id^="theme-stylesheet"]');
+      existingStyles.forEach(style => style.remove());
 
-      // Load CSS module if not already loaded
-      if (!loadedCssModules.has(cssPath)) {
-        try {
-          await (themeCssFiles[cssPath] as () => Promise<any>)();
-          setLoadedCssModules(prev => new Set([...prev, cssPath]));
-        } catch (moduleError) {
-          console.warn(`Failed to load CSS module for ${cssPath}, trying direct link approach`);
-        }
+      console.log(`Loading CSS module for: ${cssPath}`);
+
+      // Load the CSS module to get the CSS content
+      const cssModule = await (themeCssFiles[cssPath] as () => Promise<string>)();
+      console.log('CSS module structure:', cssModule);
+
+      // Verify the content is a string
+      if (!cssModule || typeof cssModule !== 'string') {
+        throw new Error(`Invalid CSS content for ${cssPath}: ${typeof cssModule}`);
       }
 
-      // Create new stylesheet link with unique ID
-      const link = document.createElement('link');
-      link.rel = 'stylesheet';
-      link.id = `theme-stylesheet-${theme.name}`;
+      console.log(`CSS content loaded, length: ${cssModule.length} characters`);
 
-      const publicPath = cssPath.replace('../themes', `${import.meta.env.BASE_URL}themes`);
-      link.href = `${publicPath}?v=${Date.now()}&theme=${encodeURIComponent(theme.name)}`;
+      // Create a style element and inject the CSS
+      const styleElement = document.createElement('style');
+      styleElement.id = `theme-stylesheet-${theme.name}`;
+      styleElement.textContent = cssModule;
 
-      // Handle load/error events
-      const loadPromise = new Promise<void>((resolve, reject) => {
-        const timeout = setTimeout(() => {
-          reject(new Error(`Timeout loading CSS: ${cssPath}`));
-        }, 5000);
+      // Use requestAnimationFrame to sync with browser rendering
+      await new Promise(resolve => requestAnimationFrame(() => setTimeout(resolve, 50)));
 
-        link.onload = () => {
-          clearTimeout(timeout);
-          resolve();
-        };
+      // Append to head
+      document.head.appendChild(styleElement);
+      setIsThemeLoaded(true); // Show content after style injection
 
-        link.onerror = () => {
-          clearTimeout(timeout);
-          reject(new Error(`Failed to load CSS: ${cssPath}`));
-        };
-      });
-
-      document.head.appendChild(link);
-      await loadPromise;
-
-      // Update state only after successful load
+      // Update state after successful injection
       setCurrentTheme(theme);
       localStorage.setItem('selected-color-theme', theme.name);
 
@@ -202,9 +187,10 @@ export const ThemeLoader: React.FC<ThemeLoaderProps> = ({
       const errorMessage = err instanceof Error ? err.message : 'Failed to apply theme';
       setError(errorMessage);
       console.error('Theme application error:', err);
+      setIsThemeLoaded(true); // Show content even on error
       throw err; // Re-throw for caller handling
     }
-  }, [onThemeChange, loadedCssModules]);
+  }, [onThemeChange]);
 
   // ----------------------
   // Set theme by name
@@ -215,9 +201,8 @@ export const ThemeLoader: React.FC<ThemeLoaderProps> = ({
       throw new Error(`Theme "${themeName}" not found`);
     }
 
-    // Always apply the theme, even if it's the "current" one
-    // This ensures it works even if there were loading issues before
     console.log(`Switching to theme: ${themeName}`);
+    setIsThemeLoaded(false); // Hide content during theme switch
     await applyTheme(theme);
   }, [themes, applyTheme]);
 
@@ -229,7 +214,13 @@ export const ThemeLoader: React.FC<ThemeLoaderProps> = ({
     setTheme
   };
 
-  return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
+  return (
+    <ThemeContext.Provider value={value}>
+      <div style={{ opacity: isThemeLoaded ? 1 : 0, transition: 'opacity 0.3s ease-in-out', minHeight: '100vh' }}>
+        {children}
+      </div>
+    </ThemeContext.Provider>
+  );
 };
 
 // ----------------------

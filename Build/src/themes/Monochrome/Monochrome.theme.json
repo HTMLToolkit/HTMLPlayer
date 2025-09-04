@@ -3,5 +3,5 @@
   "author": "NellowTCS",
   "description": "A minimal modern monochrome theme with (around 10) shades of gray.",
   "version": "1.0",
-  "cssFile": "monochrome.theme.css"
+  "cssFile": "Monochrome.theme.css"
 }
