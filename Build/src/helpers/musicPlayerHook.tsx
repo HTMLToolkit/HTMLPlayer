@@ -23,8 +23,8 @@ export type Playlist = {
 
 export type PlayerSettings = {
   volume: number;
-  audioQuality: "low" | "medium" | "high" | "lossless";
   crossfade: number;
+  colorTheme: string;
   defaultShuffle: boolean;
   defaultRepeat: "off" | "one" | "all";
   themeMode: "light" | "dark" | "auto";
@@ -96,8 +96,8 @@ export const useMusicPlayer = () => {
 
   const [settings, setSettings] = useState<PlayerSettings>({
     volume: 0.75,
-    audioQuality: "high",
     crossfade: 3,
+    colorTheme: "Blue",
     defaultShuffle: false,
     defaultRepeat: "off",
     autoPlayNext: true,
@@ -753,9 +753,6 @@ export const useMusicPlayer = () => {
       setPlayerState((prev) => ({ ...prev, currentTime: time }));
     }
   }, []);
-
-  // Batch size for processing songs
-  const BATCH_SIZE = 7; // Process 7 songs at a time
 
   const processAudioBatch = useCallback(
     async (songs: Song[]): Promise<Song[]> => {

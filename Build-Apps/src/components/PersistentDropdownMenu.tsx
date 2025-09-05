@@ -1,5 +1,4 @@
 import React, { useState, useRef, useEffect } from "react";
-import { Button } from "./Button";
 import styles from "./PersistentDropdownMenu.module.css";
 
 interface CustomDropdownMenuProps {

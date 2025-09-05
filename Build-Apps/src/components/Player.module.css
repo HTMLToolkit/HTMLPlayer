@@ -59,12 +59,44 @@
   flex-direction: column;
   gap: var(--spacing-2);
 }
+/* In Player.module.css */
+.songTitleWrapper {
+  overflow: hidden;
+  white-space: nowrap;
+  width: 250px; /* Increased to accommodate larger text */
+  max-width: 100%;
+}
 
 .songTitle {
-  font-family: var(--font-family-base);
+  display: inline-block;
   font-weight: 500;
-  color: var(--primary-foreground);
+  font-family: var(--font-family-base);
   font-size: 1.125rem;
+  color: var(--primary-foreground);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  opacity: 1;
+}
+
+.songTitle.scrollable {
+  display: inline-block;
+  animation: scrollTitle linear infinite; /* Duration set inline */
+  animation-delay: 2s; /* Brief pause before start */
+  will-change: transform; /* Optimize rendering */
+  transform: translateZ(0); /* Force GPU acceleration */
+  white-space: nowrap;
+}
+
+.songTitle.scrollable:hover {
+  animation-play-state: paused;
+}
+
+@keyframes scrollTitle {
+  0% {
+    transform: translateX(0); /* Start at initial position */
+  }
+  100% {
+    transform: translateX(var(--scroll-distance)); /* Move to end and reset */
+  }
 }
 
 .artistName {

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import {
   Heart,
   List,
@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import styles from "./Playlist.module.css";
-import { Song, Playlist } from "../helpers/musicPlayerHook";
+import { Playlist } from "../helpers/musicPlayerHook";
 import { generatePlaylistImage } from "../helpers/playlistImageHelper";
 import { Button } from "./Button";
 import { Input } from "./Input";

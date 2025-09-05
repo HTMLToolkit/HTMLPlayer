@@ -6,7 +6,6 @@ A React and TypeScript powered music player with many extra features and an amaz
 
 ## HTMLPlayer v2
 - [ ] 🔺 Make top bar of MainContent separate and floating and  persistent and not a part of the Song Lists
-- [ ] make song name in player controls scroll and/or maybe wrap
 - [ ] Pitch/Tempo Control (settings)
 - [ ] slow down/speed up tracks without changing pitch (DJ style 😎)
 - [ ] responsive design for mobile/smaller devices
@@ -125,6 +124,7 @@ A React and TypeScript powered music player with many extra features and an amaz
 - [X] have some preinstalled themes for sure
 
 ## Done:
+- [X] make song name in player controls scroll and/or maybe wrap
 - [X] increase size of album art
 - [X] Themes
 - [X] ~~ maybe research way to have smooth zoom in and out, maybe override browser handler, check if someone did this already ~~ impossible without reimplementing zoom in JS, which I don't want to do

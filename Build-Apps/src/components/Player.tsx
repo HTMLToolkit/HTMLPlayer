@@ -12,36 +12,23 @@ import {
   Volume1,
   VolumeOff,
   Heart,
-  MoreHorizontal,
   BarChart3,
   Type,
-  Plus,
-  Info,
-  Share,
-  User,
-  Music,
 } from "lucide-react";
-import { toast } from "sonner";
 import { Button } from "./Button";
-import {
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-} from "./DropdownMenu";
 import { Visualizer } from "./Visualizer";
 import { Lyrics } from "./Lyrics"; // <-- import Lyrics component
 import styles from "./Player.module.css";
 import { SongActionsDropdown } from "./SongActionsDropdown";
+import { PlayerSettings } from "./Settings";
 
 type PlayerProps = {
   musicPlayerHook: ReturnType<
     typeof import("../helpers/musicPlayerHook").useMusicPlayer
   >;
+  settings: PlayerSettings;
 };
-
-export const Player = ({ musicPlayerHook }: PlayerProps) => {
+export const Player = ({ musicPlayerHook, settings }: PlayerProps) => {
   const progressRef = useRef<HTMLDivElement>(null);
   const volumeRef = useRef<HTMLDivElement>(null);
 
@@ -221,7 +208,49 @@ export const Player = ({ musicPlayerHook }: PlayerProps) => {
     }
   };
 
-  // Removed handlers as they're now in SongActionsDropdown component
+  const titleRef = useRef<HTMLDivElement>(null);
+  const [scrollDistance, setScrollDistance] = useState("0px");
+  const [animationDuration, setAnimationDuration] = useState(0); // Initialize to 0
+
+  useEffect(() => {
+    const updateScroll = () => {
+      if (!titleRef.current || !currentSong) return;
+      const wrapper = titleRef.current.parentElement!;
+      const content = titleRef.current;
+
+      // Reset to single title before measuring
+      content.innerHTML = currentSong.title;
+      const distance = content.scrollWidth - wrapper.clientWidth;
+      console.log({ scrollWidth: content.scrollWidth, clientWidth: wrapper.clientWidth, distance });
+
+      if (distance > 0) {
+        // Only scroll if title is wider than wrapper
+        const gapWidth = 15; // Approximate pixel width of "&nbsp;&nbsp;&nbsp;"
+        const loopDistance = content.scrollWidth + gapWidth; // Distance for one full cycle
+        console.log("Scrolling setup:", { loopDistance, animationDuration: Math.max(10, loopDistance / 30), title: currentSong.title });
+        setScrollDistance(`-${loopDistance}px`);
+        setAnimationDuration(Math.max(10, loopDistance / 30));
+        content.classList.remove(styles.scrollable);
+        void content.offsetWidth; // Trigger reflow
+        content.innerHTML = `${currentSong.title} &nbsp;&nbsp;&nbsp; ${currentSong.title}`; // Duplicate text
+        content.classList.add(styles.scrollable);
+      } else {
+        // No scrolling needed for short titles
+        console.log("No scrolling needed:", { scrollWidth: content.scrollWidth, clientWidth: wrapper.clientWidth, distance });
+        setScrollDistance("0px");
+        setAnimationDuration(0);
+        content.classList.remove(styles.scrollable);
+        content.innerHTML = currentSong.title;
+      }
+    };
+
+    updateScroll();
+    window.addEventListener("resize", updateScroll);
+
+    return () => {
+      window.removeEventListener("resize", updateScroll);
+    };
+  }, [currentSong?.title, styles.scrollable]);
 
   const handleVisualizerToggle = () => {
     setShowVisualizer((prev) => !prev);
@@ -248,6 +277,13 @@ export const Player = ({ musicPlayerHook }: PlayerProps) => {
         return "Repeat: Off";
     }
   };
+
+// Auto-show lyrics whenever a new song is loaded
+useEffect(() => {
+  if (currentSong && settings?.showLyrics) {
+    setShowLyrics(true);
+  }
+}, [currentSong, settings?.showLyrics]);
 
   const progressPercentage = currentSong
     ? (currentTime / currentSong.duration) * 100
@@ -295,15 +331,26 @@ export const Player = ({ musicPlayerHook }: PlayerProps) => {
             )}
           </div>
           <div className={styles.songInfo}>
-            <div className={styles.songTitle}>{currentSong.title}</div>
+            <div className={styles.songTitleWrapper}>
+              <div
+                ref={titleRef}
+                className={`${styles.songTitle} ${scrollDistance !== "0px" ? styles.scrollable : ""}`}
+                style={{
+                  "--scroll-distance": scrollDistance,
+                  animationDuration: `${animationDuration}s`,
+                  opacity: currentSong?.title ? 1 : 0,
+                } as React.CSSProperties}
+              >
+                {currentSong?.title || "Loading..."}
+              </div>
+            </div>
             <div className={styles.artistName}>{currentSong.artist}</div>
           </div>
           <Button
             variant="ghost"
             size="icon-sm"
-            className={`${styles.favoriteButton} ${
-              isFavorite ? styles.favorited : ""
-            }`}
+            className={`${styles.favoriteButton} ${isFavorite ? styles.favorited : ""
+              }`}
             onClick={handleFavorite}
             title="Add to favorites"
           >
@@ -316,9 +363,8 @@ export const Player = ({ musicPlayerHook }: PlayerProps) => {
             <Button
               variant="ghost"
               size="icon-sm"
-              className={`${styles.controlButton} ${
-                shuffle ? styles.active : ""
-              }`}
+              className={`${styles.controlButton} ${shuffle ? styles.active : ""
+                }`}
               onClick={toggleShuffle}
               title={`Shuffle: ${shuffle ? "On" : "Off"}`}
             >
@@ -354,9 +400,8 @@ export const Player = ({ musicPlayerHook }: PlayerProps) => {
             <Button
               variant="ghost"
               size="icon-sm"
-              className={`${styles.controlButton} ${
-                repeat !== "off" ? styles.active : ""
-              } ${repeat === "one" ? styles.repeatOne : ""}`}
+              className={`${styles.controlButton} ${repeat !== "off" ? styles.active : ""
+                } ${repeat === "one" ? styles.repeatOne : ""}`}
               onClick={toggleRepeat}
               title={getRepeatTitle()}
             >
@@ -369,9 +414,8 @@ export const Player = ({ musicPlayerHook }: PlayerProps) => {
               {formatTime(currentTime)}
             </span>
             <div
-              className={`${styles.progressBar} ${
-                isDraggingProgress ? styles.dragging : ""
-              }`}
+              className={`${styles.progressBar} ${isDraggingProgress ? styles.dragging : ""
+                }`}
               ref={progressRef}
               onClick={handleProgressClick}
               onMouseDown={handleProgressMouseDown}
@@ -394,9 +438,8 @@ export const Player = ({ musicPlayerHook }: PlayerProps) => {
             <Button
               variant="ghost"
               size="icon-sm"
-              className={`${styles.secondaryButton} ${
-                showVisualizer ? styles.active : ""
-              }`}
+              className={`${styles.secondaryButton} ${showVisualizer ? styles.active : ""
+                }`}
               onClick={handleVisualizerToggle}
               title="Visualizer"
             >
@@ -405,9 +448,8 @@ export const Player = ({ musicPlayerHook }: PlayerProps) => {
             <Button
               variant="ghost"
               size="icon-sm"
-              className={`${styles.secondaryButton} ${
-                showLyrics ? styles.active : ""
-              }`} // active if lyrics showing
+              className={`${styles.secondaryButton} ${showLyrics ? styles.active : ""
+                }`} // active if lyrics showing
               onClick={handleLyricsToggle}
               title="Lyrics"
             >
@@ -426,9 +468,8 @@ export const Player = ({ musicPlayerHook }: PlayerProps) => {
               {getVolumeIcon()}
             </Button>
             <div
-              className={`${styles.volumeBar} ${
-                isDraggingVolume ? styles.dragging : ""
-              }`}
+              className={`${styles.volumeBar} ${isDraggingVolume ? styles.dragging : ""
+                }`}
               ref={volumeRef}
               onClick={handleVolumeClick}
               onMouseDown={handleVolumeMouseDown}

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import {
   Menu,
   Settings as SettingsIcon,
@@ -136,7 +136,7 @@ export const Sidebar = ({
             <DialogTitle>About HTMLPlayer</DialogTitle>
             <DialogDescription>
               HTMLPlayer v2.0 - A modern music streaming interface built with
-              React
+              React.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>

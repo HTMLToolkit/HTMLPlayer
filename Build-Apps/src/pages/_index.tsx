@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Sidebar } from "../components/Sidebar";
 import { MainContent } from "../components/MainContent";
 import { Player } from "../components/Player";
@@ -14,7 +14,7 @@ import styles from "./_index.module.css";
 
 export default function IndexPage() {
   const musicPlayerHook = useMusicPlayer();
-  const [themeMode, setThemeMode] = useState<ThemeMode>("auto");
+  const [, setThemeMode] = useState<ThemeMode>("auto");
 
   useEffect(() => {
     // Set the document title
@@ -62,7 +62,20 @@ export default function IndexPage() {
       <Sidebar musicPlayerHook={musicPlayerHook} />
       <div className={styles.mainSection}>
         <MainContent musicPlayerHook={musicPlayerHook} />
-        <Player musicPlayerHook={musicPlayerHook} />
+        <Player musicPlayerHook={musicPlayerHook} settings={{
+          volume: 0,
+          crossfade: 0,
+          defaultShuffle: false,
+          defaultRepeat: "off",
+          themeMode: "light",
+          colorTheme: "",
+          autoPlayNext: false,
+          compactMode: false,
+          showAlbumArt: false,
+          showLyrics: false,
+          lastPlayedSongId: undefined,
+          lastPlayedPlaylistId: undefined
+        }} />
       </div>
     </div>
   );

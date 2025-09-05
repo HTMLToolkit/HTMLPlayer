@@ -1,5 +1,5 @@
-import React, { useRef, useEffect, useState, useCallback } from "react";
-import { spectrogramTypes, VisualizerType } from "../helpers/visualizerLoader";
+import { useRef, useEffect, useState, useCallback } from "react";
+import { spectrogramTypes } from "../helpers/visualizerLoader";
 import { Settings, SlidersHorizontal } from "lucide-react";
 import { Button } from "./Button";
 import {

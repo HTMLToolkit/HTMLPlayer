@@ -1,5 +1,3 @@
-"use client";
-
 import {
   Sheet,
   SheetContent,
@@ -19,7 +17,6 @@ import {
   SelectValue,
 } from "./Select";
 import { ThemeModeSwitch } from "./ThemeModeSwitch";
-import { useMusicPlayer } from "../helpers/musicPlayerHook";
 import { Volume2, Music, Palette, RotateCcw } from "lucide-react";
 import styles from "./Settings.module.css";
 import { useThemeLoader } from "../helpers/themeLoader";
@@ -27,7 +24,6 @@ import { toast } from "sonner";
 
 export type PlayerSettings = {
   volume: number;
-  audioQuality: "low" | "medium" | "high" | "lossless";
   crossfade: number;
   defaultShuffle: boolean;
   defaultRepeat: "off" | "one" | "all";
@@ -58,7 +54,6 @@ export const Settings = ({
 }: SettingsProps) => {
   // Convert volume to percentage for display
   const volume = [Math.round(settings.volume * 100)];
-  const audioQuality = settings.audioQuality;
   const crossfade = [settings.crossfade];
   const defaultShuffle = settings.defaultShuffle;
   const defaultRepeat = settings.defaultRepeat;
@@ -77,7 +72,6 @@ export const Settings = ({
       await setTheme(defaultThemeName); // ensure theme is applied first
       onSettingsChange({
         volume: 0.75,
-        audioQuality: "high",
         crossfade: 3,
         defaultShuffle: false,
         defaultRepeat: "off",
@@ -94,12 +88,6 @@ export const Settings = ({
 
   const handleVolumeChange = (newVolume: number[]) => {
     onSettingsChange({ volume: newVolume[0] / 100 });
-  };
-
-  const handleAudioQualityChange = (quality: string) => {
-    onSettingsChange({
-      audioQuality: quality as PlayerSettings["audioQuality"],
-    });
   };
 
   const handleCrossfadeChange = (newCrossfade: number[]) => {
@@ -177,26 +165,6 @@ export const Settings = ({
                   step={1}
                   className={styles.slider}
                 />
-              </div>
-
-              <div className={styles.settingItem}>
-                <div className={styles.settingLabel}>
-                  <label htmlFor="audio-quality">Audio Quality</label>
-                </div>
-                <Select
-                  value={audioQuality}
-                  onValueChange={handleAudioQualityChange}
-                >
-                  <SelectTrigger id="audio-quality">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="low">Low (96 kbps)</SelectItem>
-                    <SelectItem value="medium">Medium (160 kbps)</SelectItem>
-                    <SelectItem value="high">High (320 kbps)</SelectItem>
-                    <SelectItem value="lossless">Lossless</SelectItem>
-                  </SelectContent>
-                </Select>
               </div>
 
               <div className={styles.settingItem}>

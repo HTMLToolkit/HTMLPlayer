@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import {
   Plus,
   Info,
@@ -47,7 +47,6 @@ export const SongActionsDropdown = ({
   onCreatePlaylist,
   onAddToPlaylist,
   onRemoveSong,
-  onPlaySong,
   size = 16,
   className = "",
 }: SongActionsDropdownProps) => {
