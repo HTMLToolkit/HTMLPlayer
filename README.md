@@ -1,5 +1,9 @@
 # HTMLPlayer
 
+---
+[![All Contributors](https://img.shields.io/github/all-contributors/HTMLToolkit/HTMLPlayer?color=ee8449&style=flat-square)](#contributors)
+---
+
 ## Overview
 This is an HTML5 audio player that supports playlists, ID3 tag parsing for album and track art, and custom playlist art. It uses IndexedDB for persistence and the File API to get your music, allowing users to manage their music library locally. The player is designed with a clean and modern interface, featuring drag-and-drop reordering, rating buttons, and an 'Add Music' button for adding individual files (on Safari) or selecting directories.
 
@@ -47,4 +51,21 @@ This is an HTML5 audio player that supports playlists, ID3 tag parsing for album
 ## Contributing
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
 
+<!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
+<!-- prettier-ignore-start -->
+<!-- markdownlint-disable -->
+<table>
+  <tbody>
+    <tr>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/TrickiyALT"><img src="https://avatars.githubusercontent.com/u/195377855?v=4?s=100" width="100px;" alt="Trickiy"/><br /><sub><b>Trickiy</b></sub></a><br /><a href="#ideas-TrickiyALT" title="Ideas, Planning, & Feedback">🤔</a></td>
+    </tr>
+  </tbody>
+</table>
+
+<!-- markdownlint-restore -->
+<!-- prettier-ignore-end -->
+
+<!-- ALL-CONTRIBUTORS-LIST:END -->
+
+## License
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
