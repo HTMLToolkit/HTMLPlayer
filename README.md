@@ -10,7 +10,6 @@ A React and TypeScript powered music player with many extra features and an amaz
 - [ ] slow down/speed up tracks without changing pitch (DJ style 😎)
 - [ ] responsive design for mobile/smaller devices
 - [ ] Gapless playback (settings)
-- [ ] Crossfade options (settings)
 - [ ] Smart shuffle
 - [ ] Export/import playlists
 - [ ] Miniplayer, which can either show the album art or a visualizer as the background
@@ -121,9 +120,10 @@ A React and TypeScript powered music player with many extra features and an amaz
 ##### Themes
 
 - [ ] picture backgrounds
-- [X] have some preinstalled themes for sure
 
 ## Done:
+- [X] have some preinstalled themes for sure
+- [X] Crossfade options (settings)
 - [X] make song name in player controls scroll and/or maybe wrap
 - [X] increase size of album art
 - [X] Themes
