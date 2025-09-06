@@ -47,4 +47,14 @@ This is an HTML5 audio player that supports playlists, ID3 tag parsing for album
 ## Contributing
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
 
+<!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
+<!-- prettier-ignore-start -->
+<!-- markdownlint-disable -->
+
+<!-- markdownlint-restore -->
+<!-- prettier-ignore-end -->
+
+<!-- ALL-CONTRIBUTORS-LIST:END -->
+
+## License
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
