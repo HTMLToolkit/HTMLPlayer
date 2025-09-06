@@ -1,6 +1,7 @@
 # Todo
 
 ## HTMLPlayer v2
+- [ ] Crossfade options (settings)
 - [ ] 🔺 Make top bar of MainContent separate and floating and  persistent and not a part of the Song Lists
 - [ ] Pitch/Tempo Control (settings)
 - [ ] slow down/speed up tracks without changing pitch (DJ style 😎)
@@ -119,7 +120,6 @@
 
 ## Done:
 - [X] have some preinstalled themes for sure
-- [X] Crossfade options (settings)
 - [X] make song name in player controls scroll and/or maybe wrap
 - [X] increase size of album art
 - [X] Themes
