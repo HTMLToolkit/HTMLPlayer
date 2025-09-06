@@ -1,8 +1,4 @@
-# HTMLPlayer v2
-
-A React and TypeScript powered music player with many extra features and an amazing UI.
-
-## Todo
+# Todo
 
 ## HTMLPlayer v2
 - [ ] 🔺 Make top bar of MainContent separate and floating and  persistent and not a part of the Song Lists
