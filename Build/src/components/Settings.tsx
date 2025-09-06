@@ -25,6 +25,7 @@ import { toast } from "sonner";
 export type PlayerSettings = {
   volume: number;
   crossfade: number;
+  crossfadeEnabled: boolean;
   defaultShuffle: boolean;
   defaultRepeat: "off" | "one" | "all";
   themeMode: "light" | "dark" | "auto";
@@ -73,6 +74,7 @@ export const Settings = ({
       onSettingsChange({
         volume: 0.75,
         crossfade: 3,
+        crossfadeEnabled: false,
         defaultShuffle: false,
         defaultRepeat: "off",
         autoPlayNext: true,
@@ -92,6 +94,10 @@ export const Settings = ({
 
   const handleCrossfadeChange = (newCrossfade: number[]) => {
     onSettingsChange({ crossfade: newCrossfade[0] });
+  };
+
+  const handleCrossfadeEnabledChange = (enabled: boolean) => {
+    onSettingsChange({ crossfadeEnabled: enabled });
   };
 
   const handleShuffleChange = (shuffle: boolean) => {
@@ -169,7 +175,17 @@ export const Settings = ({
 
               <div className={styles.settingItem}>
                 <div className={styles.settingLabel}>
-                  <label htmlFor="crossfade-slider">Crossfade</label>
+                  <label htmlFor="crossfade-enabled">Enable Crossfade</label>
+                </div>
+                <Switch
+                  id="crossfade-enabled"
+                  checked={settings.crossfadeEnabled}
+                  onCheckedChange={handleCrossfadeEnabledChange}
+                />
+              </div>
+              <div className={styles.settingItem}>
+                <div className={styles.settingLabel}>
+                  <label htmlFor="crossfade-slider">Crossfade Duration</label>
                   <span className={styles.settingValue}>{crossfade[0]}s</span>
                 </div>
                 <Slider
@@ -179,6 +195,7 @@ export const Settings = ({
                   max={10}
                   step={1}
                   className={styles.slider}
+                  disabled={!settings.crossfadeEnabled}
                 />
               </div>
             </section>

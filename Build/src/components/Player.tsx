@@ -31,6 +31,8 @@ type PlayerProps = {
 export const Player = ({ musicPlayerHook, settings }: PlayerProps) => {
   const progressRef = useRef<HTMLDivElement>(null);
   const volumeRef = useRef<HTMLDivElement>(null);
+  const crossfadeEnabled = settings.crossfadeEnabled;
+  const crossfadeDuration = settings.crossfade;
 
   const {
     playerState,

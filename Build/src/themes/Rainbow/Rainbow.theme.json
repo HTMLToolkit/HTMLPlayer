@@ -1,0 +1,7 @@
+{
+  "name": "Rainbow",
+  "author": "NellowTCS",
+  "description": "A theme that cycles through all colors of the rainbow.",
+  "version": "1.0",
+  "cssFile": "Rainbow.theme.css"
+}

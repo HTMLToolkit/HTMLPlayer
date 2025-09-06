@@ -1,0 +1,7 @@
+{
+  "name": "BlackHole",
+  "author": "NellowTCS",
+  "description": "A theme that was meant to look like a black hole with the red glow of the event horizon",
+  "version": "1.0",
+  "cssFile": "BlackHole.theme.css"
+}

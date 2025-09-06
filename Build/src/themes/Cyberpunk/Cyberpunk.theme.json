@@ -1,0 +1,7 @@
+{
+  "name": "Cyberpunk",
+  "author": "NellowTCS",
+  "description": "A neon futuristic theme with cyan, magenta, and yellow. Comes with a really cool (dark mode) Settings page.",
+  "version": "1.0",
+  "cssFile": "Cyberpunk.theme.css"
+}

@@ -1,70 +1,70 @@
 /* Aurora */
 :root {
     /* Theme */
-    --themegradient: linear-gradient(135deg, #cfe4f9, #d3c5f2);
-    --themecolor: hsl(250, 60%, 65%);
-    --themecolor2: hsl(190, 50%, 60%);
-    --themecolor3: hsl(300, 55%, 60%);
-    --themecolor4: hsl(200, 40%, 55%);
-    --themecolor1-transparent: hsla(250, 60%, 65%, 0.5);
-    --themecolor2-transparent: hsla(190, 50%, 60%, 0.5);
-    --themecolor3-transparent: hsla(300, 55%, 60%, 0.5);
-    --menu-background: hsla(200, 40%, 55%, 0.25);
+    --themegradient: linear-gradient(135deg in oklab, color-mix(in oklab, #00ff87 70%, #ff0080 30%), color-mix(in oklab, #0080ff 60%, #ff4000 40%));
+    --themecolor: color-mix(in oklab, #00ff87 80%, #ffffff 20%);
+    --themecolor2: color-mix(in oklab, #0080ff 75%, #000000 25%);
+    --themecolor3: color-mix(in oklab, #00ffaa 70%, #0066ff 30%);
+    --themecolor4: color-mix(in oklab, #0099ff 65%, #ff0066 35%);
+    --themecolor1-transparent: color-mix(in oklab, transparent 50%, #00ff87);
+    --themecolor2-transparent: color-mix(in oklab, transparent 50%, #0080ff);
+    --themecolor3-transparent: color-mix(in oklab, transparent 50%, #00ffaa);
+    --menu-background: color-mix(in oklab, transparent 65%, #0080ff);
 
     /* Foreground */
-    --foreground: hsl(220, 20%, 20%);
-    --foreground-strong: hsla(0, 0%, 0%, 0.85);
-    --foreground-stronger: hsla(0, 0%, 0%, 0.95);
-    --foreground-muted: hsla(0, 0%, 0%, 0.7);
-    --foreground-subtle: hsla(0, 0%, 0%, 0.55);
+    --foreground: light-dark(color-mix(in oklab, #1a1a2e 90%, #00ff87 10%), color-mix(in oklab, #f0f8ff 95%, #00ff87 5%));
+    --foreground-strong: color-mix(in oklch, #2a2a4e 80%, #ffffff 20%);
+    --foreground-stronger: color-mix(in oklch, #3a3a6e 70%, #ffffff 30%);
+    --foreground-muted: color-mix(in oklch, #4a4a8e 60%, #ffffff 40%);
+    --foreground-subtle: color-mix(in oklch, #6a6aae 40%, #ffffff 60%);
 
     /* Background */
-    --background: hsl(210, 40%, 98%);
+    --background: conic-gradient(from 0deg at 50% 100%, color-mix(in oklab, #fafcff 95%, #00ff87 5%), color-mix(in oklab, #f8faff 95%, #0080ff 5%));
 
     /* Surface */
-    --surface: hsl(210, 35%, 95%);
+    --surface: color-mix(in oklab, #f5f9ff 90%, #00ffaa 10%);
     --surface-foreground: var(--foreground);
-    --surface-transparent-05: hsla(0, 0%, 0%, 0.05);
-    --surface-transparent-1: hsla(0, 0%, 0%, 0.1);
-    --surface-transparent-2: hsla(0, 0%, 0%, 0.2);
+    --surface-transparent-05: color-mix(in oklab, transparent 95%, #ffffff);
+    --surface-transparent-1: color-mix(in oklab, transparent 90%, #f0f8ff);
+    --surface-transparent-2: color-mix(in oklab, transparent 80%, #ffffff);
 
-    /* Primary system */
-    --primary: hsl(250, 60%, 65%);
-    --primary-foreground: hsl(0, 0%, 0%);
+    /* Primary */
+    --primary: oklch(70% 0.15 180);
+    --primary-foreground: oklch(98% 0.02 180);
     /* Primary Transparent */
-    --primary-transparent: hsla(250, 60%, 65%, 0.25);
-    --primary-transparent-1: hsla(250, 60%, 65%, 0.1);
-    --primary-transparent-2: hsla(250, 60%, 65%, 0.15);
-    --primary-transparent-3: hsla(250, 60%, 65%, 0.2);
-    --primary-transparent-4: hsla(250, 60%, 65%, 0.25);
-    --primary-transparent-5: hsla(250, 60%, 65%, 0.3);
+    --primary-transparent: color-mix(in oklab, transparent 75%, oklch(70% 0.15 180));
+    --primary-transparent-1: color-mix(in oklab, transparent 90%, oklch(70% 0.15 180));
+    --primary-transparent-2: color-mix(in oklab, transparent 85%, oklch(70% 0.15 180));
+    --primary-transparent-3: color-mix(in oklab, transparent 80%, oklch(70% 0.15 180));
+    --primary-transparent-4: color-mix(in oklab, transparent 70%, oklch(70% 0.15 180));
+    --primary-transparent-5: color-mix(in oklab, transparent 65%, oklch(70% 0.15 180));
     /* Primary Borders */
-    --primary-border: hsla(250, 60%, 65%, 0.3);
-    --primary-border-strong: hsla(250, 60%, 65%, 0.4);
-    --primary-border-stronger: hsla(250, 60%, 65%, 0.5);
-    --primary-border-active: hsla(250, 60%, 65%, 0.6);
+    --primary-border: color-mix(in oklab, transparent 70%, oklch(70% 0.15 180));
+    --primary-border-strong: color-mix(in oklab, transparent 60%, oklch(70% 0.15 180));
+    --primary-border-stronger: color-mix(in oklab, transparent 50%, oklch(70% 0.15 180));
+    --primary-border-active: color-mix(in oklab, transparent 40%, oklch(70% 0.15 180));
 
     /* Secondary */
-    --secondary: hsl(190, 50%, 60%);
-    --secondary-foreground: hsl(0, 0%, 0%);
+    --secondary: oklch(65% 0.18 320);
+    --secondary-foreground: oklch(98% 0.02 320);
 
     /* Sidebar */
-    --sidebar: hsl(210, 30%, 90%);
-    --sidebar-foreground: hsl(220, 20%, 20%);
-    --sidebar-bg-transparent: hsla(200, 40%, 55%, 0.4);
-    --sidebar-bg-hover: hsla(200, 40%, 55%, 0.6);
+    --sidebar: color-mix(in oklab, #e6f3ff 85%, #00ff87 15%);
+    --sidebar-foreground: color-mix(in oklab, #1a1a2e 85%, #0080ff 15%);
+    --sidebar-bg-transparent: color-mix(in oklab, transparent 60%, #00ff87);
+    --sidebar-bg-hover: color-mix(in oklab, transparent 40%, #0080ff);
 
     /* Favorites */
-    --favorite: hsl(300, 55%, 65%);
-    --favorite-transparent-1: hsla(300, 55%, 65%, 0.15);
-    --favorite-transparent-2: hsla(300, 55%, 65%, 0.25);
-    --favorite-border: hsla(300, 55%, 65%, 0.3);
+    --favorite: oklch(70% 0.2 30);
+    --favorite-transparent-1: color-mix(in oklab, transparent 85%, oklch(70% 0.2 30));
+    --favorite-transparent-2: color-mix(in oklab, transparent 75%, oklch(70% 0.2 30));
+    --favorite-border: color-mix(in oklab, transparent 70%, oklch(70% 0.2 30));
 
     /* Danger */
-    --danger: hsl(0, 85%, 65%);
-    --danger-transparent-1: hsla(0, 85%, 65%, 0.15);
-    --danger-transparent-2: hsla(0, 85%, 65%, 0.25);
-    --danger-border: hsla(0, 85%, 65%, 0.3);
+    --danger: oklch(65% 0.22 15);
+    --danger-transparent-1: color-mix(in oklab, transparent 85%, oklch(65% 0.22 15));
+    --danger-transparent-2: color-mix(in oklab, transparent 75%, oklch(65% 0.22 15));
+    --danger-border: color-mix(in oklab, transparent 70%, oklch(65% 0.22 15));
 
     /* Cards */
     --card: hsl(210, 35%, 95%);
@@ -72,100 +72,100 @@
     --card-foreground: var(--foreground);
 
     /* Popups */
-    --popup: hsl(210, 35%, 95%);
+    --popup: color-mix(in oklab, #ffffff 90%, #00ffaa 10%);
     --popup-foreground: var(--foreground);
 
     /* Muted */
-    --muted: hsl(210, 30%, 85%);
-    --muted-foreground: hsl(210, 20%, 50%);
+    --muted: color-mix(in oklab, #e8f4ff 80%, #00ff87 20%);
+    --muted-foreground: color-mix(in oklab, #4a5568 70%, #0080ff 30%);
 
     /* Error */
-    --error: hsl(358, 75%, 60%);
-    --error-foreground: hsl(0, 0%, 100%);
+    --error: oklch(62% 0.21 25);
+    --error-foreground: oklch(98% 0.02 25);
 
     /* Miscellaneous */
-    --certain-icons: hsl(250, 60%, 65%);
-    --albumart-gradient: linear-gradient(135deg, #cfe4f9 0%, #d3c5f2 100%);
+    --border: color-mix(in oklab, #d1e7ff 70%, #00ff87 30%);
+    --certain-icons: color-mix(in oklab, #00ff87 70%, #0080ff 30%);
+    --albumart-gradient: conic-gradient(from 45deg, color-mix(in oklab, #00ff87 80%, #ffffff 20%) 0%, color-mix(in oklab, #0080ff 80%, #ffffff 20%) 100%);
 
     /* Shadows */
-    --border: hsl(210, 35%, 85%);
-    --shadow: 0 1px 2px hsla(210, 35%, 0%, 0.05),
-        0 3px 6px hsla(210, 35%, 0%, 0.08);
-    --shadow-md: 0 1px 3px hsla(210, 35%, 0%, 0.05),
-        0 10px 15px -5px hsla(210, 35%, 0%, 0.05),
-        0 20px 25px -5px hsla(210, 35%, 0%, 0.04);
-    --shadow-lg: 0 1px 3px hsla(210, 35%, 0%, 0.05),
-        0 20px 25px -5px hsla(210, 35%, 0%, 0.08),
-        0 30px 40px -5px hsla(210, 35%, 0%, 0.05);
-    --shadow-focus: 0 0 0 2px hsla(250, 60%, 65%, 0.25),
-        0 1px 2px hsla(210, 35%, 0%, 0.05);
+    --shadow: 0 1px 2px color-mix(in oklab, transparent 95%, #00ff87),
+        0 3px 6px color-mix(in oklab, transparent 93%, #0080ff);
+    --shadow-md: 0 1px 3px color-mix(in oklab, transparent 95%, #00ff87),
+        0 10px 15px -5px color-mix(in oklab, transparent 95%, #0080ff),
+        0 20px 25px -5px color-mix(in oklab, transparent 96%, #00ffaa);
+    --shadow-lg: 0 1px 3px color-mix(in oklab, transparent 95%, #00ff87),
+        0 20px 25px -5px color-mix(in oklab, transparent 93%, #0080ff),
+        0 30px 40px -5px color-mix(in oklab, transparent 95%, #00ffaa);
+    --shadow-focus: 0 0 0 2px color-mix(in oklab, transparent 75%, oklch(70% 0.15 180)),
+        0 1px 2px color-mix(in oklab, transparent 95%, #00ff87);
 }
 
 .dark {
     /* Theme */
-    --themegradient: linear-gradient(135deg, #1b1f3b, #2e2a55);
-    --themecolor: hsl(250, 60%, 45%);
-    --themecolor2: hsl(190, 50%, 40%);
-    --themecolor3: hsl(300, 55%, 38%);
-    --themecolor4: hsl(200, 40%, 30%);
-    --themecolor1-transparent: hsla(250, 60%, 45%, 0.5);
-    --themecolor2-transparent: hsla(190, 50%, 40%, 0.5);
-    --themecolor3-transparent: hsla(300, 55%, 38%, 0.5);
-    --menu-background: hsla(200, 40%, 30%, 0.35);
+    --themegradient: linear-gradient(135deg in oklab, color-mix(in oklab, #003d1a 80%, #00ff87 20%), color-mix(in oklab, #001a33 80%, #0080ff 20%));
+    --themecolor: color-mix(in oklab, #00cc6a 70%, #000000 30%);
+    --themecolor2: color-mix(in oklab, #0066cc 70%, #ffffff 30%);
+    --themecolor3: color-mix(in oklab, #00cc88 65%, #003366 35%);
+    --themecolor4: color-mix(in oklab, #0077cc 65%, #cc0044 35%);
+    --themecolor1-transparent: color-mix(in oklab, transparent 50%, #00cc6a);
+    --themecolor2-transparent: color-mix(in oklab, transparent 50%, #0066cc);
+    --themecolor3-transparent: color-mix(in oklab, transparent 50%, #00cc88);
+    --menu-background: color-mix(in oklab, transparent 75%, #0066cc);
 
     /* Foreground */
-    --foreground: hsl(220, 20%, 95%);
-    --foreground-strong: hsla(0, 0%, 100%, 0.85);
-    --foreground-stronger: hsla(0, 0%, 100%, 0.95);
-    --foreground-muted: hsla(0, 0%, 100%, 0.7);
-    --foreground-subtle: hsla(0, 0%, 100%, 0.55);
+    --foreground: light-dark(color-mix(in oklab, #f0f8ff 95%, #00ff87 5%), color-mix(in oklab, #1a1a2e 90%, #00ff87 10%));
+    --foreground-strong: color-mix(in oklch, #e6f3ff 80%, #000000 20%);
+    --foreground-stronger: color-mix(in oklch, #ddeeff 70%, #000000 30%);
+    --foreground-muted: color-mix(in oklch, #ebf2ff 60%, #868686 40%);
+    --foreground-subtle: color-mix(in oklch, #e5f0ff 40%, #888888 60%);
 
     /* Background */
-    --background: hsl(220, 25%, 12%);
+    --background: conic-gradient(from 180deg at 50% 0%, color-mix(in oklab, #0a0f1a 95%, #00ff87 5%), color-mix(in oklab, #0f0a1a 95%, #0080ff 5%));
 
     /* Surface */
-    --surface: hsl(220, 25%, 18%);
+    --surface: color-mix(in oklab, #1a1f2a 90%, #00cc88 10%);
     --surface-foreground: var(--foreground);
-    --surface-transparent-05: hsla(0, 0%, 100%, 0.05);
-    --surface-transparent-1: hsla(0, 0%, 100%, 0.1);
-    --surface-transparent-2: hsla(0, 0%, 100%, 0.2);
+    --surface-transparent-05: color-mix(in oklab, transparent 95%, #000000);
+    --surface-transparent-1: color-mix(in oklab, transparent 90%, #0f1419);
+    --surface-transparent-2: color-mix(in oklab, transparent 80%, #000000);
 
-    /* Primary system */
-    --primary: hsl(250, 60%, 50%);
-    --primary-foreground: hsl(0, 0%, 100%);
+    /* Primary */
+    --primary: oklch(75% 0.12 200);
+    --primary-foreground: oklch(92.406% 0.03699 278.946);
     /* Primary Transparent */
-    --primary-transparent: hsla(250, 60%, 50%, 0.25);
-    --primary-transparent-2: hsla(250, 60%, 50%, 0.15);
-    --primary-transparent-3: hsla(250, 60%, 50%, 0.2);
-    --primary-transparent-4: hsla(250, 60%, 50%, 0.25);
-    --primary-transparent-5: hsla(250, 60%, 50%, 0.3);
+    --primary-transparent: color-mix(in oklab, transparent 75%, oklch(75% 0.12 200));
+    --primary-transparent-2: color-mix(in oklab, transparent 85%, oklch(75% 0.12 200));
+    --primary-transparent-3: color-mix(in oklab, transparent 80%, oklch(75% 0.12 200));
+    --primary-transparent-4: color-mix(in oklab, transparent 75%, oklch(75% 0.12 200));
+    --primary-transparent-5: color-mix(in oklab, transparent 70%, oklch(75% 0.12 200));
     /* Primary Borders */
-    --primary-border: hsla(250, 60%, 50%, 0.3);
-    --primary-border-strong: hsla(250, 60%, 50%, 0.4);
-    --primary-border-stronger: hsla(250, 60%, 50%, 0.5);
-    --primary-border-active: hsla(250, 60%, 50%, 0.6);
+    --primary-border: color-mix(in oklab, transparent 70%, oklch(75% 0.12 200));
+    --primary-border-strong: color-mix(in oklab, transparent 60%, oklch(75% 0.12 200));
+    --primary-border-stronger: color-mix(in oklab, transparent 50%, oklch(75% 0.12 200));
+    --primary-border-active: color-mix(in oklab, transparent 40%, oklch(75% 0.12 200));
 
     /* Secondary */
-    --secondary: hsl(190, 50%, 45%);
-    --secondary-foreground: hsl(0, 0%, 100%);
+    --secondary: oklch(70% 0.16 340);
+    --secondary-foreground: oklch(15% 0.02 340);
 
     /* Sidebar */
-    --sidebar: hsl(220, 20%, 15%);
-    --sidebar-foreground: hsl(220, 20%, 90%);
-    --sidebar-bg-transparent: hsla(200, 40%, 30%, 0.4);
-    --sidebar-bg-hover: hsla(200, 40%, 30%, 0.6);
+    --sidebar: color-mix(in oklab, #141922 85%, #00cc6a 15%);
+    --sidebar-foreground: color-mix(in oklab, #e6f3ff 85%, #0066cc 15%);
+    --sidebar-bg-transparent: color-mix(in oklab, transparent 70%, #00cc6a);
+    --sidebar-bg-hover: color-mix(in oklab, transparent 50%, #0066cc);
 
     /* Favorites */
-    --favorite: hsl(300, 55%, 55%);
-    --favorite-transparent-1: hsla(300, 55%, 55%, 0.15);
-    --favorite-transparent-2: hsla(300, 55%, 55%, 0.25);
-    --favorite-border: hsla(300, 55%, 55%, 0.3);
+    --favorite: oklch(75% 0.18 35);
+    --favorite-transparent-1: color-mix(in oklab, transparent 85%, oklch(75% 0.18 35));
+    --favorite-transparent-2: color-mix(in oklab, transparent 75%, oklch(75% 0.18 35));
+    --favorite-border: color-mix(in oklab, transparent 70%, oklch(75% 0.18 35));
 
     /* Danger */
-    --danger: hsl(0, 85%, 65%);
-    --danger-transparent-1: hsla(0, 85%, 65%, 0.15);
-    --danger-transparent-2: hsla(0, 85%, 65%, 0.25);
-    --danger-border: hsla(0, 85%, 65%, 0.3);
+    --danger: oklch(70% 0.20 20);
+    --danger-transparent-1: color-mix(in oklab, transparent 85%, oklch(70% 0.20 20));
+    --danger-transparent-2: color-mix(in oklab, transparent 75%, oklch(70% 0.20 20));
+    --danger-border: color-mix(in oklab, transparent 70%, oklch(70% 0.20 20));
 
     /* Cards */
     --card: hsl(220, 25%, 18%);
@@ -173,31 +173,31 @@
     --card-foreground: var(--foreground);
 
     /* Popups */
-    --popup: hsl(220, 25%, 18%);
+    --popup: color-mix(in oklab, #1a1f2a 90%, #00cc88 10%);
     --popup-foreground: var(--foreground);
 
     /* Muted */
-    --muted: hsl(220, 25%, 35%);
-    --muted-foreground: hsl(220, 10%, 70%);
+    --muted: color-mix(in oklab, #2a3341 80%, #00cc6a 20%);
+    --muted-foreground: color-mix(in oklab, #a0b4cc 70%, #0066cc 30%);
 
     /* Error */
-    --error: hsl(358, 75%, 60%);
-    --error-foreground: hsl(0, 0%, 100%);
+    --error: oklch(67% 0.19 30);
+    --error-foreground: oklch(15% 0.02 30);
 
     /* Miscellaneous */
-    --certain-icons: hsl(250, 60%, 50%);
-    --albumart-gradient: linear-gradient(135deg, #1b1f3b 0%, #2e2a55 100%);
+    --border: color-mix(in oklab, #2a3341 70%, #00cc6a 30%);
+    --certain-icons: color-mix(in oklab, #00cc6a 70%, #0066cc 30%);
+    --albumart-gradient: conic-gradient(from 225deg, color-mix(in oklab, #003d1a 80%, #000000 20%) 0%, color-mix(in oklab, #001a33 80%, #000000 20%) 100%);
 
     /* Shadows */
-    --border: hsl(220, 25%, 22%);
-    --shadow: 0 1px 2px hsla(220, 25%, 0%, 0.1),
-        0 3px 6px hsla(220, 25%, 0%, 0.15);
-    --shadow-md: 0 1px 3px hsla(220, 25%, 0%, 0.1),
-        0 10px 15px -5px hsla(220, 25%, 0%, 0.1),
-        0 20px 25px -5px hsla(220, 25%, 0%, 0.08);
-    --shadow-lg: 0 1px 3px hsla(220, 25%, 0%, 0.1),
-        0 20px 25px -5px hsla(220, 25%, 0%, 0.15),
-        0 30px 40px -5px hsla(220, 25%, 0%, 0.1);
-    --shadow-focus: 0 0 0 2px hsla(250, 60%, 50%, 0.25),
-        0 1px 2px hsla(220, 25%, 0%, 0.1);
+    --shadow: 0 1px 2px color-mix(in oklab, transparent 90%, #000000),
+        0 3px 6px color-mix(in oklab, transparent 85%, #00cc6a);
+    --shadow-md: 0 1px 3px color-mix(in oklab, transparent 90%, #000000),
+        0 10px 15px -5px color-mix(in oklab, transparent 90%, #00cc6a),
+        0 20px 25px -5px color-mix(in oklab, transparent 92%, #0066cc);
+    --shadow-lg: 0 1px 3px color-mix(in oklab, transparent 90%, #000000),
+        0 20px 25px -5px color-mix(in oklab, transparent 85%, #00cc6a),
+        0 30px 40px -5px color-mix(in oklab, transparent 90%, #0066cc);
+    --shadow-focus: 0 0 0 2px color-mix(in oklab, transparent 75%, oklch(75% 0.12 200)),
+        0 1px 2px color-mix(in oklab, transparent 90%, #000000);
 }
