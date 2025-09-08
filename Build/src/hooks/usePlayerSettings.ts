@@ -1,9 +1,11 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import { musicIndexedDbHelper } from "../helpers/musicIndexedDbHelper";
 import { PlayerSettings } from "../types/PlayerSettings";
-import { isInitialized } from "./useMusicLibrary";
+import { useMusicLibrary } from "./useMusicLibrary";
 
 export const usePlayerSettings = () => {
+  const musicLibrary = useMusicLibrary();
+
   const [settings, setSettings] = useState<PlayerSettings>({
     volume: 0.75,
     crossfade: 3,
@@ -26,7 +28,7 @@ export const usePlayerSettings = () => {
   }, []);
 
   useEffect(() => {
-    if (!isInitialized) return;
+    if (!musicLibrary.isInitialized) return;
     const saveSettings = async () => {
       try {
         await musicIndexedDbHelper.saveSettings(settings);
@@ -35,7 +37,7 @@ export const usePlayerSettings = () => {
       }
     };
     saveSettings();
-  }, [settings, isInitialized]);
+  }, [settings, musicLibrary.isInitialized]);
 
   useEffect(() => {
     settingsRef.current = settings;

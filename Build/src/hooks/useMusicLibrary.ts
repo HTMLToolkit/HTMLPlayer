@@ -4,9 +4,15 @@ import { musicIndexedDbHelper } from "../helpers/musicIndexedDbHelper";
 import { MusicLibrary } from "../types/MusicLibrary";
 import { Playlist } from "../types/Playlist";
 import { Song } from "../types/Song";
-import { prepareSongsForPlaylist } from "./useSongCache";
+import { useSongCache } from "./useSongCache";
+import { useAudioPlayback } from "./useAudioPlayback";
+import { usePlayerSettings } from "./usePlayerSettings";
 
 export const useMusicLibrary = () => {
+  const songCache = useSongCache();
+  const audioPlayback = useAudioPlayback();
+  const playerSettings = usePlayerSettings();
+
   const [isInitialized, setIsInitialized] = useState(false);
 
   const [library, setLibrary] = useState<MusicLibrary>(() => ({
@@ -94,7 +100,7 @@ export const useMusicLibrary = () => {
 
         let newPlaylists = prev.playlists.map((p) =>
           p.id === "all-songs"
-            ? { ...p, songs: prepareSongsForPlaylist(newSongs) }
+            ? { ...p, songs: songCache.prepareSongsForPlaylist(newSongs) }
             : p
         );
 
@@ -103,7 +109,7 @@ export const useMusicLibrary = () => {
             {
               id: "all-songs",
               name: "All Songs",
-              songs: prepareSongsForPlaylist(newSongs),
+              songs: songCache.prepareSongsForPlaylist(newSongs),
             },
             ...newPlaylists,
           ];
@@ -133,7 +139,7 @@ export const useMusicLibrary = () => {
             songs: newSongs,
             playlists: prev.playlists.map((p) =>
               p.id === "all-songs"
-                ? { ...p, songs: prepareSongsForPlaylist(newSongs) }
+                ? { ...p, songs: songCache.prepareSongsForPlaylist(newSongs) }
                 : p
             ),
           };
@@ -145,7 +151,7 @@ export const useMusicLibrary = () => {
         });
       }
     },
-    [processAudioBatch, prepareSongsForPlaylist]
+    [processAudioBatch, songCache.prepareSongsForPlaylist]
   );
 
   const removeSong = useCallback(async (songId: string) => {
@@ -177,7 +183,7 @@ export const useMusicLibrary = () => {
       const newPlaylist: Playlist = {
         id: Date.now().toString(),
         name,
-        songs: prepareSongsForPlaylist(songs),
+        songs: songCache.prepareSongsForPlaylist(songs),
       };
       setLibrary((prev) => ({
         ...prev,
@@ -185,7 +191,7 @@ export const useMusicLibrary = () => {
       }));
       return newPlaylist;
     },
-    [prepareSongsForPlaylist]
+    [songCache.prepareSongsForPlaylist]
   );
 
   const removePlaylist = useCallback((playlistId: string) => {
@@ -276,7 +282,7 @@ export const useMusicLibrary = () => {
           const allSongsPlaylist = {
             id: "all-songs",
             name: "All Songs",
-            songs: prepareSongsForPlaylist(validLibrary.songs),
+            songs: songCache.prepareSongsForPlaylist(validLibrary.songs),
           };
 
           // Add or update All Songs playlist
@@ -287,7 +293,7 @@ export const useMusicLibrary = () => {
                   p.id === "all-songs"
                     ? {
                         ...p,
-                        songs: prepareSongsForPlaylist(validLibrary.songs),
+                        songs: songCache.prepareSongsForPlaylist(validLibrary.songs),
                       }
                     : p
                 )
@@ -326,7 +332,7 @@ export const useMusicLibrary = () => {
             songToPlay = playlistToSet.songs[0];
           }
 
-          setPlayerState((prev: any) => ({
+          audioPlayback.setPlayerState((prev: any) => ({
             ...prev,
             currentSong: songToPlay,
             currentPlaylist: playlistToSet,
@@ -336,7 +342,7 @@ export const useMusicLibrary = () => {
           }));
         }
 
-        if (persistedSettings) setSettings(persistedSettings);
+        if (persistedSettings) playerSettings.setSettings(persistedSettings);
       } catch (error) {
         console.error("Failed to load persisted data:", error);
       } finally {
@@ -359,24 +365,25 @@ export const useMusicLibrary = () => {
   }, [library, isInitialized]);
 
   useEffect(() => {
-    if (playerState.currentPlaylist) {
+    if (audioPlayback.playerState.currentPlaylist) {
       const updatedPlaylist = library.playlists.find(
-        (p) => p.id === playerState.currentPlaylist?.id
+        (p) => p.id === audioPlayback.playerState.currentPlaylist?.id
       );
       if (
         updatedPlaylist &&
-        updatedPlaylist.songs !== playerState.currentPlaylist.songs
+        updatedPlaylist.songs !== audioPlayback.playerState.currentPlaylist.songs
       ) {
-        setPlayerState((prev: any) => ({
+        audioPlayback.setPlayerState((prev: any) => ({
           ...prev,
           currentPlaylist: updatedPlaylist,
         }));
       }
     }
-  }, [library.playlists, playerState.currentPlaylist?.id]);
+  }, [library.playlists, audioPlayback.playerState.currentPlaylist?.id]);
 
   return {
     library,
+    setLibrary,
     addSong,
     removeSong,
     createPlaylist,

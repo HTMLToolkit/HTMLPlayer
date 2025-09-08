@@ -2,9 +2,10 @@ import { useCallback, useEffect, useRef } from "react";
 import { musicIndexedDbHelper } from "../helpers/musicIndexedDbHelper";
 import { Playlist } from "../types/Playlist";
 import { Song } from "../types/Song";
-import { playerStateRef } from "./useAudioPlayback";
+import { useAudioPlayback } from "./useAudioPlayback";
 
 export const useSongCache = () => {
+  const audioPlayback = useAudioPlayback();
   const songCacheRef = useRef<Map<string, CachedSong>>(new Map());
 
   // Type for cached song
@@ -121,7 +122,7 @@ export const useSongCache = () => {
 
     // Get next shuffled song if shuffle is enabled
     let nextShuffledSong: Song | null = null;
-    if (playerStateRef.current.shuffle) {
+    if (audioPlayback.playerStateRef.current.shuffle) {
       const availableSongs = playlist.songs.filter(
         (_, i) => i !== currentIndex
       );

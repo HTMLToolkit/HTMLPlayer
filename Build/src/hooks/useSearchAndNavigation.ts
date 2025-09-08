@@ -1,20 +1,24 @@
 import { useState, useCallback } from "react";
-import { setPlayerState, playerState } from "./useAudioPlayback";
+import { useAudioPlayback } from "./useAudioPlayback";
+import { useMusicLibrary } from "./useMusicLibrary";
 
 export const useSearchAndNavigation = () => {
+  const audioPlayback = useAudioPlayback();
+  const musicLibrary = useMusicLibrary();
+
   const [searchQuery, setSearchQuery] = useState("");
 
   const searchSongs = useCallback(
     (query: string) => {
       setSearchQuery(query);
-      if (!query.trim()) return library.songs;
-      return library.songs.filter(
+      if (!query.trim()) return musicLibrary.library.songs;
+      return musicLibrary.library.songs.filter(
         (s) =>
           s.title.toLowerCase().includes(query.toLowerCase()) ||
           s.artist.toLowerCase().includes(query.toLowerCase())
       );
     },
-    [library.songs]
+    [musicLibrary.library.songs]
   );
 
   const getSearchResults = useCallback(() => {
@@ -22,7 +26,7 @@ export const useSearchAndNavigation = () => {
   }, [searchSongs, searchQuery]);
 
   const navigateToArtist = useCallback((artist: string) => {
-    setPlayerState((prev) => ({
+    audioPlayback.setPlayerState((prev) => ({
       ...prev,
       view: "artist",
       currentArtist: artist,
@@ -30,7 +34,7 @@ export const useSearchAndNavigation = () => {
   }, []);
 
   const navigateToAlbum = useCallback((album: string) => {
-    setPlayerState((prev) => ({
+    audioPlayback.setPlayerState((prev) => ({
       ...prev,
       view: "album",
       currentAlbum: album,
@@ -38,7 +42,7 @@ export const useSearchAndNavigation = () => {
   }, []);
 
   const navigateToSongs = useCallback(() => {
-    setPlayerState((prev) => ({
+    audioPlayback.setPlayerState((prev) => ({
       ...prev,
       view: "songs",
       currentArtist: undefined,

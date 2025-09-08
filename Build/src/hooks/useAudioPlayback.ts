@@ -3,17 +3,16 @@ import { toast } from "sonner";
 import { PlayerState } from "../types/PlayerState";
 import { Playlist } from "../types/Playlist";
 import { Song } from "../types/Song";
-import { set } from "lodash";
-import {
-  cacheSong,
-  getCachedSong,
-  pdateSongCache,
-  prepareSongsForPlaylist,
-} from "./useSongCache";
-import { settingsRef, setSettings } from "./usePlayerSettings";
-import { isInitialized } from "./useMusicLibrary";
+import { PlayerSettings } from "../types/PlayerSettings";
+import { useSongCache } from "./useSongCache";
+import { usePlayerSettings } from "./usePlayerSettings";
+import { useMusicLibrary } from "./useMusicLibrary";
 
 export const useAudioPlayback = () => {
+  const songCache = useSongCache();
+  const musicLibrary = useMusicLibrary();
+  const playerSettings = usePlayerSettings();
+
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
   const sourceNodeRef = useRef<MediaElementAudioSourceNode | null>(null);
@@ -69,14 +68,14 @@ export const useAudioPlayback = () => {
       // Prepare song for playing, handling both IndexedDB and direct URLs
       const songToPlay = song.hasStoredAudio
         ? {
-            ...song,
-            url: `indexeddb://${song.id}`, // Use indexeddb:// URL
-          }
+          ...song,
+          url: `indexeddb://${song.id}`, // Use indexeddb:// URL
+        }
         : song;
 
       // First ensure the song is cached
-      await cacheSong(songToPlay);
-      const cachedSong = getCachedSong(song.id);
+      await songCache.cacheSong(songToPlay);
+      const cachedSong = songCache.getCachedSong(song.id);
       if (!cachedSong) {
         console.error("Failed to play song: could not cache");
         return;
@@ -85,9 +84,9 @@ export const useAudioPlayback = () => {
       // Prepare playlist songs if setting a new playlist
       const preparedPlaylist = playlist
         ? {
-            ...playlist,
-            songs: prepareSongsForPlaylist(playlist.songs),
-          }
+          ...playlist,
+          songs: songCache.prepareSongsForPlaylist(playlist.songs),
+        }
         : playerStateRef.current.currentPlaylist;
 
       setPlayerState((prev) => ({
@@ -117,7 +116,7 @@ export const useAudioPlayback = () => {
                   ...prev,
                   currentSong: updatedSong,
                 }));
-                setLibrary((prev) => ({
+                musicLibrary.setLibrary((prev) => ({
                   ...prev,
                   songs: prev.songs.map((s) =>
                     s.id === song.id ? updatedSong : s
@@ -147,16 +146,16 @@ export const useAudioPlayback = () => {
 
         // Update the cache for surrounding songs and next shuffled song
         if (playlist) {
-          updateSongCache(song, playlist);
+          songCache.updateSongCache(song, playlist);
         }
       }
     },
     [
       setupAudioContext,
-      cacheSong,
-      getCachedSong,
-      updateSongCache,
-      prepareSongsForPlaylist,
+      songCache.cacheSong,
+      songCache.getCachedSong,
+      songCache.updateSongCache,
+      songCache.prepareSongsForPlaylist,
     ]
   );
 
@@ -180,12 +179,12 @@ export const useAudioPlayback = () => {
     if (!playerState.currentPlaylist || !playerState.currentSong) return;
     const songs = playerState.currentPlaylist.songs;
     const currentIndex = songs.findIndex(
-      (s) => s.id === playerState.currentSong!.id
+      (s: { id: any; }) => s.id === playerState.currentSong!.id
     );
 
     if (playerState.shuffle) {
       const available = songs.filter(
-        (s) => s.id !== playerState.currentSong!.id
+        (s: { id: any; }) => s.id !== playerState.currentSong!.id
       );
       if (available.length > 0) {
         const randomIndex = Math.floor(Math.random() * available.length);
@@ -204,12 +203,12 @@ export const useAudioPlayback = () => {
     if (!playerState.currentPlaylist || !playerState.currentSong) return;
     const songs = playerState.currentPlaylist.songs;
     const currentIndex = songs.findIndex(
-      (s) => s.id === playerState.currentSong!.id
+      (s: { id: any; }) => s.id === playerState.currentSong!.id
     );
 
     if (playerState.shuffle) {
       const available = songs.filter(
-        (s) => s.id !== playerState.currentSong!.id
+        (s: { id: any; }) => s.id !== playerState.currentSong!.id
       );
       if (available.length > 0) {
         const randomIndex = Math.floor(Math.random() * available.length);
@@ -226,7 +225,7 @@ export const useAudioPlayback = () => {
 
   const setVolume = useCallback((volume: number) => {
     const clamped = Math.max(0, Math.min(1, volume));
-    setSettings((prev) => ({ ...prev, volume: clamped }));
+    playerSettings.setSettings((prev: any) => ({ ...prev, volume: clamped }));
     if (audioRef.current) audioRef.current.volume = clamped;
   }, []);
 
@@ -271,7 +270,7 @@ export const useAudioPlayback = () => {
     };
 
     const handleEnded = () => {
-      if (settingsRef.current.autoPlayNext) {
+      if (playerSettings.settingsRef.current.autoPlayNext) {
         if (playerStateRef.current.repeat === "one") {
           if (audioRef.current) {
             audioRef.current.currentTime = 0;
@@ -301,23 +300,23 @@ export const useAudioPlayback = () => {
 
   useEffect(() => {
     if (audioRef.current) {
-      audioRef.current.volume = settings.volume;
+      audioRef.current.volume = playerSettings.settings.volume;
     }
-  }, [settings.volume]);
+  }, [playerSettings.settings.volume]);
 
   useEffect(() => {
     setPlayerState((prev) => ({
       ...prev,
-      volume: settings.volume,
-      shuffle: settings.defaultShuffle,
-      repeat: settings.defaultRepeat,
+      volume: playerSettings.settings.volume,
+      shuffle: playerSettings.settings.defaultShuffle,
+      repeat: playerSettings.settings.defaultRepeat,
     }));
-  }, [settings.volume, settings.defaultShuffle, settings.defaultRepeat]);
+  }, [playerSettings.settings.volume, playerSettings.settings.defaultShuffle, playerSettings.settings.defaultRepeat]);
 
   useEffect(() => {
-    if (!isInitialized) return;
+    if (!musicLibrary.isInitialized) return;
     // Update last played song and playlist IDs in settings when they change
-    setSettings((prev) => ({
+    playerSettings.setSettings((prev: PlayerSettings) => ({
       ...prev,
       lastPlayedSongId: playerState.currentSong?.id ?? prev.lastPlayedSongId,
       lastPlayedPlaylistId:
@@ -332,10 +331,10 @@ export const useAudioPlayback = () => {
         album: playerState.currentSong.album,
         artwork: playerState.currentSong.albumArt
           ? [
-              {
-                src: playerState.currentSong.albumArt,
-              },
-            ]
+            {
+              src: playerState.currentSong.albumArt,
+            },
+          ]
           : [],
       });
 
@@ -355,7 +354,7 @@ export const useAudioPlayback = () => {
         }
       };
     }
-  }, [playerState.currentSong, playerState.currentPlaylist, isInitialized]);
+  }, [playerState.currentSong, playerState.currentPlaylist, musicLibrary.isInitialized]);
 
   useEffect(() => {
     playNextRef.current = playNext;

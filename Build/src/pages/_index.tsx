@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Sidebar } from "../components/Sidebar";
 import { MainContent } from "../components/MainContent";
 import { Player } from "../components/Player";
-import { useMusicPlayer } from "../helpers/musicPlayerHook";
+import { useAudioPlayback } from "../hooks/useAudioPlayback";
 import {
   switchToAutoMode,
   switchToDarkMode,
@@ -11,9 +11,14 @@ import {
 } from "../helpers/themeMode";
 import { musicIndexedDbHelper } from "../helpers/musicIndexedDbHelper";
 import styles from "./_index.module.css";
+import { useMusicLibrary } from "../hooks/useMusicLibrary";
+import { useSearchAndNavigation } from "../hooks/useSearchAndNavigation";
 
 export default function IndexPage() {
-  const musicPlayerHook = useMusicPlayer();
+  const audioPlayback = useAudioPlayback();
+  const musicLibrary = useMusicLibrary();
+  const searchAndNavigation = useSearchAndNavigation();
+
   const [, setThemeMode] = useState<ThemeMode>("auto");
 
   useEffect(() => {
@@ -59,10 +64,10 @@ export default function IndexPage() {
 
   return (
     <div className={styles.container}>
-      <Sidebar musicPlayerHook={musicPlayerHook} />
-      <div className={styles.mainSection}>
-        <MainContent musicPlayerHook={musicPlayerHook} />
-        <Player musicPlayerHook={musicPlayerHook} settings={{
+      <Sidebar musicPlayerHook={ audioPlayback }/>
+      <div className={ styles.mainSection }>
+        <MainContent audioPlayback={ audioPlayback } musicLibrary={ musicLibrary } searchAndNavigation={ searchAndNavigation } />
+        <Player musicPlayerHook={ audioPlayback } settings={{
           volume: 0,
           crossfade: 0,
           defaultShuffle: false,

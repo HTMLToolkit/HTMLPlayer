@@ -30,17 +30,24 @@ import {
 } from "./Dialog";
 import modalStyles from "./Dialog.module.css";
 
-import { Song } from "../helpers/musicPlayerHook";
+import { Song } from "../types/Song";
+import { Playlist } from "../types/Playlist";
 import styles from "./MainContent.module.css";
 import PersistentDropdownMenu from "./PersistentDropdownMenu";
 
 type MainContentProps = {
-  musicPlayerHook: ReturnType<
-    typeof import("../helpers/musicPlayerHook").useMusicPlayer
+  audioPlayback: ReturnType<
+    typeof import("../hooks/useAudioPlayback").useAudioPlayback
+  >;
+  musicLibrary: ReturnType<
+    typeof import("../hooks/useMusicLibrary").useMusicLibrary
+  >;
+  searchAndNavigation: ReturnType<
+    typeof import("../hooks/useSearchAndNavigation").useSearchAndNavigation
   >;
 };
 
-export const MainContent = ({ musicPlayerHook }: MainContentProps) => {
+export const MainContent = ({ audioPlayback, musicLibrary, searchAndNavigation }: MainContentProps) => {
   const [songSearchQuery, setSongSearchQuery] = useState("");
   const [ratings, setRatings] = useState<
     Record<string, "thumbs-up" | "thumbs-down" | "none">
@@ -57,18 +64,24 @@ export const MainContent = ({ musicPlayerHook }: MainContentProps) => {
 
   const {
     playerState,
+    playSong
+  } = audioPlayback;
+
+  const {
     library,
-    playSong,
     addSong,
     removeSong,
     toggleFavorite,
     isFavorited,
     createPlaylist,
     addToPlaylist,
+  } = musicLibrary;
+
+  const {
     navigateToArtist,
     navigateToAlbum,
     navigateToSongs,
-  } = musicPlayerHook;
+  } = searchAndNavigation;
 
   // Add navigation event listener
   React.useEffect(() => {
@@ -90,11 +103,11 @@ export const MainContent = ({ musicPlayerHook }: MainContentProps) => {
   const songsToDisplay = React.useMemo(() => {
     if (playerState.view === "artist" && playerState.currentArtist) {
       return library.songs.filter(
-        (song) => song.artist === playerState.currentArtist
+        (song: { artist: string | undefined; }) => song.artist === playerState.currentArtist
       );
     } else if (playerState.view === "album" && playerState.currentAlbum) {
       return library.songs.filter(
-        (song) => song.album === playerState.currentAlbum
+        (song: { album: string | undefined; }) => song.album === playerState.currentAlbum
       );
     } else if (playerState.currentPlaylist) {
       return playerState.currentPlaylist.songs;
@@ -141,7 +154,7 @@ export const MainContent = ({ musicPlayerHook }: MainContentProps) => {
     const wasAdded = toggleFavorite(songId);
 
     // Show toast notification
-    const song = library.songs.find((s) => s.id === songId);
+    const song = library.songs.find((s: { id: string; }) => s.id === songId);
     if (song) {
       if (wasAdded) {
         toast.success(`Added "${song.title}" to favorites`);
@@ -267,7 +280,7 @@ export const MainContent = ({ musicPlayerHook }: MainContentProps) => {
     if (selectedSongs.length === filteredSongs.length) {
       setSelectedSongs([]);
     } else {
-      setSelectedSongs(filteredSongs.map((song) => song.id));
+      setSelectedSongs(filteredSongs.map((song: { id: any; }) => song.id));
     }
   };
 
@@ -283,7 +296,7 @@ export const MainContent = ({ musicPlayerHook }: MainContentProps) => {
     const newPlaylist = createPlaylist(
       newPlaylistName,
       selectedSongs
-        .map((songId) => library.songs.find((s) => s.id === songId))
+        .map((songId) => library.songs.find((s: { id: string; }) => s.id === songId))
         .filter((song): song is Song => song !== undefined)
     );
     toast.success(
@@ -413,9 +426,8 @@ export const MainContent = ({ musicPlayerHook }: MainContentProps) => {
         {filteredSongs.map((song: Song) => (
           <div
             key={song.id}
-            className={`${styles.songItem} ${
-              playerState.currentSong?.id === song.id ? styles.currentSong : ""
-            }`}
+            className={`${styles.songItem} ${playerState.currentSong?.id === song.id ? styles.currentSong : ""
+              }`}
             onClick={() => handleSongClick(song)}
           >
             <div className={styles.songInfo}>
@@ -462,9 +474,8 @@ export const MainContent = ({ musicPlayerHook }: MainContentProps) => {
               <Button
                 variant="ghost"
                 size="icon-sm"
-                className={`${styles.songActionButton} ${
-                  isFavorited(song.id) ? styles.favorited : ""
-                }`}
+                className={`${styles.songActionButton} ${isFavorited(song.id) ? styles.favorited : ""
+                  }`}
                 onClick={(e: any) => handleToggleFavorite(e, song.id)}
                 title={
                   isFavorited(song.id)
@@ -480,9 +491,8 @@ export const MainContent = ({ musicPlayerHook }: MainContentProps) => {
               <Button
                 variant="ghost"
                 size="icon-sm"
-                className={`${styles.songActionButton} ${
-                  ratings[song.id] === "thumbs-up" ? styles.active : ""
-                }`}
+                className={`${styles.songActionButton} ${ratings[song.id] === "thumbs-up" ? styles.active : ""
+                  }`}
                 onClick={() => handleRating(song.id, "thumbs-up")}
                 title="Thumbs up"
               >
@@ -491,9 +501,8 @@ export const MainContent = ({ musicPlayerHook }: MainContentProps) => {
               <Button
                 variant="ghost"
                 size="icon-sm"
-                className={`${styles.songActionButton} ${
-                  ratings[song.id] === "thumbs-down" ? styles.active : ""
-                }`}
+                className={`${styles.songActionButton} ${ratings[song.id] === "thumbs-down" ? styles.active : ""
+                  }`}
                 onClick={() => handleRating(song.id, "thumbs-down")}
                 title="Thumbs down"
               >
@@ -608,12 +617,12 @@ export const MainContent = ({ musicPlayerHook }: MainContentProps) => {
             </div>
           ) : (
             <div className={modalStyles.spaceY4}>
-              {library.playlists.filter((p) => p.id !== "all-songs").length >
-              0 ? (
+              {library.playlists.filter((p: { id: string; }) => p.id !== "all-songs").length >
+                0 ? (
                 <div className={modalStyles.spaceY2}>
                   {library.playlists
-                    .filter((playlist) => playlist.id !== "all-songs")
-                    .map((playlist) => (
+                    .filter((playlist: { id: string; }) => playlist.id !== "all-songs")
+                    .map((playlist: Playlist) => (
                       <div
                         key={playlist.name}
                         className={`${modalStyles.flex} ${modalStyles.gap2}`}
