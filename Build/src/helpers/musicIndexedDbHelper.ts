@@ -84,9 +84,7 @@ const saveToIndexedDB = async (
 ): Promise<void> => {
   try {
     // First, get existing data if needed
-    let existingData: any = null;
     if (key === "musicLibrary" && data?.songs) {
-      existingData = await loadFromIndexedDB(STORES.LIBRARY, "musicLibrary");
     }
 
     // Open new transaction after loading existing data

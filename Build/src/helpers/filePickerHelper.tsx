@@ -1,5 +1,5 @@
 import { toast } from "sonner";
-import * as jsmediatags from "jsmediatags/dist/jsmediatags.min.js";
+import { parseBlob } from "music-metadata";
 
 export type AudioFile = {
   file: File;
@@ -93,55 +93,43 @@ export function pickAudioFiles(): Promise<AudioFile[]> {
 }
 
 export async function extractAudioMetadata(file: File): Promise<AudioMetadata> {
-  let id3Tags: any = null;
+  let metadata: any = null;
   let albumArt: string | undefined = undefined;
 
   try {
-    id3Tags = await new Promise((resolve) => {
-      new jsmediatags.Reader(file).read({
-        onSuccess: (tag: any) => resolve(tag.tags),
-        onError: (error: any) => {
-          console.warn("Failed to read ID3 tags with jsmediatags:", error);
-          resolve(null);
-        },
-      });
-    }).catch((e) => {
-      console.warn("Error reading ID3 tags with jsmediatags:", e);
-      return null;
-    });
-
+    // Use music-metadata-browser - much more reliable!
+    metadata = await parseBlob(file);
+    
     // Extract album art if available
-    if (id3Tags && id3Tags.picture) {
-      const { data } = id3Tags.picture;
-      const format = id3Tags.picture.format;
-      if (data) {
-        // data is an array of bytes, convert it to a blob and then a data URL
-        const blob = new Blob([new Uint8Array(data)], { type: format });
-        albumArt = await new Promise<string>((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onloadend = () => resolve(reader.result as string);
-          reader.onerror = () => reject(reader.error);
-          reader.readAsDataURL(blob);
-        });
+    if (metadata.common.picture && metadata.common.picture.length > 0) {
+      const picture = metadata.common.picture[0]; // Use first picture
+      if (picture.data && picture.format) {
+        try {
+          const blob = new Blob([picture.data], { type: picture.format });
+          albumArt = await new Promise<string>((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onloadend = () => resolve(reader.result as string);
+            reader.onerror = () => reject(new Error('Failed to read album art'));
+            reader.readAsDataURL(blob);
+          });
+        } catch (artError) {
+          console.warn(`Failed to process album art for ${file.name}:`, artError);
+        }
       }
     }
-  } catch (e) {
-    console.warn("Error processing ID3 tags:", e);
+  } catch (error) {
+    console.warn(`Failed to read metadata for ${file.name}:`, error);
   }
 
+  // Extract metadata with fallbacks
   const fileName = file.name.replace(/\.[^/.]+$/, "");
-  let title = fileName;
-  let artist = "Unknown Artist";
-  let album = "Unknown Album";
+  let title = metadata?.common?.title || fileName;
+  let artist = metadata?.common?.artist || "Unknown Artist";
+  let album = metadata?.common?.album || "Unknown Album";
+  let duration = metadata?.format?.duration || 0;
 
-  if (id3Tags) {
-    if (id3Tags.artist && typeof id3Tags.artist === "string")
-      artist = id3Tags.artist;
-    if (id3Tags.title && typeof id3Tags.title === "string")
-      title = id3Tags.title;
-    if (id3Tags.album && typeof id3Tags.album === "string")
-      album = id3Tags.album;
-  } else if (fileName.includes(" - ")) {
+  // If no metadata was found, try parsing filename
+  if (!metadata && fileName.includes(" - ")) {
     const parts = fileName.split(" - ");
     if (parts.length >= 2) {
       artist = parts[0].trim();
@@ -149,21 +137,111 @@ export async function extractAudioMetadata(file: File): Promise<AudioMetadata> {
     }
   }
 
-  const url = URL.createObjectURL(file);
-  const audio = new Audio();
-  const duration = await new Promise<number>((resolve) => {
-    audio.onloadedmetadata = () => {
-      resolve(audio.duration || 0);
-      URL.revokeObjectURL(url);
-    };
-    audio.onerror = () => {
-      resolve(0);
-      URL.revokeObjectURL(url);
-    };
-    audio.src = url;
-  });
+  // If duration is still 0, get it from audio element as fallback
+  if (duration === 0) {
+    const url = URL.createObjectURL(file);
+    duration = await new Promise<number>((resolve) => {
+      const audio = new Audio();
+      
+      const cleanup = () => {
+        URL.revokeObjectURL(url);
+        audio.removeEventListener('loadedmetadata', onLoad);
+        audio.removeEventListener('error', onError);
+      };
+      
+      const onLoad = () => {
+        cleanup();
+        resolve(audio.duration || 0);
+      };
+      
+      const onError = () => {
+        cleanup();
+        resolve(0);
+      };
+      
+      audio.addEventListener('loadedmetadata', onLoad);
+      audio.addEventListener('error', onError);
+      audio.src = url;
+    });
+  }
 
   return { title, artist, album, duration, albumArt };
+}
+
+// Batch processing function to handle multiple files efficiently
+export async function extractMultipleAudioMetadata(
+  files: File[], 
+  batchSize: number = 3
+): Promise<AudioMetadata[]> {
+  const results: AudioMetadata[] = [];
+  const totalFiles = files.length;
+  let processedCount = 0;
+
+  // Show progress toast
+  const toastId = toast.loading(`Processing metadata 0/${totalFiles} files...`);
+
+  try {
+    // Process files in batches to avoid overwhelming the browser
+    for (let i = 0; i < files.length; i += batchSize) {
+      const batch = files.slice(i, i + batchSize);
+      
+      const batchPromises = batch.map(async (file) => {
+        try {
+          const metadata = await extractAudioMetadata(file);
+          processedCount++;
+          
+          // Update progress toast
+          toast.loading(
+            `Processing metadata ${processedCount}/${totalFiles} files...`,
+            {
+              id: toastId,
+              description: `Current: ${metadata.title}`,
+            }
+          );
+          
+          return metadata;
+        } catch (error) {
+          console.error(`Failed to process ${file.name}:`, error);
+          processedCount++;
+          
+          // Return fallback metadata
+          return {
+            title: file.name.replace(/\.[^/.]+$/, ""),
+            artist: "Unknown Artist",
+            album: "Unknown Album",
+            duration: 0,
+          };
+        }
+      });
+
+      const batchResults = await Promise.allSettled(batchPromises);
+      
+      // Extract successful results
+      batchResults.forEach((result) => {
+        if (result.status === 'fulfilled') {
+          results.push(result.value);
+        }
+      });
+
+      // Small delay between batches to prevent browser freezing
+      if (i + batchSize < files.length) {
+        await new Promise(resolve => setTimeout(resolve, 10));
+      }
+    }
+
+    // Success toast
+    toast.success(`Successfully processed ${results.length} files`, {
+      id: toastId,
+    });
+    
+  } catch (error) {
+    toast.error("Failed to process some files", {
+      id: toastId,
+      description: (error as Error).message,
+    });
+  }
+
+  return results;
 }
 
 export function createAudioUrl(file: File): string {

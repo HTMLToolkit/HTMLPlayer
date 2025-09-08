@@ -6,12 +6,7 @@ import {
   ThumbsUp,
   ThumbsDown,
   Heart,
-  Music,
-  MoreHorizontal,
   PlusCircle,
-  Info,
-  Share,
-  User,
   ListChecks,
 } from "lucide-react";
 import { SongActionsDropdown } from "./SongActionsDropdown";
@@ -53,7 +48,7 @@ export const MainContent = ({ musicPlayerHook }: MainContentProps) => {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [songToDelete, setSongToDelete] = useState<Song | null>(null);
   const [showSongInfo, setShowSongInfo] = useState(false);
-  const [selectedSongInfo, setSelectedSongInfo] = useState<Song | null>(null);
+  const [selectedSongInfo] = useState<Song | null>(null);
   const [selectedSongs, setSelectedSongs] = useState<string[]>([]);
   const [isSelectSongsActive, setIsSelectSongsActive] = useState(false);
   const [showPlaylistDialog, setShowPlaylistDialog] = useState(false);
@@ -68,7 +63,6 @@ export const MainContent = ({ musicPlayerHook }: MainContentProps) => {
     removeSong,
     toggleFavorite,
     isFavorited,
-    getFavoriteSongs,
     createPlaylist,
     addToPlaylist,
     navigateToArtist,
@@ -89,8 +83,7 @@ export const MainContent = ({ musicPlayerHook }: MainContentProps) => {
     };
 
     window.addEventListener("navigate", handleNavigate);
-    return () =>
-      window.removeEventListener("navigate", handleNavigate);
+    return () => window.removeEventListener("navigate", handleNavigate);
   }, [navigateToArtist, navigateToAlbum]);
 
   // Get initial songs list based on current view
@@ -192,6 +185,7 @@ export const MainContent = ({ musicPlayerHook }: MainContentProps) => {
         return;
       }
 
+      const songs: Song[] = [];
       const BATCH_SIZE = 7; // Process 7 files at a time
       let successCount = 0;
       let errorCount = 0;
@@ -219,9 +213,10 @@ export const MainContent = ({ musicPlayerHook }: MainContentProps) => {
               duration: metadata.duration,
               url: audioUrl,
               albumArt: metadata.albumArt,
+              hasStoredAudio: false, // Audio will be stored in IndexedDB by addSong
             };
 
-            await addSong(song);
+            songs.push(song);
             successCount++;
             console.log(`Successfully processed: ${song.title}`);
           } catch (error) {
@@ -233,6 +228,11 @@ export const MainContent = ({ musicPlayerHook }: MainContentProps) => {
         // Wait for current batch to complete
         await Promise.all(batchPromises);
         currentBatch++;
+      }
+
+      // Add all songs to the library at once
+      if (songs.length > 0) {
+        await addSong(songs);
       }
 
       toast.dismiss();
@@ -250,6 +250,7 @@ export const MainContent = ({ musicPlayerHook }: MainContentProps) => {
       toast.error("Failed to open file picker");
     }
   };
+
   const formatDuration = (seconds: number) => {
     const roundedSeconds = Math.round(seconds);
     const mins = Math.floor(roundedSeconds / 60);

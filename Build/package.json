@@ -6,9 +6,7 @@
     "dev": "vite",
     "build": "vite build",
     "start": "cd dist && python3 -m http.server 8000",
-    "preview": "vite preview",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "preview": "vite preview"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.15",
@@ -19,9 +17,9 @@
     "@radix-ui/react-slot": "^1.1.2",
     "@radix-ui/react-switch": "^1.2.6",
     "@radix-ui/react-tooltip": "^1.2.8",
-    "jsmediatags": "^3.9.7",
     "lodash": "^4.17.21",
     "lucide-react": "^0.542.0",
+    "music-metadata": "^11.8.3",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "sonner": "^2.0.7"
@@ -31,7 +29,7 @@
     "@types/jest": "^30.0.0",
     "@types/jsmediatags": "^3.9.6",
     "@types/lodash": "^4.17.20",
-    "@types/node": "^24.3.0",
+    "@types/node": "^24.3.1",
     "@types/react": "^19.1.12",
     "@types/react-dom": "^19.1.9",
     "@vite-pwa/assets-generator": "^1.0.0",
