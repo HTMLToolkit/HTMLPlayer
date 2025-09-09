@@ -23,32 +23,41 @@ import { SongActionsDropdown } from "./SongActionsDropdown";
 import { PlayerSettings } from "./Settings";
 
 type PlayerProps = {
-  musicPlayerHook: ReturnType<
-    typeof import("../helpers/musicPlayerHook").useMusicPlayer
+  audioPlayback: ReturnType<
+    typeof import("../hooks/useAudioPlayback").useAudioPlayback
+  >;
+  musicLibrary: ReturnType<
+    typeof import("../hooks/useMusicLibrary").useMusicLibrary
   >;
   settings: PlayerSettings;
 };
-export const Player = ({ musicPlayerHook, settings }: PlayerProps) => {
+
+export const Player = ({ audioPlayback, musicLibrary, settings }: PlayerProps) => {
   const progressRef = useRef<HTMLDivElement>(null);
   const volumeRef = useRef<HTMLDivElement>(null);
 
   const {
     playerState,
-    library,
+
     togglePlayPause,
     playNext,
     playPrevious,
     setVolume,
     seekTo,
-    addToFavorites,
-    removeFromFavorites,
     toggleShuffle,
     toggleRepeat,
+    playSong,
+
+  } = audioPlayback;
+
+  const {
+    library,
+    addToFavorites,
+    removeFromFavorites,
     createPlaylist,
     addToPlaylist,
-    playSong,
     removeSong,
-  } = musicPlayerHook;
+  } = musicLibrary;
 
   const {
     currentSong,
@@ -59,6 +68,7 @@ export const Player = ({ musicPlayerHook, settings }: PlayerProps) => {
     repeat,
     analyserNode,
   } = playerState;
+
   const [showVisualizer, setShowVisualizer] = useState(false);
   const [showLyrics, setShowLyrics] = useState(false); // <-- new state for lyrics
   const [isDraggingProgress, setIsDraggingProgress] = useState(false);
@@ -278,12 +288,12 @@ export const Player = ({ musicPlayerHook, settings }: PlayerProps) => {
     }
   };
 
-// Auto-show lyrics whenever a new song is loaded
-useEffect(() => {
-  if (currentSong && settings?.showLyrics) {
-    setShowLyrics(true);
-  }
-}, [currentSong, settings?.showLyrics]);
+  // Auto-show lyrics whenever a new song is loaded
+  useEffect(() => {
+    if (currentSong && settings?.showLyrics) {
+      setShowLyrics(true);
+    }
+  }, [currentSong, settings?.showLyrics]);
 
   const progressPercentage = currentSong
     ? (currentTime / currentSong.duration) * 100

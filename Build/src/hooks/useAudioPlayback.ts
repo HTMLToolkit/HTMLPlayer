@@ -4,19 +4,44 @@ import { PlayerState } from "../types/PlayerState";
 import { Playlist } from "../types/Playlist";
 import { Song } from "../types/Song";
 import { PlayerSettings } from "../types/PlayerSettings";
-import { useSongCache } from "./useSongCache";
-import { usePlayerSettings } from "./usePlayerSettings";
-import { useMusicLibrary } from "./useMusicLibrary";
 
-export const useAudioPlayback = () => {
-  const songCache = useSongCache();
-  const musicLibrary = useMusicLibrary();
-  const playerSettings = usePlayerSettings();
+// Define interfaces for dependencies to avoid circular imports
+interface SongCacheInterface {
+  cacheSong: (song: Song) => Promise<void>;
+  getCachedSong: (songId: string) => { song: Song; url: string } | undefined;
+  updateSongCache: (song: Song | null, playlist: Playlist | null, shuffle: boolean) => Promise<void>;
+  memoizedPrepareSongsForPlaylist: (songs: Song[]) => Song[];
+}
+
+interface MusicLibraryInterface {
+  setLibrary: React.Dispatch<React.SetStateAction<any>>;
+}
+
+interface PlayerSettingsInterface {
+  settings: PlayerSettings;
+  settingsRef: React.RefObject<PlayerSettings>;
+  setSettings: (settings: Partial<PlayerSettings>) => void;
+  isInitialized: boolean;
+}
+
+export const useAudioPlayback = (
+  songCache: SongCacheInterface,
+  musicLibrary: MusicLibraryInterface,
+  playerSettings: PlayerSettingsInterface
+) => {
+  const instantiationRef = useRef(false);
+  if (instantiationRef.current) {
+    console.warn("useAudioPlayback: Attempted re-instantiation, preventing loop");
+    throw new Error("Preventing recursive useAudioPlayback instantiation");
+  }
+  instantiationRef.current = true;
+  console.log("useAudioPlayback: Instantiated");
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
   const sourceNodeRef = useRef<MediaElementAudioSourceNode | null>(null);
   const playNextRef = useRef<(() => void) | null>(null);
+  
   const [playerState, setPlayerState] = useState<PlayerState>({
     currentSong: null,
     currentPlaylist: null,
@@ -29,9 +54,11 @@ export const useAudioPlayback = () => {
     analyserNode: null,
     view: "songs",
   });
+  
   const playerStateRef = useRef(playerState);
 
   const setupAudioContext = useCallback(() => {
+    console.log("useAudioPlayback: setupAudioContext called");
     if (!audioContextRef.current && audioRef.current) {
       const context = new (window.AudioContext ||
         (window as any).webkitAudioContext)();
@@ -51,11 +78,13 @@ export const useAudioPlayback = () => {
       setPlayerState((prev) => ({ ...prev, analyserNode: analyser }));
     }
   }, []);
+
   const playSong = useCallback(
     async (song: Song, playlist?: Playlist) => {
+      console.log("useAudioPlayback: playSong called", { songId: song.id, playlistId: playlist?.id });
       // Even if URL is empty, we might have it in IndexedDB
       if (!song.url && !song.hasStoredAudio) {
-        console.error("No URL or stored audio available for song:", song);
+        console.error("useAudioPlayback: No URL or stored audio available for song:", song);
         toast.error(`Cannot play "${song.title}" - No audio source available`);
         return;
       }
@@ -68,25 +97,25 @@ export const useAudioPlayback = () => {
       // Prepare song for playing, handling both IndexedDB and direct URLs
       const songToPlay = song.hasStoredAudio
         ? {
-          ...song,
-          url: `indexeddb://${song.id}`, // Use indexeddb:// URL
-        }
+            ...song,
+            url: `indexeddb://${song.id}`,
+          }
         : song;
 
       // First ensure the song is cached
       await songCache.cacheSong(songToPlay);
       const cachedSong = songCache.getCachedSong(song.id);
       if (!cachedSong) {
-        console.error("Failed to play song: could not cache");
+        console.error("useAudioPlayback: Failed to play song: could not cache");
         return;
       }
 
       // Prepare playlist songs if setting a new playlist
       const preparedPlaylist = playlist
         ? {
-          ...playlist,
-          songs: songCache.prepareSongsForPlaylist(playlist.songs),
-        }
+            ...playlist,
+            songs: songCache.memoizedPrepareSongsForPlaylist(playlist.songs),
+          }
         : playerStateRef.current.currentPlaylist;
 
       setPlayerState((prev) => ({
@@ -116,9 +145,9 @@ export const useAudioPlayback = () => {
                   ...prev,
                   currentSong: updatedSong,
                 }));
-                musicLibrary.setLibrary((prev) => ({
+                musicLibrary.setLibrary((prev: { songs: any[]; }) => ({
                   ...prev,
-                  songs: prev.songs.map((s) =>
+                  songs: prev.songs.map((s: { id: string; }) =>
                     s.id === song.id ? updatedSong : s
                   ),
                 }));
@@ -129,7 +158,7 @@ export const useAudioPlayback = () => {
                 setPlayerState((prev) => ({ ...prev, isPlaying: false }));
               }
             } else {
-              console.error("Failed to play song:", error);
+              console.error("useAudioPlayback: Failed to play song:", error);
               toast.error(`Failed to play "${song.title}"`, {
                 description: error.message || "Unknown error occurred",
               });
@@ -137,7 +166,7 @@ export const useAudioPlayback = () => {
             }
           });
         } catch (error: any) {
-          console.error("Failed to play song:", error);
+          console.error("useAudioPlayback: Failed to play song:", error);
           toast.error(`Failed to play "${song.title}"`, {
             description: error.message || "Unknown error occurred",
           });
@@ -146,20 +175,16 @@ export const useAudioPlayback = () => {
 
         // Update the cache for surrounding songs and next shuffled song
         if (playlist) {
-          songCache.updateSongCache(song, playlist);
+          console.log("useAudioPlayback: Updating song cache in playSong");
+          songCache.updateSongCache(song, playlist, playerState.shuffle);
         }
       }
     },
-    [
-      setupAudioContext,
-      songCache.cacheSong,
-      songCache.getCachedSong,
-      songCache.updateSongCache,
-      songCache.prepareSongsForPlaylist,
-    ]
+    [setupAudioContext, songCache, musicLibrary, playerState.shuffle]
   );
 
   const togglePlayPause = useCallback(() => {
+    console.log("useAudioPlayback: togglePlayPause called", { isPlaying: playerState.isPlaying });
     if (!audioRef.current || !playerState.currentSong) return;
     if (audioContextRef.current?.state === "suspended") {
       audioContextRef.current.resume();
@@ -176,15 +201,16 @@ export const useAudioPlayback = () => {
   }, [playerState.isPlaying, playerState.currentSong]);
 
   const playNext = useCallback(() => {
+    console.log("useAudioPlayback: playNext called");
     if (!playerState.currentPlaylist || !playerState.currentSong) return;
     const songs = playerState.currentPlaylist.songs;
     const currentIndex = songs.findIndex(
-      (s: { id: any; }) => s.id === playerState.currentSong!.id
+      (s: { id: any }) => s.id === playerState.currentSong!.id
     );
 
     if (playerState.shuffle) {
       const available = songs.filter(
-        (s: { id: any; }) => s.id !== playerState.currentSong!.id
+        (s: { id: any }) => s.id !== playerState.currentSong!.id
       );
       if (available.length > 0) {
         const randomIndex = Math.floor(Math.random() * available.length);
@@ -200,15 +226,16 @@ export const useAudioPlayback = () => {
   }, [playerState, playSong]);
 
   const playPrevious = useCallback(() => {
+    console.log("useAudioPlayback: playPrevious called");
     if (!playerState.currentPlaylist || !playerState.currentSong) return;
     const songs = playerState.currentPlaylist.songs;
     const currentIndex = songs.findIndex(
-      (s: { id: any; }) => s.id === playerState.currentSong!.id
+      (s: { id: any }) => s.id === playerState.currentSong!.id
     );
 
     if (playerState.shuffle) {
       const available = songs.filter(
-        (s: { id: any; }) => s.id !== playerState.currentSong!.id
+        (s: { id: any }) => s.id !== playerState.currentSong!.id
       );
       if (available.length > 0) {
         const randomIndex = Math.floor(Math.random() * available.length);
@@ -224,16 +251,19 @@ export const useAudioPlayback = () => {
   }, [playerState, playSong]);
 
   const setVolume = useCallback((volume: number) => {
+    console.log("useAudioPlayback: setVolume called", { volume });
     const clamped = Math.max(0, Math.min(1, volume));
-    playerSettings.setSettings((prev: any) => ({ ...prev, volume: clamped }));
+    playerSettings.setSettings({ volume: clamped });
     if (audioRef.current) audioRef.current.volume = clamped;
-  }, []);
+  }, [playerSettings]);
 
   const toggleShuffle = useCallback(() => {
+    console.log("useAudioPlayback: toggleShuffle called");
     setPlayerState((prev) => ({ ...prev, shuffle: !prev.shuffle }));
   }, []);
 
   const toggleRepeat = useCallback(() => {
+    console.log("useAudioPlayback: toggleRepeat called");
     setPlayerState((prev) => ({
       ...prev,
       repeat:
@@ -242,6 +272,7 @@ export const useAudioPlayback = () => {
   }, []);
 
   const seekTo = useCallback((time: number) => {
+    console.log("useAudioPlayback: seekTo called", { time });
     if (audioRef.current) {
       audioRef.current.currentTime = time;
       setPlayerState((prev) => ({ ...prev, currentTime: time }));
@@ -249,9 +280,10 @@ export const useAudioPlayback = () => {
   }, []);
 
   useEffect(() => {
+    console.log("useAudioPlayback: Audio setup useEffect triggered");
     audioRef.current = new Audio();
     audioRef.current.crossOrigin = "anonymous";
-    audioRef.current.controls = true; // Enable browser controls
+    audioRef.current.controls = true;
 
     const audio = audioRef.current;
 
@@ -270,7 +302,8 @@ export const useAudioPlayback = () => {
     };
 
     const handleEnded = () => {
-      if (playerSettings.settingsRef.current.autoPlayNext) {
+      console.log("useAudioPlayback: handleEnded triggered");
+      if (playerSettings.settingsRef.current?.autoPlayNext) {
         if (playerStateRef.current.repeat === "one") {
           if (audioRef.current) {
             audioRef.current.currentTime = 0;
@@ -287,58 +320,68 @@ export const useAudioPlayback = () => {
     audio.addEventListener("ended", handleEnded);
 
     return () => {
+      console.log("useAudioPlayback: Cleaning up audio useEffect");
       audio.removeEventListener("timeupdate", handleTimeUpdate);
       audio.removeEventListener("loadedmetadata", handleLoadedMetadata);
       audio.removeEventListener("ended", handleEnded);
       audio.pause();
     };
-  }, []);
+  }, [playerSettings]);
 
   useEffect(() => {
+    console.log("useAudioPlayback: playerStateRef update useEffect triggered");
     playerStateRef.current = playerState;
   }, [playerState]);
 
   useEffect(() => {
+    console.log("useAudioPlayback: Volume sync useEffect triggered", {
+      volume: playerSettings.settings.volume,
+    });
     if (audioRef.current) {
       audioRef.current.volume = playerSettings.settings.volume;
     }
   }, [playerSettings.settings.volume]);
 
   useEffect(() => {
+    if (!playerSettings.isInitialized) return;
+    
+    console.log("useAudioPlayback: Settings sync useEffect triggered");
     setPlayerState((prev) => ({
       ...prev,
       volume: playerSettings.settings.volume,
       shuffle: playerSettings.settings.defaultShuffle,
       repeat: playerSettings.settings.defaultRepeat,
     }));
-  }, [playerSettings.settings.volume, playerSettings.settings.defaultShuffle, playerSettings.settings.defaultRepeat]);
+  }, [
+    playerSettings.settings.volume,
+    playerSettings.settings.defaultShuffle,
+    playerSettings.settings.defaultRepeat,
+    playerSettings.isInitialized,
+  ]);
 
   useEffect(() => {
-    if (!musicLibrary.isInitialized) return;
-    // Update last played song and playlist IDs in settings when they change
-    playerSettings.setSettings((prev: PlayerSettings) => ({
-      ...prev,
-      lastPlayedSongId: playerState.currentSong?.id ?? prev.lastPlayedSongId,
-      lastPlayedPlaylistId:
-        playerState.currentPlaylist?.id ?? prev.lastPlayedPlaylistId,
-    }));
+    console.log("useAudioPlayback: MediaSession useEffect triggered", {
+      currentSong: playerState.currentSong?.id,
+      currentPlaylist: playerState.currentPlaylist?.id,
+    });
+    
+    if (!playerSettings.isInitialized) return;
+    
+    playerSettings.setSettings({
+      lastPlayedSongId: playerState.currentSong?.id ?? "none",
+      lastPlayedPlaylistId: playerState.currentPlaylist?.id ?? "none",
+    });
 
-    // Update Media Session metadata with album art
     if ("mediaSession" in navigator && playerState.currentSong) {
       navigator.mediaSession.metadata = new MediaMetadata({
         title: playerState.currentSong.title,
         artist: playerState.currentSong.artist,
         album: playerState.currentSong.album,
         artwork: playerState.currentSong.albumArt
-          ? [
-            {
-              src: playerState.currentSong.albumArt,
-            },
-          ]
+          ? [{ src: playerState.currentSong.albumArt }]
           : [],
       });
 
-      // Set up Media Session action handlers for previous and next track
       navigator.mediaSession.setActionHandler("previoustrack", () => {
         playPrevious();
       });
@@ -348,15 +391,17 @@ export const useAudioPlayback = () => {
       });
 
       return () => {
+        console.log("useAudioPlayback: Cleaning up MediaSession useEffect");
         if ("mediaSession" in navigator) {
           navigator.mediaSession.setActionHandler("previoustrack", null);
           navigator.mediaSession.setActionHandler("nexttrack", null);
         }
       };
     }
-  }, [playerState.currentSong, playerState.currentPlaylist, musicLibrary.isInitialized]);
+  }, [playerState.currentSong, playerState.currentPlaylist, playerSettings.isInitialized, playerSettings, playNext, playPrevious]);
 
   useEffect(() => {
+    console.log("useAudioPlayback: playNextRef update useEffect triggered");
     playNextRef.current = playNext;
   }, [playNext]);
 

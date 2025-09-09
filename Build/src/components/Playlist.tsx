@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import styles from "./Playlist.module.css";
-import { Playlist } from "../helpers/musicPlayerHook";
+import { Playlist } from "../types/Playlist";
 import { generatePlaylistImage } from "../helpers/playlistImageHelper";
 import { Button } from "./Button";
 import { Input } from "./Input";
@@ -32,12 +32,15 @@ import {
 } from "./DropdownMenu";
 
 type PlaylistProps = {
-  musicPlayerHook: ReturnType<
-    typeof import("../helpers/musicPlayerHook").useMusicPlayer
-  >;
+    audioPlayback: ReturnType<
+      typeof import("../hooks/useAudioPlayback").useAudioPlayback
+    >;
+    musicLibrary: ReturnType<
+      typeof import("../hooks/useMusicLibrary").useMusicLibrary
+    >;
 };
 
-export const PlaylistComponent = ({ musicPlayerHook }: PlaylistProps) => {
+export const PlaylistComponent = ({ audioPlayback, musicLibrary }: PlaylistProps) => {
   const [playlistSearchQuery, setPlaylistSearchQuery] = useState("");
   const [showCreatePlaylist, setShowCreatePlaylist] = useState(false);
   const [newPlaylistName, setNewPlaylistName] = useState("");
@@ -52,7 +55,8 @@ export const PlaylistComponent = ({ musicPlayerHook }: PlaylistProps) => {
     null
   );
 
-  const { library, playSong, createPlaylist, removePlaylist } = musicPlayerHook;
+  const { playSong } = audioPlayback;
+  const { library, createPlaylist, removePlaylist } = musicLibrary;
 
   // Generate playlist images when songs change
   useEffect(() => {

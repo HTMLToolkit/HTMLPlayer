@@ -7,8 +7,11 @@ import { Song } from "../types/Song";
 import { useSongCache } from "./useSongCache";
 import { useAudioPlayback } from "./useAudioPlayback";
 import { usePlayerSettings } from "./usePlayerSettings";
+import { debounce } from "lodash";
 
 export const useMusicLibrary = () => {
+  console.log("useMusicLibrary called.");
+  
   const songCache = useSongCache();
   const audioPlayback = useAudioPlayback();
   const playerSettings = usePlayerSettings();
@@ -100,7 +103,7 @@ export const useMusicLibrary = () => {
 
         let newPlaylists = prev.playlists.map((p) =>
           p.id === "all-songs"
-            ? { ...p, songs: songCache.prepareSongsForPlaylist(newSongs) }
+            ? { ...p, songs: songCache.memoizedPrepareSongsForPlaylist(newSongs) }
             : p
         );
 
@@ -109,7 +112,7 @@ export const useMusicLibrary = () => {
             {
               id: "all-songs",
               name: "All Songs",
-              songs: songCache.prepareSongsForPlaylist(newSongs),
+              songs: songCache.memoizedPrepareSongsForPlaylist(newSongs),
             },
             ...newPlaylists,
           ];
@@ -139,7 +142,7 @@ export const useMusicLibrary = () => {
             songs: newSongs,
             playlists: prev.playlists.map((p) =>
               p.id === "all-songs"
-                ? { ...p, songs: songCache.prepareSongsForPlaylist(newSongs) }
+                ? { ...p, songs: songCache.memoizedPrepareSongsForPlaylist(newSongs) }
                 : p
             ),
           };
@@ -151,7 +154,7 @@ export const useMusicLibrary = () => {
         });
       }
     },
-    [processAudioBatch, songCache.prepareSongsForPlaylist]
+    [processAudioBatch, songCache.memoizedPrepareSongsForPlaylist]
   );
 
   const removeSong = useCallback(async (songId: string) => {
@@ -183,7 +186,7 @@ export const useMusicLibrary = () => {
       const newPlaylist: Playlist = {
         id: Date.now().toString(),
         name,
-        songs: songCache.prepareSongsForPlaylist(songs),
+        songs: songCache.memoizedPrepareSongsForPlaylist(songs),
       };
       setLibrary((prev) => ({
         ...prev,
@@ -191,7 +194,7 @@ export const useMusicLibrary = () => {
       }));
       return newPlaylist;
     },
-    [songCache.prepareSongsForPlaylist]
+    [songCache.memoizedPrepareSongsForPlaylist]
   );
 
   const removePlaylist = useCallback((playlistId: string) => {
@@ -282,7 +285,7 @@ export const useMusicLibrary = () => {
           const allSongsPlaylist = {
             id: "all-songs",
             name: "All Songs",
-            songs: songCache.prepareSongsForPlaylist(validLibrary.songs),
+            songs: songCache.memoizedPrepareSongsForPlaylist(validLibrary.songs),
           };
 
           // Add or update All Songs playlist
@@ -290,13 +293,13 @@ export const useMusicLibrary = () => {
             ...validLibrary,
             playlists: validLibrary.playlists.some((p: { id: string; }) => p.id === "all-songs")
               ? validLibrary.playlists.map((p: { id: string; }) =>
-                  p.id === "all-songs"
-                    ? {
-                        ...p,
-                        songs: songCache.prepareSongsForPlaylist(validLibrary.songs),
-                      }
-                    : p
-                )
+                p.id === "all-songs"
+                  ? {
+                    ...p,
+                    songs: songCache.memoizedPrepareSongsForPlaylist(validLibrary.songs),
+                  }
+                  : p
+              )
               : [allSongsPlaylist, ...validLibrary.playlists],
           };
 
@@ -365,22 +368,41 @@ export const useMusicLibrary = () => {
   }, [library, isInitialized]);
 
   useEffect(() => {
+    if (!isInitialized) return;
+    const updatePlayerState = debounce((updatedPlaylist: Playlist) => {
+      console.log("useMusicLibrary: Updating playerState.currentPlaylist", {
+        playlistId: updatedPlaylist.id,
+        songs: updatedPlaylist.songs.map((s) => s.id),
+      });
+      
+      audioPlayback.setPlayerState((prev: any) => ({
+        ...prev,
+        currentPlaylist: updatedPlaylist,
+      }));
+    }, 100);
+
     if (audioPlayback.playerState.currentPlaylist) {
       const updatedPlaylist = library.playlists.find(
         (p) => p.id === audioPlayback.playerState.currentPlaylist?.id
       );
-      if (
-        updatedPlaylist &&
-        updatedPlaylist.songs !== audioPlayback.playerState.currentPlaylist.songs
-      ) {
-        audioPlayback.setPlayerState((prev: any) => ({
-          ...prev,
-          currentPlaylist: updatedPlaylist,
-        }));
+      if (updatedPlaylist) {
+        const areSongsEqual =
+          updatedPlaylist.songs.length ===
+          audioPlayback.playerState.currentPlaylist.songs.length &&
+          updatedPlaylist.songs.every((song: { id: any; url: any; }, index: string | number) =>
+            song.id === audioPlayback.playerState.currentPlaylist.songs[index].id &&
+            song.url === audioPlayback.playerState.currentPlaylist.songs[index].url
+          );
+        if (!areSongsEqual) {
+          updatePlayerState(updatedPlaylist);
+        }
       }
     }
-  }, [library.playlists, audioPlayback.playerState.currentPlaylist?.id]);
 
+    return () => {
+      updatePlayerState.cancel();
+    };
+  }, [library.playlists, audioPlayback.playerState.currentPlaylist?.id, isInitialized]);
   return {
     library,
     setLibrary,

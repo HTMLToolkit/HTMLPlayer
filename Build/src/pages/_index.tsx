@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Sidebar } from "../components/Sidebar";
 import { MainContent } from "../components/MainContent";
 import { Player } from "../components/Player";
+import { ErrorBoundary } from "../helpers/errorBoundary";
 import { useAudioPlayback } from "../hooks/useAudioPlayback";
 import {
   switchToAutoMode,
@@ -13,19 +14,18 @@ import { musicIndexedDbHelper } from "../helpers/musicIndexedDbHelper";
 import styles from "./_index.module.css";
 import { useMusicLibrary } from "../hooks/useMusicLibrary";
 import { useSearchAndNavigation } from "../hooks/useSearchAndNavigation";
+import { usePlayerSettings } from "../hooks/usePlayerSettings";
 
 export default function IndexPage() {
   const audioPlayback = useAudioPlayback();
   const musicLibrary = useMusicLibrary();
   const searchAndNavigation = useSearchAndNavigation();
+  const playerSettings = usePlayerSettings();
 
   const [, setThemeMode] = useState<ThemeMode>("auto");
 
   useEffect(() => {
-    // Set the document title
     document.title = "HTMLPlayer";
-
-    // Set the meta description
     const metaDescription = document.querySelector('meta[name="description"]');
     if (metaDescription) {
       metaDescription.setAttribute(
@@ -63,25 +63,26 @@ export default function IndexPage() {
   }, []);
 
   return (
-    <div className={styles.container}>
-      <Sidebar musicPlayerHook={ audioPlayback }/>
-      <div className={ styles.mainSection }>
-        <MainContent audioPlayback={ audioPlayback } musicLibrary={ musicLibrary } searchAndNavigation={ searchAndNavigation } />
-        <Player musicPlayerHook={ audioPlayback } settings={{
-          volume: 0,
-          crossfade: 0,
-          defaultShuffle: false,
-          defaultRepeat: "off",
-          themeMode: "light",
-          colorTheme: "",
-          autoPlayNext: false,
-          compactMode: false,
-          showAlbumArt: false,
-          showLyrics: false,
-          lastPlayedSongId: undefined,
-          lastPlayedPlaylistId: undefined
-        }} />
+    <ErrorBoundary
+      audioPlayback={audioPlayback}
+      musicLibrary={musicLibrary}
+      playerSettings={playerSettings}
+    >
+      <div className={styles.container}>
+        <Sidebar audioPlayback={audioPlayback} musicLibrary={musicLibrary} playerSettings={playerSettings} />
+        <div className={styles.mainSection}>
+          <MainContent
+            audioPlayback={audioPlayback}
+            musicLibrary={musicLibrary}
+            searchAndNavigation={searchAndNavigation}
+          />
+          <Player
+            audioPlayback={audioPlayback}
+            musicLibrary={musicLibrary}
+            settings={playerSettings.settings}
+          />
+        </div>
       </div>
-    </div>
+    </ErrorBoundary>
   );
 }

@@ -20,8 +20,14 @@ import { PlaylistComponent } from "./Playlist";
 import styles from "./Sidebar.module.css";
 
 type SidebarProps = {
-  musicPlayerHook: ReturnType<
-    typeof import("../helpers/musicPlayerHook").useMusicPlayer
+  audioPlayback: ReturnType<
+    typeof import("../hooks/useAudioPlayback").useAudioPlayback
+  >;
+  playerSettings: ReturnType<
+    typeof import("../hooks/usePlayerSettings").usePlayerSettings
+  >;
+  musicLibrary: ReturnType<
+    typeof import("../hooks/useMusicLibrary").useMusicLibrary
   >;
   onCollapseChange?: (isCollapsed: boolean) => void;
 };
@@ -30,14 +36,16 @@ const COLLAPSED_WIDTH = "40px";
 const EXPANDED_WIDTH = "250px";
 
 export const Sidebar = ({
-  musicPlayerHook,
+  playerSettings,
+  audioPlayback,
+  musicLibrary,
   onCollapseChange,
 }: SidebarProps) => {
   const [showAbout, setShowAbout] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
 
-  const { settings, updateSettings } = musicPlayerHook;
+  const { settings, updateSettings } = playerSettings;
 
   const handleAbout = () => {
     setShowAbout(true);
@@ -101,7 +109,7 @@ export const Sidebar = ({
         <h2 className={styles.title}>Playlists</h2>
       </div>
 
-      <PlaylistComponent musicPlayerHook={musicPlayerHook} />
+      <PlaylistComponent audioPlayback={ audioPlayback } musicLibrary= { musicLibrary }/>
 
       <div className={styles.footer}>
         <Separator />

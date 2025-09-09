@@ -1,11 +1,18 @@
-import { useState, useRef, useCallback, useEffect } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { musicIndexedDbHelper } from "../helpers/musicIndexedDbHelper";
 import { PlayerSettings } from "../types/PlayerSettings";
-import { useMusicLibrary } from "./useMusicLibrary";
+import { debounce } from "lodash";
 
 export const usePlayerSettings = () => {
-  const musicLibrary = useMusicLibrary();
+  const instantiationRef = useRef(false);
+  if (instantiationRef.current) {
+    console.warn("usePlayerSettings: Attempted re-instantiation, preventing loop");
+    throw new Error("Preventing recursive usePlayerSettings instantiation");
+  }
+  instantiationRef.current = true;
+  console.log("usePlayerSettings: Instantiated");
 
+  const [isInitialized, setIsInitialized] = useState(false);
   const [settings, setSettings] = useState<PlayerSettings>({
     volume: 0.75,
     crossfade: 3,
@@ -20,34 +27,59 @@ export const usePlayerSettings = () => {
     lastPlayedSongId: "none",
     lastPlayedPlaylistId: "none",
   });
-
   const settingsRef = useRef(settings);
 
-  const updateSettings = useCallback((newSettings: Partial<PlayerSettings>) => {
-    setSettings((prev) => ({ ...prev, ...newSettings }));
-  }, []);
+  const debouncedSaveSettings = useCallback(
+    debounce(async (newSettings: PlayerSettings) => {
+      console.log("usePlayerSettings: Saving settings to IndexedDB", newSettings);
+      try {
+        await musicIndexedDbHelper.saveSettings(newSettings);
+      } catch (error) {
+        console.error("usePlayerSettings: Failed to save settings:", error);
+      }
+    }, 100),
+    []
+  );
+
+  const updateSettings = useCallback(
+    (newSettings: Partial<PlayerSettings>) => {
+      console.log("usePlayerSettings: updateSettings called", newSettings);
+      setSettings((prev) => {
+        const updated = { ...prev, ...newSettings };
+        settingsRef.current = updated;
+        if (isInitialized) {
+          debouncedSaveSettings(updated);
+        }
+        return updated;
+      });
+    },
+    [isInitialized, debouncedSaveSettings]
+  );
 
   useEffect(() => {
-    if (!musicLibrary.isInitialized) return;
-    const saveSettings = async () => {
+    console.log("usePlayerSettings: Initialization useEffect triggered");
+    const loadSettings = async () => {
       try {
-        await musicIndexedDbHelper.saveSettings(settings);
+        const persistedSettings = await musicIndexedDbHelper.loadSettings();
+        if (persistedSettings) {
+          console.log("usePlayerSettings: Loaded settings", persistedSettings);
+          setSettings(persistedSettings);
+          settingsRef.current = persistedSettings;
+        }
       } catch (error) {
-        console.error("Failed to persist settings:", error);
+        console.error("usePlayerSettings: Failed to load settings:", error);
+      } finally {
+        setIsInitialized(true);
       }
     };
-    saveSettings();
-  }, [settings, musicLibrary.isInitialized]);
-
-  useEffect(() => {
-    settingsRef.current = settings;
-  }, [settings]);
+    loadSettings();
+  }, []);
 
   return {
     settings,
     updateSettings,
-    usePlayerSettings,
     settingsRef,
-    setSettings,
+    setSettings: updateSettings, // Alias for compatibility
+    isInitialized,
   };
 };

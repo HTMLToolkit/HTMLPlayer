@@ -3,6 +3,7 @@ import { useAudioPlayback } from "./useAudioPlayback";
 import { useMusicLibrary } from "./useMusicLibrary";
 
 export const useSearchAndNavigation = () => {
+  console.log("useSearchAndNavigation called.");
   const audioPlayback = useAudioPlayback();
   const musicLibrary = useMusicLibrary();
 
