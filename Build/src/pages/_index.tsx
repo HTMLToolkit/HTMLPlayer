@@ -3,7 +3,6 @@ import { Sidebar } from "../components/Sidebar";
 import { MainContent } from "../components/MainContent";
 import { Player } from "../components/Player";
 import { ErrorBoundary } from "../helpers/errorBoundary";
-import { useAudioPlayback } from "../hooks/useAudioPlayback";
 import {
   switchToAutoMode,
   switchToDarkMode,
@@ -12,15 +11,10 @@ import {
 } from "../helpers/themeMode";
 import { musicIndexedDbHelper } from "../helpers/musicIndexedDbHelper";
 import styles from "./_index.module.css";
-import { useMusicLibrary } from "../hooks/useMusicLibrary";
-import { useSearchAndNavigation } from "../hooks/useSearchAndNavigation";
-import { usePlayerSettings } from "../hooks/usePlayerSettings";
+import { useMusicPlayer } from "../hooks/useMusicPlayer";
 
 export default function IndexPage() {
-  const audioPlayback = useAudioPlayback();
-  const musicLibrary = useMusicLibrary();
-  const searchAndNavigation = useSearchAndNavigation();
-  const playerSettings = usePlayerSettings();
+  const musicPlayer = useMusicPlayer();
 
   const [, setThemeMode] = useState<ThemeMode>("auto");
 
@@ -64,22 +58,19 @@ export default function IndexPage() {
 
   return (
     <ErrorBoundary
-      audioPlayback={audioPlayback}
-      musicLibrary={musicLibrary}
-      playerSettings={playerSettings}
+      // Pass the complete musicPlayer object instead of individual hooks
+      musicPlayer={musicPlayer}
     >
       <div className={styles.container}>
-        <Sidebar audioPlayback={audioPlayback} musicLibrary={musicLibrary} playerSettings={playerSettings} />
+        <Sidebar 
+          musicPlayer={musicPlayer}
+        />
         <div className={styles.mainSection}>
           <MainContent
-            audioPlayback={audioPlayback}
-            musicLibrary={musicLibrary}
-            searchAndNavigation={searchAndNavigation}
+            musicPlayer={musicPlayer}
           />
           <Player
-            audioPlayback={audioPlayback}
-            musicLibrary={musicLibrary}
-            settings={playerSettings.settings}
+            musicPlayer={musicPlayer}
           />
         </div>
       </div>

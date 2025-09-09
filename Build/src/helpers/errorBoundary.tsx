@@ -1,13 +1,9 @@
 import { Component, ErrorInfo, ReactNode } from "react";
-import { useAudioPlayback } from "../hooks/useAudioPlayback";
-import { useMusicLibrary } from "../hooks/useMusicLibrary";
-import { usePlayerSettings } from "../hooks/usePlayerSettings";
+import { useMusicPlayer } from "../hooks/useMusicPlayer";
 
 interface ErrorBoundaryProps {
   children: ReactNode;
-  audioPlayback?: ReturnType<typeof useAudioPlayback>;
-  musicLibrary?: ReturnType<typeof useMusicLibrary>;
-  playerSettings?: ReturnType<typeof usePlayerSettings>;
+  musicPlayer?: ReturnType<typeof useMusicPlayer>;
 }
 
 interface ErrorBoundaryState {
@@ -32,9 +28,9 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
       error: error.message,
       stack: error.stack,
       componentStack: errorInfo.componentStack,
-      audioPlaybackState: this.props.audioPlayback?.playerState,
-      musicLibraryState: this.props.musicLibrary?.library,
-      playerSettingsState: this.props.playerSettings?.settings,
+      audioPlaybackState: this.props.musicPlayer?.audioPlayback?.playerState,
+      musicLibraryState: this.props.musicPlayer?.musicLibrary?.library,
+      playerSettingsState: this.props.musicPlayer?.playerSettings?.settings,
     });
   }
 

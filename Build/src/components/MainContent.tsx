@@ -29,25 +29,17 @@ import {
   DialogFooter,
 } from "./Dialog";
 import modalStyles from "./Dialog.module.css";
-
 import { Song } from "../types/Song";
 import { Playlist } from "../types/Playlist";
 import styles from "./MainContent.module.css";
 import PersistentDropdownMenu from "./PersistentDropdownMenu";
 
+// Updated type to use the main hook
 type MainContentProps = {
-  audioPlayback: ReturnType<
-    typeof import("../hooks/useAudioPlayback").useAudioPlayback
-  >;
-  musicLibrary: ReturnType<
-    typeof import("../hooks/useMusicLibrary").useMusicLibrary
-  >;
-  searchAndNavigation: ReturnType<
-    typeof import("../hooks/useSearchAndNavigation").useSearchAndNavigation
-  >;
+  musicPlayer: ReturnType<typeof import("../hooks/useMusicPlayer").useMusicPlayer>;
 };
 
-export const MainContent = ({ audioPlayback, musicLibrary, searchAndNavigation }: MainContentProps) => {
+export const MainContent = ({ musicPlayer }: MainContentProps) => {
   const [songSearchQuery, setSongSearchQuery] = useState("");
   const [ratings, setRatings] = useState<
     Record<string, "thumbs-up" | "thumbs-down" | "none">
@@ -62,26 +54,27 @@ export const MainContent = ({ audioPlayback, musicLibrary, searchAndNavigation }
   const [newPlaylistName, setNewPlaylistName] = useState("");
   const [isCreatingNew, setIsCreatingNew] = useState(false);
 
+  // Destructure from the main music player hook
   const {
-    playerState,
-    playSong
-  } = audioPlayback;
-
-  const {
-    library,
-    addSong,
-    removeSong,
-    toggleFavorite,
-    isFavorited,
-    createPlaylist,
-    addToPlaylist,
-  } = musicLibrary;
-
-  const {
-    navigateToArtist,
-    navigateToAlbum,
-    navigateToSongs,
-  } = searchAndNavigation;
+    audioPlayback: {
+      playerState,
+      playSong
+    },
+    musicLibrary: {
+      library,
+      addSong,
+      removeSong,
+      toggleFavorite,
+      isFavorited,
+      createPlaylist,
+      addToPlaylist,
+    },
+    searchAndNavigation: {
+      navigateToArtist,
+      navigateToAlbum,
+      navigateToSongs,
+    }
+  } = musicPlayer;
 
   // Add navigation event listener
   React.useEffect(() => {

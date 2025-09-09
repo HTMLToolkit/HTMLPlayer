@@ -1,11 +1,20 @@
 import { useState, useCallback } from "react";
-import { useAudioPlayback } from "./useAudioPlayback";
-import { useMusicLibrary } from "./useMusicLibrary";
+import { MusicLibrary } from "../types/MusicLibrary";
 
-export const useSearchAndNavigation = () => {
+// Define interfaces for dependencies to avoid circular imports
+interface AudioPlaybackInterface {
+  setPlayerState: React.Dispatch<React.SetStateAction<any>>;
+}
+
+interface MusicLibraryInterface {
+  library: MusicLibrary;
+}
+
+export const useSearchAndNavigation = (
+  audioPlayback: AudioPlaybackInterface,
+  musicLibrary: MusicLibraryInterface
+) => {
   console.log("useSearchAndNavigation called.");
-  const audioPlayback = useAudioPlayback();
-  const musicLibrary = useMusicLibrary();
 
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -27,29 +36,29 @@ export const useSearchAndNavigation = () => {
   }, [searchSongs, searchQuery]);
 
   const navigateToArtist = useCallback((artist: string) => {
-    audioPlayback.setPlayerState((prev) => ({
+    audioPlayback.setPlayerState((prev: any) => ({
       ...prev,
       view: "artist",
       currentArtist: artist,
     }));
-  }, []);
+  }, [audioPlayback]);
 
   const navigateToAlbum = useCallback((album: string) => {
-    audioPlayback.setPlayerState((prev) => ({
+    audioPlayback.setPlayerState((prev: any) => ({
       ...prev,
       view: "album",
       currentAlbum: album,
     }));
-  }, []);
+  }, [audioPlayback]);
 
   const navigateToSongs = useCallback(() => {
-    audioPlayback.setPlayerState((prev) => ({
+    audioPlayback.setPlayerState((prev: any) => ({
       ...prev,
       view: "songs",
       currentArtist: undefined,
       currentAlbum: undefined,
     }));
-  }, []);
+  }, [audioPlayback]);
 
   return {
     searchQuery,

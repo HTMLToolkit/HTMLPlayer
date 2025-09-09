@@ -4,17 +4,31 @@ import { musicIndexedDbHelper } from "../helpers/musicIndexedDbHelper";
 import { MusicLibrary } from "../types/MusicLibrary";
 import { Playlist } from "../types/Playlist";
 import { Song } from "../types/Song";
-import { useSongCache } from "./useSongCache";
-import { useAudioPlayback } from "./useAudioPlayback";
-import { usePlayerSettings } from "./usePlayerSettings";
 import { debounce } from "lodash";
 
-export const useMusicLibrary = () => {
+// Define interfaces for dependencies to avoid circular imports
+interface SongCacheInterface {
+  memoizedPrepareSongsForPlaylist: (songs: Song[]) => Song[];
+}
+
+interface AudioPlaybackInterface {
+  playerState: {
+    currentPlaylist: Playlist | null;
+  };
+  setPlayerState: React.Dispatch<React.SetStateAction<any>>;
+}
+
+interface PlayerSettingsInterface {
+  setSettings: (settings: any) => void;
+  isInitialized: boolean;
+}
+
+export const useMusicLibrary = (
+  songCache: SongCacheInterface,
+  audioPlayback: AudioPlaybackInterface,
+  playerSettings: PlayerSettingsInterface
+) => {
   console.log("useMusicLibrary called.");
-  
-  const songCache = useSongCache();
-  const audioPlayback = useAudioPlayback();
-  const playerSettings = usePlayerSettings();
 
   const [isInitialized, setIsInitialized] = useState(false);
 
@@ -154,7 +168,7 @@ export const useMusicLibrary = () => {
         });
       }
     },
-    [processAudioBatch, songCache.memoizedPrepareSongsForPlaylist]
+    [processAudioBatch, songCache]
   );
 
   const removeSong = useCallback(async (songId: string) => {
@@ -194,7 +208,7 @@ export const useMusicLibrary = () => {
       }));
       return newPlaylist;
     },
-    [songCache.memoizedPrepareSongsForPlaylist]
+    [songCache]
   );
 
   const removePlaylist = useCallback((playlistId: string) => {
@@ -353,7 +367,7 @@ export const useMusicLibrary = () => {
       }
     };
     loadPersistedData();
-  }, []);
+  }, [songCache, audioPlayback, playerSettings]);
 
   useEffect(() => {
     if (!isInitialized) return;
@@ -368,7 +382,8 @@ export const useMusicLibrary = () => {
   }, [library, isInitialized]);
 
   useEffect(() => {
-    if (!isInitialized) return;
+    if (!isInitialized || !playerSettings.isInitialized) return;
+    
     const updatePlayerState = debounce((updatedPlaylist: Playlist) => {
       console.log("useMusicLibrary: Updating playerState.currentPlaylist", {
         playlistId: updatedPlaylist.id,
@@ -386,12 +401,13 @@ export const useMusicLibrary = () => {
         (p) => p.id === audioPlayback.playerState.currentPlaylist?.id
       );
       if (updatedPlaylist) {
+        if (!audioPlayback.playerState.currentPlaylist) return;
         const areSongsEqual =
           updatedPlaylist.songs.length ===
           audioPlayback.playerState.currentPlaylist.songs.length &&
-          updatedPlaylist.songs.every((song: { id: any; url: any; }, index: string | number) =>
-            song.id === audioPlayback.playerState.currentPlaylist.songs[index].id &&
-            song.url === audioPlayback.playerState.currentPlaylist.songs[index].url
+          updatedPlaylist.songs.every((song: { id: any; url: any; }, index: number) =>
+            song.id === audioPlayback.playerState.currentPlaylist?.songs[index].id &&
+            song.url === audioPlayback.playerState.currentPlaylist?.songs[index].url
           );
         if (!areSongsEqual) {
           updatePlayerState(updatedPlaylist);
@@ -402,7 +418,8 @@ export const useMusicLibrary = () => {
     return () => {
       updatePlayerState.cancel();
     };
-  }, [library.playlists, audioPlayback.playerState.currentPlaylist?.id, isInitialized]);
+  }, [library.playlists, audioPlayback.playerState.currentPlaylist?.id, isInitialized, playerSettings.isInitialized, audioPlayback]);
+
   return {
     library,
     setLibrary,

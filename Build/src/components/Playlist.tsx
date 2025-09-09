@@ -32,15 +32,11 @@ import {
 } from "./DropdownMenu";
 
 type PlaylistProps = {
-    audioPlayback: ReturnType<
-      typeof import("../hooks/useAudioPlayback").useAudioPlayback
-    >;
-    musicLibrary: ReturnType<
-      typeof import("../hooks/useMusicLibrary").useMusicLibrary
-    >;
+  // Updated type to use the main hook
+  musicPlayer: ReturnType<typeof import("../hooks/useMusicPlayer").useMusicPlayer>;
 };
 
-export const PlaylistComponent = ({ audioPlayback, musicLibrary }: PlaylistProps) => {
+export const PlaylistComponent = ({ musicPlayer }: PlaylistProps) => {
   const [playlistSearchQuery, setPlaylistSearchQuery] = useState("");
   const [showCreatePlaylist, setShowCreatePlaylist] = useState(false);
   const [newPlaylistName, setNewPlaylistName] = useState("");
@@ -55,8 +51,8 @@ export const PlaylistComponent = ({ audioPlayback, musicLibrary }: PlaylistProps
     null
   );
 
-  const { playSong } = audioPlayback;
-  const { library, createPlaylist, removePlaylist } = musicLibrary;
+  const { playSong } = musicPlayer.audioPlayback;
+  const { library, createPlaylist, removePlaylist } = musicPlayer.musicLibrary;
 
   // Generate playlist images when songs change
   useEffect(() => {
