@@ -4,12 +4,6 @@ import { PlayerSettings } from "../types/PlayerSettings";
 import { debounce } from "lodash";
 
 export const usePlayerSettings = () => {
-  const instantiationRef = useRef(false);
-  if (instantiationRef.current) {
-    console.warn("usePlayerSettings: Attempted re-instantiation, preventing loop");
-    throw new Error("Preventing recursive usePlayerSettings instantiation");
-  }
-  instantiationRef.current = true;
   console.log("usePlayerSettings: Instantiated");
 
   const [isInitialized, setIsInitialized] = useState(false);

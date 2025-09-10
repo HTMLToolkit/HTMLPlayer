@@ -1,75 +1,57 @@
-import { useState } from "react";
-import {
-  Menu,
-  Settings as SettingsIcon,
-  Info,
-  ChevronRight,
-} from "lucide-react";
+import { useState, memo, useCallback } from "react";
+import { Menu, Settings as SettingsIcon, Info, ChevronRight } from "lucide-react";
 import { Button } from "./Button";
 import { Separator } from "./Separator";
 import { Settings as SettingsComponent } from "./Settings";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from "./Dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "./Dialog";
 import { PlaylistComponent } from "./Playlist";
 import styles from "./Sidebar.module.css";
 
 type SidebarProps = {
-  // Updated type to use the main hook
   musicPlayer: ReturnType<typeof import("../hooks/useMusicPlayer").useMusicPlayer>;
-
   onCollapseChange?: (isCollapsed: boolean) => void;
 };
 
 const COLLAPSED_WIDTH = "40px";
 const EXPANDED_WIDTH = "250px";
 
-export const Sidebar = ({
-  musicPlayer,
-  onCollapseChange,
-}: SidebarProps) => {
+// Memoized Settings Component
+const MemoizedSettings = memo(SettingsComponent);
+
+// Memoized Playlist Component
+const MemoizedPlaylist = memo(PlaylistComponent);
+
+export const Sidebar = ({ musicPlayer, onCollapseChange }: SidebarProps) => {
+  // Local state for UI interactions
   const [showAbout, setShowAbout] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
 
   const { settings, updateSettings } = musicPlayer.playerSettings;
 
-  const handleAbout = () => {
-    setShowAbout(true);
-  };
+  // Memoized callbacks to avoid re-creation on each render
+  const handleMenuClick = useCallback(() => {
+    setIsCollapsed(prev => {
+      const newState = !prev;
+      document.documentElement.style.setProperty(
+        "--sidebar-width",
+        newState ? COLLAPSED_WIDTH : EXPANDED_WIDTH
+      );
+      onCollapseChange?.(newState);
+      return newState;
+    });
+  }, [onCollapseChange]);
 
-  const handleSettings = () => {
-    setShowSettings(!showSettings);
-  };
-
-  const handleMenuClick = () => {
-    const newCollapsedState = !isCollapsed;
-    setIsCollapsed(newCollapsedState);
-    onCollapseChange?.(newCollapsedState);
-
-    // Update CSS variable for sidebar width:
-    document.documentElement.style.setProperty(
-      "--sidebar-width",
-      newCollapsedState ? COLLAPSED_WIDTH : EXPANDED_WIDTH
-    );
-  };
-
-  const handleSliverClick = () => {
+  const handleSliverClick = useCallback(() => {
     setIsCollapsed(false);
+    document.documentElement.style.setProperty("--sidebar-width", EXPANDED_WIDTH);
     onCollapseChange?.(false);
+  }, [onCollapseChange]);
 
-    // Reset CSS variable to expanded width
-    document.documentElement.style.setProperty(
-      "--sidebar-width",
-      EXPANDED_WIDTH
-    );
-  };
+  const handleAbout = useCallback(() => setShowAbout(true), []);
+  const handleSettings = useCallback(() => setShowSettings(prev => !prev), []);
 
+  // Collapsed view
   if (isCollapsed) {
     return (
       <div className={styles.sidebarCollapsed} onClick={handleSliverClick}>
@@ -101,27 +83,20 @@ export const Sidebar = ({
         <h2 className={styles.title}>Playlists</h2>
       </div>
 
-      <PlaylistComponent musicPlayer={musicPlayer}/>
+      <MemoizedPlaylist musicPlayer={musicPlayer} />
 
       <div className={styles.footer}>
         <Separator />
-        <Button
-          variant="ghost"
-          className={styles.footerButton}
-          onClick={handleAbout}
-        >
+        <Button variant="ghost" className={styles.footerButton} onClick={handleAbout}>
           <Info size={16} />
           About
         </Button>
-        <Button
-          variant="ghost"
-          className={styles.footerButton}
-          onClick={handleSettings}
-        >
+        <Button variant="ghost" className={styles.footerButton} onClick={handleSettings}>
           <SettingsIcon size={16} />
           Settings
         </Button>
-        <SettingsComponent
+
+        <MemoizedSettings
           open={showSettings}
           onOpenChange={setShowSettings}
           settings={settings}
@@ -129,14 +104,12 @@ export const Sidebar = ({
         />
       </div>
 
-      {/* About Modal */}
       <Dialog open={showAbout} onOpenChange={setShowAbout}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>About HTMLPlayer</DialogTitle>
             <DialogDescription>
-              HTMLPlayer v2.0 - A modern music streaming interface built with
-              React.
+              HTMLPlayer v2.0 - A modern music streaming interface built with React.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>

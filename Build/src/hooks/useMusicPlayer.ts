@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useRef } from "react";
 import { usePlayerSettings } from "./usePlayerSettings";
 import { useSongCache } from "./useSongCache";
 import { useAudioPlayback } from "./useAudioPlayback";
@@ -10,82 +10,120 @@ import { useSearchAndNavigation } from "./useSearchAndNavigation";
  * This resolves circular dependencies by properly managing the initialization order.
  */
 export const useMusicPlayer = () => {
-  console.log("useMusicPlayer: Instantiated");
+  const initializationRef = useRef(false);
+
+  if (!initializationRef.current) {
+    console.log("useMusicPlayer: First instantiation");
+    initializationRef.current = true;
+  }
 
   // Initialize core dependencies in the correct order
   const playerSettings = usePlayerSettings();
   const songCache = useSongCache();
-  
-  // Create stable interface objects to prevent re-renders
-  const songCacheInterface = useMemo(() => ({
+
+  // Create stable interface objects to prevent re-renders - use refs for stability
+  const interfacesRef = useRef<{
+    songCache: any;
+    playerSettings: any;
+    musicLibrary: any;
+  }>({
+    songCache: songCache,
+    playerSettings: {},
+    musicLibrary: {}
+  });
+
+  if (!interfacesRef.current) {
+    interfacesRef.current = {
+      songCache: {
+        cacheSong: songCache.cacheSong,
+        getCachedSong: songCache.getCachedSong,
+        updateSongCache: songCache.updateSongCache,
+        memoizedPrepareSongsForPlaylist: songCache.memoizedPrepareSongsForPlaylist,
+      },
+      playerSettings: {
+        settings: playerSettings.settings,
+        settingsRef: playerSettings.settingsRef,
+        setSettings: playerSettings.setSettings,
+        isInitialized: playerSettings.isInitialized,
+      },
+      musicLibrary: {
+        setLibrary: () => { }, // Placeholder that will be updated
+      },
+    };
+  }
+
+  // Update the interfaces with current values but keep the same references
+  interfacesRef.current.songCache = {
     cacheSong: songCache.cacheSong,
     getCachedSong: songCache.getCachedSong,
     updateSongCache: songCache.updateSongCache,
     memoizedPrepareSongsForPlaylist: songCache.memoizedPrepareSongsForPlaylist,
-  }), [songCache]);
+  };
 
-  const playerSettingsInterface = useMemo(() => ({
+  interfacesRef.current.playerSettings = {
     settings: playerSettings.settings,
     settingsRef: playerSettings.settingsRef,
     setSettings: playerSettings.setSettings,
     isInitialized: playerSettings.isInitialized,
-  }), [playerSettings]);
+  };
 
   // Initialize audio playback with its dependencies
   const audioPlayback = useAudioPlayback(
-    songCacheInterface,
-    { setLibrary: () => {} }, // Placeholder, will be updated by music library
-    playerSettingsInterface
+    interfacesRef.current.songCache,
+    interfacesRef.current.musicLibrary,
+    interfacesRef.current.playerSettings
   );
 
+  // Create stable audioPlayback interface
   const audioPlaybackInterface = useMemo(() => ({
     playerState: audioPlayback.playerState,
     setPlayerState: audioPlayback.setPlayerState,
-  }), [audioPlayback]);
+  }), [audioPlayback.playerState, audioPlayback.setPlayerState]);
 
   // Initialize music library with its dependencies
   const musicLibrary = useMusicLibrary(
-    songCacheInterface,
+    interfacesRef.current.songCache,
     audioPlaybackInterface,
-    playerSettingsInterface
+    interfacesRef.current.playerSettings
   );
 
-  // Update the audio playback's music library reference
-  const musicLibraryInterface = useMemo(() => ({
+  // Update the musicLibrary interface in the ref
+  interfacesRef.current.musicLibrary = {
     library: musicLibrary.library,
     setLibrary: musicLibrary.setLibrary,
-  }), [musicLibrary]);
+  };
 
   // Initialize search and navigation with its dependencies
   const searchAndNavigation = useSearchAndNavigation(
     audioPlaybackInterface,
-    musicLibraryInterface
+    interfacesRef.current.musicLibrary
   );
 
-  return {
+  // Return stable references
+  return useMemo(() => ({
     // Player Settings
     playerSettings: {
       ...playerSettings,
     },
-    
+
     // Song Cache
     songCache: {
       ...songCache,
     },
-    
+
     // Audio Playback
     audioPlayback: {
       ...audioPlayback,
     },
-    
+
     // Music Library
     musicLibrary: {
       ...musicLibrary,
     },
-    
+
     // Search and Navigation
     searchAndNavigation: {
       ...searchAndNavigation,
     },
-  };
+  }), [playerSettings, songCache, audioPlayback, musicLibrary, searchAndNavigation]);
 };

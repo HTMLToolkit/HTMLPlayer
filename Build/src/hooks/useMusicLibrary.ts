@@ -42,6 +42,8 @@ export const useMusicLibrary = (
 
   const processAudioBatch = useCallback(
     async (songs: Song[]): Promise<Song[]> => {
+      if (!songs || songs.length === 0) return []; // Guard against undefined/empty arrays
+      
       const processedSongs: Song[] = [];
       const totalSongs = songs.length;
       let processedCount = 0;
@@ -50,7 +52,7 @@ export const useMusicLibrary = (
       const toastId = toast.loading(`Processing 0/${totalSongs} songs...`);
 
       for (const song of songs) {
-        if (song.url.startsWith("blob:")) {
+        if (song.url && song.url.startsWith("blob:")) {
           try {
             // Load the audio data
             const res = await fetch(song.url);
@@ -108,14 +110,16 @@ export const useMusicLibrary = (
 
   const addSong = useCallback(
     async (songs: Song[]) => {
+      if (!songs || songs.length === 0) return; // Guard against undefined/empty arrays
+      
       // First, update library synchronously with all songs
       setLibrary((prev) => {
-        const newSongs = [...prev.songs, ...songs];
-        const allSongsPlaylistExists = prev.playlists.some(
+        const newSongs = [...(prev.songs || []), ...songs]; // Guard against undefined songs
+        const allSongsPlaylistExists = (prev.playlists || []).some(
           (p) => p.id === "all-songs"
         );
 
-        let newPlaylists = prev.playlists.map((p) =>
+        let newPlaylists = (prev.playlists || []).map((p) =>
           p.id === "all-songs"
             ? { ...p, songs: songCache.memoizedPrepareSongsForPlaylist(newSongs) }
             : p
@@ -144,7 +148,7 @@ export const useMusicLibrary = (
 
         // Update the library with processed versions
         setLibrary((prev) => {
-          const newSongs = prev.songs.map((existingSong) => {
+          const newSongs = (prev.songs || []).map((existingSong) => {
             const processedSong = processedSongs.find(
               (p) => p.id === existingSong.id
             );
@@ -154,7 +158,7 @@ export const useMusicLibrary = (
           return {
             ...prev,
             songs: newSongs,
-            playlists: prev.playlists.map((p) =>
+            playlists: (prev.playlists || []).map((p) =>
               p.id === "all-songs"
                 ? { ...p, songs: songCache.memoizedPrepareSongsForPlaylist(newSongs) }
                 : p
@@ -172,18 +176,20 @@ export const useMusicLibrary = (
   );
 
   const removeSong = useCallback(async (songId: string) => {
+    if (!songId) return; // Guard against undefined songId
+    
     // First, update library synchronously
     setLibrary((prev) => {
-      const newSongs = prev.songs.filter((s) => s.id !== songId);
-      const newPlaylists = prev.playlists.map((p) => ({
+      const newSongs = (prev.songs || []).filter((s) => s.id !== songId);
+      const newPlaylists = (prev.playlists || []).map((p) => ({
         ...p,
-        songs: p.songs.filter((s: { id: string; }) => s.id !== songId),
+        songs: (p.songs || []).filter((s: { id: string; }) => s.id !== songId),
       }));
       return {
         ...prev,
         songs: newSongs,
         playlists: newPlaylists,
-        favorites: prev.favorites.filter((id) => id !== songId),
+        favorites: (prev.favorites || []).filter((id) => id !== songId),
       };
     });
 
@@ -200,11 +206,11 @@ export const useMusicLibrary = (
       const newPlaylist: Playlist = {
         id: Date.now().toString(),
         name,
-        songs: songCache.memoizedPrepareSongsForPlaylist(songs),
+        songs: songCache.memoizedPrepareSongsForPlaylist(songs || []),
       };
       setLibrary((prev) => ({
         ...prev,
-        playlists: [...prev.playlists, newPlaylist],
+        playlists: [...(prev.playlists || []), newPlaylist],
       }));
       return newPlaylist;
     },
@@ -212,43 +218,51 @@ export const useMusicLibrary = (
   );
 
   const removePlaylist = useCallback((playlistId: string) => {
+    if (!playlistId) return;
+    
     setLibrary((prev) => ({
       ...prev,
-      playlists: prev.playlists.filter((p) => p.id !== playlistId),
+      playlists: (prev.playlists || []).filter((p) => p.id !== playlistId),
     }));
   }, []);
 
   const addToFavorites = useCallback((songId: string) => {
+    if (!songId) return;
+    
     setLibrary((prev) => ({
       ...prev,
-      favorites: prev.favorites.includes(songId)
+      favorites: (prev.favorites || []).includes(songId)
         ? prev.favorites
-        : [...prev.favorites, songId],
+        : [...(prev.favorites || []), songId],
     }));
   }, []);
 
   const removeFromFavorites = useCallback((songId: string) => {
+    if (!songId) return;
+    
     setLibrary((prev) => ({
       ...prev,
-      favorites: prev.favorites.filter((id) => id !== songId),
+      favorites: (prev.favorites || []).filter((id) => id !== songId),
     }));
   }, []);
 
   const addToPlaylist = useCallback((playlistId: string, songId: string) => {
+    if (!playlistId || !songId) return;
+    
     setLibrary((prev) => {
       // Find the song and playlist
-      const song = prev.songs.find((s) => s.id === songId);
+      const song = (prev.songs || []).find((s) => s.id === songId);
       if (!song) return prev;
 
       return {
         ...prev,
-        playlists: prev.playlists.map((p) => {
+        playlists: (prev.playlists || []).map((p) => {
           if (p.id === playlistId) {
             // Don't add if song is already in playlist
-            if (p.songs.some((s: { id: string; }) => s.id === songId)) return p;
+            if ((p.songs || []).some((s: { id: string; }) => s.id === songId)) return p;
             return {
               ...p,
-              songs: [...p.songs, song],
+              songs: [...(p.songs || []), song],
             };
           }
           return p;
@@ -259,7 +273,9 @@ export const useMusicLibrary = (
 
   const toggleFavorite = useCallback(
     (songId: string) => {
-      const isFav = library.favorites.includes(songId);
+      if (!songId) return false;
+      
+      const isFav = (library.favorites || []).includes(songId);
       if (isFav) removeFromFavorites(songId);
       else addToFavorites(songId);
       return !isFav;
@@ -269,19 +285,21 @@ export const useMusicLibrary = (
 
   const isFavorited = useCallback(
     (songId: string) => {
-      return library.favorites.includes(songId);
+      if (!songId) return false;
+      return (library.favorites || []).includes(songId);
     },
     [library.favorites]
   );
 
   const getFavoriteSongs = useCallback(() => {
-    return library.songs.filter((s) => library.favorites.includes(s.id));
+    return (library.songs || []).filter((s) => (library.favorites || []).includes(s.id));
   }, [library]);
 
   useEffect(() => {
     libraryRef.current = library;
   }, [library]);
 
+  // Load persisted data on initialization
   useEffect(() => {
     const loadPersistedData = async () => {
       try {
@@ -291,10 +309,13 @@ export const useMusicLibrary = (
         if (persistedLibrary) {
           const validLibrary = {
             ...persistedLibrary,
-            songs: persistedLibrary.songs.filter(
+            songs: (persistedLibrary.songs || []).filter(
               (song: Song) => song.url && song.url !== ""
             ),
+            playlists: persistedLibrary.playlists || [],
+            favorites: persistedLibrary.favorites || [],
           };
+
           // Create or ensure All Songs playlist exists with prepared songs
           const allSongsPlaylist = {
             id: "all-songs",
@@ -305,16 +326,16 @@ export const useMusicLibrary = (
           // Add or update All Songs playlist
           const updatedLibrary = {
             ...validLibrary,
-            playlists: validLibrary.playlists.some((p: { id: string; }) => p.id === "all-songs")
-              ? validLibrary.playlists.map((p: { id: string; }) =>
-                p.id === "all-songs"
-                  ? {
-                    ...p,
-                    songs: songCache.memoizedPrepareSongsForPlaylist(validLibrary.songs),
-                  }
-                  : p
-              )
-              : [allSongsPlaylist, ...validLibrary.playlists],
+            playlists: (validLibrary.playlists || []).some((p: { id: string; }) => p.id === "all-songs")
+              ? (validLibrary.playlists || []).map((p: { id: string; }) =>
+                  p.id === "all-songs"
+                    ? {
+                        ...p,
+                        songs: songCache.memoizedPrepareSongsForPlaylist(validLibrary.songs),
+                      }
+                    : p
+                )
+              : [allSongsPlaylist, ...(validLibrary.playlists || [])],
           };
 
           setLibrary(updatedLibrary);
@@ -324,13 +345,13 @@ export const useMusicLibrary = (
 
           if (persistedSettings?.lastPlayedSongId) {
             songToPlay =
-              updatedLibrary.songs.find(
+              (updatedLibrary.songs || []).find(
                 (s: { id: any; }) => s.id === persistedSettings.lastPlayedSongId
               ) || null;
           }
           if (persistedSettings?.lastPlayedPlaylistId) {
             playlistToSet =
-              updatedLibrary.playlists.find(
+              (updatedLibrary.playlists || []).find(
                 (p: { id: any; }) => p.id === persistedSettings.lastPlayedPlaylistId
               ) || null;
           }
@@ -345,7 +366,7 @@ export const useMusicLibrary = (
           }
 
           // If no song set but we have songs, play the first one from the current playlist
-          if (!songToPlay && playlistToSet.songs.length > 0) {
+          if (!songToPlay && (playlistToSet.songs || []).length > 0) {
             songToPlay = playlistToSet.songs[0];
           }
 
@@ -369,25 +390,32 @@ export const useMusicLibrary = (
     loadPersistedData();
   }, [songCache, audioPlayback, playerSettings]);
 
+  // Save library when it changes (debounced)
   useEffect(() => {
     if (!isInitialized) return;
-    const saveLibrary = async () => {
+    const saveLibrary = debounce(async () => {
       try {
         await musicIndexedDbHelper.saveLibrary(library);
       } catch (error) {
         console.error("Failed to persist library data:", error);
       }
-    };
+    }, 500);
+    
     saveLibrary();
+    
+    return () => {
+      saveLibrary.cancel();
+    };
   }, [library, isInitialized]);
 
+  // Update player state when playlists change
   useEffect(() => {
     if (!isInitialized || !playerSettings.isInitialized) return;
     
     const updatePlayerState = debounce((updatedPlaylist: Playlist) => {
       console.log("useMusicLibrary: Updating playerState.currentPlaylist", {
         playlistId: updatedPlaylist.id,
-        songs: updatedPlaylist.songs.map((s) => s.id),
+        songs: (updatedPlaylist.songs || []).map((s) => s.id),
       });
       
       audioPlayback.setPlayerState((prev: any) => ({
@@ -397,18 +425,21 @@ export const useMusicLibrary = (
     }, 100);
 
     if (audioPlayback.playerState.currentPlaylist) {
-      const updatedPlaylist = library.playlists.find(
+      const updatedPlaylist = (library.playlists || []).find(
         (p) => p.id === audioPlayback.playerState.currentPlaylist?.id
       );
+      
       if (updatedPlaylist) {
-        if (!audioPlayback.playerState.currentPlaylist) return;
+        const currentPlaylist = audioPlayback.playerState.currentPlaylist;
+        if (!currentPlaylist) return;
+        
         const areSongsEqual =
-          updatedPlaylist.songs.length ===
-          audioPlayback.playerState.currentPlaylist.songs.length &&
-          updatedPlaylist.songs.every((song: { id: any; url: any; }, index: number) =>
-            song.id === audioPlayback.playerState.currentPlaylist?.songs[index].id &&
-            song.url === audioPlayback.playerState.currentPlaylist?.songs[index].url
+          (updatedPlaylist.songs || []).length === (currentPlaylist.songs || []).length &&
+          (updatedPlaylist.songs || []).every((song: { id: any; url: any; }, index: number) =>
+            song.id === currentPlaylist.songs?.[index]?.id &&
+            song.url === currentPlaylist.songs?.[index]?.url
           );
+          
         if (!areSongsEqual) {
           updatePlayerState(updatedPlaylist);
         }

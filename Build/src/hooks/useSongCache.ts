@@ -1,18 +1,13 @@
-import { useCallback, useEffect, useMemo, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { musicIndexedDbHelper } from "../helpers/musicIndexedDbHelper";
 import { Playlist } from "../types/Playlist";
 import { Song } from "../types/Song";
 
 export const useSongCache = () => {
-  const instantiationRef = useRef(false);
-  if (instantiationRef.current) {
-    console.warn("useSongCache: Attempted re-instantiation, preventing loop");
-    throw new Error("Preventing recursive useSongCache instantiation");
-  }
-  instantiationRef.current = true;
   console.log("useSongCache: Instantiated");
 
   const songCacheRef = useRef<Map<string, CachedSong>>(new Map());
+  const lastPreparedSongsRef = useRef<{ input: Song[]; output: Song[] } | null>(null);
 
   // Type for cached song
   type CachedSong = {
@@ -22,20 +17,26 @@ export const useSongCache = () => {
     loadedAt: number;
   };
 
-  // Cache configuration
-  const CACHE_CONFIG = {
+  // Cache configuration - use ref to avoid dependency issues
+  const CACHE_CONFIG = useRef({
     PREV_SONGS: 2, // Number of previous songs to cache
     NEXT_SONGS: 3, // Number of next songs to cache
     CACHE_EXPIRY: 5 * 60 * 1000, // 5 minutes in milliseconds
-  };
+  });
 
   // Cache management functions
   const cacheSong = useCallback(async (song: Song) => {
     console.log("useSongCache: cacheSong called", { songId: song.id });
+    
+    if (!song || !song.id) {
+      console.error("useSongCache: Invalid song provided to cacheSong");
+      return;
+    }
+    
     // Check if song is already cached by ID
     if (songCacheRef.current.has(song.id)) {
       // Update the cached song's URL if it's from IndexedDB
-      if (song.hasStoredAudio && song.url.startsWith("indexeddb://")) {
+      if (song.hasStoredAudio && song.url && song.url.startsWith("indexeddb://")) {
         const cached = songCacheRef.current.get(song.id);
         if (cached) {
           console.log("useSongCache: Song already cached", { songId: song.id });
@@ -72,6 +73,10 @@ export const useSongCache = () => {
       }
 
       const response = await fetch(song.url);
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      
       const buffer = await response.arrayBuffer();
       const mimeType = response.headers.get("content-type") || "audio/mpeg";
       const url = URL.createObjectURL(new Blob([buffer], { type: mimeType }));
@@ -97,6 +102,12 @@ export const useSongCache = () => {
 
   const getCachedSong = useCallback((songId: string): CachedSong | undefined => {
     console.log("useSongCache: getCachedSong called", { songId });
+    
+    if (!songId) {
+      console.error("useSongCache: Invalid songId provided to getCachedSong");
+      return undefined;
+    }
+    
     const cached = songCacheRef.current.get(songId);
     if (cached) {
       console.log("useSongCache: Returned cached song", { songId });
@@ -107,14 +118,16 @@ export const useSongCache = () => {
   const clearExpiredCache = useCallback(() => {
     console.log("useSongCache: clearExpiredCache called");
     const now = Date.now();
+    const expiry = CACHE_CONFIG.current.CACHE_EXPIRY;
+    
     for (const [id, cached] of songCacheRef.current.entries()) {
-      if (now - cached.loadedAt > CACHE_CONFIG.CACHE_EXPIRY) {
+      if (now - cached.loadedAt > expiry) {
         URL.revokeObjectURL(cached.url);
         songCacheRef.current.delete(id);
         console.log("useSongCache: Removed expired cache entry", { songId: id });
       }
     }
-  }, [CACHE_CONFIG.CACHE_EXPIRY]);
+  }, []);
 
   const updateSongCache = useCallback(async (
     currentSong: Song | null,
@@ -126,13 +139,18 @@ export const useSongCache = () => {
       playlistId: playlist?.id,
       shuffle,
     });
-    if (!currentSong || !playlist) return;
+    
+    if (!currentSong || !playlist || !playlist.songs || playlist.songs.length === 0) {
+      console.warn("useSongCache: Invalid parameters for updateSongCache");
+      return;
+    }
 
     clearExpiredCache();
 
     const currentIndex = playlist.songs.findIndex(
-      (s) => s.id === currentSong.id
+      (s) => s?.id === currentSong.id
     );
+    
     if (currentIndex === -1) {
       console.warn("useSongCache: Current song not found in playlist", {
         songId: currentSong.id,
@@ -142,10 +160,11 @@ export const useSongCache = () => {
     }
 
     // Get the range of songs to cache
-    const start = Math.max(0, currentIndex - CACHE_CONFIG.PREV_SONGS);
+    const config = CACHE_CONFIG.current;
+    const start = Math.max(0, currentIndex - config.PREV_SONGS);
     const end = Math.min(
       playlist.songs.length - 1,
-      currentIndex + CACHE_CONFIG.NEXT_SONGS
+      currentIndex + config.NEXT_SONGS
     );
 
     // Get next shuffled song if shuffle is enabled
@@ -157,23 +176,24 @@ export const useSongCache = () => {
       if (availableSongs.length > 0) {
         const randomIndex = Math.floor(Math.random() * availableSongs.length);
         nextShuffledSong = availableSongs[randomIndex];
-        if (!nextShuffledSong) return;
-        console.log("useSongCache: Selected next shuffled song", {
-          songId: nextShuffledSong.id,
-        });
+        if (nextShuffledSong) {
+          console.log("useSongCache: Selected next shuffled song", {
+            songId: nextShuffledSong.id,
+          });
+        }
       }
     }
 
     // Create a set of songs to cache
     const songsToCache = new Set([
-      ...playlist.songs.slice(start, end + 1),
+      ...playlist.songs.slice(start, end + 1).filter(Boolean), // Filter out any null/undefined songs
       ...(nextShuffledSong ? [nextShuffledSong] : []),
     ]);
 
     // Cache new songs and remove old ones
     const promises: Promise<void>[] = [];
     for (const song of songsToCache) {
-      if (!songCacheRef.current.has(song.id)) {
+      if (song && song.id && !songCacheRef.current.has(song.id)) {
         console.log("useSongCache: Queuing song for caching", { songId: song.id });
         promises.push(cacheSong(song));
       }
@@ -182,7 +202,7 @@ export const useSongCache = () => {
     // Remove songs that are no longer needed
     for (const [id, cached] of songCacheRef.current.entries()) {
       if (
-        !Array.from(songsToCache).some((song) => song.id === cached.song.id)
+        !Array.from(songsToCache).some((song) => song?.id === cached.song.id)
       ) {
         URL.revokeObjectURL(cached.url);
         songCacheRef.current.delete(id);
@@ -190,18 +210,33 @@ export const useSongCache = () => {
       }
     }
 
-    await Promise.all(promises);
-    console.log("useSongCache: updateSongCache completed", {
-      cachedSongs: Array.from(songCacheRef.current.keys()),
-    });
-  }, [cacheSong, clearExpiredCache, CACHE_CONFIG.PREV_SONGS, CACHE_CONFIG.NEXT_SONGS]);
+    try {
+      await Promise.all(promises);
+      console.log("useSongCache: updateSongCache completed", {
+        cachedSongs: Array.from(songCacheRef.current.keys()),
+      });
+    } catch (error) {
+      console.error("useSongCache: Error in updateSongCache:", error);
+    }
+  }, [cacheSong, clearExpiredCache]);
 
   // Helper to ensure playlist songs have correct URLs
   const prepareSongsForPlaylist = useCallback((songs: Song[]): Song[] => {
     console.log("useSongCache: prepareSongsForPlaylist called", {
-      songCount: songs.length,
+      songCount: songs?.length || 0,
     });
-    return songs.map((song) => {
+    
+    if (!songs || !Array.isArray(songs)) {
+      console.warn("useSongCache: Invalid songs array provided to prepareSongsForPlaylist");
+      return [];
+    }
+    
+    return songs.filter(Boolean).map((song) => {
+      if (!song || !song.id) {
+        console.warn("useSongCache: Invalid song in prepareSongsForPlaylist");
+        return song;
+      }
+      
       if (song.hasStoredAudio) {
         return {
           ...song,
@@ -218,13 +253,26 @@ export const useSongCache = () => {
     });
   }, []);
 
-  // Memoize the result to avoid creating new arrays unnecessarily
+  // FIXED: Use useMemo at the top level instead of inside useCallback
+  // This prevents the "Rules of Hooks" violation
   const memoizedPrepareSongsForPlaylist = useCallback(
     (songs: Song[]): Song[] => {
       console.log("useSongCache: memoizedPrepareSongsForPlaylist called", {
-        songCount: songs.length,
+        songCount: songs?.length || 0,
       });
-      return useMemo(() => prepareSongsForPlaylist(songs), [songs]);
+      
+      // Simple memoization using ref instead of useMemo inside useCallback
+      const lastPrepared = lastPreparedSongsRef.current;
+      if (lastPrepared && 
+          lastPrepared.input.length === songs.length &&
+          lastPrepared.input.every((song, index) => song?.id === songs[index]?.id)) {
+        console.log("useSongCache: Returning memoized result");
+        return lastPrepared.output;
+      }
+      
+      const result = prepareSongsForPlaylist(songs);
+      lastPreparedSongsRef.current = { input: songs, output: result };
+      return result;
     },
     [prepareSongsForPlaylist]
   );
@@ -235,16 +283,19 @@ export const useSongCache = () => {
     return () => {
       console.log("useSongCache: Cleaning up cache on unmount");
       for (const [, cached] of songCacheRef.current.entries()) {
-        URL.revokeObjectURL(cached.url);
+        if (cached?.url) {
+          URL.revokeObjectURL(cached.url);
+        }
       }
       songCacheRef.current.clear();
+      lastPreparedSongsRef.current = null;
     };
   }, []);
 
   return {
     songCacheRef,
     cacheSong,
-    CACHE_CONFIG,
+    CACHE_CONFIG: CACHE_CONFIG.current,
     clearExpiredCache,
     getCachedSong,
     updateSongCache,
