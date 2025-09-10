@@ -29,17 +29,18 @@ import {
   DialogFooter,
 } from "./Dialog";
 import modalStyles from "./Dialog.module.css";
-import { Song } from "../types/Song";
-import { Playlist } from "../types/Playlist";
+
+import { Song } from "../helpers/musicPlayerHook";
 import styles from "./MainContent.module.css";
 import PersistentDropdownMenu from "./PersistentDropdownMenu";
 
-// Updated type to use the main hook
 type MainContentProps = {
-  musicPlayer: ReturnType<typeof import("../hooks/useMusicPlayer").useMusicPlayer>;
+  musicPlayerHook: ReturnType<
+    typeof import("../helpers/musicPlayerHook").useMusicPlayer
+  >;
 };
 
-export const MainContent = ({ musicPlayer }: MainContentProps) => {
+export const MainContent = ({ musicPlayerHook }: MainContentProps) => {
   const [songSearchQuery, setSongSearchQuery] = useState("");
   const [ratings, setRatings] = useState<
     Record<string, "thumbs-up" | "thumbs-down" | "none">
@@ -54,27 +55,20 @@ export const MainContent = ({ musicPlayer }: MainContentProps) => {
   const [newPlaylistName, setNewPlaylistName] = useState("");
   const [isCreatingNew, setIsCreatingNew] = useState(false);
 
-  // Destructure from the main music player hook
   const {
-    audioPlayback: {
-      playerState,
-      playSong
-    },
-    musicLibrary: {
-      library,
-      addSong,
-      removeSong,
-      toggleFavorite,
-      isFavorited,
-      createPlaylist,
-      addToPlaylist,
-    },
-    searchAndNavigation: {
-      navigateToArtist,
-      navigateToAlbum,
-      navigateToSongs,
-    }
-  } = musicPlayer;
+    playerState,
+    library,
+    playSong,
+    addSong,
+    removeSong,
+    toggleFavorite,
+    isFavorited,
+    createPlaylist,
+    addToPlaylist,
+    navigateToArtist,
+    navigateToAlbum,
+    navigateToSongs,
+  } = musicPlayerHook;
 
   // Add navigation event listener
   React.useEffect(() => {
@@ -89,18 +83,19 @@ export const MainContent = ({ musicPlayer }: MainContentProps) => {
     };
 
     window.addEventListener("navigate", handleNavigate);
-    return () => window.removeEventListener("navigate", handleNavigate);
+    return () =>
+      window.removeEventListener("navigate", handleNavigate);
   }, [navigateToArtist, navigateToAlbum]);
 
   // Get initial songs list based on current view
   const songsToDisplay = React.useMemo(() => {
     if (playerState.view === "artist" && playerState.currentArtist) {
       return library.songs.filter(
-        (song: { artist: string | undefined; }) => song.artist === playerState.currentArtist
+        (song) => song.artist === playerState.currentArtist
       );
     } else if (playerState.view === "album" && playerState.currentAlbum) {
       return library.songs.filter(
-        (song: { album: string | undefined; }) => song.album === playerState.currentAlbum
+        (song) => song.album === playerState.currentAlbum
       );
     } else if (playerState.currentPlaylist) {
       return playerState.currentPlaylist.songs;
@@ -147,7 +142,7 @@ export const MainContent = ({ musicPlayer }: MainContentProps) => {
     const wasAdded = toggleFavorite(songId);
 
     // Show toast notification
-    const song = library.songs.find((s: { id: string; }) => s.id === songId);
+    const song = library.songs.find((s) => s.id === songId);
     if (song) {
       if (wasAdded) {
         toast.success(`Added "${song.title}" to favorites`);
@@ -191,7 +186,6 @@ export const MainContent = ({ musicPlayer }: MainContentProps) => {
         return;
       }
 
-      const songs: Song[] = [];
       const BATCH_SIZE = 7; // Process 7 files at a time
       let successCount = 0;
       let errorCount = 0;
@@ -219,10 +213,9 @@ export const MainContent = ({ musicPlayer }: MainContentProps) => {
               duration: metadata.duration,
               url: audioUrl,
               albumArt: metadata.albumArt,
-              hasStoredAudio: false, // Audio will be stored in IndexedDB by addSong
             };
 
-            songs.push(song);
+            await addSong(song);
             successCount++;
             console.log(`Successfully processed: ${song.title}`);
           } catch (error) {
@@ -234,11 +227,6 @@ export const MainContent = ({ musicPlayer }: MainContentProps) => {
         // Wait for current batch to complete
         await Promise.all(batchPromises);
         currentBatch++;
-      }
-
-      // Add all songs to the library at once
-      if (songs.length > 0) {
-        await addSong(songs);
       }
 
       toast.dismiss();
@@ -256,7 +244,6 @@ export const MainContent = ({ musicPlayer }: MainContentProps) => {
       toast.error("Failed to open file picker");
     }
   };
-
   const formatDuration = (seconds: number) => {
     const roundedSeconds = Math.round(seconds);
     const mins = Math.floor(roundedSeconds / 60);
@@ -273,7 +260,7 @@ export const MainContent = ({ musicPlayer }: MainContentProps) => {
     if (selectedSongs.length === filteredSongs.length) {
       setSelectedSongs([]);
     } else {
-      setSelectedSongs(filteredSongs.map((song: { id: any; }) => song.id));
+      setSelectedSongs(filteredSongs.map((song) => song.id));
     }
   };
 
@@ -289,7 +276,7 @@ export const MainContent = ({ musicPlayer }: MainContentProps) => {
     const newPlaylist = createPlaylist(
       newPlaylistName,
       selectedSongs
-        .map((songId) => library.songs.find((s: { id: string; }) => s.id === songId))
+        .map((songId) => library.songs.find((s) => s.id === songId))
         .filter((song): song is Song => song !== undefined)
     );
     toast.success(
@@ -406,6 +393,7 @@ export const MainContent = ({ musicPlayer }: MainContentProps) => {
               </div>
             </div>
           ))}
+
           {filteredSongs.length === 0 && (
             <div className={styles.noResults}>{songSearchQuery ? "No songs found" : "No songs in this playlist"}</div>
           )}
@@ -500,12 +488,12 @@ export const MainContent = ({ musicPlayer }: MainContentProps) => {
             </div>
           ) : (
             <div className={modalStyles.spaceY4}>
-              {library.playlists.filter((p: { id: string; }) => p.id !== "all-songs").length >
-                0 ? (
+              {library.playlists.filter((p) => p.id !== "all-songs").length >
+              0 ? (
                 <div className={modalStyles.spaceY2}>
                   {library.playlists
-                    .filter((playlist: { id: string; }) => playlist.id !== "all-songs")
-                    .map((playlist: Playlist) => (
+                    .filter((playlist) => playlist.id !== "all-songs")
+                    .map((playlist) => (
                       <div
                         key={playlist.name}
                         className={`${modalStyles.flex} ${modalStyles.gap2}`}

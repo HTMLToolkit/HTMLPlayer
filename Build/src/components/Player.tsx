@@ -20,41 +20,45 @@ import { Visualizer } from "./Visualizer";
 import { Lyrics } from "./Lyrics"; // <-- import Lyrics component
 import styles from "./Player.module.css";
 import { SongActionsDropdown } from "./SongActionsDropdown";
+import { PlayerSettings } from "./Settings";
 
 type PlayerProps = {
-  // Updated type to use the main hook
-  musicPlayer: ReturnType<typeof import("../hooks/useMusicPlayer").useMusicPlayer>;
+  musicPlayerHook: ReturnType<
+    typeof import("../helpers/musicPlayerHook").useMusicPlayer
+  >;
+  settings: PlayerSettings;
 };
-
-export const Player = ({ musicPlayer }: PlayerProps) => {
+export const Player = ({ musicPlayerHook, settings }: PlayerProps) => {
   const progressRef = useRef<HTMLDivElement>(null);
   const volumeRef = useRef<HTMLDivElement>(null);
 
   const {
-    audioPlayback: {
-      playerState,
-      togglePlayPause,
-      playNext,
-      playPrevious,
-      setVolume,
-      seekTo,
-      toggleShuffle,
-      toggleRepeat,
-      playSong,
-    },
-    musicLibrary: {
-      library,
-      addToFavorites,
-      removeFromFavorites,
-      createPlaylist,
-      addToPlaylist,
-      removeSong,
-    },
-    playerSettings: {
-      settings
-    }
-  } = musicPlayer;
+    playerState,
+    library,
+    togglePlayPause,
+    playNext,
+    playPrevious,
+    setVolume,
+    seekTo,
+    addToFavorites,
+    removeFromFavorites,
+    toggleShuffle,
+    toggleRepeat,
+    createPlaylist,
+    addToPlaylist,
+    playSong,
+    removeSong,
+  } = musicPlayerHook;
 
+  const {
+    currentSong,
+    isPlaying,
+    currentTime,
+    volume,
+    shuffle,
+    repeat,
+    analyserNode,
+  } = playerState;
   const [showVisualizer, setShowVisualizer] = useState(false);
   const [showLyrics, setShowLyrics] = useState(false); // <-- new state for lyrics
   const [isDraggingProgress, setIsDraggingProgress] = useState(false);
@@ -63,7 +67,7 @@ export const Player = ({ musicPlayer }: PlayerProps) => {
   const formatTime = (seconds: number) => {
     const totalSeconds = Math.round(seconds);
 
-    const shouldShowHours = playerState.currentSong && playerState.currentSong.duration >= 3600;
+    const shouldShowHours = currentSong && currentSong.duration >= 3600;
 
     if (shouldShowHours) {
       const hours = Math.floor(totalSeconds / 3600);
@@ -81,16 +85,16 @@ export const Player = ({ musicPlayer }: PlayerProps) => {
 
   const updateProgress = useCallback(
     (clientX: number) => {
-      if (!progressRef.current || !playerState.currentSong) return;
+      if (!progressRef.current || !currentSong) return;
 
       const rect = progressRef.current.getBoundingClientRect();
       const clickX = clientX - rect.left;
       const percentage = Math.max(0, Math.min(1, clickX / rect.width));
-      const newTime = percentage * playerState.currentSong.duration;
+      const newTime = percentage * currentSong.duration;
 
       seekTo(newTime);
     },
-    [playerState.currentSong, seekTo]
+    [currentSong, seekTo]
   );
 
   const updateVolume = useCallback(
@@ -186,7 +190,7 @@ export const Player = ({ musicPlayer }: PlayerProps) => {
   }, [isDraggingProgress, isDraggingVolume, updateProgress, updateVolume]);
 
   const handleVolumeToggle = () => {
-    if (playerState.volume === 0) {
+    if (volume === 0) {
       setVolume(0.7); // Unmute to 70%
     } else {
       setVolume(0); // Mute
@@ -194,13 +198,13 @@ export const Player = ({ musicPlayer }: PlayerProps) => {
   };
 
   const handleFavorite = () => {
-    if (!playerState.currentSong) return;
+    if (!currentSong) return;
 
-    const isFavorite = library.favorites.includes(playerState.currentSong.id);
+    const isFavorite = library.favorites.includes(currentSong.id);
     if (isFavorite) {
-      removeFromFavorites(playerState.currentSong.id);
+      removeFromFavorites(currentSong.id);
     } else {
-      addToFavorites(playerState.currentSong.id);
+      addToFavorites(currentSong.id);
     }
   };
 
@@ -210,24 +214,24 @@ export const Player = ({ musicPlayer }: PlayerProps) => {
 
   useEffect(() => {
     const updateScroll = () => {
-      if (!titleRef.current || !playerState.currentSong) return;
+      if (!titleRef.current || !currentSong) return;
       const wrapper = titleRef.current.parentElement!;
       const content = titleRef.current;
 
       // Reset to single title before measuring
-      content.innerHTML = playerState.currentSong.title;
+      content.innerHTML = currentSong.title;
       const distance = content.scrollWidth - wrapper.clientWidth;
       
       if (distance > 0) {
         // Only scroll if title is wider than wrapper
         const gapWidth = 15; // Approximate pixel width of "&nbsp;&nbsp;&nbsp;"
         const loopDistance = content.scrollWidth + gapWidth; // Distance for one full cycle
-        console.log("Scrolling setup:", { loopDistance, animationDuration: Math.max(10, loopDistance / 30), title: playerState.currentSong.title });
+        console.log("Scrolling setup:", { loopDistance, animationDuration: Math.max(10, loopDistance / 30), title: currentSong.title });
         setScrollDistance(`-${loopDistance}px`);
         setAnimationDuration(Math.max(10, loopDistance / 30));
         content.classList.remove(styles.scrollable);
         void content.offsetWidth; // Trigger reflow
-        content.innerHTML = `${playerState.currentSong.title} &nbsp;&nbsp;&nbsp; ${playerState.currentSong.title}`; // Duplicate text
+        content.innerHTML = `${currentSong.title} &nbsp;&nbsp;&nbsp; ${currentSong.title}`; // Duplicate text
         content.classList.add(styles.scrollable);
       } else {
         // No scrolling needed for short titles
@@ -235,7 +239,7 @@ export const Player = ({ musicPlayer }: PlayerProps) => {
         setScrollDistance("0px");
         setAnimationDuration(0);
         content.classList.remove(styles.scrollable);
-        content.innerHTML = playerState.currentSong.title;
+        content.innerHTML = currentSong.title;
       }
     };
 
@@ -245,7 +249,7 @@ export const Player = ({ musicPlayer }: PlayerProps) => {
     return () => {
       window.removeEventListener("resize", updateScroll);
     };
-  }, [playerState.currentSong?.title, styles.scrollable]);
+  }, [currentSong?.title, styles.scrollable]);
 
   const handleVisualizerToggle = () => {
     setShowVisualizer((prev) => !prev);
@@ -256,14 +260,14 @@ export const Player = ({ musicPlayer }: PlayerProps) => {
   };
 
   const getVolumeIcon = () => {
-    if (playerState.volume === 0) return <VolumeOff size={16} />;
-    if (playerState.volume < 0.3) return <VolumeX size={16} />;
-    if (playerState.volume < 0.7) return <Volume1 size={16} />;
+    if (volume === 0) return <VolumeOff size={16} />;
+    if (volume < 0.3) return <VolumeX size={16} />;
+    if (volume < 0.7) return <Volume1 size={16} />;
     return <Volume2 size={16} />;
   };
 
   const getRepeatTitle = () => {
-    switch (playerState.repeat) {
+    switch (repeat) {
       case "one":
         return "Repeat: Track";
       case "all":
@@ -273,19 +277,19 @@ export const Player = ({ musicPlayer }: PlayerProps) => {
     }
   };
 
-  // Auto-show lyrics whenever a new song is loaded
-  useEffect(() => {
-    if (playerState.currentSong && settings?.showLyrics) {
-      setShowLyrics(true);
-    }
-  }, [playerState.currentSong, settings?.showLyrics]);
+// Auto-show lyrics whenever a new song is loaded
+useEffect(() => {
+  if (currentSong && settings?.showLyrics) {
+    setShowLyrics(true);
+  }
+}, [currentSong, settings?.showLyrics]);
 
-  const progressPercentage = playerState.currentSong
-    ? (playerState.currentTime / playerState.currentSong.duration) * 100
+  const progressPercentage = currentSong
+    ? (currentTime / currentSong.duration) * 100
     : 0;
-  const volumePercentage = playerState.volume * 100;
+  const volumePercentage = volume * 100;
 
-  if (!playerState.currentSong) {
+  if (!currentSong) {
     return (
       <div className={styles.player}>
         <div className={styles.noSong}>
@@ -295,15 +299,15 @@ export const Player = ({ musicPlayer }: PlayerProps) => {
     );
   }
 
-  const isFavorite = library.favorites.includes(playerState.currentSong.id);
+  const isFavorite = library.favorites.includes(currentSong.id);
 
   return (
     <>
       {showVisualizer && (
         <div className={styles.visualizerOverlay}>
           <Visualizer
-            analyserNode={playerState.analyserNode}
-            isPlaying={playerState.isPlaying}
+            analyserNode={analyserNode}
+            isPlaying={isPlaying}
             className={styles.visualizer}
           />
         </div>
@@ -311,10 +315,10 @@ export const Player = ({ musicPlayer }: PlayerProps) => {
       <div className={styles.player}>
         <div className={styles.currentSong}>
           <div className={styles.albumArt}>
-            {playerState.currentSong.albumArt && (
+            {currentSong.albumArt && (
               <img
-                src={playerState.currentSong.albumArt}
-                alt={`${playerState.currentSong.title} album art`}
+                src={currentSong.albumArt}
+                alt={`${currentSong.title} album art`}
                 loading="lazy"
                 style={{
                   width: "100%",
@@ -333,13 +337,13 @@ export const Player = ({ musicPlayer }: PlayerProps) => {
                 style={{
                   "--scroll-distance": scrollDistance,
                   animationDuration: `${animationDuration}s`,
-                  opacity: playerState.currentSong?.title ? 1 : 0,
+                  opacity: currentSong?.title ? 1 : 0,
                 } as React.CSSProperties}
               >
-                {playerState.currentSong?.title || "Loading..."}
+                {currentSong?.title || "Loading..."}
               </div>
             </div>
-            <div className={styles.artistName}>{playerState.currentSong.artist}</div>
+            <div className={styles.artistName}>{currentSong.artist}</div>
           </div>
           <Button
             variant="ghost"
@@ -358,10 +362,10 @@ export const Player = ({ musicPlayer }: PlayerProps) => {
             <Button
               variant="ghost"
               size="icon-sm"
-              className={`${styles.controlButton} ${playerState.shuffle ? styles.active : ""
+              className={`${styles.controlButton} ${shuffle ? styles.active : ""
                 }`}
               onClick={toggleShuffle}
-              title={`Shuffle: ${playerState.shuffle ? "On" : "Off"}`}
+              title={`Shuffle: ${shuffle ? "On" : "Off"}`}
             >
               <Shuffle size={16} />
             </Button>
@@ -379,9 +383,9 @@ export const Player = ({ musicPlayer }: PlayerProps) => {
               size="icon-lg"
               className={styles.playButton}
               onClick={debounce(togglePlayPause, 200)}
-              title={playerState.isPlaying ? "Pause" : "Play"}
+              title={isPlaying ? "Pause" : "Play"}
             >
-              {playerState.isPlaying ? <Pause size={20} /> : <Play size={20} />}
+              {isPlaying ? <Pause size={20} /> : <Play size={20} />}
             </Button>
             <Button
               variant="ghost"
@@ -395,8 +399,8 @@ export const Player = ({ musicPlayer }: PlayerProps) => {
             <Button
               variant="ghost"
               size="icon-sm"
-              className={`${styles.controlButton} ${playerState.repeat !== "off" ? styles.active : ""
-                } ${playerState.repeat === "one" ? styles.repeatOne : ""}`}
+              className={`${styles.controlButton} ${repeat !== "off" ? styles.active : ""
+                } ${repeat === "one" ? styles.repeatOne : ""}`}
               onClick={toggleRepeat}
               title={getRepeatTitle()}
             >
@@ -406,7 +410,7 @@ export const Player = ({ musicPlayer }: PlayerProps) => {
 
           <div className={styles.progressSection}>
             <span className={styles.timeDisplay}>
-              {formatTime(playerState.currentTime)}
+              {formatTime(currentTime)}
             </span>
             <div
               className={`${styles.progressBar} ${isDraggingProgress ? styles.dragging : ""
@@ -423,7 +427,7 @@ export const Player = ({ musicPlayer }: PlayerProps) => {
               ></div>
             </div>
             <span className={styles.timeDisplay}>
-              {formatTime(playerState.currentSong.duration)}
+              {formatTime(currentSong.duration)}
             </span>
           </div>
         </div>
@@ -458,7 +462,7 @@ export const Player = ({ musicPlayer }: PlayerProps) => {
               size="icon-sm"
               className={styles.volumeButton}
               onClick={handleVolumeToggle}
-              title={playerState.volume === 0 ? "Unmute" : "Mute"}
+              title={volume === 0 ? "Unmute" : "Mute"}
             >
               {getVolumeIcon()}
             </Button>
@@ -479,7 +483,7 @@ export const Player = ({ musicPlayer }: PlayerProps) => {
           </div>
 
           <SongActionsDropdown
-            song={playerState.currentSong}
+            song={currentSong}
             library={library}
             onCreatePlaylist={createPlaylist}
             onAddToPlaylist={addToPlaylist}
@@ -491,10 +495,10 @@ export const Player = ({ musicPlayer }: PlayerProps) => {
         </div>
 
         {/* Lyrics overlay */}
-        {showLyrics && playerState.currentSong && (
+        {showLyrics && currentSong && (
           <Lyrics
-            artist={playerState.currentSong.artist}
-            title={playerState.currentSong.title}
+            artist={currentSong.artist}
+            title={currentSong.title}
             visible={showLyrics}
             onClose={() => setShowLyrics(false)}
           />

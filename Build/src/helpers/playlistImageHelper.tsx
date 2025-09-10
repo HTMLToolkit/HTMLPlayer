@@ -1,4 +1,4 @@
-import { Song } from "../types/Song";
+import { Song } from "./musicPlayerHook";
 
 export const generatePlaylistImage = async (songs: Song[]): Promise<string> => {
   // Create a canvas element
