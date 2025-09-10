@@ -6,12 +6,7 @@ import {
   ThumbsUp,
   ThumbsDown,
   Heart,
-  Music,
-  MoreHorizontal,
   PlusCircle,
-  Info,
-  Share,
-  User,
   ListChecks,
 } from "lucide-react";
 import { SongActionsDropdown } from "./SongActionsDropdown";
@@ -53,7 +48,7 @@ export const MainContent = ({ musicPlayerHook }: MainContentProps) => {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [songToDelete, setSongToDelete] = useState<Song | null>(null);
   const [showSongInfo, setShowSongInfo] = useState(false);
-  const [selectedSongInfo, setSelectedSongInfo] = useState<Song | null>(null);
+  const [selectedSongInfo] = useState<Song | null>(null);
   const [selectedSongs, setSelectedSongs] = useState<string[]>([]);
   const [isSelectSongsActive, setIsSelectSongsActive] = useState(false);
   const [showPlaylistDialog, setShowPlaylistDialog] = useState(false);
@@ -68,7 +63,6 @@ export const MainContent = ({ musicPlayerHook }: MainContentProps) => {
     removeSong,
     toggleFavorite,
     isFavorited,
-    getFavoriteSongs,
     createPlaylist,
     addToPlaylist,
     navigateToArtist,
@@ -310,36 +304,21 @@ export const MainContent = ({ musicPlayerHook }: MainContentProps) => {
   };
 
   return (
-    <div className={styles.mainContent}>
+    <div className={styles.mainContentWrapper}>
+      {/* Persistent Top Header */}
       <div className={styles.header}>
         <div className={styles.titleArea}>
           {playerState.view === "songs" ? (
             <h1 className={styles.title}>HTMLPlayer</h1>
           ) : playerState.view === "artist" ? (
             <>
-              <Button
-                variant="link"
-                onClick={navigateToSongs}
-                className={styles.backLink}
-              >
-                All Songs
-              </Button>
-              <h1 className={styles.title}>
-                Artist: {playerState.currentArtist}
-              </h1>
+              <Button variant="link" onClick={navigateToSongs} className={styles.backLink}>All Songs</Button>
+              <h1 className={styles.title}>Artist: {playerState.currentArtist}</h1>
             </>
           ) : playerState.view === "album" ? (
             <>
-              <Button
-                variant="link"
-                onClick={navigateToSongs}
-                className={styles.backLink}
-              >
-                All Songs
-              </Button>
-              <h1 className={styles.title}>
-                Album: {playerState.currentAlbum}
-              </h1>
+              <Button variant="link" onClick={navigateToSongs} className={styles.backLink}>All Songs</Button>
+              <h1 className={styles.title}>Album: {playerState.currentAlbum}</h1>
             </>
           ) : null}
         </div>
@@ -353,170 +332,72 @@ export const MainContent = ({ musicPlayerHook }: MainContentProps) => {
               onChange={(e: any) => handleSongSearch(e.target.value)}
             />
           </div>
-          <Button
-            variant="outline"
-            size="icon-md"
-            className={styles.actionButton}
-            onClick={handleDeleteSong}
-            title="Delete first song"
-          >
-            <Trash2 size={16} />
-          </Button>
+          <Button variant="outline" size="icon-md" className={styles.actionButton} onClick={handleDeleteSong} title="Delete first song"><Trash2 size={16} /></Button>
           <PersistentDropdownMenu
             trigger={
-              <Button
-                variant="outline"
-                size="icon-md"
-                className={styles.actionButton}
-                title="Select songs"
-                onClick={handleSelectSongsToggle}
-              >
-                <ListChecks size={16} />
-              </Button>
+              <Button variant="outline" size="icon-md" className={styles.actionButton} title="Select songs" onClick={handleSelectSongsToggle}><ListChecks size={16} /></Button>
             }
             onClose={() => handleSelectSongsToggle()}
           >
-            <Button variant="ghost" onClick={handleSelectAll}>
-              <ListChecks size={16} style={{ marginRight: 8 }} />
-              {selectedSongs.length === filteredSongs.length
-                ? "Deselect All"
-                : "Select All"}
-            </Button>
-            <Button variant="ghost" onClick={handleAddToPlaylist}>
-              <Plus size={16} style={{ marginRight: 8 }} />
-              Add to playlist
-            </Button>
-            <Button variant="ghost" onClick={handleDeleteSelectedSongs}>
-              <Trash2 size={16} style={{ marginRight: 8 }} />
-              Delete song(s)
-            </Button>
+            <Button variant="ghost" onClick={handleSelectAll}>{selectedSongs.length === filteredSongs.length ? "Deselect All" : "Select All"}</Button>
+            <Button variant="ghost" onClick={handleAddToPlaylist}>Add to playlist</Button>
+            <Button variant="ghost" onClick={handleDeleteSelectedSongs}>Delete song(s)</Button>
           </PersistentDropdownMenu>
-          <Button
-            variant="outline"
-            size="icon-md"
-            className={styles.actionButton}
-            onClick={handleAddMusic}
-            title="Add music files"
-          >
-            <Plus size={16} />
-          </Button>
+          <Button variant="outline" size="icon-md" className={styles.actionButton} onClick={handleAddMusic} title="Add music files"><Plus size={16} /></Button>
         </div>
       </div>
-      <div className={styles.songList}>
-        <div className={styles.songListHeader}>
-          <span className={styles.columnHeader}>Song</span>
-          <span className={styles.columnHeader}>Artist</span>
-          <span className={styles.columnHeader}>Actions</span>
-        </div>
 
-        {filteredSongs.map((song: Song) => (
-          <div
-            key={song.id}
-            className={`${styles.songItem} ${
-              playerState.currentSong?.id === song.id ? styles.currentSong : ""
-            }`}
-            onClick={() => handleSongClick(song)}
-          >
-            <div className={styles.songInfo}>
-              {isSelectSongsActive && (
-                <Checkbox
-                  checked={selectedSongs.includes(song.id)}
-                  onChange={(e) => {
-                    e.stopPropagation();
-                    setSelectedSongs((prev) =>
-                      prev.includes(song.id)
-                        ? prev.filter((id) => id !== song.id)
-                        : [...prev, song.id]
-                    );
-                  }}
-                  onClick={(e) => e.stopPropagation()}
-                />
-              )}
-              <div className={styles.albumArt}>
-                {song.albumArt && (
-                  <img
-                    src={song.albumArt}
-                    alt={`${song.title} album art`}
-                    style={{
-                      width: "100%",
-                      height: "100%",
-                      objectFit: "cover",
-                      borderRadius: "inherit",
+      {/* Scrollable Song List */}
+      <div className={styles.songListWrapper}>
+        <div className={styles.songList}>
+          <div className={styles.songListHeader}>
+            <span className={styles.columnHeader}>Song</span>
+            <span className={styles.columnHeader}>Artist</span>
+            <span className={styles.columnHeader}>Actions</span>
+          </div>
+
+          {filteredSongs.map((song: Song) => (
+            <div
+              key={song.id}
+              className={`${styles.songItem} ${playerState.currentSong?.id === song.id ? styles.currentSong : ""}`}
+              onClick={() => handleSongClick(song)}
+            >
+              <div className={styles.songInfo}>
+                {isSelectSongsActive && (
+                  <Checkbox
+                    checked={selectedSongs.includes(song.id)}
+                    onChange={(e) => {
+                      e.stopPropagation();
+                      setSelectedSongs(prev =>
+                        prev.includes(song.id) ? prev.filter(id => id !== song.id) : [...prev, song.id]
+                      );
                     }}
                   />
                 )}
-              </div>
-              <div className={styles.songDetails}>
-                <div className={styles.songTitle}>{song.title}</div>
-                <div className={styles.songArtist}>
-                  {song.artist} • {formatDuration(song.duration)}
+                <div className={styles.albumArt}>
+                  {song.albumArt && <img src={song.albumArt} alt={`${song.title} album art`} style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "inherit" }} />}
+                </div>
+                <div className={styles.songDetails}>
+                  <div className={styles.songTitle}>{song.title}</div>
+                  <div className={styles.songArtist}>{song.artist} • {formatDuration(song.duration)}</div>
                 </div>
               </div>
+              <div className={styles.artistName}>{song.artist}</div>
+              <div className={styles.songActions}>
+                <Button variant="ghost" size="icon-sm" className={`${styles.songActionButton} ${isFavorited(song.id) ? styles.favorited : ""}`} onClick={(e: any) => handleToggleFavorite(e, song.id)}>
+                  <Heart size={14} fill={isFavorited(song.id) ? "currentColor" : "none"} />
+                </Button>
+                <Button variant="ghost" size="icon-sm" className={`${styles.songActionButton} ${ratings[song.id] === "thumbs-up" ? styles.active : ""}`} onClick={() => handleRating(song.id, "thumbs-up")}><ThumbsUp size={14} /></Button>
+                <Button variant="ghost" size="icon-sm" className={`${styles.songActionButton} ${ratings[song.id] === "thumbs-down" ? styles.active : ""}`} onClick={() => handleRating(song.id, "thumbs-down")}><ThumbsDown size={14} /></Button>
+                <SongActionsDropdown song={song} library={library} onCreatePlaylist={createPlaylist} onAddToPlaylist={addToPlaylist} onRemoveSong={removeSong} onPlaySong={playSong} size={14} className={styles.songActionButton} />
+              </div>
             </div>
-            <div className={styles.artistName}>{song.artist}</div>
-            <div
-              className={styles.songActions}
-              onClick={(e) => e.stopPropagation()}
-            >
-              <Button
-                variant="ghost"
-                size="icon-sm"
-                className={`${styles.songActionButton} ${
-                  isFavorited(song.id) ? styles.favorited : ""
-                }`}
-                onClick={(e: any) => handleToggleFavorite(e, song.id)}
-                title={
-                  isFavorited(song.id)
-                    ? "Remove from favorites"
-                    : "Add to favorites"
-                }
-              >
-                <Heart
-                  size={14}
-                  fill={isFavorited(song.id) ? "currentColor" : "none"}
-                />
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon-sm"
-                className={`${styles.songActionButton} ${
-                  ratings[song.id] === "thumbs-up" ? styles.active : ""
-                }`}
-                onClick={() => handleRating(song.id, "thumbs-up")}
-                title="Thumbs up"
-              >
-                <ThumbsUp size={14} />
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon-sm"
-                className={`${styles.songActionButton} ${
-                  ratings[song.id] === "thumbs-down" ? styles.active : ""
-                }`}
-                onClick={() => handleRating(song.id, "thumbs-down")}
-                title="Thumbs down"
-              >
-                <ThumbsDown size={14} />
-              </Button>
-              <SongActionsDropdown
-                song={song}
-                library={library}
-                onCreatePlaylist={createPlaylist}
-                onAddToPlaylist={addToPlaylist}
-                onRemoveSong={removeSong}
-                onPlaySong={playSong}
-                size={14}
-                className={styles.songActionButton}
-              />
-            </div>
-          </div>
-        ))}
+          ))}
 
-        {filteredSongs.length === 0 && (
-          <div className={styles.noResults}>
-            {songSearchQuery ? "No songs found" : "No songs in this playlist"}
-          </div>
-        )}
+          {filteredSongs.length === 0 && (
+            <div className={styles.noResults}>{songSearchQuery ? "No songs found" : "No songs in this playlist"}</div>
+          )}
+        </div>
       </div>
 
       {/* Delete Confirmation Modal */}

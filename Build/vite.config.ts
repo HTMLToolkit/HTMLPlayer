@@ -44,6 +44,9 @@ export default defineConfig({
       '@': '/src',
     },
   },
-  server: { open: true, allowedHosts:true },
+  server: { open: true, allowedHosts: true },
   build: { sourcemap: true, outDir: './dist', emptyOutDir: true },
+  worker: {
+    format: "es",
+  },
 });

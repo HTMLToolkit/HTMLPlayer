@@ -1,15 +1,25 @@
 /* Player container */
 .player {
+  position: fixed;
+  bottom: 0;
+  left: var(--sidebar-width);
+  /* align with main content, not floating over sidebar */
+  width: calc(100% - var(--sidebar-width) - 15px);
+  /* full width minus sidebar */
   height: 180px;
-  position: relative;
   background: var(--menu-background);
-  backdrop-filter: blur(10px);
+  backdrop-filter: blur(30px);
   border-top: 1px solid var(--primary-border-strong);
   border-radius: 1.5rem 1.5rem 0 0;
   display: flex;
   align-items: center;
-  padding: 0 var(--spacing-8);
-  gap: var(--spacing-8);
+  padding: 0 var(--spacing-6);
+  gap: var(--spacing-6);
+  box-sizing: border-box;
+  z-index: 50;
+  margin-left: 15px;
+  transition: ease-in-out var(--animation-duration-normal);
+  outline: 2px solid var(--themecolor2-transparent);
 }
 
 .currentSong {
@@ -59,11 +69,13 @@
   flex-direction: column;
   gap: var(--spacing-2);
 }
+
 /* In Player.module.css */
 .songTitleWrapper {
   overflow: hidden;
   white-space: nowrap;
-  width: 250px; /* Increased to accommodate larger text */
+  width: 250px;
+  /* Increased to accommodate larger text */
   max-width: 100%;
 }
 
@@ -79,10 +91,14 @@
 
 .songTitle.scrollable {
   display: inline-block;
-  animation: scrollTitle linear infinite; /* Duration set inline */
-  animation-delay: 2s; /* Brief pause before start */
-  will-change: transform; /* Optimize rendering */
-  transform: translateZ(0); /* Force GPU acceleration */
+  animation: scrollTitle linear infinite;
+  /* Duration set inline */
+  animation-delay: 2s;
+  /* Brief pause before start */
+  will-change: transform;
+  /* Optimize rendering */
+  transform: translateZ(0);
+  /* Force GPU acceleration */
   white-space: nowrap;
 }
 
@@ -92,10 +108,13 @@
 
 @keyframes scrollTitle {
   0% {
-    transform: translateX(0); /* Start at initial position */
+    transform: translateX(0);
+    /* Start at initial position */
   }
+
   100% {
-    transform: translateX(var(--scroll-distance)); /* Move to end and reset */
+    transform: translateX(var(--scroll-distance));
+    /* Move to end and reset */
   }
 }
 

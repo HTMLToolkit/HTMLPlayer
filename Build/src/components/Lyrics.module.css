@@ -1,4 +1,7 @@
 .lyricsHeader {
+  position: sticky;
+  top: 0; /* needed for sticky to take effect */
+  z-index: 10; /* above the scrollable content */
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -7,8 +10,11 @@
   font-weight: 600;
   border-bottom: 1px solid var(--border);
   color: var(--card-foreground);
-  flex-shrink: 0; /* header stays fixed */
+  flex-shrink: 0;
+  background: rgba(var(--card-rgb), 0.92);
+  backdrop-filter: blur(10px);
 }
+
 
 .lyricsOverlay {
   position: absolute;

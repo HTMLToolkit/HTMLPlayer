@@ -221,8 +221,7 @@ export const Player = ({ musicPlayerHook, settings }: PlayerProps) => {
       // Reset to single title before measuring
       content.innerHTML = currentSong.title;
       const distance = content.scrollWidth - wrapper.clientWidth;
-      console.log({ scrollWidth: content.scrollWidth, clientWidth: wrapper.clientWidth, distance });
-
+      
       if (distance > 0) {
         // Only scroll if title is wider than wrapper
         const gapWidth = 15; // Approximate pixel width of "&nbsp;&nbsp;&nbsp;"

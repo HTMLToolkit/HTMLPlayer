@@ -19,9 +19,9 @@
     "@radix-ui/react-slot": "^1.1.2",
     "@radix-ui/react-switch": "^1.2.6",
     "@radix-ui/react-tooltip": "^1.2.8",
-    "jsmediatags": "^3.9.7",
     "lodash": "^4.17.21",
     "lucide-react": "^0.542.0",
+    "music-metadata": "^11.8.3",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "sonner": "^2.0.7"

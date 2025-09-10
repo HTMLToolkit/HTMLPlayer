@@ -148,18 +148,20 @@ export const ThemeLoader: React.FC<ThemeLoaderProps> = ({
       const existingStyles = document.querySelectorAll('style[id^="theme-stylesheet"], link[id^="theme-stylesheet"]');
       existingStyles.forEach(style => style.remove());
 
-      console.log(`Loading CSS module for: ${cssPath}`);
+      // console.log(`Loading CSS module for: ${cssPath}`);
 
       // Load the CSS module to get the CSS content
       const cssModule = await (themeCssFiles[cssPath] as () => Promise<string>)();
-      console.log('CSS module structure:', cssModule);
+      // console.log('CSS module structure:', cssModule);
 
       // Verify the content is a string
       if (!cssModule || typeof cssModule !== 'string') {
         throw new Error(`Invalid CSS content for ${cssPath}: ${typeof cssModule}`);
       }
 
-      console.log(`CSS content loaded, length: ${cssModule.length} characters`);
+      // console.log(`CSS theme loaded, length: ${cssModule.length} characters`);
+
+      console.log('Theme loaded');
 
       // Create a style element and inject the CSS
       const styleElement = document.createElement('style');

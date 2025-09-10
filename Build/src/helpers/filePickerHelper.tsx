@@ -1,5 +1,5 @@
 import { toast } from "sonner";
-import * as jsmediatags from "jsmediatags/dist/jsmediatags.min.js";
+import { parseBlob, selectCover } from "music-metadata";
 
 export type AudioFile = {
   file: File;
@@ -16,11 +16,57 @@ export type AudioMetadata = {
   albumArt?: string;
 };
 
+// Track processing state for beforeunload prompt
+let isProcessing = false;
+
+const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+  if (isProcessing) {
+    event.preventDefault();
+    // Modern browsers ignore custom messages, but setting returnValue triggers the prompt
+    event.returnValue = '';
+  }
+};
+
+// Function to set processing state and manage beforeunload listener
+export function setProcessingState(processing: boolean) {
+  isProcessing = processing;
+  if (processing) {
+    window.addEventListener('beforeunload', handleBeforeUnload);
+  } else {
+    window.removeEventListener('beforeunload', handleBeforeUnload);
+  }
+}
+
+// Utility for promise with timeout and retries
+async function withTimeoutAndRetry<T>(
+  promise: Promise<T>,
+  timeoutMs: number,
+  retries: number,
+  errorMessage: string
+): Promise<T> {
+  let lastError: Error | null = null;
+
+  for (let attempt = 1; attempt <= retries; attempt++) {
+    try {
+      const timeoutPromise = new Promise<T>((_, reject) => {
+        setTimeout(() => reject(new Error(`Timeout: ${errorMessage}`)), timeoutMs);
+      });
+      return await Promise.race([promise, timeoutPromise]);
+    } catch (e) {
+      lastError = e instanceof Error ? e : new Error(String(e));
+      console.warn(`Attempt ${attempt} failed: ${lastError.message}`);
+      if (attempt === retries) {
+        throw lastError;
+      }
+    }
+  }
+  throw lastError || new Error("Unknown error after retries");
+}
+
 export function pickAudioFiles(): Promise<AudioFile[]> {
   return new Promise((resolve, reject) => {
     const input = document.createElement("input");
     input.type = "file";
-    // Allow specific audio types only (case insensitive)
     input.accept = ".mp3,.wav,.m4a,.flac,.aif,.aiff,.ogg";
     input.multiple = true;
 
@@ -39,7 +85,6 @@ export function pickAudioFiles(): Promise<AudioFile[]> {
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
 
-        // Validate audio file type by MIME type prefix
         const allowedExtensions = [
           "mp3",
           "wav",
@@ -60,7 +105,6 @@ export function pickAudioFiles(): Promise<AudioFile[]> {
           continue;
         }
 
-        // Check if browser can play the file type
         const canPlay = audioTest.canPlayType(file.type);
         if (canPlay !== "probably" && canPlay !== "maybe") {
           toast.error(
@@ -93,77 +137,88 @@ export function pickAudioFiles(): Promise<AudioFile[]> {
 }
 
 export async function extractAudioMetadata(file: File): Promise<AudioMetadata> {
-  let id3Tags: any = null;
-  let albumArt: string | undefined = undefined;
+  setProcessingState(true);
+  const worker = new Worker(new URL('./metadataWorker.ts', import.meta.url), { type: 'module' });
 
   try {
-    id3Tags = await new Promise((resolve) => {
-      new jsmediatags.Reader(file).read({
-        onSuccess: (tag: any) => resolve(tag.tags),
-        onError: (error: any) => {
-          console.warn("Failed to read ID3 tags with jsmediatags:", error);
-          resolve(null);
-        },
-      });
-    }).catch((e) => {
-      console.warn("Error reading ID3 tags with jsmediatags:", e);
-      return null;
-    });
+    return await withTimeoutAndRetry(
+      new Promise<AudioMetadata>((resolve, reject) => {
+        worker.onmessage = (event) => {
+          const { metadata, albumArt, error } = event.data;
+          if (error) {
+            console.warn(`Worker error for ${file.name}:`, error);
+            reject(new Error(error));
+          } else {
+            resolve({ ...metadata, albumArt });
+          }
+        };
 
-    // Extract album art if available
-    if (id3Tags && id3Tags.picture) {
-      const { data } = id3Tags.picture;
-      const format = id3Tags.picture.format;
-      if (data) {
-        // data is an array of bytes, convert it to a blob and then a data URL
-        const blob = new Blob([new Uint8Array(data)], { type: format });
-        albumArt = await new Promise<string>((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onloadend = () => resolve(reader.result as string);
-          reader.onerror = () => reject(reader.error);
-          reader.readAsDataURL(blob);
-        });
+        worker.onerror = (error) => {
+          console.warn(`Worker failed for ${file.name}:`, error);
+          reject(new Error('Worker error'));
+        };
+
+        worker.postMessage({ file, fileName: file.name });
+      }),
+      15000,
+      3,
+      `Metadata extraction for ${file.name}`
+    );
+  } catch (e) {
+    console.warn(`Failed to read metadata for ${file.name}:`, e);
+    // Fallback metadata extraction in main thread
+    const fileName = file.name.replace(/\.[^/.]+$/, "");
+    let title = fileName;
+    let artist = "Unknown Artist";
+    let album = "Unknown Album";
+    let duration = 0;
+    let albumArt: string | undefined = undefined;
+
+    try {
+      const metadata = await withTimeoutAndRetry(
+        parseBlob(file, { skipCovers: false, duration: true }),
+        15000,
+        3,
+        `Fallback metadata parsing for ${file.name}`
+      );
+
+      if (metadata.common) {
+        if (metadata.common.artist && typeof metadata.common.artist === "string")
+          artist = metadata.common.artist;
+        if (metadata.common.title && typeof metadata.common.title === "string")
+          title = metadata.common.title;
+        if (metadata.common.album && typeof metadata.common.album === "string")
+          album = metadata.common.album;
+        duration = metadata.format.duration ?? 0;
+
+        const cover = selectCover(metadata.common.picture);
+        if (cover && cover.data && cover.data.length > 0) {
+          const uint8Array = new Uint8Array(cover.data);
+          const blob = new Blob([uint8Array], { type: cover.format });
+          albumArt = await new Promise<string>((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onloadend = () => resolve(reader.result as string);
+            reader.onerror = () => reject(new Error('Failed to read album art'));
+            reader.readAsDataURL(blob);
+          });
+        }
+      }
+    } catch (fallbackError) {
+      console.warn(`Fallback metadata parsing failed for ${file.name}:`, fallbackError);
+      if (fileName.includes(" - ")) {
+        const parts = fileName.split(" - ");
+        if (parts.length >= 2) {
+          artist = parts[0].trim();
+          title = parts[1].trim();
+        }
       }
     }
-  } catch (e) {
-    console.warn("Error processing ID3 tags:", e);
+
+    return { title, artist, album, duration, albumArt };
+  } finally {
+    worker.terminate();
+    setProcessingState(false);
   }
-
-  const fileName = file.name.replace(/\.[^/.]+$/, "");
-  let title = fileName;
-  let artist = "Unknown Artist";
-  let album = "Unknown Album";
-
-  if (id3Tags) {
-    if (id3Tags.artist && typeof id3Tags.artist === "string")
-      artist = id3Tags.artist;
-    if (id3Tags.title && typeof id3Tags.title === "string")
-      title = id3Tags.title;
-    if (id3Tags.album && typeof id3Tags.album === "string")
-      album = id3Tags.album;
-  } else if (fileName.includes(" - ")) {
-    const parts = fileName.split(" - ");
-    if (parts.length >= 2) {
-      artist = parts[0].trim();
-      title = parts[1].trim();
-    }
-  }
-
-  const url = URL.createObjectURL(file);
-  const audio = new Audio();
-  const duration = await new Promise<number>((resolve) => {
-    audio.onloadedmetadata = () => {
-      resolve(audio.duration || 0);
-      URL.revokeObjectURL(url);
-    };
-    audio.onerror = () => {
-      resolve(0);
-      URL.revokeObjectURL(url);
-    };
-    audio.src = url;
-  });
-
-  return { title, artist, album, duration, albumArt };
 }
 
 export function createAudioUrl(file: File): string {
