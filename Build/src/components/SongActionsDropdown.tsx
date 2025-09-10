@@ -28,7 +28,9 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
 } from "./DropdownMenu";
-import { Song, Playlist, MusicLibrary } from "../helpers/musicPlayerHook";
+import { Song } from "../types/Song";
+import { Playlist } from "../types/Playlist";
+import { MusicLibrary } from "../types/MusicLibrary";
 
 interface SongActionsDropdownProps {
   song: Song;

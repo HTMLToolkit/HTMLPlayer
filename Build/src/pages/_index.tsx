@@ -1,8 +1,14 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
+import ReactDOM from "react-dom/client";
+import "../global.css";
+
 import { Sidebar } from "../components/Sidebar";
 import { MainContent } from "../components/MainContent";
 import { Player } from "../components/Player";
-import { useMusicPlayer } from "../helpers/musicPlayerHook";
+import { ErrorBoundary } from "../helpers/errorBoundary";
+import { MusicPlayerProvider, useMusicPlayerContext } from "../contexts/musicPlayer";
+import { Toaster } from "sonner";
+import { ThemeLoader } from "../helpers/themeLoader";
 import {
   switchToAutoMode,
   switchToDarkMode,
@@ -12,15 +18,13 @@ import {
 import { musicIndexedDbHelper } from "../helpers/musicIndexedDbHelper";
 import styles from "./_index.module.css";
 
-export default function IndexPage() {
-  const musicPlayerHook = useMusicPlayer();
+// Inner component that uses the context
+function AppContent() {
+  const musicPlayer = useMusicPlayerContext();
   const [, setThemeMode] = useState<ThemeMode>("auto");
 
   useEffect(() => {
-    // Set the document title
     document.title = "HTMLPlayer";
-
-    // Set the meta description
     const metaDescription = document.querySelector('meta[name="description"]');
     if (metaDescription) {
       metaDescription.setAttribute(
@@ -38,7 +42,8 @@ export default function IndexPage() {
     async function loadThemeMode() {
       const settings = await musicIndexedDbHelper.loadSettings();
       const mode = settings?.themeMode || "auto";
-      setThemeMode(mode);
+
+      setThemeMode(prev => (prev === mode ? prev : mode));
 
       switch (mode) {
         case "light":
@@ -58,25 +63,26 @@ export default function IndexPage() {
   }, []);
 
   return (
-    <div className={styles.container}>
-      <Sidebar musicPlayerHook={musicPlayerHook} />
-      <div className={styles.mainSection}>
-        <MainContent musicPlayerHook={musicPlayerHook} />
-        <Player musicPlayerHook={musicPlayerHook} settings={{
-          volume: 0,
-          crossfade: 0,
-          defaultShuffle: false,
-          defaultRepeat: "off",
-          themeMode: "light",
-          colorTheme: "",
-          autoPlayNext: false,
-          compactMode: false,
-          showAlbumArt: false,
-          showLyrics: false,
-          lastPlayedSongId: undefined,
-          lastPlayedPlaylistId: undefined
-        }} />
+    <ErrorBoundary musicPlayer={musicPlayer}>
+      <div className={styles.container}>
+        <Sidebar musicPlayer={musicPlayer} />
+        <div className={styles.mainSection}>
+          <MainContent musicPlayer={musicPlayer} />
+          <Player musicPlayer={musicPlayer} />
+        </div>
       </div>
-    </div>
+    </ErrorBoundary>
   );
 }
+
+// Render everything in one place
+ReactDOM.createRoot(document.getElementById("root")!).render(
+  <React.StrictMode>
+      <ThemeLoader defaultTheme="Blue">
+        <MusicPlayerProvider>
+          <Toaster />
+          <AppContent />
+        </MusicPlayerProvider>
+      </ThemeLoader>
+  </React.StrictMode>
+);

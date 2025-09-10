@@ -1,4 +1,5 @@
-import { MusicLibrary, PlayerSettings } from "./musicPlayerHook";
+import { PlayerSettings } from "../types/PlayerSettings";
+import { MusicLibrary } from "../types/MusicLibrary";
 
 // IndexedDB configuration
 const DB_NAME = "HTMLPlayerDB";
@@ -84,9 +85,7 @@ const saveToIndexedDB = async (
 ): Promise<void> => {
   try {
     // First, get existing data if needed
-    let existingData: any = null;
     if (key === "musicLibrary" && data?.songs) {
-      existingData = await loadFromIndexedDB(STORES.LIBRARY, "musicLibrary");
     }
 
     // Open new transaction after loading existing data

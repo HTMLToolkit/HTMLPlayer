@@ -221,6 +221,82 @@ export async function extractAudioMetadata(file: File): Promise<AudioMetadata> {
   }
 }
 
+// Batch processing function to handle multiple files efficiently
+export async function extractMultipleAudioMetadata(
+  files: File[], 
+  batchSize: number = 3
+): Promise<AudioMetadata[]> {
+  const results: AudioMetadata[] = [];
+  const totalFiles = files.length;
+  let processedCount = 0;
+
+  // Show progress toast
+  const toastId = toast.loading(`Processing metadata 0/${totalFiles} files...`);
+
+  try {
+    // Process files in batches to avoid overwhelming the browser
+    for (let i = 0; i < files.length; i += batchSize) {
+      const batch = files.slice(i, i + batchSize);
+      
+      const batchPromises = batch.map(async (file) => {
+        try {
+          const metadata = await extractAudioMetadata(file);
+          processedCount++;
+          
+          // Update progress toast
+          toast.loading(
+            `Processing metadata ${processedCount}/${totalFiles} files...`,
+            {
+              id: toastId,
+              description: `Current: ${metadata.title}`,
+            }
+          );
+          
+          return metadata;
+        } catch (error) {
+          console.error(`Failed to process ${file.name}:`, error);
+          processedCount++;
+          
+          // Return fallback metadata
+          return {
+            title: file.name.replace(/\.[^/.]+$/, ""),
+            artist: "Unknown Artist",
+            album: "Unknown Album",
+            duration: 0,
+          };
+        }
+      });
+
+      const batchResults = await Promise.allSettled(batchPromises);
+      
+      // Extract successful results
+      batchResults.forEach((result) => {
+        if (result.status === 'fulfilled') {
+          results.push(result.value);
+        }
+      });
+
+      // Small delay between batches to prevent browser freezing
+      if (i + batchSize < files.length) {
+        await new Promise(resolve => setTimeout(resolve, 10));
+      }
+    }
+
+    // Success toast
+    toast.success(`Successfully processed ${results.length} files`, {
+      id: toastId,
+    });
+    
+  } catch (error) {
+    toast.error("Failed to process some files", {
+      id: toastId,
+      description: (error as Error).message,
+    });
+  }
+
+  return results;
+}
+
 export function createAudioUrl(file: File): string {
   return URL.createObjectURL(file);
 }
