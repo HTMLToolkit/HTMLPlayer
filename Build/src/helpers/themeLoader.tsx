@@ -37,7 +37,7 @@ interface ThemeLoaderProps {
 // Import theme JSON and CSS
 // ----------------------
 const themeJsonFiles = import.meta.glob('../themes/**/*.theme.json', { eager: true });
-const themeCssFiles = import.meta.glob('../themes/**/*.theme.css',{ query: '?raw', import: 'default', eager: false });
+const themeCssFiles = import.meta.glob('../themes/**/*.theme.css', { query: '?raw', import: 'default', eager: false });
 
 // ----------------------
 // ThemeLoader Component
@@ -185,6 +185,19 @@ export const ThemeLoader: React.FC<ThemeLoaderProps> = ({
       setError(null);
 
       console.log(`Successfully applied theme: ${theme.name}`);
+
+      const themeColor = getComputedStyle(document.documentElement)
+        .getPropertyValue('--themecolor2')
+        .trim();
+
+      let meta = document.querySelector('meta[name="theme-color"]') as HTMLMetaElement | null;
+      if (!meta) {
+        meta = document.createElement('meta');
+        meta.name = 'theme-color';
+        document.head.appendChild(meta);
+      }
+      meta.content = themeColor;
+
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to apply theme';
       setError(errorMessage);

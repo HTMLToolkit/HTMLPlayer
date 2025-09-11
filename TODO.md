@@ -4,18 +4,11 @@
 
 - [ ] remove repeated names for the same thing in i18n
 
-- [ ] make PWA top bar dynamic
-  - <https://css-tricks.com/meta-theme-color-and-trickery>
-  
 - [ ] add and use uppy
   - <https://github.com/transloadit/uppy?tab=readme-ov-file>
   - <https://uppy.io/docs/react/>
 
 - [ ] Crossfade options (settings)
-
-- [ ] Pitch/Tempo Control (settings)
-
-- [ ] slow down/speed up tracks without changing pitch (DJ style 😎)
 
 - [ ] Gapless playback (settings)
 
@@ -64,7 +57,6 @@
     **Issue**: `showDirectoryPicker` missing but is not supported in all browsers (e.g., Safari).
     **Improvement**: Fallback to file input for unsupported browsers.
     **Implementation**:
-
       ```javascript
       document.getElementById("uploadBtn").onclick = async () => {
         if (window.showDirectoryPicker) {
@@ -88,6 +80,9 @@
       ```
 
 ## Future (probably)
+
+- [ ] slow down/speed up tracks without changing pitch (DJ style 😎)
+  - [PitchShift](https://tonejs.github.io/docs/15.1.22/classes/PitchShift.html)
 
 - [ ] Now Playing Screen (fullscreen, minimal UI)
 
@@ -140,12 +135,11 @@
 - [ ] in each file that uses icons, have, instead of lucide-react, have one file with a bunch of references
   - example:
   
-  ```json
-    {
-      "settingsIcon": "lucide-react.Gear",
-    %% etc... %%
-    }
-  ```
+    ```json
+      {
+        "settingsIcon": "lucide-react.Gear",
+      }
+    ```
 
 - [ ] like i18n
 
@@ -158,6 +152,13 @@
 - [ ] picture backgrounds
 
 ## Done
+
+- [X] Pitch/Tempo Control (settings)
+
+- [X] make PWA top bar dynamic
+  - <https://css-tricks.com/meta-theme-color-and-trickery>
+  
+- [X] Use @web-scrobbler/metadata-filter for much better lyrics fetching
 
 - [X] Add and use i18n
   - <https://medium.com/@tahnyybelguith/comprehensive-guide-to-i18n-internationalization-in-web-applications-d82abbd378af>
@@ -214,11 +215,9 @@
     **Issue**: No support for displaying lyrics.
     **Improvement**: Add a lyrics panel that fetches lyrics from lyrics.ovh or metadata.
     **Implementation**:
-
       ```html
       <div id="lyricsPanel" style="display: none; padding: 10px;"></div>
       ```
-
       ```javascript
       async function fetchLyrics(trackName) {
         try {

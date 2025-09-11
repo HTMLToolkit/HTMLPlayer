@@ -155,7 +155,7 @@ export const MainContent = ({ musicPlayerHook }: MainContentProps) => {
   const handleDeleteConfirm = () => {
     if (songToDelete) {
       removeSong(songToDelete.id);
-      toast.success(t("delete.delete", { title: songToDelete.title }));
+      toast.success(t("deletedFromLibrary", { song: songToDelete.title }));
       setShowDeleteConfirm(false);
       setSongToDelete(null);
     }
@@ -261,7 +261,7 @@ export const MainContent = ({ musicPlayerHook }: MainContentProps) => {
 
   const handleDeleteSelectedSongs = () => {
     selectedSongs.forEach((songId) => removeSong(songId));
-    toast.success(t("delete.delete", { count: selectedSongs.length }));
+    toast.success(t("deletedFromLibrary", { song: selectedSongs.length }));
     setSelectedSongs([]);
   };
 

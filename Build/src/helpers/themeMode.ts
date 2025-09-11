@@ -1,5 +1,22 @@
 export type ThemeMode = "light" | "dark" | "auto";
 
+export function updateMetaThemeColor(): void {
+  // Delay to allow CSS changes to propagate
+  requestAnimationFrame(() => {
+    const themeColor = getComputedStyle(document.documentElement)
+      .getPropertyValue('--themecolor2')
+      .trim();
+
+    let meta = document.querySelector('meta[name="theme-color"]') as HTMLMetaElement | null;
+    if (!meta) {
+      meta = document.createElement('meta');
+      meta.name = 'theme-color';
+      document.head.appendChild(meta);
+    }
+    meta.content = themeColor;
+  });
+} 
+
 /**
  * Switch to dark mode by adding the "dark" class to document.body.
  */
@@ -9,7 +26,8 @@ export function switchToDarkMode(): void {
     currentMediaQuery.onchange = null;
     currentMediaQuery = null;
   }
-  document.body.classList.add("dark");
+    document.documentElement.classList.add("dark"); 
+  updateMetaThemeColor();
 }
 
 /**
@@ -21,15 +39,17 @@ export function switchToLightMode(): void {
     currentMediaQuery.onchange = null;
     currentMediaQuery = null;
   }
-  document.body.classList.remove("dark");
+  document.documentElement.classList.remove("dark");
+  updateMetaThemeColor();
 }
 
 function updateTheme(darkPreferred: boolean): void {
   if (darkPreferred) {
-    document.body.classList.add("dark");
+  document.documentElement.classList.add("dark"); 
   } else {
-    document.body.classList.remove("dark");
+  document.documentElement.classList.remove("dark");
   }
+  updateMetaThemeColor();
 }
 
 let currentMediaQuery: MediaQueryList | null = null;

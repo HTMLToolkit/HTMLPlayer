@@ -170,7 +170,10 @@
             "shuffleDesc": "Enable shuffle by default when starting playback",
             "repeat": "Default Repeat Mode",
             "autoPlay": "Auto-play Next Song",
-            "autoPlayDesc": "Automatically play the next song when current song ends"
+            "autoPlayDesc": "Automatically play the next song when current song ends",
+            "tempo": "Tempo",
+            "gapless": "Gapless Playback",
+            "gaplessDesc": "Play tracks back-to-back without any gaps between them."
         },
         "interface": {
             "title": "Interface Settings",

@@ -38,6 +38,7 @@ export type PlayerSettings = {
   lastPlayedSongId?: string;
   lastPlayedPlaylistId?: string;
   language: string;
+  tempo: number;
 };
 
 export interface SettingsProps {
@@ -82,7 +83,8 @@ export const Settings = ({
         showAlbumArt: true,
         showLyrics: false,
         colorTheme: defaultThemeName,
-        language: "English"
+        language: "English",
+        tempo: 1
       });
     } catch {
       toast.error(t("settings.resetError"));
@@ -123,9 +125,35 @@ export const Settings = ({
           <div className={styles.settingsContent}>
             {/* Audio Settings */}
             <section className={styles.section}>
+
               <div className={styles.sectionHeader}>
                 <Volume2 className={styles.sectionIcon} />
                 <h3 className={styles.sectionTitle}>{t("settings.audio.title")}</h3>
+              </div>
+
+              <div className={styles.settingItem}>
+                <div className={styles.settingLabel}>
+                  <label htmlFor="tempo-slider">{t("settings.playback.tempo")}</label>
+                  <span className={styles.settingValue}>{Math.round(settings.tempo * 100)}%</span>
+                </div>
+                <Slider
+                  id="tempo-slider"
+                  value={[settings.tempo * 100]}
+                  onValueChange={(val) => {
+                    let newVal = val[0];
+
+                    // Snap to 100 if within ±3%
+                    if (Math.abs(newVal - 100) <= 3) {
+                      newVal = 100;
+                    }
+
+                    onSettingsChange({ tempo: newVal / 100 });
+                  }}
+                  min={50}
+                  max={150}
+                  step={1}
+                  className={styles.slider}
+                />
               </div>
 
               <div className={styles.settingItem}>

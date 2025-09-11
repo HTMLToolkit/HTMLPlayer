@@ -35,6 +35,8 @@ export type PlayerSettings = {
   lastPlayedSongId?: string;
   lastPlayedPlaylistId?: string;
   language: string;
+  tempo: number;
+  gapless: boolean;
 };
 
 export type PlayerState = {
@@ -108,7 +110,9 @@ export const useMusicPlayer = () => {
     showLyrics: false,
     lastPlayedSongId: "none",
     lastPlayedPlaylistId: "none",
-    language: "English"
+    language: "English",
+    tempo: 1,
+    gapless: false
   });
 
   const [library, setLibrary] = useState<MusicLibrary>(() => ({
@@ -306,13 +310,13 @@ export const useMusicPlayer = () => {
             ...validLibrary,
             playlists: validLibrary.playlists.some((p) => p.id === "all-songs")
               ? validLibrary.playlists.map((p) =>
-                  p.id === "all-songs"
-                    ? {
-                        ...p,
-                        songs: prepareSongsForPlaylist(validLibrary.songs),
-                      }
-                    : p
-                )
+                p.id === "all-songs"
+                  ? {
+                    ...p,
+                    songs: prepareSongsForPlaylist(validLibrary.songs),
+                  }
+                  : p
+              )
               : [allSongsPlaylist, ...validLibrary.playlists],
           };
 
@@ -453,10 +457,17 @@ export const useMusicPlayer = () => {
             audioRef.current.play();
           }
         } else if (playNextRef.current) {
-          playNextRef.current();
+          if (settingsRef.current.gapless) {
+            // Start next song immediately without delay
+            playNextRef.current();
+          } else {
+            // Add tiny delay if gapless disabled
+            setTimeout(() => playNextRef.current?.(), 400);
+          }
         }
       }
     };
+
 
     audio.addEventListener("timeupdate", handleTimeUpdate);
     audio.addEventListener("loadedmetadata", handleLoadedMetadata);
@@ -529,10 +540,10 @@ export const useMusicPlayer = () => {
         album: playerState.currentSong.album,
         artwork: playerState.currentSong.albumArt
           ? [
-              {
-                src: playerState.currentSong.albumArt,
-              },
-            ]
+            {
+              src: playerState.currentSong.albumArt,
+            },
+          ]
           : [],
       });
 
@@ -571,9 +582,9 @@ export const useMusicPlayer = () => {
       // Prepare song for playing, handling both IndexedDB and direct URLs
       const songToPlay = song.hasStoredAudio
         ? {
-            ...song,
-            url: `indexeddb://${song.id}`, // Use indexeddb:// URL
-          }
+          ...song,
+          url: `indexeddb://${song.id}`, // Use indexeddb:// URL
+        }
         : song;
 
       // First ensure the song is cached
@@ -587,9 +598,9 @@ export const useMusicPlayer = () => {
       // Prepare playlist songs if setting a new playlist
       const preparedPlaylist = playlist
         ? {
-            ...playlist,
-            songs: prepareSongsForPlaylist(playlist.songs),
-          }
+          ...playlist,
+          songs: prepareSongsForPlaylist(playlist.songs),
+        }
         : playerStateRef.current.currentPlaylist;
 
       setPlayerState((prev) => ({
@@ -603,6 +614,11 @@ export const useMusicPlayer = () => {
       if (audioRef.current) {
         // Use the cached URL instead of the original URL
         audioRef.current.src = cachedSong.url;
+
+        // Apply persisted tempo immediately
+        const tempo = settingsRef.current.tempo || 1;
+        audioRef.current.playbackRate = tempo;
+
         try {
           await audioRef.current.play().catch(async (error: any) => {
             if (
@@ -1033,6 +1049,12 @@ export const useMusicPlayer = () => {
       currentAlbum: undefined,
     }));
   }, []);
+
+  useEffect(() => {
+    if (audioRef.current) {
+      audioRef.current.playbackRate = settings.tempo;
+    }
+  }, [settings.tempo]);
 
   return {
     playerState,

@@ -169,7 +169,10 @@
             "shuffleDesc": "Activer la lecture aléatoire par défaut au démarrage",
             "repeat": "Mode répétition par défaut",
             "autoPlay": "Lecture automatique de la prochaine chanson",
-            "autoPlayDesc": "Lire automatiquement la chanson suivante lorsque la chanson en cours se termine"
+            "autoPlayDesc": "Lire automatiquement la chanson suivante lorsque la chanson en cours se termine",
+            "tempo": "Tempo",
+            "gapless": "Lecture continue",
+            "gaplessDesc": "Jouer les morceaux les uns après les autres sans aucune pause entre eux."
         },
         "interface": {
             "title": "Paramètres d’interface",
