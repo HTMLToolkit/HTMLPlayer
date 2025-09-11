@@ -153,6 +153,14 @@
 
 ## Done
 
+- [X] sanitize song title using DOMPurify
+
+- [X] set default tempo to prevent crash
+
+- [X] add sha to eruda import for safety.
+
+- [X] use fontsource rather than network loading
+
 - [X] Pitch/Tempo Control (settings)
 
 - [X] make PWA top bar dynamic

@@ -11,6 +11,10 @@
     "eject": "react-scripts eject"
   },
   "dependencies": {
+    "@fontsource/caveat": "^5.2.7",
+    "@fontsource/inter": "^5.2.6",
+    "@fontsource/jetbrains-mono": "^5.2.6",
+    "@fontsource/poppins": "^5.2.6",
     "@radix-ui/react-dialog": "^1.1.15",
     "@radix-ui/react-dropdown-menu": "^2.1.16",
     "@radix-ui/react-select": "^2.2.6",
@@ -20,6 +24,8 @@
     "@radix-ui/react-switch": "^1.2.6",
     "@radix-ui/react-tooltip": "^1.2.8",
     "@web-scrobbler/metadata-filter": "^3.2.0",
+    "dompurify": "^3.2.6",
+    "eruda": "^3.4.3",
     "i18next": "^25.5.2",
     "i18next-browser-languagedetector": "^8.2.0",
     "i18next-http-backend": "^3.0.2",

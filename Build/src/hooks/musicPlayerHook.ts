@@ -285,6 +285,13 @@ export const useMusicPlayer = () => {
     await Promise.all(promises);
   };
 
+  const getValidTempo = (tempo: number | undefined) => {
+    if (typeof tempo !== "number" || !Number.isFinite(tempo) || tempo <= 0) {
+      return 1; // fallback to normal speed
+    }
+    return tempo;
+  };
+
   useEffect(() => {
     const loadPersistedData = async () => {
       try {
@@ -616,8 +623,7 @@ export const useMusicPlayer = () => {
         audioRef.current.src = cachedSong.url;
 
         // Apply persisted tempo immediately
-        const tempo = settingsRef.current.tempo || 1;
-        audioRef.current.playbackRate = tempo;
+        audioRef.current.playbackRate = getValidTempo(settingsRef.current.tempo);
 
         try {
           await audioRef.current.play().catch(async (error: any) => {
@@ -1052,7 +1058,7 @@ export const useMusicPlayer = () => {
 
   useEffect(() => {
     if (audioRef.current) {
-      audioRef.current.playbackRate = settings.tempo;
+      audioRef.current.playbackRate = getValidTempo(settings.tempo);
     }
   }, [settings.tempo]);
 
