@@ -22,6 +22,7 @@ import styles from "./Player.module.css";
 import { SongActionsDropdown } from "./SongActionsDropdown";
 import { PlayerSettings } from "./Settings";
 import { useTranslation } from "react-i18next";
+import DOMPurify from "dompurify";
 
 type PlayerProps = {
   musicPlayerHook: ReturnType<
@@ -202,7 +203,10 @@ export const Player = ({ musicPlayerHook, settings }: PlayerProps) => {
       const wrapper = titleRef.current.parentElement!;
       const content = titleRef.current;
 
-      content.innerHTML = currentSong.title;
+      // Sanitize the title
+      const safeTitle = DOMPurify.sanitize(currentSong.title);
+
+      content.innerHTML = safeTitle;
       const distance = content.scrollWidth - wrapper.clientWidth;
 
       if (distance > 0) {
@@ -212,13 +216,13 @@ export const Player = ({ musicPlayerHook, settings }: PlayerProps) => {
         setAnimationDuration(Math.max(10, loopDistance / 30));
         content.classList.remove(styles.scrollable);
         void content.offsetWidth;
-        content.innerHTML = `${currentSong.title} &nbsp;&nbsp;&nbsp; ${currentSong.title}`;
+        content.innerHTML = `${safeTitle} &nbsp;&nbsp;&nbsp; ${safeTitle}`;
         content.classList.add(styles.scrollable);
       } else {
         setScrollDistance("0px");
         setAnimationDuration(0);
         content.classList.remove(styles.scrollable);
-        content.innerHTML = currentSong.title;
+        content.innerHTML = safeTitle;
       }
     };
 

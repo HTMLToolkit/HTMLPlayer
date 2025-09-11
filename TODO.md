@@ -4,10 +4,6 @@
 
 - [ ] remove repeated names for the same thing in i18n
 
-- [ ] add and use uppy
-  - <https://github.com/transloadit/uppy?tab=readme-ov-file>
-  - <https://uppy.io/docs/react/>
-
 - [ ] Crossfade options (settings)
 
 - [ ] Gapless playback (settings)
@@ -152,6 +148,10 @@
 - [ ] picture backgrounds
 
 ## Done
+
+- [X] add and use uppy
+  - <https://github.com/transloadit/uppy?tab=readme-ov-file>
+  - <https://uppy.io/docs/react/>
 
 - [X] sanitize song title using DOMPurify
 
