@@ -7,7 +7,6 @@ import '@uppy/dashboard/css/style.min.css';
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../components/Dialog";
 import ReactDOM from "react-dom/client";
-import React from "react";
 
 export type AudioFile = {
   file: File;
