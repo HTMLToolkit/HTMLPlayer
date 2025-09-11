@@ -20,7 +20,7 @@ i18n
     debug: true,
     supportedLngs: Object.keys(languageNames), // <-- dynamically from file
     backend: {
-      loadPath: '/locales/{{lng}}/translation.json',
+      loadPath: './locales/{{lng}}/translation.json',
     },
     detection: {
       order: ['queryString', 'cookie'],

@@ -2,6 +2,8 @@
 
 ## HTMLPlayer v2
 
+- [ ] remove repeated names for the same thing in i18n
+
 - [ ] make PWA top bar dynamic
   - <https://css-tricks.com/meta-theme-color-and-trickery>
   
