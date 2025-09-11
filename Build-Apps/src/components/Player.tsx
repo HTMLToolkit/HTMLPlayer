@@ -17,18 +17,22 @@ import {
 } from "lucide-react";
 import { Button } from "./Button";
 import { Visualizer } from "./Visualizer";
-import { Lyrics } from "./Lyrics"; // <-- import Lyrics component
+import { Lyrics } from "./Lyrics";
 import styles from "./Player.module.css";
 import { SongActionsDropdown } from "./SongActionsDropdown";
 import { PlayerSettings } from "./Settings";
+import { useTranslation } from "react-i18next";
 
 type PlayerProps = {
   musicPlayerHook: ReturnType<
-    typeof import("../helpers/musicPlayerHook").useMusicPlayer
+    typeof import("../hooks/musicPlayerHook").useMusicPlayer
   >;
   settings: PlayerSettings;
 };
+
 export const Player = ({ musicPlayerHook, settings }: PlayerProps) => {
+  const { t } = useTranslation();
+
   const progressRef = useRef<HTMLDivElement>(null);
   const volumeRef = useRef<HTMLDivElement>(null);
 
@@ -59,14 +63,14 @@ export const Player = ({ musicPlayerHook, settings }: PlayerProps) => {
     repeat,
     analyserNode,
   } = playerState;
+
   const [showVisualizer, setShowVisualizer] = useState(false);
-  const [showLyrics, setShowLyrics] = useState(false); // <-- new state for lyrics
+  const [showLyrics, setShowLyrics] = useState(false);
   const [isDraggingProgress, setIsDraggingProgress] = useState(false);
   const [isDraggingVolume, setIsDraggingVolume] = useState(false);
 
   const formatTime = (seconds: number) => {
     const totalSeconds = Math.round(seconds);
-
     const shouldShowHours = currentSong && currentSong.duration >= 3600;
 
     if (shouldShowHours) {
@@ -86,12 +90,10 @@ export const Player = ({ musicPlayerHook, settings }: PlayerProps) => {
   const updateProgress = useCallback(
     (clientX: number) => {
       if (!progressRef.current || !currentSong) return;
-
       const rect = progressRef.current.getBoundingClientRect();
       const clickX = clientX - rect.left;
       const percentage = Math.max(0, Math.min(1, clickX / rect.width));
       const newTime = percentage * currentSong.duration;
-
       seekTo(newTime);
     },
     [currentSong, seekTo]
@@ -100,11 +102,9 @@ export const Player = ({ musicPlayerHook, settings }: PlayerProps) => {
   const updateVolume = useCallback(
     (clientX: number) => {
       if (!volumeRef.current) return;
-
       const rect = volumeRef.current.getBoundingClientRect();
       const clickX = clientX - rect.left;
       const percentage = Math.max(0, Math.min(1, clickX / rect.width));
-
       setVolume(percentage);
     },
     [setVolume]
@@ -120,7 +120,6 @@ export const Player = ({ musicPlayerHook, settings }: PlayerProps) => {
     updateVolume(e.clientX);
   };
 
-  // Progress bar drag handlers
   const handleProgressMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
     setIsDraggingProgress(true);
     updateProgress(e.clientX);
@@ -131,7 +130,6 @@ export const Player = ({ musicPlayerHook, settings }: PlayerProps) => {
     updateProgress(e.touches[0].clientX);
   };
 
-  // Volume bar drag handlers
   const handleVolumeMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
     setIsDraggingVolume(true);
     updateVolume(e.clientX);
@@ -142,14 +140,10 @@ export const Player = ({ musicPlayerHook, settings }: PlayerProps) => {
     updateVolume(e.touches[0].clientX);
   };
 
-  // Global mouse/touch move and end handlers
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
-      if (isDraggingProgress) {
-        updateProgress(e.clientX);
-      } else if (isDraggingVolume) {
-        updateVolume(e.clientX);
-      }
+      if (isDraggingProgress) updateProgress(e.clientX);
+      else if (isDraggingVolume) updateVolume(e.clientX);
     };
 
     const handleTouchMove = (e: TouchEvent) => {
@@ -175,9 +169,7 @@ export const Player = ({ musicPlayerHook, settings }: PlayerProps) => {
     if (isDraggingProgress || isDraggingVolume) {
       document.addEventListener("mousemove", handleMouseMove);
       document.addEventListener("mouseup", handleMouseUp);
-      document.addEventListener("touchmove", handleTouchMove, {
-        passive: false,
-      });
+      document.addEventListener("touchmove", handleTouchMove, { passive: false });
       document.addEventListener("touchend", handleTouchEnd);
     }
 
@@ -190,27 +182,19 @@ export const Player = ({ musicPlayerHook, settings }: PlayerProps) => {
   }, [isDraggingProgress, isDraggingVolume, updateProgress, updateVolume]);
 
   const handleVolumeToggle = () => {
-    if (volume === 0) {
-      setVolume(0.7); // Unmute to 70%
-    } else {
-      setVolume(0); // Mute
-    }
+    setVolume(volume === 0 ? 0.7 : 0);
   };
 
   const handleFavorite = () => {
     if (!currentSong) return;
-
     const isFavorite = library.favorites.includes(currentSong.id);
-    if (isFavorite) {
-      removeFromFavorites(currentSong.id);
-    } else {
-      addToFavorites(currentSong.id);
-    }
+    if (isFavorite) removeFromFavorites(currentSong.id);
+    else addToFavorites(currentSong.id);
   };
 
   const titleRef = useRef<HTMLDivElement>(null);
   const [scrollDistance, setScrollDistance] = useState("0px");
-  const [animationDuration, setAnimationDuration] = useState(0); // Initialize to 0
+  const [animationDuration, setAnimationDuration] = useState(0);
 
   useEffect(() => {
     const updateScroll = () => {
@@ -218,24 +202,19 @@ export const Player = ({ musicPlayerHook, settings }: PlayerProps) => {
       const wrapper = titleRef.current.parentElement!;
       const content = titleRef.current;
 
-      // Reset to single title before measuring
       content.innerHTML = currentSong.title;
       const distance = content.scrollWidth - wrapper.clientWidth;
-      
+
       if (distance > 0) {
-        // Only scroll if title is wider than wrapper
-        const gapWidth = 15; // Approximate pixel width of "&nbsp;&nbsp;&nbsp;"
-        const loopDistance = content.scrollWidth + gapWidth; // Distance for one full cycle
-        console.log("Scrolling setup:", { loopDistance, animationDuration: Math.max(10, loopDistance / 30), title: currentSong.title });
+        const gapWidth = 15;
+        const loopDistance = content.scrollWidth + gapWidth;
         setScrollDistance(`-${loopDistance}px`);
         setAnimationDuration(Math.max(10, loopDistance / 30));
         content.classList.remove(styles.scrollable);
-        void content.offsetWidth; // Trigger reflow
-        content.innerHTML = `${currentSong.title} &nbsp;&nbsp;&nbsp; ${currentSong.title}`; // Duplicate text
+        void content.offsetWidth;
+        content.innerHTML = `${currentSong.title} &nbsp;&nbsp;&nbsp; ${currentSong.title}`;
         content.classList.add(styles.scrollable);
       } else {
-        // No scrolling needed for short titles
-        console.log("No scrolling needed:", { scrollWidth: content.scrollWidth, clientWidth: wrapper.clientWidth, distance });
         setScrollDistance("0px");
         setAnimationDuration(0);
         content.classList.remove(styles.scrollable);
@@ -245,19 +224,11 @@ export const Player = ({ musicPlayerHook, settings }: PlayerProps) => {
 
     updateScroll();
     window.addEventListener("resize", updateScroll);
-
-    return () => {
-      window.removeEventListener("resize", updateScroll);
-    };
+    return () => window.removeEventListener("resize", updateScroll);
   }, [currentSong?.title, styles.scrollable]);
 
-  const handleVisualizerToggle = () => {
-    setShowVisualizer((prev) => !prev);
-  };
-
-  const handleLyricsToggle = () => {
-    setShowLyrics((prev) => !prev); // toggle lyrics display
-  };
+  const handleVisualizerToggle = () => setShowVisualizer((prev) => !prev);
+  const handleLyricsToggle = () => setShowLyrics((prev) => !prev);
 
   const getVolumeIcon = () => {
     if (volume === 0) return <VolumeOff size={16} />;
@@ -269,31 +240,26 @@ export const Player = ({ musicPlayerHook, settings }: PlayerProps) => {
   const getRepeatTitle = () => {
     switch (repeat) {
       case "one":
-        return "Repeat: Track";
+        return t("player.repeatTrack");
       case "all":
-        return "Repeat: All";
+        return t("player.repeatAll");
       default:
-        return "Repeat: Off";
+        return t("player.repeatOff");
     }
   };
 
-// Auto-show lyrics whenever a new song is loaded
-useEffect(() => {
-  if (currentSong && settings?.showLyrics) {
-    setShowLyrics(true);
-  }
-}, [currentSong, settings?.showLyrics]);
+  useEffect(() => {
+    if (currentSong && settings?.showLyrics) setShowLyrics(true);
+  }, [currentSong, settings?.showLyrics]);
 
-  const progressPercentage = currentSong
-    ? (currentTime / currentSong.duration) * 100
-    : 0;
+  const progressPercentage = currentSong ? (currentTime / currentSong.duration) * 100 : 0;
   const volumePercentage = volume * 100;
 
   if (!currentSong) {
     return (
       <div className={styles.player}>
         <div className={styles.noSong}>
-          <span>Select a song to start playing</span>
+          <span>{t("player.selectSong")}</span>
         </div>
       </div>
     );
@@ -305,11 +271,7 @@ useEffect(() => {
     <>
       {showVisualizer && (
         <div className={styles.visualizerOverlay}>
-          <Visualizer
-            analyserNode={analyserNode}
-            isPlaying={isPlaying}
-            className={styles.visualizer}
-          />
+          <Visualizer analyserNode={analyserNode} isPlaying={isPlaying} className={styles.visualizer} />
         </div>
       )}
       <div className={styles.player}>
@@ -318,14 +280,9 @@ useEffect(() => {
             {currentSong.albumArt && (
               <img
                 src={currentSong.albumArt}
-                alt={`${currentSong.title} album art`}
+                alt={t("player.albumArtAlt", { title: currentSong.title })}
                 loading="lazy"
-                style={{
-                  width: "100%",
-                  height: "100%",
-                  objectFit: "cover",
-                  borderRadius: "inherit",
-                }}
+                style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "inherit" }}
               />
             )}
           </div>
@@ -334,13 +291,9 @@ useEffect(() => {
               <div
                 ref={titleRef}
                 className={`${styles.songTitle} ${scrollDistance !== "0px" ? styles.scrollable : ""}`}
-                style={{
-                  "--scroll-distance": scrollDistance,
-                  animationDuration: `${animationDuration}s`,
-                  opacity: currentSong?.title ? 1 : 0,
-                } as React.CSSProperties}
+                style={{ "--scroll-distance": scrollDistance, animationDuration: `${animationDuration}s`, opacity: currentSong?.title ? 1 : 0 } as React.CSSProperties}
               >
-                {currentSong?.title || "Loading..."}
+                {currentSong?.title || t("player.loading")}
               </div>
             </div>
             <div className={styles.artistName}>{currentSong.artist}</div>
@@ -348,10 +301,9 @@ useEffect(() => {
           <Button
             variant="ghost"
             size="icon-sm"
-            className={`${styles.favoriteButton} ${isFavorite ? styles.favorited : ""
-              }`}
+            className={`${styles.favoriteButton} ${isFavorite ? styles.favorited : ""}`}
             onClick={handleFavorite}
-            title="Add to favorites"
+            title={isFavorite ? t("player.removeFavorite") : t("player.addFavorite")}
           >
             <Heart size={16} />
           </Button>
@@ -359,149 +311,56 @@ useEffect(() => {
 
         <div className={styles.controls}>
           <div className={styles.playbackButtons}>
-            <Button
-              variant="ghost"
-              size="icon-sm"
-              className={`${styles.controlButton} ${shuffle ? styles.active : ""
-                }`}
-              onClick={toggleShuffle}
-              title={`Shuffle: ${shuffle ? "On" : "Off"}`}
-            >
+            <Button variant="ghost" size="icon-sm" className={`${styles.controlButton} ${shuffle ? styles.active : ""}`} onClick={toggleShuffle} title={shuffle ? t("player.shuffleOn") : t("player.shuffleOff")}>
               <Shuffle size={16} />
             </Button>
-            <Button
-              variant="ghost"
-              size="icon-md"
-              className={styles.controlButton}
-              onClick={debounce(playPrevious, 200)}
-              title="Previous"
-            >
+            <Button variant="ghost" size="icon-md" className={styles.controlButton} onClick={debounce(playPrevious, 200)} title={t("player.previous")}>
               <SkipBack size={18} />
             </Button>
-            <Button
-              variant="primary"
-              size="icon-lg"
-              className={styles.playButton}
-              onClick={debounce(togglePlayPause, 200)}
-              title={isPlaying ? "Pause" : "Play"}
-            >
+            <Button variant="primary" size="icon-lg" className={styles.playButton} onClick={debounce(togglePlayPause, 200)} title={isPlaying ? t("player.pause") : t("player.play")}>
               {isPlaying ? <Pause size={20} /> : <Play size={20} />}
             </Button>
-            <Button
-              variant="ghost"
-              size="icon-md"
-              className={styles.controlButton}
-              onClick={debounce(playNext, 200)}
-              title="Next"
-            >
+            <Button variant="ghost" size="icon-md" className={styles.controlButton} onClick={debounce(playNext, 200)} title={t("player.next")}>
               <SkipForward size={18} />
             </Button>
-            <Button
-              variant="ghost"
-              size="icon-sm"
-              className={`${styles.controlButton} ${repeat !== "off" ? styles.active : ""
-                } ${repeat === "one" ? styles.repeatOne : ""}`}
-              onClick={toggleRepeat}
-              title={getRepeatTitle()}
-            >
+            <Button variant="ghost" size="icon-sm" className={`${styles.controlButton} ${repeat !== "off" ? styles.active : ""} ${repeat === "one" ? styles.repeatOne : ""}`} onClick={toggleRepeat} title={getRepeatTitle()}>
               <Repeat size={16} />
             </Button>
           </div>
 
           <div className={styles.progressSection}>
-            <span className={styles.timeDisplay}>
-              {formatTime(currentTime)}
-            </span>
-            <div
-              className={`${styles.progressBar} ${isDraggingProgress ? styles.dragging : ""
-                }`}
-              ref={progressRef}
-              onClick={handleProgressClick}
-              onMouseDown={handleProgressMouseDown}
-              onTouchStart={handleProgressTouchStart}
-              title="Seek"
-            >
-              <div
-                className={styles.progressFill}
-                style={{ width: `${progressPercentage}%` }}
-              ></div>
+            <span className={styles.timeDisplay}>{formatTime(currentTime)}</span>
+            <div className={`${styles.progressBar} ${isDraggingProgress ? styles.dragging : ""}`} ref={progressRef} onClick={handleProgressClick} onMouseDown={handleProgressMouseDown} onTouchStart={handleProgressTouchStart} title={t("player.seek")}>
+              <div className={styles.progressFill} style={{ width: `${progressPercentage}%` }}></div>
             </div>
-            <span className={styles.timeDisplay}>
-              {formatTime(currentSong.duration)}
-            </span>
+            <span className={styles.timeDisplay}>{formatTime(currentSong.duration)}</span>
           </div>
         </div>
 
         <div className={styles.rightSection}>
           <div className={styles.secondaryControls}>
-            <Button
-              variant="ghost"
-              size="icon-sm"
-              className={`${styles.secondaryButton} ${showVisualizer ? styles.active : ""
-                }`}
-              onClick={handleVisualizerToggle}
-              title="Visualizer"
-            >
+            <Button variant="ghost" size="icon-sm" className={`${styles.secondaryButton} ${showVisualizer ? styles.active : ""}`} onClick={handleVisualizerToggle} title={t("player.visualizer")}>
               <BarChart3 size={16} />
             </Button>
-            <Button
-              variant="ghost"
-              size="icon-sm"
-              className={`${styles.secondaryButton} ${showLyrics ? styles.active : ""
-                }`} // active if lyrics showing
-              onClick={handleLyricsToggle}
-              title="Lyrics"
-            >
+            <Button variant="ghost" size="icon-sm" className={`${styles.secondaryButton} ${showLyrics ? styles.active : ""}`} onClick={handleLyricsToggle} title={t("player.lyrics")}>
               <Type size={16} />
             </Button>
           </div>
 
           <div className={styles.volumeControls}>
-            <Button
-              variant="ghost"
-              size="icon-sm"
-              className={styles.volumeButton}
-              onClick={handleVolumeToggle}
-              title={volume === 0 ? "Unmute" : "Mute"}
-            >
+            <Button variant="ghost" size="icon-sm" className={styles.volumeButton} onClick={handleVolumeToggle} title={volume === 0 ? t("player.unmute") : t("player.mute")}>
               {getVolumeIcon()}
             </Button>
-            <div
-              className={`${styles.volumeBar} ${isDraggingVolume ? styles.dragging : ""
-                }`}
-              ref={volumeRef}
-              onClick={handleVolumeClick}
-              onMouseDown={handleVolumeMouseDown}
-              onTouchStart={handleVolumeTouchStart}
-              title="Volume"
-            >
-              <div
-                className={styles.volumeFill}
-                style={{ width: `${volumePercentage}%` }}
-              ></div>
+            <div className={`${styles.volumeBar} ${isDraggingVolume ? styles.dragging : ""}`} ref={volumeRef} onClick={handleVolumeClick} onMouseDown={handleVolumeMouseDown} onTouchStart={handleVolumeTouchStart} title={t("player.volume")}>
+              <div className={styles.volumeFill} style={{ width: `${volumePercentage}%` }}></div>
             </div>
           </div>
 
-          <SongActionsDropdown
-            song={currentSong}
-            library={library}
-            onCreatePlaylist={createPlaylist}
-            onAddToPlaylist={addToPlaylist}
-            onPlaySong={playSong}
-            onRemoveSong={removeSong}
-            size={16}
-            className={styles.moreButton}
-          />
+          <SongActionsDropdown song={currentSong} library={library} onCreatePlaylist={createPlaylist} onAddToPlaylist={addToPlaylist} onPlaySong={playSong} onRemoveSong={removeSong} size={16} className={styles.moreButton} />
         </div>
 
-        {/* Lyrics overlay */}
         {showLyrics && currentSong && (
-          <Lyrics
-            artist={currentSong.artist}
-            title={currentSong.title}
-            visible={showLyrics}
-            onClose={() => setShowLyrics(false)}
-          />
+          <Lyrics artist={currentSong.artist} title={currentSong.title} visible={showLyrics} onClose={() => setShowLyrics(false)} />
         )}
       </div>
     </>

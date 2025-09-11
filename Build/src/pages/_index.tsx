@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Sidebar } from "../components/Sidebar";
 import { MainContent } from "../components/MainContent";
 import { Player } from "../components/Player";
-import { useMusicPlayer } from "../helpers/musicPlayerHook";
+import { useMusicPlayer } from "../hooks/musicPlayerHook";
 import {
   switchToAutoMode,
   switchToDarkMode,
@@ -74,7 +74,8 @@ export default function IndexPage() {
           showAlbumArt: false,
           showLyrics: false,
           lastPlayedSongId: undefined,
-          lastPlayedPlaylistId: undefined
+          lastPlayedPlaylistId: undefined,
+          language: "English"
         }} />
       </div>
     </div>

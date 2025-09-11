@@ -9,9 +9,6 @@
   - <https://github.com/transloadit/uppy?tab=readme-ov-file>
   - <https://uppy.io/docs/react/>
 
-- [ ] Add and use i18n
-  - <https://medium.com/@tahnyybelguith/comprehensive-guide-to-i18n-internationalization-in-web-applications-d82abbd378af>
-
 - [ ] Crossfade options (settings)
 
 - [ ] Pitch/Tempo Control (settings)
@@ -140,12 +137,13 @@
 
 - [ ] in each file that uses icons, have, instead of lucide-react, have one file with a bunch of references
   - example:
-    ```json
-      {
-        "settingsIcon": "lucide-react.Gear",
-        %% etc... %%
-      }
-    ```
+  
+  ```json
+    {
+      "settingsIcon": "lucide-react.Gear",
+    %% etc... %%
+    }
+  ```
 
 - [ ] like i18n
 
@@ -158,6 +156,9 @@
 - [ ] picture backgrounds
 
 ## Done
+
+- [X] Add and use i18n
+  - <https://medium.com/@tahnyybelguith/comprehensive-guide-to-i18n-internationalization-in-web-applications-d82abbd378af>
 
 - [X] JSMediaTags wasn't awaited and so race conditions could happen
 

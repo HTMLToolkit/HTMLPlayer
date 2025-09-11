@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { Sun, Moon, SunMoon } from "lucide-react";
 import {
   DropdownMenu,
@@ -11,7 +12,7 @@ import {
   switchToDarkMode,
   switchToLightMode,
   switchToAutoMode,
-} from "../helpers/themeMode";
+} from "../helpers/themeMode.ts";
 import styles from "./ThemeModeSwitch.module.css";
 
 export interface ThemeModeSwitchProps {
@@ -25,6 +26,8 @@ export const ThemeModeSwitch = ({
   value,
   onChange,
 }: ThemeModeSwitchProps) => {
+  const { t } = useTranslation();
+
   const applyThemeMode = (mode: ThemeMode) => {
     switch (mode) {
       case "light":
@@ -60,7 +63,7 @@ export const ThemeModeSwitch = ({
           <Button
             variant="ghost"
             size="icon-md"
-            aria-label={`Current theme: ${value}. Click to change theme`}
+            aria-label={t("currentThemeAria", { theme: value })}
             className={styles.themeButton}
           >
             {getThemeIcon()}
@@ -72,7 +75,7 @@ export const ThemeModeSwitch = ({
             onClick={() => applyThemeMode("light")}
           >
             <Sun size={16} className={styles.menuIcon} />
-            Light
+            {t("themeLight")}
             {value === "light" && <span className={styles.checkmark}>✓</span>}
           </DropdownMenuItem>
           <DropdownMenuItem
@@ -80,7 +83,7 @@ export const ThemeModeSwitch = ({
             onClick={() => applyThemeMode("dark")}
           >
             <Moon size={16} className={styles.menuIcon} />
-            Dark
+            {t("themeDark")}
             {value === "dark" && <span className={styles.checkmark}>✓</span>}
           </DropdownMenuItem>
           <DropdownMenuItem
@@ -88,7 +91,7 @@ export const ThemeModeSwitch = ({
             onClick={() => applyThemeMode("auto")}
           >
             <SunMoon size={16} className={styles.menuIcon} />
-            Auto
+            {t("themeAuto")}
             {value === "auto" && <span className={styles.checkmark}>✓</span>}
           </DropdownMenuItem>
         </DropdownMenuContent>

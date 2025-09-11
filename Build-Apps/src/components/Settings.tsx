@@ -21,6 +21,8 @@ import { Volume2, Music, Palette, RotateCcw } from "lucide-react";
 import styles from "./Settings.module.css";
 import { useThemeLoader } from "../helpers/themeLoader";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
+import { languageNames } from "../../public/locales/supportedLanguages";
 
 export type PlayerSettings = {
   volume: number;
@@ -35,6 +37,7 @@ export type PlayerSettings = {
   showLyrics: boolean;
   lastPlayedSongId?: string;
   lastPlayedPlaylistId?: string;
+  language: string;
 };
 
 export interface SettingsProps {
@@ -52,7 +55,8 @@ export const Settings = ({
   settings,
   onSettingsChange,
 }: SettingsProps) => {
-  // Convert volume to percentage for display
+  const { t, i18n } = useTranslation();
+
   const volume = [Math.round(settings.volume * 100)];
   const crossfade = [settings.crossfade];
   const defaultShuffle = settings.defaultShuffle;
@@ -62,14 +66,12 @@ export const Settings = ({
   const showAlbumArt = settings.showAlbumArt;
   const showLyrics = settings.showLyrics;
 
-  // Theme loader
   const { themes, currentTheme, setTheme } = useThemeLoader();
 
-  // Handlers
   const handleResetSettings = async () => {
     const defaultThemeName = "Blue";
     try {
-      await setTheme(defaultThemeName); // ensure theme is applied first
+      await setTheme(defaultThemeName);
       onSettingsChange({
         volume: 0.75,
         crossfade: 3,
@@ -80,9 +82,10 @@ export const Settings = ({
         showAlbumArt: true,
         showLyrics: false,
         colorTheme: defaultThemeName,
+        language: "English"
       });
     } catch {
-      toast.error("Error resetting settings.")
+      toast.error(t("settings.resetError"));
     }
   };
 
@@ -94,54 +97,27 @@ export const Settings = ({
     onSettingsChange({ crossfade: newCrossfade[0] });
   };
 
-  const handleShuffleChange = (shuffle: boolean) => {
-    onSettingsChange({ defaultShuffle: shuffle });
+  // Get supported languages dynamically from i18next config
+  let languages: string[] = [];
+
+  // Only use filter if supportedLngs is an array
+  if (Array.isArray(i18n.options.supportedLngs)) {
+    languages = i18n.options.supportedLngs.filter(l => l !== 'cimode');
+  }
+
+  const handleLanguageChange = (lang: string) => {
+    i18n.changeLanguage(lang);
+    toast.success(`Language set to ${languageNames[lang] || lang}`);
   };
 
-  const handleRepeatChange = (repeat: string) => {
-    onSettingsChange({
-      defaultRepeat: repeat as PlayerSettings["defaultRepeat"],
-    });
-  };
-
-  const handleAutoPlayChange = (autoPlay: boolean) => {
-    onSettingsChange({ autoPlayNext: autoPlay });
-  };
-
-  const handleCompactModeChange = (compact: boolean) => {
-    onSettingsChange({ compactMode: compact });
-  };
-
-  const handleShowAlbumArtChange = (show: boolean) => {
-    onSettingsChange({ showAlbumArt: show });
-  };
-
-  const handleShowLyricsChange = (show: boolean) => {
-    onSettingsChange({ showLyrics: show });
-  };
-
-  const handleThemeModeChange = (mode: string) => {
-    onSettingsChange({ themeMode: mode as PlayerSettings["themeMode"] });
-  };
-
-  const handleColorThemeChange = async (themeName: string) => {
-    try {
-      await setTheme(themeName); // wait for CSS to load
-      onSettingsChange({ colorTheme: themeName }); // now update settings
-    } catch {
-      toast.error("Theme load error!",)
-    }
-  };
 
   return (
     <div className={`${styles.container} ${className || ""}`}>
       <Sheet open={open} onOpenChange={onOpenChange}>
         <SheetContent side="left" className={styles.sheetContent}>
           <SheetHeader>
-            <SheetTitle>Settings</SheetTitle>
-            <SheetDescription>
-              Customize your music player experience and preferences.
-            </SheetDescription>
+            <SheetTitle>{t("settings.title")}</SheetTitle>
+            <SheetDescription>{t("settings.description")}</SheetDescription>
           </SheetHeader>
 
           <div className={styles.settingsContent}>
@@ -149,12 +125,12 @@ export const Settings = ({
             <section className={styles.section}>
               <div className={styles.sectionHeader}>
                 <Volume2 className={styles.sectionIcon} />
-                <h3 className={styles.sectionTitle}>Audio Settings</h3>
+                <h3 className={styles.sectionTitle}>{t("settings.audio.title")}</h3>
               </div>
 
               <div className={styles.settingItem}>
                 <div className={styles.settingLabel}>
-                  <label htmlFor="volume-slider">Volume</label>
+                  <label htmlFor="volume-slider">{t("player.volume")}</label>
                   <span className={styles.settingValue}>{volume[0]}%</span>
                 </div>
                 <Slider
@@ -169,7 +145,7 @@ export const Settings = ({
 
               <div className={styles.settingItem}>
                 <div className={styles.settingLabel}>
-                  <label htmlFor="crossfade-slider">Crossfade</label>
+                  <label htmlFor="crossfade-slider">{t("settings.audio.crossfade")}</label>
                   <span className={styles.settingValue}>{crossfade[0]}s</span>
                 </div>
                 <Slider
@@ -187,53 +163,55 @@ export const Settings = ({
             <section className={styles.section}>
               <div className={styles.sectionHeader}>
                 <Music className={styles.sectionIcon} />
-                <h3 className={styles.sectionTitle}>Playback Settings</h3>
+                <h3 className={styles.sectionTitle}>{t("settings.playback.title")}</h3>
               </div>
 
               <div className={styles.settingItem}>
                 <div className={styles.settingInfo}>
-                  <label htmlFor="default-shuffle">Default Shuffle Mode</label>
+                  <label htmlFor="default-shuffle">{t("settings.playback.shuffle")}</label>
                   <p className={styles.settingDescription}>
-                    Enable shuffle by default when starting playback
+                    {t("settings.playback.shuffleDesc")}
                   </p>
                 </div>
                 <Switch
                   id="default-shuffle"
                   checked={defaultShuffle}
-                  onCheckedChange={handleShuffleChange}
+                  onCheckedChange={(val) => onSettingsChange({ defaultShuffle: val })}
                 />
               </div>
 
               <div className={styles.settingItem}>
                 <div className={styles.settingLabel}>
-                  <label htmlFor="default-repeat">Default Repeat Mode</label>
+                  <label htmlFor="default-repeat">{t("settings.playback.repeat")}</label>
                 </div>
                 <Select
                   value={defaultRepeat}
-                  onValueChange={handleRepeatChange}
+                  onValueChange={(val) =>
+                    onSettingsChange({ defaultRepeat: val as PlayerSettings["defaultRepeat"] })
+                  }
                 >
                   <SelectTrigger id="default-repeat">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="off">Off</SelectItem>
-                    <SelectItem value="one">Repeat One</SelectItem>
-                    <SelectItem value="all">Repeat All</SelectItem>
+                    <SelectItem value="off">{t("player.repeatOff")}</SelectItem>
+                    <SelectItem value="one">{t("player.repeatTrack")}</SelectItem>
+                    <SelectItem value="all">{t("player.repeatAll")}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
               <div className={styles.settingItem}>
                 <div className={styles.settingInfo}>
-                  <label htmlFor="auto-play-next">Auto-play Next Song</label>
+                  <label htmlFor="auto-play-next">{t("settings.playback.autoPlay")}</label>
                   <p className={styles.settingDescription}>
-                    Automatically play the next song when current song ends
+                    {t("settings.playback.autoPlayDesc")}
                   </p>
                 </div>
                 <Switch
                   id="auto-play-next"
                   checked={autoPlayNext}
-                  onCheckedChange={handleAutoPlayChange}
+                  onCheckedChange={(val) => onSettingsChange({ autoPlayNext: val })}
                 />
               </div>
             </section>
@@ -242,16 +220,23 @@ export const Settings = ({
             <section className={styles.section}>
               <div className={styles.sectionHeader}>
                 <Palette className={styles.sectionIcon} />
-                <h3 className={styles.sectionTitle}>Interface Settings</h3>
+                <h3 className={styles.sectionTitle}>{t("settings.interface.title")}</h3>
               </div>
 
               <div className={styles.settingItem}>
                 <div className={styles.settingLabel}>
-                  <label htmlFor="color-theme">Color Theme</label>
+                  <label htmlFor="color-theme">{t("settings.interface.colorTheme")}</label>
                 </div>
                 <Select
                   value={currentTheme?.name || settings.colorTheme}
-                  onValueChange={handleColorThemeChange}
+                  onValueChange={async (val) => {
+                    try {
+                      await setTheme(val);
+                      onSettingsChange({ colorTheme: val });
+                    } catch {
+                      toast.error(t("settings.themeError"));
+                    }
+                  }}
                 >
                   <SelectTrigger id="color-theme">
                     <SelectValue />
@@ -268,57 +253,85 @@ export const Settings = ({
 
               <div className={styles.settingItem}>
                 <div className={styles.settingInfo}>
-                  <label>Theme Mode</label>
+                  <label>{t("settings.interface.themeMode")}</label>
                   <p className={styles.settingDescription}>
-                    Choose your preferred theme mode
+                    {t("settings.interface.themeModeDesc")}
                   </p>
                 </div>
                 <ThemeModeSwitch
                   value={settings.themeMode}
-                  onChange={handleThemeModeChange}
+                  onChange={(val) =>
+                    onSettingsChange({ themeMode: val as PlayerSettings["themeMode"] })
+                  }
                 />
               </div>
 
               <div className={styles.settingItem}>
                 <div className={styles.settingInfo}>
-                  <label htmlFor="compact-mode">Compact Mode</label>
+                  <label htmlFor="compact-mode">{t("settings.interface.compact")}</label>
                   <p className={styles.settingDescription}>
-                    Use a more compact layout to fit more content
+                    {t("settings.interface.compactDesc")}
                   </p>
                 </div>
                 <Switch
                   id="compact-mode"
                   checked={compactMode}
-                  onCheckedChange={handleCompactModeChange}
+                  onCheckedChange={(val) => onSettingsChange({ compactMode: val })}
                 />
               </div>
 
               <div className={styles.settingItem}>
                 <div className={styles.settingInfo}>
-                  <label htmlFor="show-album-art">Show Album Art</label>
+                  <label htmlFor="show-album-art">{t("settings.interface.albumArt")}</label>
                   <p className={styles.settingDescription}>
-                    Display album artwork in the player interface
+                    {t("settings.interface.albumArtDesc")}
                   </p>
                 </div>
                 <Switch
                   id="show-album-art"
                   checked={showAlbumArt}
-                  onCheckedChange={handleShowAlbumArtChange}
+                  onCheckedChange={(val) => onSettingsChange({ showAlbumArt: val })}
                 />
               </div>
 
               <div className={styles.settingItem}>
                 <div className={styles.settingInfo}>
-                  <label htmlFor="show-lyrics">Show Lyrics</label>
+                  <label htmlFor="show-lyrics">{t("settings.interface.lyrics")}</label>
                   <p className={styles.settingDescription}>
-                    Display song lyrics when available
+                    {t("settings.interface.lyricsDesc")}
                   </p>
                 </div>
                 <Switch
                   id="show-lyrics"
                   checked={showLyrics}
-                  onCheckedChange={handleShowLyricsChange}
+                  onCheckedChange={(val) => onSettingsChange({ showLyrics: val })}
                 />
+              </div>
+
+              <div className={styles.settingItem}>
+                <div className={styles.settingLabel}>
+                  <label htmlFor="language-selector">{t("settings.interface.language")}</label>
+                  <p className={styles.settingDescription}>
+                    {t("settings.interface.languageDescription")}
+                  </p>
+                </div>
+                <Select
+                  value={i18n.language}
+                  onValueChange={handleLanguageChange}
+                >
+                  <SelectTrigger id="language-selector">
+                    <SelectValue>
+                      {languageNames[i18n.language] || i18n.language.toUpperCase()}
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectContent>
+                    {languages.map((lang) => (
+                      <SelectItem key={lang} value={lang}>
+                        {languageNames[lang] || lang.toUpperCase()}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </section>
           </div>
@@ -330,7 +343,7 @@ export const Settings = ({
               className={styles.resetButton}
             >
               <RotateCcw size={16} />
-              Reset to Defaults
+              {t("settings.reset")}
             </Button>
           </SheetFooter>
         </SheetContent>

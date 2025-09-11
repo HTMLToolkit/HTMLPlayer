@@ -1,14 +1,12 @@
 import { forwardRef } from "react";
 import * as ModalPrimitive from "@radix-ui/react-dialog";
 import { X } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import modalStyles from "./Dialog.module.css";
 
 const ModalComponent = ModalPrimitive.Root;
-
 const ModalActivator = ModalPrimitive.Trigger;
-
 const ModalRenderer = ModalPrimitive.Portal;
-
 const ModalDismisser = ModalPrimitive.Close;
 
 const ModalBackdrop = forwardRef<
@@ -31,6 +29,7 @@ const ModalContainer = forwardRef<
   React.ComponentPropsWithoutRef<typeof ModalPrimitive.Content>
 >((props, forwardedRef) => {
   const { className, children, ...restProps } = props;
+  const { t } = useTranslation();
   return (
     <ModalRenderer>
       <ModalBackdrop />
@@ -42,7 +41,7 @@ const ModalContainer = forwardRef<
         {children}
         <ModalPrimitive.Close className={modalStyles.dismissButton}>
           <X className={modalStyles.dismissIcon} />
-          <span className={modalStyles.visuallyHidden}>Close</span>
+          <span className={modalStyles.visuallyHidden}>{t("actions.close")}</span>
         </ModalPrimitive.Close>
       </ModalPrimitive.Content>
     </ModalRenderer>
@@ -54,9 +53,7 @@ const ModalHeaderSection = (props: React.HTMLAttributes<HTMLDivElement>) => {
   const { className, ...restProps } = props;
   return (
     <div
-      className={[modalStyles.headerSection, className]
-        .filter(Boolean)
-        .join(" ")}
+      className={[modalStyles.headerSection, className].filter(Boolean).join(" ")}
       {...restProps}
     />
   );
@@ -67,9 +64,7 @@ const ModalFooterSection = (props: React.HTMLAttributes<HTMLDivElement>) => {
   const { className, ...restProps } = props;
   return (
     <div
-      className={[modalStyles.footerSection, className]
-        .filter(Boolean)
-        .join(" ")}
+      className={[modalStyles.footerSection, className].filter(Boolean).join(" ")}
       {...restProps}
     />
   );
@@ -99,9 +94,7 @@ const ModalSubtext = forwardRef<
   return (
     <ModalPrimitive.Description
       ref={forwardedRef}
-      className={[modalStyles.modalDescription, className]
-        .filter(Boolean)
-        .join(" ")}
+      className={[modalStyles.modalDescription, className].filter(Boolean).join(" ")}
       {...restProps}
     />
   );

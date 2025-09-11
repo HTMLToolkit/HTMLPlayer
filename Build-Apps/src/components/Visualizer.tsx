@@ -1,4 +1,5 @@
 import { useRef, useEffect, useState, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import { spectrogramTypes } from "../helpers/visualizerLoader";
 import { Settings, SlidersHorizontal } from "lucide-react";
 import { Button } from "./Button";
@@ -22,6 +23,8 @@ export const Visualizer = ({
   isPlaying,
   className,
 }: VisualizerProps) => {
+  const { t } = useTranslation();
+
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animationFrameId = useRef<number | null>(null);
   const [selectedVisualizerKey, setSelectedVisualizerKey] = useState(
@@ -42,14 +45,10 @@ export const Visualizer = ({
   };
 
   const draw = useCallback(() => {
-    if (!analyserNode || !canvasRef.current) {
-      return;
-    }
-
+    if (!analyserNode || !canvasRef.current) return;
     const canvas = canvasRef.current;
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
-
     const visualizer = spectrogramTypes[selectedVisualizerKey];
     if (!visualizer) return;
 
@@ -73,35 +72,26 @@ export const Visualizer = ({
     if (isPlaying && analyserNode) {
       animationFrameId.current = requestAnimationFrame(draw);
     } else {
-      if (animationFrameId.current) {
-        cancelAnimationFrame(animationFrameId.current);
-      }
+      if (animationFrameId.current) cancelAnimationFrame(animationFrameId.current);
     }
-
     return () => {
-      if (animationFrameId.current) {
-        cancelAnimationFrame(animationFrameId.current);
-      }
+      if (animationFrameId.current) cancelAnimationFrame(animationFrameId.current);
     };
   }, [isPlaying, analyserNode, draw]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-
     const resizeObserver = new ResizeObserver(() => {
       const { width, height } = canvas.getBoundingClientRect();
       canvas.width = width;
       canvas.height = height;
     });
-
     resizeObserver.observe(canvas);
-
     return () => resizeObserver.disconnect();
   }, []);
 
   useEffect(() => {
-    // Reset settings when visualizer changes
     setVisualizerSettings(
       Object.entries(selectedVisualizer.settingsConfig || {}).reduce(
         (acc, [key, config]) => {
@@ -149,11 +139,11 @@ export const Visualizer = ({
       </div>
       {showSettings && selectedVisualizer.settingsConfig && (
         <div className={styles.settingsPanel}>
-          <h4>{selectedVisualizer.name} Settings</h4>
+          <h4>{t(`visualizers.${selectedVisualizerKey}.name`)} {t("settings.title")}</h4>
           {Object.entries(selectedVisualizer.settingsConfig).map(
             ([key, config]) => (
               <div key={key} className={styles.setting}>
-                <label htmlFor={key}>{key}</label>
+                <label htmlFor={key}>{t(`visualizers.${selectedVisualizerKey}.settings.${key}`)}</label>
                 {config.type === "range" && (
                   <input
                     type="range"
@@ -180,7 +170,6 @@ export const Visualizer = ({
                     }
                   />
                 )}
-                {/* Add other setting types here if needed */}
               </div>
             )
           )}

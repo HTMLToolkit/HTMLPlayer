@@ -138,7 +138,7 @@ export function pickAudioFiles(): Promise<AudioFile[]> {
 
 export async function extractAudioMetadata(file: File): Promise<AudioMetadata> {
   setProcessingState(true);
-  const worker = new Worker(new URL('./metadataWorker.ts', import.meta.url), { type: 'module' });
+  const worker = new Worker(new URL('../workers/metadataWorker.ts', import.meta.url), { type: 'module' });
 
   try {
     return await withTimeoutAndRetry(

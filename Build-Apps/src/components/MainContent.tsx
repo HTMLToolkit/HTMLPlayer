@@ -29,18 +29,20 @@ import {
   DialogFooter,
 } from "./Dialog";
 import modalStyles from "./Dialog.module.css";
-
-import { Song } from "../helpers/musicPlayerHook";
+import { Song } from "../hooks/musicPlayerHook";
 import styles from "./MainContent.module.css";
 import PersistentDropdownMenu from "./PersistentDropdownMenu";
+import { useTranslation } from "react-i18next";
 
 type MainContentProps = {
   musicPlayerHook: ReturnType<
-    typeof import("../helpers/musicPlayerHook").useMusicPlayer
+    typeof import("../hooks/musicPlayerHook").useMusicPlayer
   >;
 };
 
 export const MainContent = ({ musicPlayerHook }: MainContentProps) => {
+  const { t } = useTranslation();
+
   const [songSearchQuery, setSongSearchQuery] = useState("");
   const [ratings, setRatings] = useState<
     Record<string, "thumbs-up" | "thumbs-down" | "none">
@@ -70,24 +72,18 @@ export const MainContent = ({ musicPlayerHook }: MainContentProps) => {
     navigateToSongs,
   } = musicPlayerHook;
 
-  // Add navigation event listener
+  // Navigation listener
   React.useEffect(() => {
     const handleNavigate = (
       e: CustomEvent<{ view: "artist" | "album"; value: string }>
     ) => {
-      if (e.detail.view === "artist") {
-        navigateToArtist(e.detail.value);
-      } else if (e.detail.view === "album") {
-        navigateToAlbum(e.detail.value);
-      }
+      if (e.detail.view === "artist") navigateToArtist(e.detail.value);
+      else if (e.detail.view === "album") navigateToAlbum(e.detail.value);
     };
-
     window.addEventListener("navigate", handleNavigate);
-    return () =>
-      window.removeEventListener("navigate", handleNavigate);
+    return () => window.removeEventListener("navigate", handleNavigate);
   }, [navigateToArtist, navigateToAlbum]);
 
-  // Get initial songs list based on current view
   const songsToDisplay = React.useMemo(() => {
     if (playerState.view === "artist" && playerState.currentArtist) {
       return library.songs.filter(
@@ -110,16 +106,13 @@ export const MainContent = ({ musicPlayerHook }: MainContentProps) => {
     library.songs,
   ]);
 
-  // Filter songs based on search
   const filteredSongs = songsToDisplay.filter(
     (song: Song) =>
       song.title.toLowerCase().includes(songSearchQuery.toLowerCase()) ||
       song.artist.toLowerCase().includes(songSearchQuery.toLowerCase())
   );
 
-  const handleSongSearch = (query: string) => {
-    setSongSearchQuery(query);
-  };
+  const handleSongSearch = (query: string) => setSongSearchQuery(query);
 
   const handleSongClick = (song: Song) => {
     playSong(song, playerState.currentPlaylist || undefined);
@@ -140,33 +133,29 @@ export const MainContent = ({ musicPlayerHook }: MainContentProps) => {
   ) => {
     e.stopPropagation();
     const wasAdded = toggleFavorite(songId);
-
-    // Show toast notification
     const song = library.songs.find((s) => s.id === songId);
     if (song) {
-      if (wasAdded) {
-        toast.success(`Added "${song.title}" to favorites`);
-      } else {
-        toast.success(`Removed "${song.title}" from favorites`);
-      }
+      toast.success(
+        wasAdded
+          ? t("favorites.added", { title: song.title })
+          : t("favorites.removed", { title: song.title })
+      );
     }
   };
 
   const handleDeleteSong = () => {
     if (filteredSongs.length === 0) {
-      toast.error("No songs to delete");
+      toast.error(t("delete.noSongs"));
       return;
     }
-
-    const songToDelete = filteredSongs[0]; // Delete first song as example
-    setSongToDelete(songToDelete);
+    setSongToDelete(filteredSongs[0]);
     setShowDeleteConfirm(true);
   };
 
   const handleDeleteConfirm = () => {
     if (songToDelete) {
       removeSong(songToDelete.id);
-      toast.success(`Deleted "${songToDelete.title}"`);
+      toast.success(t("delete.delete", { title: songToDelete.title }));
       setShowDeleteConfirm(false);
       setSongToDelete(null);
     }
@@ -179,75 +168,55 @@ export const MainContent = ({ musicPlayerHook }: MainContentProps) => {
 
   const handleAddMusic = async () => {
     try {
-      toast.info("Select audio files to import...");
+      toast.info(t("filePicker.selectFiles"));
       const audioFiles = await pickAudioFiles();
+      if (audioFiles.length === 0) return;
 
-      if (audioFiles.length === 0) {
-        return;
-      }
-
-      const BATCH_SIZE = 7; // Process 7 files at a time
+      const BATCH_SIZE = 7;
       let successCount = 0;
       let errorCount = 0;
       let currentBatch = 1;
       const totalBatches = Math.ceil(audioFiles.length / BATCH_SIZE);
 
-      // Process files in batches
       for (let i = 0; i < audioFiles.length; i += BATCH_SIZE) {
         const batch = audioFiles.slice(i, i + BATCH_SIZE);
-        toast.loading(`Processing batch ${currentBatch} of ${totalBatches}...`);
+        toast.loading(t("batch.processing", { currentBatch, totalBatches }));
 
-        // Process current batch
         const batchPromises = batch.map(async (audioFile) => {
           try {
-            console.log(`Processing file: ${audioFile.name}`);
-
             const metadata = await extractAudioMetadata(audioFile.file);
             const audioUrl = createAudioUrl(audioFile.file);
-
             const song: Song = {
               id: generateUniqueId(),
               title: metadata.title,
               artist: metadata.artist,
-              album: metadata.album || "Unknown Album",
+              album: metadata.album || t("songInfo.album", { title: "Unknown Album" }),
               duration: metadata.duration,
               url: audioUrl,
               albumArt: metadata.albumArt,
             };
-
             await addSong(song);
             successCount++;
-            console.log(`Successfully processed: ${song.title}`);
-          } catch (error) {
-            console.error(`Failed to process ${audioFile.name}:`, error);
+          } catch {
             errorCount++;
           }
         });
-
-        // Wait for current batch to complete
         await Promise.all(batchPromises);
         currentBatch++;
       }
 
       toast.dismiss();
-
-      if (successCount > 0) {
-        toast.success(`Successfully imported ${successCount} song(s)`);
-      }
-
-      if (errorCount > 0) {
-        toast.error(`Failed to import ${errorCount} file(s)`);
-      }
-    } catch (error) {
-      console.error("File picker error:", error);
+      if (successCount > 0) toast.success(t("filePicker.successImport", { count: successCount }));
+      if (errorCount > 0) toast.error(t("filePicker.failedImport", { count: errorCount }));
+    } catch {
       toast.dismiss();
-      toast.error("Failed to open file picker");
+      toast.error(t("filePicker.failedOpen"));
     }
   };
+
   const formatDuration = (seconds: number) => {
-    const roundedSeconds = Math.round(seconds);
-    const mins = Math.floor(roundedSeconds / 60);
-    const secs = roundedSeconds % 60;
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.round(seconds % 60);
     return `${mins}:${secs.toString().padStart(2, "0")}`;
   };
 
@@ -257,20 +226,15 @@ export const MainContent = ({ musicPlayerHook }: MainContentProps) => {
   };
 
   const handleSelectAll = () => {
-    if (selectedSongs.length === filteredSongs.length) {
-      setSelectedSongs([]);
-    } else {
-      setSelectedSongs(filteredSongs.map((song) => song.id));
-    }
+    if (selectedSongs.length === filteredSongs.length) setSelectedSongs([]);
+    else setSelectedSongs(filteredSongs.map((song) => song.id));
   };
 
-  const handleAddToPlaylist = () => {
-    setShowPlaylistDialog(true);
-  };
+  const handleAddToPlaylist = () => setShowPlaylistDialog(true);
 
   const handleCreateNewPlaylist = () => {
     if (!newPlaylistName.trim()) {
-      toast.error("Please enter a playlist name");
+      toast.error(t("playlist.enterName"));
       return;
     }
     const newPlaylist = createPlaylist(
@@ -280,7 +244,7 @@ export const MainContent = ({ musicPlayerHook }: MainContentProps) => {
         .filter((song): song is Song => song !== undefined)
     );
     toast.success(
-      `Created new playlist "${newPlaylist.name}" and added ${selectedSongs.length} songs`
+      t("playlist.created", { name: newPlaylist.name, count: selectedSongs.length })
     );
     setNewPlaylistName("");
     setIsCreatingNew(false);
@@ -288,37 +252,39 @@ export const MainContent = ({ musicPlayerHook }: MainContentProps) => {
   };
 
   const handleAddToExistingPlaylist = (playlistId: string) => {
-    selectedSongs.forEach((songId) => {
-      addToPlaylist(playlistId, songId);
-    });
-    toast.success(`Added ${selectedSongs.length} songs to playlist`);
+    selectedSongs.forEach((songId) => addToPlaylist(playlistId, songId));
+    toast.success(
+      t("playlist.addedToExisting", { count: selectedSongs.length })
+    );
     setShowPlaylistDialog(false);
   };
 
   const handleDeleteSelectedSongs = () => {
-    selectedSongs.forEach((songId) => {
-      removeSong(songId);
-    });
-    toast.success(`Deleted ${selectedSongs.length} songs`);
+    selectedSongs.forEach((songId) => removeSong(songId));
+    toast.success(t("delete.delete", { count: selectedSongs.length }));
     setSelectedSongs([]);
   };
 
   return (
     <div className={styles.mainContentWrapper}>
-      {/* Persistent Top Header */}
+      {/* Header */}
       <div className={styles.header}>
         <div className={styles.titleArea}>
           {playerState.view === "songs" ? (
             <h1 className={styles.title}>HTMLPlayer</h1>
           ) : playerState.view === "artist" ? (
             <>
-              <Button variant="link" onClick={navigateToSongs} className={styles.backLink}>All Songs</Button>
-              <h1 className={styles.title}>Artist: {playerState.currentArtist}</h1>
+              <Button variant="link" onClick={navigateToSongs} className={styles.backLink}>
+                {t("actions.deselectAll")}
+              </Button>
+              <h1 className={styles.title}>{`${t("songInfo.artist")}: ${playerState.currentArtist}`}</h1>
             </>
           ) : playerState.view === "album" ? (
             <>
-              <Button variant="link" onClick={navigateToSongs} className={styles.backLink}>All Songs</Button>
-              <h1 className={styles.title}>Album: {playerState.currentAlbum}</h1>
+              <Button variant="link" onClick={navigateToSongs} className={styles.backLink}>
+                {t("actions.deselectAll")}
+              </Button>
+              <h1 className={styles.title}>{`${t("songInfo.album")}: ${playerState.currentAlbum}`}</h1>
             </>
           ) : null}
         </div>
@@ -326,36 +292,50 @@ export const MainContent = ({ musicPlayerHook }: MainContentProps) => {
           <div className={styles.searchWrapper}>
             <Search className={styles.searchIcon} size={16} />
             <Input
-              placeholder="Search songs..."
+              placeholder={t("search.placeholder")}
               className={styles.searchInput}
               value={songSearchQuery}
               onChange={(e: any) => handleSongSearch(e.target.value)}
             />
           </div>
-          <Button variant="outline" size="icon-md" className={styles.actionButton} onClick={handleDeleteSong} title="Delete first song"><Trash2 size={16} /></Button>
+          <Button variant="outline" size="icon-md" className={styles.actionButton} onClick={handleDeleteSong}>
+            <Trash2 size={16} />
+          </Button>
           <PersistentDropdownMenu
             trigger={
-              <Button variant="outline" size="icon-md" className={styles.actionButton} title="Select songs" onClick={handleSelectSongsToggle}><ListChecks size={16} /></Button>
+              <Button variant="outline" size="icon-md" className={styles.actionButton} onClick={handleSelectSongsToggle}>
+                <ListChecks size={16} />
+              </Button>
             }
             onClose={() => handleSelectSongsToggle()}
           >
-            <Button variant="ghost" onClick={handleSelectAll}>{selectedSongs.length === filteredSongs.length ? "Deselect All" : "Select All"}</Button>
-            <Button variant="ghost" onClick={handleAddToPlaylist}>Add to playlist</Button>
-            <Button variant="ghost" onClick={handleDeleteSelectedSongs}>Delete song(s)</Button>
+            <Button variant="ghost" onClick={handleSelectAll}>
+              <ListChecks size={16} style={{ marginRight: 8 }} />
+              {selectedSongs.length === filteredSongs.length ? t("actions.deselectAll") : t("actions.selectAll")}
+            </Button>
+            <Button variant="ghost" onClick={handleAddToPlaylist}>
+              <Plus size={16} style={{ marginRight: 8 }} />
+              {t("playlist.addTo")}
+            </Button>
+            <Button variant="ghost" onClick={handleDeleteSelectedSongs}>
+              <Trash2 size={16} style={{ marginRight: 8 }} />
+              {t("delete.delete")}
+            </Button>
           </PersistentDropdownMenu>
-          <Button variant="outline" size="icon-md" className={styles.actionButton} onClick={handleAddMusic} title="Add music files"><Plus size={16} /></Button>
+          <Button variant="outline" size="icon-md" className={styles.actionButton} onClick={handleAddMusic}>
+            <Plus size={16} />
+          </Button>
         </div>
       </div>
 
-      {/* Scrollable Song List */}
+      {/* Song list */}
       <div className={styles.songListWrapper}>
         <div className={styles.songList}>
           <div className={styles.songListHeader}>
-            <span className={styles.columnHeader}>Song</span>
-            <span className={styles.columnHeader}>Artist</span>
-            <span className={styles.columnHeader}>Actions</span>
+            <span className={styles.columnHeader}>{t("songInfo.title")}</span>
+            <span className={styles.columnHeader}>{t("songInfo.artist")}</span>
+            <span className={styles.columnHeader}>{t("actions.addTo")}</span>
           </div>
-
           {filteredSongs.map((song: Song) => (
             <div
               key={song.id}
@@ -393,30 +373,24 @@ export const MainContent = ({ musicPlayerHook }: MainContentProps) => {
               </div>
             </div>
           ))}
-
           {filteredSongs.length === 0 && (
-            <div className={styles.noResults}>{songSearchQuery ? "No songs found" : "No songs in this playlist"}</div>
+            <div className={styles.noResults}>
+              {songSearchQuery ? t("noResults.search") : t("noResults.playlist")}
+            </div>
           )}
         </div>
       </div>
 
-      {/* Delete Confirmation Modal */}
+      {/* Delete Modal */}
       <Dialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Delete Song</DialogTitle>
-            <DialogDescription>
-              Are you sure you want to delete "{songToDelete?.title}"? This
-              action cannot be undone.
-            </DialogDescription>
+            <DialogTitle>{t("delete.songTitle")}</DialogTitle>
+            <DialogDescription>{t("delete.confirm", { title: songToDelete?.title })}</DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={handleDeleteCancel}>
-              Cancel
-            </Button>
-            <Button variant="destructive" onClick={handleDeleteConfirm}>
-              Delete
-            </Button>
+            <Button variant="outline" onClick={handleDeleteCancel}>{t("delete.cancel")}</Button>
+            <Button variant="destructive" onClick={handleDeleteConfirm}>{t("delete.delete")}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -425,33 +399,18 @@ export const MainContent = ({ musicPlayerHook }: MainContentProps) => {
       <Dialog open={showSongInfo} onOpenChange={setShowSongInfo}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Song Information</DialogTitle>
+            <DialogTitle>{t("songInfo.songInfoTitle")}</DialogTitle>
           </DialogHeader>
           {selectedSongInfo && (
-            <div
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                gap: "var(--spacing-3)",
-              }}
-            >
-              <div>
-                <strong>Title:</strong> {selectedSongInfo.title}
-              </div>
-              <div>
-                <strong>Artist:</strong> {selectedSongInfo.artist}
-              </div>
-              <div>
-                <strong>Album:</strong> {selectedSongInfo.album}
-              </div>
-              <div>
-                <strong>Duration:</strong>{" "}
-                {formatDuration(selectedSongInfo.duration)}
-              </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: "var(--spacing-3)" }}>
+              <div><strong>{t("songInfo.title")}:</strong> {selectedSongInfo.title}</div>
+              <div><strong>{t("songInfo.artist")}:</strong> {selectedSongInfo.artist}</div>
+              <div><strong>{t("songInfo.album")}:</strong> {selectedSongInfo.album}</div>
+              <div><strong>{t("songInfo.duration")}:</strong> {formatDuration(selectedSongInfo.duration)}</div>
             </div>
           )}
           <DialogFooter>
-            <Button onClick={() => setShowSongInfo(false)}>Close</Button>
+            <Button onClick={() => setShowSongInfo(false)}>{t("songInfo.close")}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -460,36 +419,33 @@ export const MainContent = ({ musicPlayerHook }: MainContentProps) => {
       <Dialog open={showPlaylistDialog} onOpenChange={setShowPlaylistDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Add to Playlist</DialogTitle>
+            <DialogTitle>{t("playlist.addTo")}</DialogTitle>
             <DialogDescription>
-              Choose a playlist to add the selected songs to, or create a new
-              one.
+              {selectedSongs.length === 1
+                ? t("choosePlaylistOrCreate", { song: library.songs.find(s => s.id === selectedSongs[0])?.title || "Unknown" })
+                : t("choosePlaylistOrCreateMultiple", { count: selectedSongs.length })}
             </DialogDescription>
           </DialogHeader>
 
           {isCreatingNew ? (
             <div className={modalStyles.spaceY4}>
               <Input
-                placeholder="Enter playlist name..."
+                placeholder={t("playlist.enterName")}
                 value={newPlaylistName}
                 onChange={(e: any) => setNewPlaylistName(e.target.value)}
               />
               <div className={`${modalStyles.flex} ${modalStyles.gap2}`}>
-                <Button
-                  variant="outline"
-                  onClick={() => setIsCreatingNew(false)}
-                >
-                  Cancel
+                <Button variant="outline" onClick={() => setIsCreatingNew(false)}>
+                  {t("actions.cancel")}
                 </Button>
                 <Button onClick={handleCreateNewPlaylist}>
-                  Create Playlist
+                  {t("create")}
                 </Button>
               </div>
             </div>
           ) : (
             <div className={modalStyles.spaceY4}>
-              {library.playlists.filter((p) => p.id !== "all-songs").length >
-              0 ? (
+              {library.playlists.filter((p) => p.id !== "all-songs").length > 0 ? (
                 <div className={modalStyles.spaceY2}>
                   {library.playlists
                     .filter((playlist) => playlist.id !== "all-songs")
@@ -501,9 +457,7 @@ export const MainContent = ({ musicPlayerHook }: MainContentProps) => {
                         <Button
                           variant="outline"
                           className={`${modalStyles["w-full"]} ${modalStyles["justify-start"]}`}
-                          onClick={() =>
-                            handleAddToExistingPlaylist(playlist.id)
-                          }
+                          onClick={() => handleAddToExistingPlaylist(playlist.id)}
                         >
                           {playlist.name}
                         </Button>
@@ -511,9 +465,7 @@ export const MainContent = ({ musicPlayerHook }: MainContentProps) => {
                     ))}
                 </div>
               ) : (
-                <p className={modalStyles.muted}>
-                  No playlists yet. Create your first one!
-                </p>
+                <p className={modalStyles.muted}>{t("playlist.noPlaylists")}</p>
               )}
 
               <Button
@@ -522,7 +474,7 @@ export const MainContent = ({ musicPlayerHook }: MainContentProps) => {
                 onClick={() => setIsCreatingNew(true)}
               >
                 <PlusCircle size={16} className="mr-2" />
-                Create New Playlist
+                {t("playlist.createNew")}
               </Button>
             </div>
           )}

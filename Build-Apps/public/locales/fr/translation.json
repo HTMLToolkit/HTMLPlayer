@@ -1,0 +1,189 @@
+{
+    "title": "HTMLPlayer",
+    "favorites": {
+        "favorites": "Favoris",
+        "added": "Ajouté « {{title}} » aux favoris",
+        "removed": "Supprimé « {{title}} » des favoris"
+    },
+    "delete": {
+        "songTitle": "Supprimer la chanson",
+        "confirm": "Êtes-vous sûr de vouloir supprimer « {{title}} » ? Cette action est irréversible.",
+        "cancel": "Annuler",
+        "delete": "Supprimer",
+        "noSongs": "Aucune chanson à supprimer"
+    },
+    "filePicker": {
+        "selectFiles": "Sélectionnez des fichiers audio à importer...",
+        "successImport": "Importation réussie de {{count}} chanson(s)",
+        "failedImport": "Échec de l’importation de {{count}} fichier(s)",
+        "failedOpen": "Échec de l’ouverture du sélecteur de fichiers"
+    },
+    "search": {
+        "placeholder": "Rechercher des chansons..."
+    },
+    "playlist": {
+        "addTo": "Ajouter à la playlist",
+        "createNew": "Créer une nouvelle playlist",
+        "enterName": "Entrez le nom de la playlist...",
+        "noPlaylists": "Aucune playlist pour le moment. Créez votre première !",
+        "created": "Nouvelle playlist « {{name}} » créée et {{count}} chanson(s) ajoutée(s)",
+        "addedToExisting": "{{count}} chanson(s) ajoutée(s) à la playlist"
+    },
+    "noResults": {
+        "search": "Aucune chanson trouvée",
+        "playlist": "Aucune chanson dans cette playlist"
+    },
+    "songInfo": {
+        "title": "Titre",
+        "artist": "Artiste",
+        "album": "Album",
+        "duration": "Durée",
+        "close": "Fermer",
+        "songInfoTitle": "Informations sur la chanson"
+    },
+    "actions": {
+        "selectAll": "Tout sélectionner",
+        "deselectAll": "Tout désélectionner",
+        "cancel": "Annuler",
+        "close": "Fermer",
+        "addTo": "Actions"
+    },
+    "batch": {
+        "processing": "Traitement du lot {{currentBatch}} sur {{totalBatches}}..."
+    },
+    "player": {
+        "selectSong": "Sélectionnez une chanson pour commencer la lecture",
+        "loading": "Chargement...",
+        "albumArtAlt": "Pochette de l’album « {{title}} »",
+        "addFavorite": "Ajouter aux favoris",
+        "removeFavorite": "Retirer des favoris",
+        "shuffleOn": "Activée",
+        "shuffleOff": "Désactivée",
+        "previous": "Précédent",
+        "next": "Suivant",
+        "play": "Lire",
+        "pause": "Pause",
+        "repeatTrack": "Piste",
+        "repeatAll": "Tout",
+        "repeatOff": "Désactivée",
+        "seek": "Avancer/Reculer",
+        "volume": "Volume",
+        "mute": "Muet",
+        "unmute": "Activer le son",
+        "visualizer": "Visualiseur",
+        "lyrics": "Paroles"
+    },
+    "allSongs": "Toutes les chansons",
+    "addPlaylist": "Ajouter une playlist",
+    "searchPlaylists": "Rechercher des playlists...",
+    "sharePlaylist": "Partager la playlist",
+    "createPlaylist": "Créer une nouvelle playlist",
+    "editPlaylist": "Modifier la playlist",
+    "enterPlaylistName": "Entrez un nom pour votre playlist",
+    "playlistName": "Nom de la playlist...",
+    "cancel": "Annuler",
+    "create": "Créer",
+    "deletePlaylist": "Supprimer la playlist",
+    "deletePlaylistConfirmation": "Êtes-vous sûr de vouloir supprimer la playlist « {{name}} » ? Cette action est irréversible.",
+    "playlistCreated": "Nouvelle playlist « {{name}} » créée",
+    "playlistRenamed": "Playlist renommée en « {{name}} »",
+    "playlistDeleted": "Playlist « {{name}} » supprimée",
+    "playlistShareTitle": "Playlist : « {{name}} »",
+    "playlistShareText": "Découvrez cette playlist « {{name}} » avec {{count}} chanson(s)",
+    "playlistShared": "Playlist partagée avec succès",
+    "playlistCopied": "Informations de la playlist copiées dans le presse-papiers !",
+    "playlistShareFailed": "Échec du partage de la playlist",
+    "moreOptions": "Plus d’options",
+    "noPlaylistsFound": "Aucune playlist trouvée",
+    "themeLight": "Clair",
+    "themeDark": "Sombre",
+    "themeAuto": "Auto",
+    "currentThemeAria": "Thème actuel : {{theme}}. Cliquez pour changer le thème",
+    "expandSidebar": "Agrandir la barre latérale",
+    "menu": "Menu",
+    "playlists": "Playlists",
+    "about": "À propos",
+    "aboutHTMLPlayer": "À propos de HTMLPlayer",
+    "aboutHTMLPlayerDesc": "HTMLPlayer v2.0 - Une interface moderne de streaming musical construite avec React.",
+    "close": "Fermer",
+    "visualizers": {
+        "bars": {
+            "name": "Barres",
+            "settings": {
+                "barWidth": "Largeur des barres",
+                "barSpacing": "Espacement des barres",
+                "sensitivity": "Sensibilité"
+            }
+        },
+        "waveform": {
+            "name": "Forme d’onde",
+            "settings": {
+                "lineWidth": "Épaisseur de ligne",
+                "amplitude": "Amplitude"
+            }
+        },
+        "circle": {
+            "name": "Cercle",
+            "settings": {
+                "radius": "Rayon",
+                "segments": "Segments"
+            }
+        }
+    },
+    "addToPlaylist": "Ajouter à la playlist",
+    "share": "Partager",
+    "goToArtist": "Aller à l’artiste",
+    "goToAlbum": "Aller à l’album",
+    "deleteFromLibrary": "Supprimer de la bibliothèque",
+    "deleteSong": "Supprimer la chanson",
+    "deleteSongConfirmation": "Êtes-vous sûr de vouloir supprimer définitivement « {{song}} » ? Cette action est irréversible.",
+    "noPlaylistsYet": "Aucune playlist pour le moment. Créez votre première !",
+    "createNewPlaylist": "Créer une nouvelle playlist",
+    "songInformation": "Informations sur la chanson",
+    "songInformationDescription": "Informations détaillées sur la chanson.",
+    "artist": "Artiste",
+    "album": "Album",
+    "duration": "Durée",
+    "songAlreadyInPlaylist": "« {{song}} » est déjà dans la playlist « {{playlist}} »",
+    "addedToPlaylist": "« {{song}} » ajouté à la playlist « {{playlist}} »",
+    "createdNewPlaylistAddedSong": "Nouvelle playlist « {{playlist}} » créée et « {{song}} » ajoutée",
+    "listenToSong": "Écoutez « {{song}} » de {{artist}}",
+    "songShared": "Chanson partagée avec succès",
+    "songInfoCopied": "Informations de la chanson copiées dans le presse-papiers",
+    "songShareFailed": "Échec du partage ou de la copie des informations de la chanson",
+    "choosePlaylistOrCreate": "Choisissez une playlist pour ajouter « {{song}} », ou créez-en une nouvelle.",
+    "choosePlaylistOrCreateMultiple": "Ajouter {{count}} chansons à une playlist ou en créer une nouvelle",
+    "settings": {
+        "title": "Paramètres",
+        "description": "Personnalisez votre expérience et vos préférences d’écoute.",
+        "reset": "Réinitialiser par défaut",
+        "resetError": "Erreur lors de la réinitialisation des paramètres.",
+        "themeError": "Erreur de chargement du thème !",
+        "audio": {
+            "title": "Paramètres audio",
+            "crossfade": "Fondu enchaîné"
+        },
+        "playback": {
+            "title": "Paramètres de lecture",
+            "shuffle": "Mode aléatoire par défaut",
+            "shuffleDesc": "Activer la lecture aléatoire par défaut au démarrage",
+            "repeat": "Mode répétition par défaut",
+            "autoPlay": "Lecture automatique de la prochaine chanson",
+            "autoPlayDesc": "Lire automatiquement la chanson suivante lorsque la chanson en cours se termine"
+        },
+        "interface": {
+            "title": "Paramètres d’interface",
+            "colorTheme": "Thème de couleur",
+            "themeMode": "Mode du thème",
+            "themeModeDesc": "Choisissez votre mode de thème préféré",
+            "compact": "Mode compact",
+            "compactDesc": "Utiliser une disposition plus compacte pour afficher plus de contenu",
+            "albumArt": "Afficher la pochette",
+            "albumArtDesc": "Afficher la pochette d’album dans l’interface du lecteur",
+            "lyrics": "Afficher les paroles",
+            "lyricsDesc": "Afficher les paroles des chansons lorsqu’elles sont disponibles",
+            "language": "Langue",
+            "languageDescription": "La langue de l'application"
+        }
+    }
+}

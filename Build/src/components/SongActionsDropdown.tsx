@@ -28,7 +28,8 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
 } from "./DropdownMenu";
-import { Song, Playlist, MusicLibrary } from "../helpers/musicPlayerHook";
+import { Song, Playlist, MusicLibrary } from "../hooks/musicPlayerHook";
+import { useTranslation } from "react-i18next";
 
 interface SongActionsDropdownProps {
   song: Song;
@@ -50,6 +51,7 @@ export const SongActionsDropdown = ({
   size = 16,
   className = "",
 }: SongActionsDropdownProps) => {
+  const { t } = useTranslation();
   const [showPlaylistDialog, setShowPlaylistDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showInfoDialog, setShowInfoDialog] = useState(false);
@@ -60,10 +62,10 @@ export const SongActionsDropdown = ({
     if (playlist) {
       const isAlreadyInPlaylist = playlist.songs.some((s) => s.id === song.id);
       if (isAlreadyInPlaylist) {
-        toast.info(`"${song.title}" is already in playlist "${playlist.name}"`);
+        toast.info(t("songAlreadyInPlaylist", { song: song.title, playlist: playlist.name }));
       } else {
         onAddToPlaylist(playlist.id, song.id);
-        toast.success(`Added "${song.title}" to playlist "${playlist.name}"`);
+        toast.success(t("addedToPlaylist", { song: song.title, playlist: playlist.name }));
       }
     }
     setShowPlaylistDialog(false);
@@ -71,13 +73,11 @@ export const SongActionsDropdown = ({
 
   const handleCreateNewPlaylist = () => {
     if (!newPlaylistName.trim()) {
-      toast.error("Please enter a playlist name");
+      toast.error(t("enterPlaylistName"));
       return;
     }
     const newPlaylist = onCreatePlaylist(newPlaylistName, [song]);
-    toast.success(
-      `Created new playlist "${newPlaylist.name}" and added "${song.title}"`
-    );
+    toast.success(t("createdNewPlaylistAddedSong", { playlist: newPlaylist.name, song: song.title }));
     setNewPlaylistName("");
     setIsCreatingNew(false);
     setShowPlaylistDialog(false);
@@ -90,14 +90,12 @@ export const SongActionsDropdown = ({
     return `${mins}:${secs.toString().padStart(2, "0")}`;
   };
 
-  const handleShowSongInfo = () => {
-    setShowInfoDialog(true);
-  };
+  const handleShowSongInfo = () => setShowInfoDialog(true);
 
   const handleShare = async () => {
     const shareData = {
       title: `${song.title} - ${song.artist}`,
-      text: `Listen to "${song.title}" by ${song.artist}`,
+      text: t("listenToSong", { song: song.title, artist: song.artist }),
       url: window.location.href,
     };
 
@@ -108,20 +106,20 @@ export const SongActionsDropdown = ({
         navigator.canShare(shareData)
       ) {
         await navigator.share(shareData);
-        toast.success("Song shared successfully");
+        toast.success(t("songShared"));
       } else {
         const shareText = `🎵 ${shareData.title}\n${shareData.text}\n${shareData.url}`;
         await navigator.clipboard.writeText(shareText);
-        toast.success("Song info copied to clipboard!");
+        toast.success(t("songInfoCopied"));
       }
     } catch (error) {
       console.error("Failed to share:", error);
       try {
         await navigator.clipboard.writeText(`${song.title} by ${song.artist}`);
-        toast.success("Song info copied to clipboard");
+        toast.success(t("songInfoCopied"));
       } catch (clipboardError) {
         console.error("Failed to copy to clipboard:", clipboardError);
-        toast.error("Failed to share or copy song info");
+        toast.error(t("songShareFailed"));
       }
     }
   };
@@ -142,13 +140,11 @@ export const SongActionsDropdown = ({
     );
   };
 
-  const handleDeleteSong = () => {
-    setShowDeleteDialog(true);
-  };
+  const handleDeleteSong = () => setShowDeleteDialog(true);
 
   const handleConfirmDelete = () => {
     onRemoveSong(song.id);
-    toast.success(`Deleted "${song.title}" from the library`);
+    toast.success(t("deletedFromLibrary", { song: song.title }));
     setShowDeleteDialog(false);
   };
 
@@ -159,7 +155,7 @@ export const SongActionsDropdown = ({
           variant="ghost"
           size="icon-sm"
           className={className}
-          title="More options"
+          title={t("moreOptions")}
         >
           <MoreHorizontal size={size} />
         </Button>
@@ -167,25 +163,25 @@ export const SongActionsDropdown = ({
       <DropdownMenuContent align="end" sideOffset={8}>
         <DropdownMenuItem onClick={() => setShowPlaylistDialog(true)}>
           <Plus size={size} style={{ marginRight: 8 }} />
-          Add to playlist
+          {t("addToPlaylist")}
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={handleShowSongInfo}>
           <Info size={size} style={{ marginRight: 8 }} />
-          Song info
+          {t("songInfo.songInfoTitle")}
         </DropdownMenuItem>
         <DropdownMenuItem onClick={handleShare}>
           <Share size={size} style={{ marginRight: 8 }} />
-          Share
+          {t("share")}
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={handleGoToArtist}>
           <User size={size} style={{ marginRight: 8 }} />
-          Go to artist
+          {t("goToArtist")}
         </DropdownMenuItem>
         <DropdownMenuItem onClick={handleGoToAlbum}>
           <Music size={size} style={{ marginRight: 8 }} />
-          Go to album
+          {t("goToAlbum")}
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem
@@ -193,7 +189,7 @@ export const SongActionsDropdown = ({
           className={modalStyles.delete}
         >
           <Trash2 size={size} style={{ marginRight: 8 }} />
-          Delete from library
+          {t("deleteFromLibrary")}
         </DropdownMenuItem>
       </DropdownMenuContent>
 
@@ -201,10 +197,9 @@ export const SongActionsDropdown = ({
       <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Delete Song</DialogTitle>
+            <DialogTitle>{t("deleteSong")}</DialogTitle>
             <DialogDescription>
-              Are you sure you want to permanently delete "{song.title}"? This
-              action cannot be undone.
+              {t("deleteSongConfirmation", { song: song.title })}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
@@ -212,10 +207,10 @@ export const SongActionsDropdown = ({
               variant="outline"
               onClick={() => setShowDeleteDialog(false)}
             >
-              Cancel
+              {t("cancel")}
             </Button>
             <Button variant="destructive" onClick={handleConfirmDelete}>
-              Delete
+              {t("delete.delete")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -225,16 +220,16 @@ export const SongActionsDropdown = ({
       <Dialog open={showPlaylistDialog} onOpenChange={setShowPlaylistDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Add to Playlist</DialogTitle>
+            <DialogTitle>{t("addToPlaylist")}</DialogTitle>
             <DialogDescription>
-              Choose a playlist to add "{song.title}" to, or create a new one.
+              {t("choosePlaylistOrCreate", { song: song.title })}
             </DialogDescription>
           </DialogHeader>
 
           {isCreatingNew ? (
             <div className={modalStyles.spaceY4}>
               <Input
-                placeholder="Enter playlist name..."
+                placeholder={t("enterPlaylistName")}
                 value={newPlaylistName}
                 onChange={(e: any) => setNewPlaylistName(e.target.value)}
               />
@@ -243,10 +238,10 @@ export const SongActionsDropdown = ({
                   variant="outline"
                   onClick={() => setIsCreatingNew(false)}
                 >
-                  Cancel
+                  {t("cancel")}
                 </Button>
                 <Button onClick={handleCreateNewPlaylist}>
-                  Create Playlist
+                  {t("createPlaylist")}
                 </Button>
               </div>
             </div>
@@ -274,7 +269,7 @@ export const SongActionsDropdown = ({
                 </div>
               ) : (
                 <p className={modalStyles.muted}>
-                  No playlists yet. Create your first one!
+                  {t("noPlaylistsYet")}
                 </p>
               )}
 
@@ -284,7 +279,7 @@ export const SongActionsDropdown = ({
                 onClick={() => setIsCreatingNew(true)}
               >
                 <PlusCircle size={16} className="mr-2" />
-                Create New Playlist
+                {t("createNewPlaylist")}
               </Button>
             </div>
           )}
@@ -295,10 +290,8 @@ export const SongActionsDropdown = ({
       <Dialog open={showInfoDialog} onOpenChange={setShowInfoDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Song Information</DialogTitle>
-            <DialogDescription>
-              Detailed information about the song.
-            </DialogDescription>
+            <DialogTitle>{t("songInformation")}</DialogTitle>
+            <DialogDescription>{t("songInformationDescription")}</DialogDescription>
           </DialogHeader>
           <div style={{ display: "flex", gap: "var(--spacing-4)" }}>
             {song.albumArt && (
@@ -315,21 +308,21 @@ export const SongActionsDropdown = ({
             )}
             <div className={modalStyles.spaceY4}>
               <p>
-                <strong>Title:</strong> {song.title}
+                <strong>{t("songInfo.title")}:</strong> {song.title}
               </p>
               <p>
-                <strong>Artist:</strong> {song.artist}
+                <strong>{t("artist")}:</strong> {song.artist}
               </p>
               <p>
-                <strong>Album:</strong> {song.album}
+                <strong>{t("album")}:</strong> {song.album}
               </p>
               <p>
-                <strong>Duration:</strong> {formatTime(song.duration)}
+                <strong>{t("duration")}:</strong> {formatTime(song.duration)}
               </p>
             </div>
           </div>
           <DialogFooter>
-            <Button onClick={() => setShowInfoDialog(false)}>Close</Button>
+            <Button onClick={() => setShowInfoDialog(false)}>{t("close")}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

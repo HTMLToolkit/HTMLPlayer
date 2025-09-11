@@ -1,4 +1,4 @@
-import { MusicLibrary, PlayerSettings } from "./musicPlayerHook";
+import { MusicLibrary, PlayerSettings } from "../hooks/musicPlayerHook";
 
 // IndexedDB configuration
 const DB_NAME = "HTMLPlayerDB";

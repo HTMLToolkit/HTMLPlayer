@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   Menu,
   Settings as SettingsIcon,
@@ -21,7 +22,7 @@ import styles from "./Sidebar.module.css";
 
 type SidebarProps = {
   musicPlayerHook: ReturnType<
-    typeof import("../helpers/musicPlayerHook").useMusicPlayer
+    typeof import("../hooks/musicPlayerHook").useMusicPlayer
   >;
   onCollapseChange?: (isCollapsed: boolean) => void;
 };
@@ -33,6 +34,8 @@ export const Sidebar = ({
   musicPlayerHook,
   onCollapseChange,
 }: SidebarProps) => {
+  const { t } = useTranslation();
+
   const [showAbout, setShowAbout] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -52,7 +55,6 @@ export const Sidebar = ({
     setIsCollapsed(newCollapsedState);
     onCollapseChange?.(newCollapsedState);
 
-    // Update CSS variable for sidebar width:
     document.documentElement.style.setProperty(
       "--sidebar-width",
       newCollapsedState ? COLLAPSED_WIDTH : EXPANDED_WIDTH
@@ -63,7 +65,6 @@ export const Sidebar = ({
     setIsCollapsed(false);
     onCollapseChange?.(false);
 
-    // Reset CSS variable to expanded width
     document.documentElement.style.setProperty(
       "--sidebar-width",
       EXPANDED_WIDTH
@@ -78,7 +79,7 @@ export const Sidebar = ({
           size="icon-sm"
           className={`${styles.expandButton} ${styles.noHover}`}
           onClick={handleSliverClick}
-          aria-label="Expand sidebar"
+          aria-label={t("expandSidebar")}
         >
           <ChevronRight size={16} />
         </Button>
@@ -94,11 +95,11 @@ export const Sidebar = ({
           size="icon-sm"
           className={styles.menuButton}
           onClick={handleMenuClick}
-          aria-label="Menu"
+          aria-label={t("menu")}
         >
           <Menu size={16} />
         </Button>
-        <h2 className={styles.title}>Playlists</h2>
+        <h2 className={styles.title}>{t("playlists")}</h2>
       </div>
 
       <PlaylistComponent musicPlayerHook={musicPlayerHook} />
@@ -111,7 +112,7 @@ export const Sidebar = ({
           onClick={handleAbout}
         >
           <Info size={16} />
-          About
+          {t("about")}
         </Button>
         <Button
           variant="ghost"
@@ -119,7 +120,7 @@ export const Sidebar = ({
           onClick={handleSettings}
         >
           <SettingsIcon size={16} />
-          Settings
+          {t("settings.title")}
         </Button>
         <SettingsComponent
           open={showSettings}
@@ -133,14 +134,15 @@ export const Sidebar = ({
       <Dialog open={showAbout} onOpenChange={setShowAbout}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>About HTMLPlayer</DialogTitle>
+            <DialogTitle>{t("aboutHTMLPlayer")}</DialogTitle>
             <DialogDescription>
-              HTMLPlayer v2.0 - A modern music streaming interface built with
-              React.
+              {t("aboutHTMLPlayerDesc")}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button onClick={() => setShowAbout(false)}>Close</Button>
+            <Button onClick={() => setShowAbout(false)}>
+              {t("close")}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

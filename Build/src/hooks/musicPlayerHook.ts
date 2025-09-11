@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { toast } from "sonner";
-import { musicIndexedDbHelper } from "./musicIndexedDbHelper";
+import { musicIndexedDbHelper } from "../helpers/musicIndexedDbHelper";
 
 export type Song = {
   id: string;
@@ -34,6 +34,7 @@ export type PlayerSettings = {
   showLyrics: boolean;
   lastPlayedSongId?: string;
   lastPlayedPlaylistId?: string;
+  language: string;
 };
 
 export type PlayerState = {
@@ -107,6 +108,7 @@ export const useMusicPlayer = () => {
     showLyrics: false,
     lastPlayedSongId: "none",
     lastPlayedPlaylistId: "none",
+    language: "English"
   });
 
   const [library, setLibrary] = useState<MusicLibrary>(() => ({
