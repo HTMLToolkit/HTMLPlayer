@@ -11,6 +11,7 @@ import {
 } from "../helpers/themeMode";
 import { musicIndexedDbHelper } from "../helpers/musicIndexedDbHelper";
 import styles from "./_index.module.css";
+import { Miniplayer } from "../components/Miniplayer";
 
 export default function IndexPage() {
   const musicPlayerHook = useMusicPlayer();
@@ -75,8 +76,11 @@ export default function IndexPage() {
           showLyrics: false,
           lastPlayedSongId: undefined,
           lastPlayedPlaylistId: undefined,
-          language: "English"
+          language: "English",
+          tempo: 1
         }} />
+        {/* Mount the hidden Miniplayer singleton once */}
+        <Miniplayer />
       </div>
     </div>
   );

@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { toast } from "sonner";
 import { musicIndexedDbHelper } from "../helpers/musicIndexedDbHelper";
-
+import { getMiniplayer } from "../components/Miniplayer";
 export type Song = {
   id: string;
   title: string;
@@ -563,10 +563,18 @@ export const useMusicPlayer = () => {
         playNext();
       });
 
+
+      navigator.mediaSession.setActionHandler("enterpictureinpicture" as any, () => {
+        const miniplayer = getMiniplayer();
+        if (!miniplayer) return console.warn("Miniplayer not ready");
+        miniplayer.togglePiP();
+      });
+
       return () => {
         if ("mediaSession" in navigator) {
           navigator.mediaSession.setActionHandler("previoustrack", null);
           navigator.mediaSession.setActionHandler("nexttrack", null);
+          navigator.mediaSession.setActionHandler("enterpictureinpicture" as any, null);
         }
       };
     }

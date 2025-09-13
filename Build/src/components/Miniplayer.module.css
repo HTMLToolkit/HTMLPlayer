@@ -1,0 +1,45 @@
+.miniplayer {
+  display: flex;
+  align-items: center;
+  padding: var(--spacing-2);
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-md);
+  gap: var(--spacing-2);
+}
+
+.albumArt {
+  width: 50px;
+  height: 50px;
+  border-radius: var(--radius-sm);
+  object-fit: cover;
+  background: var(--albumart-gradient);
+}
+
+.canvas {
+  flex: 1;
+  height: 50px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-transparent-05);
+}
+
+.controls {
+  display: flex;
+  gap: var(--spacing-1);
+}
+
+.controls button {
+  background: var(--primary);
+  color: var(--primary-foreground);
+  border: none;
+  padding: var(--spacing-1);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.controls button:hover {
+  background: var(--primary-transparent-3);
+}
