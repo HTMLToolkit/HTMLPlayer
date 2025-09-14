@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { toast } from "sonner";
 import { musicIndexedDbHelper } from "../helpers/musicIndexedDbHelper";
-import { getMiniplayer } from "../components/Miniplayer";
+import { toggleMiniplayer } from "../components/Miniplayer";
 export type Song = {
   id: string;
   title: string;
@@ -565,9 +565,15 @@ export const useMusicPlayer = () => {
 
 
       navigator.mediaSession.setActionHandler("enterpictureinpicture" as any, () => {
-        const miniplayer = getMiniplayer();
-        if (!miniplayer) return console.warn("Miniplayer not ready");
-        miniplayer.togglePiP();
+        toggleMiniplayer({
+          playerState: {
+            currentSong: playerState.currentSong,
+            isPlaying: playerState.isPlaying
+          },
+          togglePlayPause,
+          playNext,
+          playPrevious
+        });
       });
 
       return () => {

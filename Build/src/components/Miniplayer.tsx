@@ -1,141 +1,150 @@
 // Miniplayer.tsx
-import { useEffect, useRef, useState } from "react";
-import styles from "./Miniplayer.module.css";
-import { useMusicPlayer } from "../hooks/musicPlayerHook";
-import { Play, Pause, X, PictureInPicture2 } from "lucide-react";
+import { type PlayerState } from "../hooks/musicPlayerHook";
+import { createRoot } from 'react-dom/client';
+import { useEffect } from 'react';
 
-// Singleton handle for global PiP control
-let miniplayerSingleton: { togglePiP: () => void } | null = null;
-export const getMiniplayer = () => miniplayerSingleton;
-
-export const Miniplayer = () => {
-  const { playerState, togglePlayPause, isInitialized } = useMusicPlayer();
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const pipVideoRef = useRef<HTMLVideoElement>(null);
-  const animationRef = useRef<number>(0);
-  const [isPiP, setIsPiP] = useState(false);
-
-  // waveform drawing (continuous)
-  useEffect(() => {
-    if (!isInitialized || !playerState.analyserNode || !canvasRef.current) return;
-    const canvas = canvasRef.current;
-    const ctx = canvas.getContext("2d")!;
-    const analyser = playerState.analyserNode;
-    const bufferLength = analyser.frequencyBinCount;
-    const dataArray = new Uint8Array(bufferLength);
-
-    const draw = () => {
-      analyser.getByteTimeDomainData(dataArray);
-      ctx.fillStyle = "#111";
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-      ctx.lineWidth = 2;
-      ctx.strokeStyle = "#0ff";
-      ctx.beginPath();
-
-      let x = 0;
-      const sliceWidth = canvas.width / bufferLength;
-
-      for (let i = 0; i < bufferLength; i++) {
-        const v = dataArray[i] / 128.0;
-        const y = (v * canvas.height) / 2;
-        i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
-        x += sliceWidth;
-      }
-
-      ctx.lineTo(canvas.width, canvas.height / 2);
-      ctx.stroke();
-      animationRef.current = requestAnimationFrame(draw);
-    };
-    draw();
-
-    return () => cancelAnimationFrame(animationRef.current);
-  }, [playerState.analyserNode, isInitialized]);
-
-  // PiP video + album art
-  useEffect(() => {
-    if (!pipVideoRef.current) return;
-    const video = pipVideoRef.current;
-
-    // attach hidden video to DOM
-    document.body.appendChild(video);
-    video.style.position = "absolute";
-    video.style.width = "1px";
-    video.style.height = "1px";
-    video.style.left = "-9999px";
-    video.style.top = "-9999px";
-
-    return () => {
-      document.body.removeChild(video);
-    };
-  }, []);
-
-  // update canvas stream whenever album art changes
-  useEffect(() => {
-    if (!pipVideoRef.current || !playerState.currentSong) return;
-    const video = pipVideoRef.current;
-    const img = new Image();
-    img.src = playerState.currentSong.albumArt || "";
-
-    img.onload = () => {
-      const canvas = document.createElement("canvas");
-      canvas.width = 320;
-      canvas.height = 180;
-      const ctx = canvas.getContext("2d")!;
-      ctx.fillStyle = "#111";
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-
-      // capture canvas stream
-      const stream = (canvas as any).captureStream(30); // 30fps
-      video.srcObject = stream;
-      video.muted = true;
-
-      // play video silently
-      video.play().catch((err) => console.error("PiP play error:", err));
-    };
-  }, [playerState.currentSong]);
-
-  // PiP toggle
-  const togglePiP = async () => {
-    if (!pipVideoRef.current) return;
-
-    try {
-      if (document.pictureInPictureElement) {
-        await document.exitPictureInPicture();
-        setIsPiP(false);
-      } else {
-        await pipVideoRef.current.requestPictureInPicture();
-        setIsPiP(true);
-      }
-    } catch (err) {
-      console.error("PiP failed:", err);
-    }
+interface MiniplayerControls {
+  togglePlayPause: () => void;
+  playNext: () => void;
+  playPrevious: () => void;
+  playerState: {
+    currentSong: PlayerState['currentSong'];
+    isPlaying: boolean;
   };
+}
 
-  // register singleton
+let pipWindow: Window | null = null;
+
+// Helper function to create Lucide icon SVGs
+const createIconSVG = (iconName: string) => {
+  const icons: Record<string, string> = {
+    skipBack: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="19,20 9,12 19,4"></polygon><line x1="5" y1="19" x2="5" y2="5"></line></svg>`,
+    play: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5,3 19,12 5,21"></polygon></svg>`,
+    pause: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>`,
+    skipForward: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5,4 15,12 5,20"></polygon><line x1="19" y1="5" x2="19" y2="19"></line></svg>`
+  };
+  return icons[iconName] || '';
+};
+
+/**
+ * Toggles the Picture-in-Picture miniplayer window.
+ * If a PiP window is already open, it will be closed.
+ * Otherwise, a new PiP window will be opened with player controls.
+ */
+export const toggleMiniplayer = async (controls: MiniplayerControls) => {
+  if (!controls.playerState.currentSong) {
+    console.error('No song is currently playing');
+    return;
+  }
+
+  try {
+    if (pipWindow) {
+      (pipWindow as Window & { close: () => void }).close();
+      pipWindow = null;
+      return;
+    }
+
+    // @ts-ignore
+    if (!window.documentPictureInPicture) {
+      console.error('Document Picture-in-Picture not supported');
+      return;
+    }
+
+    // @ts-ignore
+    const newPipWindow = await window.documentPictureInPicture.requestWindow({
+      width: 320,
+      height: 180,
+    });
+    pipWindow = newPipWindow;
+
+    // Inject global CSS
+    const globalStyleSheet = newPipWindow.document.createElement('link');
+    globalStyleSheet.rel = 'stylesheet';
+    globalStyleSheet.href = '/src/global.css';
+    newPipWindow.document.head.appendChild(globalStyleSheet);
+
+    // Inject theme CSS (default to Blue)
+    const themeStyleSheet = newPipWindow.document.createElement('link');
+    themeStyleSheet.rel = 'stylesheet';
+    themeStyleSheet.href = '/src/themes/Blue/Blue.theme.css';
+    newPipWindow.document.head.appendChild(themeStyleSheet);
+
+    // Create root element for React
+    const root = newPipWindow.document.createElement('div');
+    newPipWindow.document.body.appendChild(root);
+
+    // Render the React component into the PiP window using createRoot
+    const rootElement = createRoot(root);
+    rootElement.render(<MiniplayerContent controls={controls} />);
+
+    newPipWindow.addEventListener('pagehide', () => {
+      pipWindow = null;
+    });
+  } catch (err) {
+    console.error('PiP failed:', err);
+    pipWindow = null;
+  }
+};
+
+interface MiniplayerProps {
+  controls: MiniplayerControls;
+}
+
+const MiniplayerContent: React.FC<MiniplayerProps> = ({ controls }) => {
+  const { playerState, togglePlayPause, playNext, playPrevious } = controls;
+  const { currentSong, isPlaying } = playerState;
+
   useEffect(() => {
-    miniplayerSingleton = { togglePiP };
-    return () => {
-      miniplayerSingleton = null;
+    const updatePlayButton = () => {
+      const playBtn = document.getElementById('playBtn');
+      if (playBtn) {
+        playBtn.innerHTML = createIconSVG(isPlaying ? 'pause' : 'play');
+        playBtn.setAttribute('title', isPlaying ? 'Pause' : 'Play');
+      }
     };
-  }, []);
+
+    const observer = new MutationObserver(() => updatePlayButton());
+    observer.observe(document.body, { subtree: true, childList: true });
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [isPlaying]);
+
+  if (!currentSong) {
+    return <div>No song is currently playing</div>;
+  }
 
   return (
-    <div className={styles.miniplayer} style={{ display: "none" }}>
-      <canvas ref={canvasRef} width={300} height={80} className={styles.canvas} />
-      {playerState.currentSong?.albumArt && (
-        <img src={playerState.currentSong.albumArt} alt="Album Art" className={styles.albumArt} />
-      )}
-      <div className={styles.controls}>
-        <button onClick={togglePlayPause}>
-          {playerState.isPlaying ? <Pause size={20} /> : <Play size={20} />}
+    <div className="miniplayer">
+      <img src={currentSong.albumArt || ''} alt="Album Art" className="albumArt" />
+      <div className="songInfo">
+        <div className="songTitle">{currentSong.title}</div>
+        <div className="artist">{currentSong.artist}</div>
+      </div>
+      <div className="controls">
+        <button id="prevBtn" title="Previous track" onClick={playPrevious}>
+          <span dangerouslySetInnerHTML={{ __html: createIconSVG('skipBack') }} />
         </button>
-        <button onClick={togglePiP}>
-          {isPiP ? <X size={20} /> : <PictureInPicture2 size={20} />}
+        <button
+          id="playBtn"
+          className="playBtn"
+          title={isPlaying ? 'Pause' : 'Play'}
+          onClick={togglePlayPause}
+        >
+          <span dangerouslySetInnerHTML={{ __html: createIconSVG(isPlaying ? 'pause' : 'play') }} />
+        </button>
+        <button id="nextBtn" title="Next track" onClick={playNext}>
+          <span dangerouslySetInnerHTML={{ __html: createIconSVG('skipForward') }} />
         </button>
       </div>
-      <video ref={pipVideoRef} autoPlay muted />
     </div>
   );
 };
+
+// Extend the type declaration to include the close method
+interface Window {
+  documentPictureInPicture?: {
+    requestWindow: (options: { width: number; height: number }) => Promise<Window & { close: () => void }>;
+  };
+}

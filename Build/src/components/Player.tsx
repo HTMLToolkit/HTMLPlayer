@@ -24,7 +24,7 @@ import { SongActionsDropdown } from "./SongActionsDropdown";
 import { PlayerSettings } from "./Settings";
 import { useTranslation } from "react-i18next";
 import DOMPurify from "dompurify";
-import { getMiniplayer } from "./Miniplayer";
+import { toggleMiniplayer } from "./Miniplayer";
 
 type PlayerProps = {
   musicPlayerHook: ReturnType<
@@ -356,10 +356,16 @@ export const Player = ({ musicPlayerHook, settings }: PlayerProps) => {
               size="icon-sm"
               className={styles.secondaryButton}
               onClick={() => {
-                const miniplayer = getMiniplayer();
-                if (!miniplayer) return console.warn("Miniplayer not ready");
-                  miniplayer.togglePiP();
-                }}
+                toggleMiniplayer({
+                  playerState: {
+                    currentSong,
+                    isPlaying
+                  },
+                  togglePlayPause,
+                  playNext,
+                  playPrevious
+                });
+              }}
               title="Picture-in-Picture"
             >
               <PictureInPicture2 size={16} />

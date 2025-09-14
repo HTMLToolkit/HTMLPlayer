@@ -1,0 +1,123 @@
+:root {
+  --miniplayer-background: var(--background, #1e1e2e);
+  --miniplayer-foreground: var(--foreground, white);
+  --miniplayer-border-radius: var(--radius-lg, 1rem);
+  --miniplayer-spacing: var(--spacing-4, 1rem);
+  --miniplayer-shadow: var(--shadow-lg);
+  --miniplayer-border: var(--primary-border, rgba(255, 255, 255, 0.1));
+  --miniplayer-albumart-gradient: linear-gradient(45deg, #667eea 0%, #764ba2 100%);
+  --miniplayer-control-hover: var(--surface-transparent-2, rgba(255, 255, 255, 0.2));
+  --miniplayer-control-active: var(--surface-transparent-1, rgba(255, 255, 255, 0.1));
+}
+
+body {
+  margin: 0;
+  background: var(--miniplayer-background);
+  color: var(--miniplayer-foreground);
+  font-family: var(--font-family-base, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif);
+  overflow: hidden;
+}
+
+.miniplayer {
+  padding: var(--miniplayer-spacing);
+  display: flex;
+  align-items: center;
+  gap: var(--miniplayer-spacing);
+  height: 100%;
+  background: var(--miniplayer-background);
+  backdrop-filter: blur(20px);
+  border-radius: var(--miniplayer-border-radius);
+  border: 1px solid var(--miniplayer-border);
+  box-shadow: var(--miniplayer-shadow);
+}
+
+.albumArt {
+  width: 56px;
+  height: 56px;
+  border-radius: var(--radius, 0.5rem);
+  object-fit: cover;
+  background: var(--miniplayer-albumart-gradient);
+  box-shadow: var(--shadow-md);
+  flex-shrink: 0;
+  border: 1px solid var(--miniplayer-border);
+}
+
+.controls {
+  display: flex;
+  gap: var(--spacing-3, 0.75rem);
+  align-items: center;
+}
+
+.controls button {
+  background: var(--miniplayer-control-active);
+  border: 1px solid var(--miniplayer-border);
+  color: var(--miniplayer-foreground);
+  cursor: pointer;
+  padding: var(--spacing-2, 0.5rem);
+  border-radius: var(--radius-full, 50%);
+  font-size: 0;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--animation-duration-fast, 150ms) ease;
+  backdrop-filter: blur(10px);
+}
+
+.controls button:hover {
+  background: var(--miniplayer-control-hover);
+  border-color: var(--primary-border-strong, rgba(255, 255, 255, 0.3));
+  transform: scale(1.05);
+}
+
+.controls button:active {
+  transform: scale(0.95);
+}
+
+.controls button svg {
+  width: 16px;
+  height: 16px;
+  fill: currentColor;
+  stroke: currentColor;
+}
+
+.playBtn {
+  background: var(--primary, var(--themecolor)) !important;
+  color: var(--primary-foreground, white) !important;
+  width: 40px !important;
+  height: 40px !important;
+  border-color: var(--primary-border-strong, var(--primary)) !important;
+}
+
+.playBtn:hover {
+  background: var(--primary-transparent-5, var(--primary)) !important;
+  transform: scale(1.08);
+}
+
+.songInfo {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1, 0.25rem);
+}
+
+.songTitle {
+  font-weight: 600;
+  font-size: 14px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--foreground-strong, rgba(255, 255, 255, 0.95));
+  font-family: var(--font-family-heading, var(--font-family-base));
+}
+
+.artist {
+  font-size: 12px;
+  opacity: 0.8;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--foreground-subtle, rgba(255, 255, 255, 0.7));
+}
