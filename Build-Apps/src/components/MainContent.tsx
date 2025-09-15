@@ -275,16 +275,16 @@ export const MainContent = ({ musicPlayerHook }: MainContentProps) => {
           ) : playerState.view === "artist" ? (
             <>
               <Button variant="link" onClick={navigateToSongs} className={styles.backLink}>
-                {t("actions.deselectAll")}
+                {t("actions.back")}
               </Button>
-              <h1 className={styles.title}>{`${t("songInfo.artist")}: ${playerState.currentArtist}`}</h1>
+              <h1 className={styles.title}>{`${t("common.artist")}: ${playerState.currentArtist}`}</h1>
             </>
           ) : playerState.view === "album" ? (
             <>
               <Button variant="link" onClick={navigateToSongs} className={styles.backLink}>
-                {t("actions.deselectAll")}
+                {t("actions.back")}
               </Button>
-              <h1 className={styles.title}>{`${t("songInfo.album")}: ${playerState.currentAlbum}`}</h1>
+              <h1 className={styles.title}>{`${t("common.album")}: ${playerState.currentAlbum}`}</h1>
             </>
           ) : null}
         </div>
@@ -319,7 +319,7 @@ export const MainContent = ({ musicPlayerHook }: MainContentProps) => {
             </Button>
             <Button variant="ghost" onClick={handleDeleteSelectedSongs}>
               <Trash2 size={16} style={{ marginRight: 8 }} />
-              {t("delete.delete")}
+              {t("common.delete")}
             </Button>
           </PersistentDropdownMenu>
           <Button variant="outline" size="icon-md" className={styles.actionButton} onClick={handleAddMusic}>
@@ -333,7 +333,7 @@ export const MainContent = ({ musicPlayerHook }: MainContentProps) => {
         <div className={styles.songList}>
           <div className={styles.songListHeader}>
             <span className={styles.columnHeader}>{t("songInfo.title")}</span>
-            <span className={styles.columnHeader}>{t("songInfo.artist")}</span>
+            <span className={styles.columnHeader}>{t("common.artist")}</span>
             <span className={styles.columnHeader}>{t("actions.addTo")}</span>
           </div>
           {filteredSongs.map((song: Song) => (
@@ -389,8 +389,8 @@ export const MainContent = ({ musicPlayerHook }: MainContentProps) => {
             <DialogDescription>{t("delete.confirm", { title: songToDelete?.title })}</DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={handleDeleteCancel}>{t("delete.cancel")}</Button>
-            <Button variant="destructive" onClick={handleDeleteConfirm}>{t("delete.delete")}</Button>
+            <Button variant="outline" onClick={handleDeleteCancel}>{t("common.cancel")}</Button>
+            <Button variant="destructive" onClick={handleDeleteConfirm}>{t("common.delete")}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -404,13 +404,13 @@ export const MainContent = ({ musicPlayerHook }: MainContentProps) => {
           {selectedSongInfo && (
             <div style={{ display: "flex", flexDirection: "column", gap: "var(--spacing-3)" }}>
               <div><strong>{t("songInfo.title")}:</strong> {selectedSongInfo.title}</div>
-              <div><strong>{t("songInfo.artist")}:</strong> {selectedSongInfo.artist}</div>
-              <div><strong>{t("songInfo.album")}:</strong> {selectedSongInfo.album}</div>
-              <div><strong>{t("songInfo.duration")}:</strong> {formatDuration(selectedSongInfo.duration)}</div>
+              <div><strong>{t("common.artist")}:</strong> {selectedSongInfo.artist}</div>
+              <div><strong>{t("common.album")}:</strong> {selectedSongInfo.album}</div>
+              <div><strong>{t("common.duration")}:</strong> {formatDuration(selectedSongInfo.duration)}</div>
             </div>
           )}
           <DialogFooter>
-            <Button onClick={() => setShowSongInfo(false)}>{t("songInfo.close")}</Button>
+            <Button onClick={() => setShowSongInfo(false)}>{t("common.close")}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -436,7 +436,7 @@ export const MainContent = ({ musicPlayerHook }: MainContentProps) => {
               />
               <div className={`${modalStyles.flex} ${modalStyles.gap2}`}>
                 <Button variant="outline" onClick={() => setIsCreatingNew(false)}>
-                  {t("actions.cancel")}
+                  {t("common.cancel")}
                 </Button>
                 <Button onClick={handleCreateNewPlaylist}>
                   {t("create")}
@@ -474,7 +474,7 @@ export const MainContent = ({ musicPlayerHook }: MainContentProps) => {
                 onClick={() => setIsCreatingNew(true)}
               >
                 <PlusCircle size={16} className="mr-2" />
-                {t("playlist.createNew")}
+                {t("playlist.createNewPlaylist")}
               </Button>
             </div>
           )}

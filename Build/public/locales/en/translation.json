@@ -1,88 +1,46 @@
 {
-    "title": "HTMLPlayer",
-    "favorites": {
-        "favorites": "Favorites",
-        "added": "Added \"{{title}}\" to favorites",
-        "removed": "Removed \"{{title}}\" from favorites"
-    },
-    "delete": {
-        "songTitle": "Delete Song",
-        "confirm": "Are you sure you want to delete \"{{title}}\"? This action cannot be undone.",
-        "cancel": "Cancel",
-        "delete": "Delete",
-        "noSongs": "No songs to delete"
-    },
-    "filePicker": {
-        "selectFiles": "Select audio files to import...",
-        "successImport": "Successfully imported {{count}} song(s)",
-        "failedImport": "Failed to import {{count}} file(s)",
-        "failedOpen": "Failed to open file picker"
-    },
-    "search": {
-        "placeholder": "Search songs..."
-    },
-    "playlist": {
-        "addTo": "Add to playlist",
-        "createNew": "Create New Playlist",
-        "enterName": "Enter playlist name...",
-        "noPlaylists": "No playlists yet. Create your first one!",
-        "created": "Created new playlist \"{{name}}\" and added {{count}} songs",
-        "addedToExisting": "Added {{count}} songs to playlist"
-    },
-    "noResults": {
-        "search": "No songs found",
-        "playlist": "No songs in this playlist"
-    },
-    "songInfo": {
-        "title": "Title",
-        "artist": "Artist",
-        "album": "Album",
-        "duration": "Duration",
-        "close": "Close",
-        "songInfoTitle": "Song Information"
-    },
-    "actions": {
-        "selectAll": "Select All",
-        "deselectAll": "Deselect All",
-        "cancel": "Cancel",
-        "close": "Close",
-        "addTo": "Actions"
-    },
-    "batch": {
-        "processing": "Processing batch {{currentBatch}} of {{totalBatches}}..."
-    },
-    "player": {
-        "selectSong": "Select a song to start playing",
-        "loading": "Loading...",
-        "albumArtAlt": "{{title}} album art",
-        "addFavorite": "Add to favorites",
-        "removeFavorite": "Remove from favorites",
-        "shuffleOn": "On",
-        "shuffleOff": "Off",
-        "previous": "Previous",
-        "next": "Next",
-        "play": "Play",
-        "pause": "Pause",
-        "repeatTrack": "Track",
-        "repeatAll": "All",
-        "repeatOff": "Off",
-        "seek": "Seek",
-        "volume": "Volume",
-        "mute": "Mute",
-        "unmute": "Unmute",
-        "visualizer": "Visualizer",
-        "lyrics": "Lyrics"
-    },
-    "allSongs": "All Songs",
+  "title": "HTMLPlayer",
+  "common": {
+    "cancel": "Cancel",
+    "close": "Close",
+    "create": "Create",
+    "delete": "Delete",
+    "artist": "Artist",
+    "album": "Album",
+    "duration": "Duration",
+    "loading": "Loading...",
+    "noResults": "No results found"
+  },
+  "favorites": {
+    "favorites": "Favorites",
+    "added": "Added \"{{title}}\" to favorites",
+    "removed": "Removed \"{{title}}\" from favorites"
+  },
+  "delete": {
+    "songTitle": "Delete Song",
+    "confirm": "Are you sure you want to delete \"{{title}}\"? This action cannot be undone.",
+    "noSongs": "No songs to delete"
+  },
+  "filePicker": {
+    "selectFiles": "Select audio files to import...",
+    "successImport": "Successfully imported {{count}} song(s)",
+    "failedImport": "Failed to import {{count}} file(s)",
+    "failedOpen": "Failed to open file picker"
+  },
+  "search": {
+    "placeholder": "Search songs..."
+  },
+  "playlist": {
+    "addTo": "Add to playlist",
+    "noPlaylists": "No playlists yet. Create your first one!",
+    "created": "Created new playlist \"{{name}}\" and added {{count}} songs",
+    "addedToExisting": "Added {{count}} songs to playlist",
     "addPlaylist": "Add Playlist",
     "searchPlaylists": "Search playlists...",
     "sharePlaylist": "Share Playlist",
     "createPlaylist": "Create New Playlist",
     "editPlaylist": "Edit Playlist",
     "enterPlaylistName": "Enter a name for your playlist",
-    "playlistName": "Playlist name...",
-    "cancel": "Cancel",
-    "create": "Create",
     "deletePlaylist": "Delete Playlist",
     "deletePlaylistConfirmation": "Are you sure you want to delete the playlist \"{{name}}\"? This action cannot be undone.",
     "playlistCreated": "Created new playlist \"{{name}}\"",
@@ -93,101 +51,154 @@
     "playlistShared": "Playlist shared successfully",
     "playlistCopied": "Playlist info copied to clipboard!",
     "playlistShareFailed": "Failed to share playlist",
-    "moreOptions": "More options",
-    "noPlaylistsFound": "No playlists found",
-    "themeLight": "Light",
-    "themeDark": "Dark",
-    "themeAuto": "Auto",
-    "currentThemeAria": "Current theme: {{theme}}. Click to change theme",
-    "expandSidebar": "Expand sidebar",
-    "menu": "Menu",
-    "playlists": "Playlists",
-    "about": "About",
-    "aboutHTMLPlayer": "About HTMLPlayer",
-    "aboutHTMLPlayerDesc": "HTMLPlayer v2.0 - A modern music streaming interface built with React.",
-    "close": "Close",
-    "visualizers": {
-        "bars": {
-            "name": "Bars",
-            "settings": {
-                "barWidth": "Bar Width",
-                "barSpacing": "Bar Spacing",
-                "sensitivity": "Sensitivity"
-            }
-        },
-        "waveform": {
-            "name": "Waveform",
-            "settings": {
-                "lineWidth": "Line Width",
-                "amplitude": "Amplitude"
-            }
-        },
-        "circle": {
-            "name": "Circle",
-            "settings": {
-                "radius": "Radius",
-                "segments": "Segments"
-            }
-        }
-    },
-    "addToPlaylist": "Add to playlist",
-    "share": "Share",
-    "goToArtist": "Go to artist",
-    "goToAlbum": "Go to album",
-    "deleteFromLibrary": "Delete from library",
-    "deletedFromLibrary": "{{song}} deleted from your library",
-    "deleteSong": "Delete Song",
-    "deleteSongConfirmation": "Are you sure you want to permanently delete \"{{song}}\"? This action cannot be undone.",
     "noPlaylistsYet": "No playlists yet. Create your first one!",
-    "createNewPlaylist": "Create New Playlist",
-    "songInformation": "Song Information",
-    "songInformationDescription": "Detailed information about the song.",
-    "artist": "Artist",
-    "album": "Album",
-    "duration": "Duration",
-    "songAlreadyInPlaylist": "\"{{song}}\" is already in playlist \"{{playlist}}\"",
-    "addedToPlaylist": "Added \"{{song}}\" to playlist \"{{playlist}}\"",
-    "createdNewPlaylistAddedSong": "Created new playlist \"{{playlist}}\" and added \"{{song}}\"",
-    "listenToSong": "Listen to \"{{song}}\" by {{artist}}",
-    "songShared": "Song shared successfully",
-    "songInfoCopied": "Song info copied to clipboard",
-    "songShareFailed": "Failed to share or copy song info",
-    "choosePlaylistOrCreate": "Choose a playlist to add \"{{song}}\" to, or create a new one.",
-    "choosePlaylistOrCreateMultiple": "Add {{count}} songs to a playlist or create a new one.",
-    "settings": {
-        "title": "Settings",
-        "description": "Customize your music player experience and preferences.",
-        "reset": "Reset to Defaults",
-        "resetError": "Error resetting settings.",
-        "themeError": "Theme load error!",
-        "audio": {
-            "title": "Audio Settings",
-            "crossfade": "Crossfade"
-        },
-        "playback": {
-            "title": "Playback Settings",
-            "shuffle": "Default Shuffle Mode",
-            "shuffleDesc": "Enable shuffle by default when starting playback",
-            "repeat": "Default Repeat Mode",
-            "autoPlay": "Auto-play Next Song",
-            "autoPlayDesc": "Automatically play the next song when current song ends",
-            "tempo": "Tempo",
-            "gapless": "Gapless Playback",
-            "gaplessDesc": "Play tracks back-to-back without any gaps between them."
-        },
-        "interface": {
-            "title": "Interface Settings",
-            "colorTheme": "Color Theme",
-            "themeMode": "Theme Mode",
-            "themeModeDesc": "Choose your preferred theme mode",
-            "compact": "Compact Mode",
-            "compactDesc": "Use a more compact layout to fit more content",
-            "albumArt": "Show Album Art",
-            "albumArtDesc": "Display album artwork in the player interface",
-            "lyrics": "Show Lyrics",
-            "lyricsDesc": "Display song lyrics when available",
-            "language": "Language",
-            "languageDescription": "What language the app is in"
-        }
+    "createNewPlaylist": "Create New Playlist"
+  },
+  "noResults": {
+    "search": "No songs found",
+    "playlist": "No songs in this playlist"
+  },
+  "songInfo": {
+    "title": "Title",
+    "songInfoTitle": "Song Information"
+  },
+  "actions": {
+    "selectAll": "Select All",
+    "deselectAll": "Deselect All",
+    "addTo": "Actions",
+    "back": "Back"
+  },
+  "batch": {
+    "processing": "Processing batch {{currentBatch}} of {{totalBatches}}..."
+  },
+  "player": {
+    "selectSong": "Select a song to start playing",
+    "albumArtAlt": "{{title}} album art",
+    "addFavorite": "Add to favorites",
+    "removeFavorite": "Remove from favorites",
+    "shuffleOn": "On",
+    "shuffleOff": "Off",
+    "previous": "Previous",
+    "next": "Next",
+    "play": "Play",
+    "pause": "Pause",
+    "repeatTrack": "Track",
+    "repeatAll": "All",
+    "repeatOff": "Off",
+    "seek": "Seek",
+    "volume": "Volume",
+    "mute": "Mute",
+    "unmute": "Unmute",
+    "visualizer": "Visualizer",
+    "lyrics": "Lyrics"
+  },
+  "allSongs": "All Songs",
+  "moreOptions": "More options",
+  "noPlaylistsFound": "No playlists found",
+  "themeLight": "Light",
+  "themeDark": "Dark",
+  "themeAuto": "Auto",
+  "currentThemeAria": "Current theme: {{theme}}. Click to change theme",
+  "expandSidebar": "Expand sidebar",
+  "menu": "Menu",
+  "playlists": "Playlists",
+  "about": "About",
+  "aboutHTMLPlayer": "About HTMLPlayer",
+  "aboutHTMLPlayerDesc": "HTMLPlayer v2.0 - A modern music streaming interface built with React.",
+  "visualizers": {
+    "bars": {
+      "name": "Bars",
+      "settings": {
+        "barWidth": "Bar Width",
+        "barSpacing": "Bar Spacing",
+        "sensitivity": "Sensitivity"
+      }
+    },
+    "waveform": {
+      "name": "Waveform",
+      "settings": {
+        "lineWidth": "Line Width",
+        "amplitude": "Amplitude"
+      }
+    },
+    "circle": {
+      "name": "Circle",
+      "settings": {
+        "radius": "Radius",
+        "segments": "Segments"
+      }
     }
+  },
+  "share": "Share",
+  "goToArtist": "Go to artist",
+  "goToAlbum": "Go to album",
+  "deleteFromLibrary": "Delete from library",
+  "deletedFromLibrary": "{{song}} deleted from your library",
+  "deleteSong": "Delete Song",
+  "deleteSongConfirmation": "Are you sure you want to permanently delete \"{{song}}\"? This action cannot be undone.",
+  "songInformation": "Song Information",
+  "songInformationDescription": "Detailed information about the song.",
+  "songAlreadyInPlaylist": "\"{{song}}\" is already in playlist \"{{playlist}}\"",
+  "addedToPlaylist": "Added \"{{song}}\" to playlist \"{{playlist}}\"",
+  "createdNewPlaylistAddedSong": "Created new playlist \"{{playlist}}\" and added \"{{song}}\"",
+  "listenToSong": "Listen to \"{{song}}\" by {{artist}}",
+  "songShared": "Song shared successfully",
+  "songInfoCopied": "Song info copied to clipboard",
+  "songShareFailed": "Failed to share or copy song info",
+  "choosePlaylistOrCreate": "Choose a playlist to add \"{{song}}\" to, or create a new one.",
+  "choosePlaylistOrCreateMultiple": "Add {{count}} songs to a playlist or create a new one.",
+  "settings": {
+    "title": "Settings",
+    "description": "Customize your music player experience and preferences.",
+    "reset": "Reset to Defaults",
+    "resetError": "Error resetting settings.",
+    "themeError": "Theme load error!",
+    "audio": {
+      "title": "Audio Settings",
+      "crossfade": "Crossfade"
+    },
+    "playback": {
+      "title": "Playback Settings",
+      "shuffle": "Default Shuffle Mode",
+      "shuffleDesc": "Enable shuffle by default when starting playback",
+      "repeat": "Default Repeat Mode",
+      "autoPlay": "Auto-play Next Song",
+      "autoPlayDesc": "Automatically play the next song when current song ends",
+      "tempo": "Tempo",
+      "gapless": "Gapless Playback",
+      "gaplessDesc": "Play tracks back-to-back without any gaps between them."
+    },
+    "interface": {
+      "title": "Interface Settings",
+      "colorTheme": "Color Theme",
+      "themeMode": "Theme Mode",
+      "themeModeDesc": "Choose your preferred theme mode",
+      "compact": "Compact Mode",
+      "compactDesc": "Use a more compact layout to fit more content",
+      "albumArt": "Show Album Art",
+      "albumArtDesc": "Display album artwork in the player interface",
+      "lyrics": "Show Lyrics",
+      "lyricsDesc": "Display song lyrics when available",
+      "language": "Language",
+      "languageDescription": "What language the app is in"
+    },
+    "shortcuts": {
+      "title": "Keyboard Shortcuts",
+      "description": "Customize keyboard shortcuts for quick access to player controls",
+      "enabled": "Enable Keyboard Shortcuts",
+      "enabledDesc": "Allow keyboard shortcuts to control the music player",
+      "playPause": "Play/Pause",
+      "nextTrack": "Next Track",
+      "previousTrack": "Previous Track",
+      "volumeUp": "Volume Up",
+      "volumeDown": "Volume Down",
+      "mute": "Toggle Mute",
+      "toggleShuffle": "Toggle Shuffle",
+      "toggleRepeat": "Toggle Repeat",
+      "toggleLyrics": "Toggle Lyrics",
+      "toggleVisualizer": "Toggle Visualizer",
+      "search": "Focus Search",
+      "openSettings": "Open Settings"
+    }
+  }
 }

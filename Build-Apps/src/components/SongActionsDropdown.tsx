@@ -73,7 +73,7 @@ export const SongActionsDropdown = ({
 
   const handleCreateNewPlaylist = () => {
     if (!newPlaylistName.trim()) {
-      toast.error(t("enterPlaylistName"));
+      toast.error(t("playlist.enterPlaylistName"));
       return;
     }
     const newPlaylist = onCreatePlaylist(newPlaylistName, [song]);
@@ -163,7 +163,7 @@ export const SongActionsDropdown = ({
       <DropdownMenuContent align="end" sideOffset={8}>
         <DropdownMenuItem onClick={() => setShowPlaylistDialog(true)}>
           <Plus size={size} style={{ marginRight: 8 }} />
-          {t("addToPlaylist")}
+          {t("playlist.addTo")}
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={handleShowSongInfo}>
@@ -207,10 +207,10 @@ export const SongActionsDropdown = ({
               variant="outline"
               onClick={() => setShowDeleteDialog(false)}
             >
-              {t("cancel")}
+              {t("common.cancel")}
             </Button>
             <Button variant="destructive" onClick={handleConfirmDelete}>
-              {t("delete.delete")}
+              {t("common.delete")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -220,7 +220,7 @@ export const SongActionsDropdown = ({
       <Dialog open={showPlaylistDialog} onOpenChange={setShowPlaylistDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{t("addToPlaylist")}</DialogTitle>
+            <DialogTitle>{t("playlist.addTo")}</DialogTitle>
             <DialogDescription>
               {t("choosePlaylistOrCreate", { song: song.title })}
             </DialogDescription>
@@ -229,7 +229,7 @@ export const SongActionsDropdown = ({
           {isCreatingNew ? (
             <div className={modalStyles.spaceY4}>
               <Input
-                placeholder={t("enterPlaylistName")}
+                placeholder={t("playlist.enterPlaylistName")}
                 value={newPlaylistName}
                 onChange={(e: any) => setNewPlaylistName(e.target.value)}
               />
@@ -238,10 +238,10 @@ export const SongActionsDropdown = ({
                   variant="outline"
                   onClick={() => setIsCreatingNew(false)}
                 >
-                  {t("cancel")}
+                  {t("common.cancel")}
                 </Button>
                 <Button onClick={handleCreateNewPlaylist}>
-                  {t("createPlaylist")}
+                  {t("playlist.createPlaylist")}
                 </Button>
               </div>
             </div>
@@ -269,7 +269,7 @@ export const SongActionsDropdown = ({
                 </div>
               ) : (
                 <p className={modalStyles.muted}>
-                  {t("noPlaylistsYet")}
+                  {t("playlist.noPlaylistsYet")}
                 </p>
               )}
 
@@ -279,7 +279,7 @@ export const SongActionsDropdown = ({
                 onClick={() => setIsCreatingNew(true)}
               >
                 <PlusCircle size={16} className="mr-2" />
-                {t("createNewPlaylist")}
+                {t("playlist.createNewPlaylist")}
               </Button>
             </div>
           )}
@@ -311,18 +311,18 @@ export const SongActionsDropdown = ({
                 <strong>{t("songInfo.title")}:</strong> {song.title}
               </p>
               <p>
-                <strong>{t("artist")}:</strong> {song.artist}
+                <strong>{t("common.artist")}:</strong> {song.artist}
               </p>
               <p>
-                <strong>{t("album")}:</strong> {song.album}
+                <strong>{t("common.album")}:</strong> {song.album}
               </p>
               <p>
-                <strong>{t("duration")}:</strong> {formatTime(song.duration)}
+                <strong>{t("common.duration")}:</strong> {formatTime(song.duration)}
               </p>
             </div>
           </div>
           <DialogFooter>
-            <Button onClick={() => setShowInfoDialog(false)}>{t("close")}</Button>
+            <Button onClick={() => setShowInfoDialog(false)}>{t("common.close")}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

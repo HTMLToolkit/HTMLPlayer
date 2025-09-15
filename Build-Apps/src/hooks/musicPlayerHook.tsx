@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { toast } from "sonner";
 import { musicIndexedDbHelper } from "../helpers/musicIndexedDbHelper";
-
+import { toggleMiniplayer } from "../components/Miniplayer";
 export type Song = {
   id: string;
   title: string;
@@ -563,10 +563,24 @@ export const useMusicPlayer = () => {
         playNext();
       });
 
+
+      navigator.mediaSession.setActionHandler("enterpictureinpicture" as any, () => {
+        toggleMiniplayer({
+          playerState: {
+            currentSong: playerState.currentSong,
+            isPlaying: playerState.isPlaying
+          },
+          togglePlayPause,
+          playNext,
+          playPrevious
+        });
+      });
+
       return () => {
         if ("mediaSession" in navigator) {
           navigator.mediaSession.setActionHandler("previoustrack", null);
           navigator.mediaSession.setActionHandler("nexttrack", null);
+          navigator.mediaSession.setActionHandler("enterpictureinpicture" as any, null);
         }
       };
     }

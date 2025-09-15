@@ -25,6 +25,7 @@ import { PlayerSettings } from "./Settings";
 import { useTranslation } from "react-i18next";
 import DOMPurify from "dompurify";
 import { toggleMiniplayer } from "./Miniplayer";
+import { useAudioSync } from "../hooks/useAudioSync";
 
 type PlayerProps = {
   musicPlayerHook: ReturnType<
@@ -35,6 +36,9 @@ type PlayerProps = {
 
 export const Player = ({ musicPlayerHook, settings }: PlayerProps) => {
   const { t } = useTranslation();
+
+  // Initialize audio sync for cross-window communication
+  useAudioSync({ musicPlayerHook, isMiniplayer: false });
 
   const progressRef = useRef<HTMLDivElement>(null);
   const volumeRef = useRef<HTMLDivElement>(null);
@@ -299,7 +303,7 @@ export const Player = ({ musicPlayerHook, settings }: PlayerProps) => {
                 className={`${styles.songTitle} ${scrollDistance !== "0px" ? styles.scrollable : ""}`}
                 style={{ "--scroll-distance": scrollDistance, animationDuration: `${animationDuration}s`, opacity: currentSong?.title ? 1 : 0 } as React.CSSProperties}
               >
-                {currentSong?.title || t("player.loading")}
+                {currentSong?.title || t("common.loading")}
               </div>
             </div>
             <div className={styles.artistName}>{currentSong.artist}</div>

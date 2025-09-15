@@ -3,6 +3,7 @@ import { Sidebar } from "../components/Sidebar";
 import { MainContent } from "../components/MainContent";
 import { Player } from "../components/Player";
 import { useMusicPlayer } from "../hooks/musicPlayerHook";
+import { useKeyboardShortcuts } from "../hooks/useKeyboardShortcuts";
 import {
   switchToAutoMode,
   switchToDarkMode,
@@ -15,6 +16,35 @@ import styles from "./_index.module.css";
 export default function IndexPage() {
   const musicPlayerHook = useMusicPlayer();
   const [, setThemeMode] = useState<ThemeMode>("auto");
+  const [settingsOpen, setSettingsOpen] = useState(false);
+
+  // Initialize keyboard shortcuts with the new hook
+  const { reloadShortcuts } = useKeyboardShortcuts({
+    musicPlayerHook,
+    onOpenSettings: () => {
+      setSettingsOpen(!settingsOpen);
+    },
+    onToggleLyrics: () => {
+      // Toggle lyrics visibility in player settings
+      const currentSettings = musicPlayerHook.settings;
+      musicPlayerHook.updateSettings({ 
+        showLyrics: !currentSettings.showLyrics 
+      });
+    },
+    onToggleVisualizer: () => {
+      // Toggle visualizer (this might need to be implemented differently)
+      // For now, just log as the visualizer system might not be fully set up
+      console.log('Toggle visualizer shortcut - implementation needed');
+    },
+    onSearch: () => {
+      // Focus search input if it exists
+      const searchInput = document.querySelector('input[type="search"], input[placeholder*="search" i]') as HTMLInputElement;
+      if (searchInput) {
+        searchInput.focus();
+        searchInput.select();
+      }
+    }
+  });
 
   useEffect(() => {
     // Set the document title
@@ -59,7 +89,12 @@ export default function IndexPage() {
 
   return (
     <div className={styles.container}>
-      <Sidebar musicPlayerHook={musicPlayerHook} />
+      <Sidebar 
+        musicPlayerHook={musicPlayerHook} 
+        onShortcutsChanged={reloadShortcuts}
+        settingsOpen={settingsOpen}
+        onSettingsOpenChange={setSettingsOpen}
+      />
       <div className={styles.mainSection}>
         <MainContent musicPlayerHook={musicPlayerHook} />
         <Player musicPlayerHook={musicPlayerHook} settings={{

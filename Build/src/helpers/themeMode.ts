@@ -1,3 +1,5 @@
+import { broadcastThemeCSS } from "../components/Miniplayer";
+
 export type ThemeMode = "light" | "dark" | "auto";
 
 export function updateMetaThemeColor(): void {
@@ -14,6 +16,11 @@ export function updateMetaThemeColor(): void {
       document.head.appendChild(meta);
     }
     meta.content = themeColor;
+    
+    // Broadcast theme changes for PiP windows
+    setTimeout(() => {
+      broadcastThemeCSS();
+    }, 100);
   });
 } 
 
@@ -74,12 +81,99 @@ export function switchToAutoMode(): void {
 /**
  * Returns the current theme mode:
  * - "auto" if auto mode is enabled,
- * - "dark" if the document body has the "dark" class,
+ * - "dark" if the document element has the "dark" class,
  * - "light" otherwise.
  */
 export function getCurrentThemeMode(): ThemeMode {
   if (currentMediaQuery) {
     return "auto";
   }
-  return document.body.classList.contains("dark") ? "dark" : "light";
+  return document.documentElement.classList.contains("dark") ? "dark" : "light";
+}
+
+/**
+ * Retrieves all CSS variables for the current theme as a string.
+ */
+export function getCurrentThemeCSS(): string {
+  const styles = getComputedStyle(document.documentElement);
+  const cssVariables: string[] = [];
+
+  // Method 1: Use getComputedStyle iteration
+  for (let i = 0; i < styles.length; i++) {
+    const name = styles[i];
+    if (name.startsWith('--')) {
+      const value = styles.getPropertyValue(name).trim();
+      if (value) { // Only include variables with values
+        cssVariables.push(`${name}: ${value};`);
+      }
+    }
+  }
+
+  // Method 2: Fallback - Check specific theme variables that should exist
+  const themeVariables = [
+    '--themecolor', '--themecolor2', '--themecolor3', '--themecolor4',
+    '--themegradient', '--themecolor1-transparent', '--themecolor2-transparent', '--themecolor3-transparent',
+    '--foreground', '--foreground-strong', '--foreground-stronger', '--foreground-muted', '--foreground-subtle',
+    '--background', '--surface', '--surface-foreground', '--surface-transparent-05', '--surface-transparent-1', '--surface-transparent-2',
+    '--primary', '--primary-foreground', '--primary-transparent', '--primary-border', '--primary-border-strong',
+    '--secondary', '--secondary-foreground', '--menu-background'
+  ];
+
+  const fallbackVariables: string[] = [];
+  themeVariables.forEach(varName => {
+    const value = styles.getPropertyValue(varName).trim();
+    if (value && !cssVariables.some(v => v.startsWith(varName))) {
+      fallbackVariables.push(`${varName}: ${value};`);
+    }
+  });
+
+  // Method 3: Check all style sheets for :root rules
+  const stylesheetVariables: string[] = [];
+  try {
+    Array.from(document.styleSheets).forEach(sheet => {
+      try {
+        Array.from(sheet.cssRules || []).forEach(rule => {
+          if (rule instanceof CSSStyleRule && rule.selectorText === ':root') {
+            const style = rule.style;
+            for (let i = 0; i < style.length; i++) {
+              const prop = style[i];
+              if (prop.startsWith('--')) {
+                const value = style.getPropertyValue(prop).trim();
+                if (value && !cssVariables.some(v => v.startsWith(prop)) && 
+                    !fallbackVariables.some(v => v.startsWith(prop))) {
+                  stylesheetVariables.push(`${prop}: ${value};`);
+                }
+              }
+            }
+          }
+        });
+      } catch (e) {
+        // Skip inaccessible stylesheets (CORS)
+      }
+    });
+  } catch (e) {
+    console.warn('Could not access stylesheets:', e);
+  }
+
+  const allVariables = [...cssVariables, ...fallbackVariables, ...stylesheetVariables];
+  
+  return `:root {\n  ${allVariables.join('\n  ')}\n}`;
+}
+
+/**
+ * Logs all CSS variables defined on the :root element.
+ */
+export function logAllCSSVariables() {
+  const styles = getComputedStyle(document.documentElement);
+  const cssVariables: string[] = [];
+
+  for (let i = 0; i < styles.length; i++) {
+    const name = styles[i];
+    if (name.startsWith('--')) {
+      const value = styles.getPropertyValue(name).trim();
+      cssVariables.push(`${name}: ${value}`);
+    }
+  }
+
+  console.log("All CSS Variables:", cssVariables.join("\n"));
 }

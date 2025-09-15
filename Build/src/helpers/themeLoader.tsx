@@ -1,4 +1,5 @@
 import React, { useState, useEffect, createContext, useContext, useCallback } from 'react';
+import { broadcastThemeCSS } from "../components/Miniplayer";
 
 // ----------------------
 // Types
@@ -117,6 +118,10 @@ export const ThemeLoader: React.FC<ThemeLoaderProps> = ({
 
         if (initialTheme) {
           await applyTheme(initialTheme);
+          // Broadcast theme immediately after loading
+          setTimeout(() => {
+            broadcastThemeCSS();
+          }, 300);
         }
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : 'Failed to load themes';
@@ -148,18 +153,13 @@ export const ThemeLoader: React.FC<ThemeLoaderProps> = ({
       const existingStyles = document.querySelectorAll('style[id^="theme-stylesheet"], link[id^="theme-stylesheet"]');
       existingStyles.forEach(style => style.remove());
 
-      // console.log(`Loading CSS module for: ${cssPath}`);
-
       // Load the CSS module to get the CSS content
       const cssModule = await (themeCssFiles[cssPath] as () => Promise<string>)();
-      // console.log('CSS module structure:', cssModule);
 
       // Verify the content is a string
       if (!cssModule || typeof cssModule !== 'string') {
         throw new Error(`Invalid CSS content for ${cssPath}: ${typeof cssModule}`);
       }
-
-      // console.log(`CSS theme loaded, length: ${cssModule.length} characters`);
 
       console.log('Theme loaded');
 
@@ -173,6 +173,16 @@ export const ThemeLoader: React.FC<ThemeLoaderProps> = ({
 
       // Append to head
       document.head.appendChild(styleElement);
+      
+      // Wait for styles to be applied
+      await new Promise(resolve => {
+        requestAnimationFrame(() => {
+          // Force a reflow to ensure styles are applied
+          document.documentElement.offsetHeight;
+          setTimeout(resolve, 100); // Additional delay for CSS variables to propagate
+        });
+      });
+      
       setIsThemeLoaded(true); // Show content after style injection
 
       // Update state after successful injection
@@ -186,6 +196,7 @@ export const ThemeLoader: React.FC<ThemeLoaderProps> = ({
 
       console.log(`Successfully applied theme: ${theme.name}`);
 
+      // Update meta theme color
       const themeColor = getComputedStyle(document.documentElement)
         .getPropertyValue('--themecolor2')
         .trim();
@@ -198,6 +209,10 @@ export const ThemeLoader: React.FC<ThemeLoaderProps> = ({
       }
       meta.content = themeColor;
 
+      // Wait a bit more and then broadcast theme CSS updates
+      setTimeout(() => {
+        broadcastThemeCSS();
+      }, 200); // Additional delay to ensure all CSS is fully applied
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to apply theme';
       setError(errorMessage);
@@ -216,7 +231,6 @@ export const ThemeLoader: React.FC<ThemeLoaderProps> = ({
       throw new Error(`Theme "${themeName}" not found`);
     }
 
-    console.log(`Switching to theme: ${themeName}`);
     setIsThemeLoaded(false); // Hide content during theme switch
     await applyTheme(theme);
   }, [themes, applyTheme]);

@@ -205,3 +205,137 @@
 .settingItem .settingValue {
   color: var(--muted-foreground) !important;
 }
+
+/* Keyboard Shortcuts Styles */
+.shortcutsList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+  margin-top: var(--spacing-4);
+}
+
+.shortcutItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-3) var(--spacing-4);
+  background: var(--surface-transparent-05);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  transition: all var(--animation-duration-fast) ease;
+}
+
+.shortcutItem:hover {
+  background: var(--surface-transparent-1);
+  border-color: var(--primary-border);
+}
+
+.shortcutInfo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1);
+}
+
+.shortcutInfo label {
+  font-weight: 500;
+  color: var(--foreground);
+  font-size: 0.875rem;
+}
+
+.shortcutKey {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 60px;
+  padding: var(--spacing-1) var(--spacing-2);
+  background: var(--background);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-family: var(--font-mono, 'Consolas', monospace);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--foreground);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  box-shadow: 0 1px 2px var(--shadow);
+}
+
+/* Shortcut Configuration Styles */
+.shortcutConfigPanel {
+  margin-top: var(--spacing-4);
+}
+
+.shortcutConfigList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+}
+
+.shortcutConfigItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-3);
+  padding: var(--spacing-3);
+  background: var(--surface-transparent-05);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  transition: all var(--animation-duration-fast) ease;
+}
+
+.shortcutConfigItem:hover {
+  background: var(--surface-transparent-1);
+  border-color: var(--primary-border);
+}
+
+.shortcutConfigLabel {
+  flex: 1;
+  font-weight: 500;
+  color: var(--foreground);
+  font-size: 0.875rem;
+}
+
+.shortcutConfigKey {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 80px;
+  padding: var(--spacing-1) var(--spacing-2);
+  background: var(--background);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-family: var(--font-mono, 'Consolas', monospace);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--foreground);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  box-shadow: 0 1px 2px var(--shadow);
+}
+
+.shortcutConfigInput {
+  min-width: 120px;
+  padding: var(--spacing-2) var(--spacing-3);
+  background: var(--background);
+  border: 2px solid var(--primary);
+  border-radius: var(--radius);
+  font-family: var(--font-mono, 'Consolas', monospace);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--foreground);
+  text-align: center;
+  cursor: pointer;
+  transition: all var(--animation-duration-fast) ease;
+}
+
+.shortcutConfigInput:focus {
+  outline: none;
+  border-color: var(--primary-hover);
+  box-shadow: 0 0 0 3px var(--primary-transparent-2);
+}
+
+.shortcutConflict {
+  font-size: 0.75rem;
+  color: var(--destructive);
+  font-weight: 500;
+}

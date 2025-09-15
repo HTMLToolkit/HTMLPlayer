@@ -25,6 +25,9 @@ type SidebarProps = {
     typeof import("../hooks/musicPlayerHook").useMusicPlayer
   >;
   onCollapseChange?: (isCollapsed: boolean) => void;
+  onShortcutsChanged?: () => void;
+  settingsOpen?: boolean;
+  onSettingsOpenChange?: (open: boolean) => void;
 };
 
 const COLLAPSED_WIDTH = "40px";
@@ -33,21 +36,27 @@ const EXPANDED_WIDTH = "250px";
 export const Sidebar = ({
   musicPlayerHook,
   onCollapseChange,
+  onShortcutsChanged,
+  settingsOpen,
+  onSettingsOpenChange,
 }: SidebarProps) => {
   const { t } = useTranslation();
 
   const [showAbout, setShowAbout] = useState(false);
-  const [showSettings, setShowSettings] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
 
   const { settings, updateSettings } = musicPlayerHook;
+
+  // Use external settings state if provided, otherwise use internal state
+  const isSettingsOpen = settingsOpen !== undefined ? settingsOpen : false;
+  const setSettingsOpen = onSettingsOpenChange || (() => {});
 
   const handleAbout = () => {
     setShowAbout(true);
   };
 
   const handleSettings = () => {
-    setShowSettings(!showSettings);
+    setSettingsOpen(!isSettingsOpen);
   };
 
   const handleMenuClick = () => {
@@ -123,10 +132,11 @@ export const Sidebar = ({
           {t("settings.title")}
         </Button>
         <SettingsComponent
-          open={showSettings}
-          onOpenChange={setShowSettings}
+          open={isSettingsOpen}
+          onOpenChange={setSettingsOpen}
           settings={settings}
           onSettingsChange={updateSettings}
+          onShortcutsChanged={onShortcutsChanged}
         />
       </div>
 
@@ -141,7 +151,7 @@ export const Sidebar = ({
           </DialogHeader>
           <DialogFooter>
             <Button onClick={() => setShowAbout(false)}>
-              {t("close")}
+              {t("common.close")}
             </Button>
           </DialogFooter>
         </DialogContent>

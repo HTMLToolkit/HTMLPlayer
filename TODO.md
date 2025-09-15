@@ -2,8 +2,6 @@
 
 ## HTMLPlayer v2
 
-- [ ] remove repeated names for the same thing in i18n
-
 - [ ] Crossfade options (settings)
 
 - [ ] Gapless playback (settings)
@@ -12,15 +10,9 @@
 
 - [ ] Export/import playlists
 
-- [ ] Miniplayer, which can either show the album art or a visualizer as the background
-  - <https://developer.chrome.com/blog/automatic-picture-in-picture-media-playback>
-  - SUPER USEFUL: <https://googlechrome.github.io/samples/media-session/audio.html>
-
 - [ ] Dynamic theming based on album art colors.  (settings)
 
 - [ ] Session restore (settings)
-
-- [ ] Keyboard shortcuts (settings, duh)
 
 - [ ] picture backgrounds in themes
 
@@ -148,6 +140,14 @@
 - [ ] picture backgrounds
 
 ## Done
+
+- [X] Keyboard shortcuts (settings, duh)
+
+- [X] remove repeated names for the same thing in i18n
+
+- [X] Miniplayer, which can either show the album art or a visualizer as the background
+  - <https://developer.chrome.com/blog/automatic-picture-in-picture-media-playback>
+  - SUPER USEFUL: <https://googlechrome.github.io/samples/media-session/audio.html>
 
 - [X] add and use uppy
   - <https://github.com/transloadit/uppy?tab=readme-ov-file>

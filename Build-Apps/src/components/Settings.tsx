@@ -17,7 +17,8 @@ import {
   SelectValue,
 } from "./Select";
 import { ThemeModeSwitch } from "./ThemeModeSwitch";
-import { Volume2, Music, Palette, RotateCcw } from "lucide-react";
+import { ShortcutConfig } from "./ShortcutConfig";
+import { Volume2, Music, Palette, RotateCcw, Keyboard } from "lucide-react";
 import styles from "./Settings.module.css";
 import { useThemeLoader } from "../helpers/themeLoader";
 import { toast } from "sonner";
@@ -47,6 +48,7 @@ export interface SettingsProps {
   onOpenChange?: (open: boolean) => void;
   settings: PlayerSettings;
   onSettingsChange: (settings: Partial<PlayerSettings>) => void;
+  onShortcutsChanged?: () => void;
 }
 
 export const Settings = ({
@@ -55,6 +57,7 @@ export const Settings = ({
   onOpenChange,
   settings,
   onSettingsChange,
+  onShortcutsChanged,
 }: SettingsProps) => {
   const { t, i18n } = useTranslation();
 
@@ -84,7 +87,7 @@ export const Settings = ({
         showLyrics: false,
         colorTheme: defaultThemeName,
         language: "English",
-        tempo: 1
+        tempo: 1,
       });
     } catch {
       toast.error(t("settings.resetError"));
@@ -104,14 +107,13 @@ export const Settings = ({
 
   // Only use filter if supportedLngs is an array
   if (Array.isArray(i18n.options.supportedLngs)) {
-    languages = i18n.options.supportedLngs.filter(l => l !== 'cimode');
+    languages = i18n.options.supportedLngs.filter((l) => l !== "cimode");
   }
 
   const handleLanguageChange = (lang: string) => {
     i18n.changeLanguage(lang);
     toast.success(`Language set to ${languageNames[lang] || lang}`);
   };
-
 
   return (
     <div className={`${styles.container} ${className || ""}`}>
@@ -125,16 +127,21 @@ export const Settings = ({
           <div className={styles.settingsContent}>
             {/* Audio Settings */}
             <section className={styles.section}>
-
               <div className={styles.sectionHeader}>
                 <Volume2 className={styles.sectionIcon} />
-                <h3 className={styles.sectionTitle}>{t("settings.audio.title")}</h3>
+                <h3 className={styles.sectionTitle}>
+                  {t("settings.audio.title")}
+                </h3>
               </div>
 
               <div className={styles.settingItem}>
                 <div className={styles.settingLabel}>
-                  <label htmlFor="tempo-slider">{t("settings.playback.tempo")}</label>
-                  <span className={styles.settingValue}>{Math.round(settings.tempo * 100)}%</span>
+                  <label htmlFor="tempo-slider">
+                    {t("settings.playback.tempo")}
+                  </label>
+                  <span className={styles.settingValue}>
+                    {Math.round(settings.tempo * 100)}%
+                  </span>
                 </div>
                 <Slider
                   id="tempo-slider"
@@ -173,7 +180,9 @@ export const Settings = ({
 
               <div className={styles.settingItem}>
                 <div className={styles.settingLabel}>
-                  <label htmlFor="crossfade-slider">{t("settings.audio.crossfade")}</label>
+                  <label htmlFor="crossfade-slider">
+                    {t("settings.audio.crossfade")}
+                  </label>
                   <span className={styles.settingValue}>{crossfade[0]}s</span>
                 </div>
                 <Slider
@@ -191,12 +200,16 @@ export const Settings = ({
             <section className={styles.section}>
               <div className={styles.sectionHeader}>
                 <Music className={styles.sectionIcon} />
-                <h3 className={styles.sectionTitle}>{t("settings.playback.title")}</h3>
+                <h3 className={styles.sectionTitle}>
+                  {t("settings.playback.title")}
+                </h3>
               </div>
 
               <div className={styles.settingItem}>
                 <div className={styles.settingInfo}>
-                  <label htmlFor="default-shuffle">{t("settings.playback.shuffle")}</label>
+                  <label htmlFor="default-shuffle">
+                    {t("settings.playback.shuffle")}
+                  </label>
                   <p className={styles.settingDescription}>
                     {t("settings.playback.shuffleDesc")}
                   </p>
@@ -204,18 +217,24 @@ export const Settings = ({
                 <Switch
                   id="default-shuffle"
                   checked={defaultShuffle}
-                  onCheckedChange={(val) => onSettingsChange({ defaultShuffle: val })}
+                  onCheckedChange={(val) =>
+                    onSettingsChange({ defaultShuffle: val })
+                  }
                 />
               </div>
 
               <div className={styles.settingItem}>
                 <div className={styles.settingLabel}>
-                  <label htmlFor="default-repeat">{t("settings.playback.repeat")}</label>
+                  <label htmlFor="default-repeat">
+                    {t("settings.playback.repeat")}
+                  </label>
                 </div>
                 <Select
                   value={defaultRepeat}
                   onValueChange={(val) =>
-                    onSettingsChange({ defaultRepeat: val as PlayerSettings["defaultRepeat"] })
+                    onSettingsChange({
+                      defaultRepeat: val as PlayerSettings["defaultRepeat"],
+                    })
                   }
                 >
                   <SelectTrigger id="default-repeat">
@@ -223,7 +242,9 @@ export const Settings = ({
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="off">{t("player.repeatOff")}</SelectItem>
-                    <SelectItem value="one">{t("player.repeatTrack")}</SelectItem>
+                    <SelectItem value="one">
+                      {t("player.repeatTrack")}
+                    </SelectItem>
                     <SelectItem value="all">{t("player.repeatAll")}</SelectItem>
                   </SelectContent>
                 </Select>
@@ -231,7 +252,9 @@ export const Settings = ({
 
               <div className={styles.settingItem}>
                 <div className={styles.settingInfo}>
-                  <label htmlFor="auto-play-next">{t("settings.playback.autoPlay")}</label>
+                  <label htmlFor="auto-play-next">
+                    {t("settings.playback.autoPlay")}
+                  </label>
                   <p className={styles.settingDescription}>
                     {t("settings.playback.autoPlayDesc")}
                   </p>
@@ -239,7 +262,9 @@ export const Settings = ({
                 <Switch
                   id="auto-play-next"
                   checked={autoPlayNext}
-                  onCheckedChange={(val) => onSettingsChange({ autoPlayNext: val })}
+                  onCheckedChange={(val) =>
+                    onSettingsChange({ autoPlayNext: val })
+                  }
                 />
               </div>
             </section>
@@ -248,12 +273,16 @@ export const Settings = ({
             <section className={styles.section}>
               <div className={styles.sectionHeader}>
                 <Palette className={styles.sectionIcon} />
-                <h3 className={styles.sectionTitle}>{t("settings.interface.title")}</h3>
+                <h3 className={styles.sectionTitle}>
+                  {t("settings.interface.title")}
+                </h3>
               </div>
 
               <div className={styles.settingItem}>
                 <div className={styles.settingLabel}>
-                  <label htmlFor="color-theme">{t("settings.interface.colorTheme")}</label>
+                  <label htmlFor="color-theme">
+                    {t("settings.interface.colorTheme")}
+                  </label>
                 </div>
                 <Select
                   value={currentTheme?.name || settings.colorTheme}
@@ -289,14 +318,18 @@ export const Settings = ({
                 <ThemeModeSwitch
                   value={settings.themeMode}
                   onChange={(val) =>
-                    onSettingsChange({ themeMode: val as PlayerSettings["themeMode"] })
+                    onSettingsChange({
+                      themeMode: val as PlayerSettings["themeMode"],
+                    })
                   }
                 />
               </div>
 
               <div className={styles.settingItem}>
                 <div className={styles.settingInfo}>
-                  <label htmlFor="compact-mode">{t("settings.interface.compact")}</label>
+                  <label htmlFor="compact-mode">
+                    {t("settings.interface.compact")}
+                  </label>
                   <p className={styles.settingDescription}>
                     {t("settings.interface.compactDesc")}
                   </p>
@@ -304,13 +337,17 @@ export const Settings = ({
                 <Switch
                   id="compact-mode"
                   checked={compactMode}
-                  onCheckedChange={(val) => onSettingsChange({ compactMode: val })}
+                  onCheckedChange={(val) =>
+                    onSettingsChange({ compactMode: val })
+                  }
                 />
               </div>
 
               <div className={styles.settingItem}>
                 <div className={styles.settingInfo}>
-                  <label htmlFor="show-album-art">{t("settings.interface.albumArt")}</label>
+                  <label htmlFor="show-album-art">
+                    {t("settings.interface.albumArt")}
+                  </label>
                   <p className={styles.settingDescription}>
                     {t("settings.interface.albumArtDesc")}
                   </p>
@@ -318,13 +355,17 @@ export const Settings = ({
                 <Switch
                   id="show-album-art"
                   checked={showAlbumArt}
-                  onCheckedChange={(val) => onSettingsChange({ showAlbumArt: val })}
+                  onCheckedChange={(val) =>
+                    onSettingsChange({ showAlbumArt: val })
+                  }
                 />
               </div>
 
               <div className={styles.settingItem}>
                 <div className={styles.settingInfo}>
-                  <label htmlFor="show-lyrics">{t("settings.interface.lyrics")}</label>
+                  <label htmlFor="show-lyrics">
+                    {t("settings.interface.lyrics")}
+                  </label>
                   <p className={styles.settingDescription}>
                     {t("settings.interface.lyricsDesc")}
                   </p>
@@ -332,13 +373,17 @@ export const Settings = ({
                 <Switch
                   id="show-lyrics"
                   checked={showLyrics}
-                  onCheckedChange={(val) => onSettingsChange({ showLyrics: val })}
+                  onCheckedChange={(val) =>
+                    onSettingsChange({ showLyrics: val })
+                  }
                 />
               </div>
 
               <div className={styles.settingItem}>
                 <div className={styles.settingLabel}>
-                  <label htmlFor="language-selector">{t("settings.interface.language")}</label>
+                  <label htmlFor="language-selector">
+                    {t("settings.interface.language")}
+                  </label>
                   <p className={styles.settingDescription}>
                     {t("settings.interface.languageDescription")}
                   </p>
@@ -349,7 +394,8 @@ export const Settings = ({
                 >
                   <SelectTrigger id="language-selector">
                     <SelectValue>
-                      {languageNames[i18n.language] || i18n.language.toUpperCase()}
+                      {languageNames[i18n.language] ||
+                        i18n.language.toUpperCase()}
                     </SelectValue>
                   </SelectTrigger>
                   <SelectContent>
@@ -361,6 +407,32 @@ export const Settings = ({
                   </SelectContent>
                 </Select>
               </div>
+            </section>
+
+            {/* Keyboard Shortcuts */}
+            <section className={styles.section}>
+              <div className={styles.sectionHeader}>
+                <Keyboard className={styles.sectionIcon} />
+                <h3 className={styles.sectionTitle}>
+                  {t("settings.shortcuts.title")}
+                </h3>
+              </div>
+
+                            <div className={styles.settingItem}>
+                <div className={styles.settingLabel}>
+                  <label>{t("settings.shortcuts.enabled")}</label>
+                  <p className={styles.settingDescription}>
+                    {t("settings.shortcuts.enabledDesc")}
+                  </p>
+                </div>
+                <Switch
+                  id="shortcuts-enabled"
+                  checked={true}
+                  onCheckedChange={() => {}}
+                />
+              </div>
+
+              <ShortcutConfig onShortcutsChanged={onShortcutsChanged} />
             </section>
           </div>
 

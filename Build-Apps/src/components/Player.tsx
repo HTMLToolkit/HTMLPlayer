@@ -14,6 +14,7 @@ import {
   Heart,
   BarChart3,
   Type,
+  PictureInPicture2,
 } from "lucide-react";
 import { Button } from "./Button";
 import { Visualizer } from "./Visualizer";
@@ -23,6 +24,8 @@ import { SongActionsDropdown } from "./SongActionsDropdown";
 import { PlayerSettings } from "./Settings";
 import { useTranslation } from "react-i18next";
 import DOMPurify from "dompurify";
+import { toggleMiniplayer } from "./Miniplayer";
+import { useAudioSync } from "../hooks/useAudioSync";
 
 type PlayerProps = {
   musicPlayerHook: ReturnType<
@@ -33,6 +36,9 @@ type PlayerProps = {
 
 export const Player = ({ musicPlayerHook, settings }: PlayerProps) => {
   const { t } = useTranslation();
+
+  // Initialize audio sync for cross-window communication
+  useAudioSync({ musicPlayerHook, isMiniplayer: false });
 
   const progressRef = useRef<HTMLDivElement>(null);
   const volumeRef = useRef<HTMLDivElement>(null);
@@ -297,7 +303,7 @@ export const Player = ({ musicPlayerHook, settings }: PlayerProps) => {
                 className={`${styles.songTitle} ${scrollDistance !== "0px" ? styles.scrollable : ""}`}
                 style={{ "--scroll-distance": scrollDistance, animationDuration: `${animationDuration}s`, opacity: currentSong?.title ? 1 : 0 } as React.CSSProperties}
               >
-                {currentSong?.title || t("player.loading")}
+                {currentSong?.title || t("common.loading")}
               </div>
             </div>
             <div className={styles.artistName}>{currentSong.artist}</div>
@@ -349,6 +355,25 @@ export const Player = ({ musicPlayerHook, settings }: PlayerProps) => {
             <Button variant="ghost" size="icon-sm" className={`${styles.secondaryButton} ${showLyrics ? styles.active : ""}`} onClick={handleLyricsToggle} title={t("player.lyrics")}>
               <Type size={16} />
             </Button>
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              className={styles.secondaryButton}
+              onClick={() => {
+                toggleMiniplayer({
+                  playerState: {
+                    currentSong,
+                    isPlaying
+                  },
+                  togglePlayPause,
+                  playNext,
+                  playPrevious
+                });
+              }}
+              title="Picture-in-Picture"
+            >
+              <PictureInPicture2 size={16} />
+            </Button>
           </div>
 
           <div className={styles.volumeControls}>
@@ -366,7 +391,7 @@ export const Player = ({ musicPlayerHook, settings }: PlayerProps) => {
         {showLyrics && currentSong && (
           <Lyrics artist={currentSong.artist} title={currentSong.title} visible={showLyrics} onClose={() => setShowLyrics(false)} />
         )}
-      </div>
+      </div >
     </>
   );
 };

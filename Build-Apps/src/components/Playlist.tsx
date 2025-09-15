@@ -108,13 +108,13 @@ export const PlaylistComponent = ({ musicPlayerHook }: PlaylistProps) => {
       if (playlist) {
         playlist.name = newPlaylistName.trim();
         toast.success(
-          t("playlistRenamed", { name: newPlaylistName.trim() })
+          t("playlist.playlistRenamed", { name: newPlaylistName.trim() })
         );
       }
     } else {
       createPlaylist(newPlaylistName.trim());
       toast.success(
-        t("playlistCreated", { name: newPlaylistName.trim() })
+        t("playlist.playlistCreated", { name: newPlaylistName.trim() })
       );
     }
 
@@ -142,15 +142,15 @@ export const PlaylistComponent = ({ musicPlayerHook }: PlaylistProps) => {
   const handleDeleteConfirm = () => {
     if (!playlistToDelete) return;
     removePlaylist(playlistToDelete.id);
-    toast.success(t("playlistDeleted", { name: playlistToDelete.name }));
+    toast.success(t("playlist.playlistDeleted", { name: playlistToDelete.name }));
     setIsDeleteDialogOpen(false);
     setPlaylistToDelete(null);
   };
 
   const handleSharePlaylist = (playlist: Playlist) => {
     const shareData = {
-      title: t("playlistShareTitle", { name: playlist.name }),
-      text: t("playlistShareText", {
+      title: t("playlist.playlistShareTitle", { name: playlist.name }),
+      text: t("playlist.playlistShareText", {
         name: playlist.name,
         count: playlist.songs.length,
       }),
@@ -160,15 +160,15 @@ export const PlaylistComponent = ({ musicPlayerHook }: PlaylistProps) => {
     try {
       if (navigator.share && navigator.canShare && navigator.canShare(shareData)) {
         navigator.share(shareData);
-        toast.success(t("playlistShared"));
+        toast.success(t("playlist.playlistShared"));
       } else {
         navigator.clipboard.writeText(
           `${shareData.title}\n${shareData.text}\n${shareData.url}`
         );
-        toast.success(t("playlistCopied"));
+        toast.success(t("playlist.playlistCopied"));
       }
     } catch {
-      toast.error(t("playlistShareFailed"));
+      toast.error(t("playlist.playlistShareFailed"));
     }
   };
 
@@ -188,7 +188,7 @@ export const PlaylistComponent = ({ musicPlayerHook }: PlaylistProps) => {
           <input
             type="text"
             className={styles.searchInput}
-            placeholder={t("searchPlaylists")}
+            placeholder={t("playlist.searchPlaylists")}
             value={playlistSearchQuery}
             onChange={(e: any) => handlePlaylistSearch(e.target.value)}
           />
@@ -200,7 +200,7 @@ export const PlaylistComponent = ({ musicPlayerHook }: PlaylistProps) => {
           onClick={handleAddPlaylist}
         >
           <Plus size={16} />
-          {t("addPlaylist")}
+          {t("playlist.addPlaylist")}
         </button>
       </div>
 
@@ -262,11 +262,11 @@ export const PlaylistComponent = ({ musicPlayerHook }: PlaylistProps) => {
               <DropdownMenuContent align="end" sideOffset={8}>
                 <DropdownMenuItem onClick={() => handleEditPlaylist(playlist)}>
                   <Edit size={16} style={{ marginRight: 8 }} />
-                  {t("editPlaylist")}
+                  {t("playlist.editPlaylist")}
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => handleSharePlaylist(playlist)}>
                   <Share size={16} style={{ marginRight: 8 }} />
-                  {t("sharePlaylist")}
+                  {t("playlist.sharePlaylist")}
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
@@ -274,7 +274,7 @@ export const PlaylistComponent = ({ musicPlayerHook }: PlaylistProps) => {
                   className={styles.deleteMenuItem}
                 >
                   <Trash2 size={16} style={{ marginRight: 8 }} />
-                  {t("deletePlaylist")}
+                  {t("playlist.deletePlaylist")}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -290,14 +290,14 @@ export const PlaylistComponent = ({ musicPlayerHook }: PlaylistProps) => {
       <Dialog open={showCreatePlaylist} onOpenChange={setShowCreatePlaylist}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{editingPlaylistId ? t("editPlaylist") : t("createPlaylist")}</DialogTitle>
+            <DialogTitle>{editingPlaylistId ? t("playlist.editPlaylist") : t("playlist.createPlaylist")}</DialogTitle>
             <DialogDescription>
-              {t("enterPlaylistName")}
+              {t("playlist.enterPlaylistName")}
             </DialogDescription>
           </DialogHeader>
           <div style={{ margin: "var(--spacing-4) 0" }}>
             <Input
-              placeholder={t("playlistName")}
+              placeholder={t("playlist.enterPlaylistName")}
               value={newPlaylistName}
               onChange={(e: any) => setNewPlaylistName(e.target.value)}
               onKeyDown={(e: any) => {
@@ -308,13 +308,13 @@ export const PlaylistComponent = ({ musicPlayerHook }: PlaylistProps) => {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={handleCreatePlaylistCancel}>
-              {t("cancel")}
+              {t("common.cancel")}
             </Button>
             <Button
               onClick={handleCreatePlaylistConfirm}
               disabled={!newPlaylistName.trim()}
             >
-              {t("create")}
+              {t("common.create")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -324,16 +324,16 @@ export const PlaylistComponent = ({ musicPlayerHook }: PlaylistProps) => {
       <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{t("deletePlaylist")}</DialogTitle>
+            <DialogTitle>{t("playlist.deletePlaylist")}</DialogTitle>
             <DialogDescription>
-              {t("deletePlaylistConfirmation", { name: playlistToDelete?.name })}
+              {t("playlist.deletePlaylistConfirmation", { name: playlistToDelete?.name })}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>
-              {t("cancel")}
+              {t("common.cancel")}
             </Button>
-            <Button variant="destructive" onClick={handleDeleteConfirm}>{t("delete.delete")}</Button>
+            <Button variant="destructive" onClick={handleDeleteConfirm}>{t("common.delete")}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

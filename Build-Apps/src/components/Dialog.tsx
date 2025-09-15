@@ -41,7 +41,7 @@ const ModalContainer = forwardRef<
         {children}
         <ModalPrimitive.Close className={modalStyles.dismissButton}>
           <X className={modalStyles.dismissIcon} />
-          <span className={modalStyles.visuallyHidden}>{t("actions.close")}</span>
+          <span className={modalStyles.visuallyHidden}>{t("common.close")}</span>
         </ModalPrimitive.Close>
       </ModalPrimitive.Content>
     </ModalRenderer>
