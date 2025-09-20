@@ -1,6 +1,6 @@
 import { useRef, useEffect, useState, useCallback } from "react";
 import { useTranslation } from "react-i18next";
-import { spectrogramTypes } from "../helpers/visualizerLoader";
+import { getVisualizer, getAvailableVisualizers, VisualizerType } from "../helpers/visualizerLoader";
 import { Settings, SlidersHorizontal } from "lucide-react";
 import { Button } from "./Button";
 import {
@@ -27,15 +27,48 @@ export const Visualizer = ({
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animationFrameId = useRef<number | null>(null);
-  const [selectedVisualizerKey, setSelectedVisualizerKey] = useState(
-    Object.keys(spectrogramTypes)[0]
-  );
-  const [visualizerSettings, setVisualizerSettings] = useState<
-    Record<string, any>
-  >({});
+  const [availableVisualizers, setAvailableVisualizers] = useState<string[]>([]);
+  const [selectedVisualizerKey, setSelectedVisualizerKey] = useState<string>("");
+  const [selectedVisualizer, setSelectedVisualizer] = useState<VisualizerType | null>(null);
+  const [visualizerSettings, setVisualizerSettings] = useState<Record<string, any>>({});
   const [showSettings, setShowSettings] = useState(false);
+  const [isLoadingVisualizer, setIsLoadingVisualizer] = useState(false);
 
-  const selectedVisualizer = spectrogramTypes[selectedVisualizerKey];
+  // Initialize available visualizers
+  useEffect(() => {
+    const visualizers = getAvailableVisualizers();
+    setAvailableVisualizers(visualizers);
+    if (visualizers.length > 0 && !selectedVisualizerKey) {
+      setSelectedVisualizerKey(visualizers[0]);
+    }
+  }, [selectedVisualizerKey]);
+
+  // Load selected visualizer
+  useEffect(() => {
+    if (!selectedVisualizerKey) return;
+    
+    setIsLoadingVisualizer(true);
+    getVisualizer(selectedVisualizerKey).then((visualizer) => {
+      setSelectedVisualizer(visualizer);
+      setIsLoadingVisualizer(false);
+      
+      // Initialize settings with defaults
+      if (visualizer?.settingsConfig) {
+        setVisualizerSettings(
+          Object.entries(visualizer.settingsConfig).reduce(
+            (acc, [key, config]) => {
+              acc[key] = config.default;
+              return acc;
+            },
+            {} as Record<string, any>
+          )
+        );
+      }
+    }).catch((error) => {
+      console.error('Failed to load visualizer:', error);
+      setIsLoadingVisualizer(false);
+    });
+  }, [selectedVisualizerKey]);
 
   const handleSettingChange = (key: string, value: any) => {
     setVisualizerSettings((prev) => ({
@@ -45,31 +78,29 @@ export const Visualizer = ({
   };
 
   const draw = useCallback(() => {
-    if (!analyserNode || !canvasRef.current) return;
+    if (!analyserNode || !canvasRef.current || !selectedVisualizer) return;
     const canvas = canvasRef.current;
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
-    const visualizer = spectrogramTypes[selectedVisualizerKey];
-    if (!visualizer) return;
 
     const bufferLength = analyserNode.frequencyBinCount;
     const dataArray = new Uint8Array(bufferLength);
 
-    visualizer.draw(
+    selectedVisualizer.draw(
       analyserNode,
       canvas,
       ctx,
       bufferLength,
       dataArray,
-      visualizer.dataType,
+      selectedVisualizer.dataType,
       visualizerSettings
     );
 
     animationFrameId.current = requestAnimationFrame(draw);
-  }, [analyserNode, selectedVisualizerKey, visualizerSettings]);
+  }, [analyserNode, selectedVisualizer, visualizerSettings]);
 
   useEffect(() => {
-    if (isPlaying && analyserNode) {
+    if (isPlaying && analyserNode && selectedVisualizer) {
       animationFrameId.current = requestAnimationFrame(draw);
     } else {
       if (animationFrameId.current) cancelAnimationFrame(animationFrameId.current);
@@ -77,7 +108,7 @@ export const Visualizer = ({
     return () => {
       if (animationFrameId.current) cancelAnimationFrame(animationFrameId.current);
     };
-  }, [isPlaying, analyserNode, draw]);
+  }, [isPlaying, analyserNode, selectedVisualizer, draw]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -91,17 +122,9 @@ export const Visualizer = ({
     return () => resizeObserver.disconnect();
   }, []);
 
-  useEffect(() => {
-    setVisualizerSettings(
-      Object.entries(selectedVisualizer.settingsConfig || {}).reduce(
-        (acc, [key, config]) => {
-          acc[key] = config.default;
-          return acc;
-        },
-        {} as Record<string, any>
-      )
-    );
-  }, [selectedVisualizerKey, selectedVisualizer.settingsConfig]);
+  const handleVisualizerChange = async (newKey: string) => {
+    setSelectedVisualizerKey(newKey);
+  };
 
   return (
     <div className={`${styles.visualizerContainer} ${className ?? ""}`}>
@@ -109,25 +132,30 @@ export const Visualizer = ({
       <div className={styles.controls}>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" className={styles.dropdownTrigger}>
+            <Button variant="outline" className={styles.dropdownTrigger} disabled={isLoadingVisualizer}>
               <SlidersHorizontal size={16} />
-              <span>{selectedVisualizer.name}</span>
+              <span>
+                {isLoadingVisualizer 
+                  ? t("loading") 
+                  : selectedVisualizer?.name || t("select_visualizer")
+                }
+              </span>
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="start" className={styles.dropdownContent}>
             <DropdownMenuRadioGroup
               value={selectedVisualizerKey}
-              onValueChange={setSelectedVisualizerKey}
+              onValueChange={handleVisualizerChange}
             >
-              {Object.entries(spectrogramTypes).map(([key, vis]) => (
+              {availableVisualizers.map((key) => (
                 <DropdownMenuRadioItem key={key} value={key}>
-                  {vis.name}
+                  {key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
                 </DropdownMenuRadioItem>
               ))}
             </DropdownMenuRadioGroup>
           </DropdownMenuContent>
         </DropdownMenu>
-        {selectedVisualizer.settingsConfig && (
+        {selectedVisualizer?.settingsConfig && (
           <Button
             variant="outline"
             size="icon"
@@ -137,9 +165,9 @@ export const Visualizer = ({
           </Button>
         )}
       </div>
-      {showSettings && selectedVisualizer.settingsConfig && (
+      {showSettings && selectedVisualizer?.settingsConfig && (
         <div className={styles.settingsPanel}>
-          <h4>{t(`visualizers.${selectedVisualizerKey}.name`)} {t("settings.title")}</h4>
+          <h4>{selectedVisualizer.name} {t("settings.title")}</h4>
           {Object.entries(selectedVisualizer.settingsConfig).map(
             ([key, config]) => (
               <div key={key} className={styles.setting}>

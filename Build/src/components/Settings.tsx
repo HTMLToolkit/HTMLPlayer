@@ -36,6 +36,7 @@ export type PlayerSettings = {
   compactMode: boolean;
   showAlbumArt: boolean;
   showLyrics: boolean;
+  sessionRestore: boolean;
   lastPlayedSongId?: string;
   lastPlayedPlaylistId?: string;
   language: string;
@@ -69,6 +70,7 @@ export const Settings = ({
   const compactMode = settings.compactMode;
   const showAlbumArt = settings.showAlbumArt;
   const showLyrics = settings.showLyrics;
+  const sessionRestore = settings.sessionRestore;
 
   const { themes, currentTheme, setTheme } = useThemeLoader();
 
@@ -85,6 +87,7 @@ export const Settings = ({
         compactMode: false,
         showAlbumArt: true,
         showLyrics: false,
+        sessionRestore: true,
         colorTheme: defaultThemeName,
         language: "English",
         tempo: 1,
@@ -264,6 +267,24 @@ export const Settings = ({
                   checked={autoPlayNext}
                   onCheckedChange={(val) =>
                     onSettingsChange({ autoPlayNext: val })
+                  }
+                />
+              </div>
+
+              <div className={styles.settingItem}>
+                <div className={styles.settingInfo}>
+                  <label htmlFor="session-restore">
+                    {t("settings.playback.sessionRestore")}
+                  </label>
+                  <p className={styles.settingDescription}>
+                    {t("settings.playback.sessionRestoreDesc")}
+                  </p>
+                </div>
+                <Switch
+                  id="session-restore"
+                  checked={sessionRestore}
+                  onCheckedChange={(val) =>
+                    onSettingsChange({ sessionRestore: val })
                   }
                 />
               </div>

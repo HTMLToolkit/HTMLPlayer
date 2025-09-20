@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { shortcutsDb, KeyboardShortcut, formatShortcutKey, parseKeyEvent } from "../helpers/shortcutsIndexedDbHelper";
+import { shortcutsDb, KeyboardShortcut, formatShortcutKey, parseKeyEvent, DEFAULT_SHORTCUTS } from "../helpers/shortcutsIndexedDbHelper";
 import type { ShortcutConfig as ShortcutConfigType } from "../helpers/shortcutsIndexedDbHelper";
 import { Button } from "./Button";
 import { Pencil, Save, X } from "lucide-react";
@@ -20,9 +20,7 @@ export const ShortcutConfig: React.FC<ShortcutConfigProps> = ({ onShortcutsChang
     shortcutsDb.getAllShortcuts().then((userShortcuts) => {
       setShortcuts(userShortcuts);
       // Always merge with defaults to show all actions
-      import("../helpers/shortcutsIndexedDbHelper").then(({ DEFAULT_SHORTCUTS }) => {
-        setMergedShortcuts({ ...DEFAULT_SHORTCUTS, ...userShortcuts });
-      });
+      setMergedShortcuts({ ...DEFAULT_SHORTCUTS, ...userShortcuts });
     });
   }, []);
 
@@ -69,9 +67,7 @@ export const ShortcutConfig: React.FC<ShortcutConfigProps> = ({ onShortcutsChang
       await shortcutsDb.saveShortcut(newShortcut);
       const updated = await shortcutsDb.getAllShortcuts();
       setShortcuts(updated);
-      import("../helpers/shortcutsIndexedDbHelper").then(({ DEFAULT_SHORTCUTS }) => {
-        setMergedShortcuts({ ...DEFAULT_SHORTCUTS, ...updated });
-      });
+      setMergedShortcuts({ ...DEFAULT_SHORTCUTS, ...updated });
       setEditingId(null);
       setEditValue({});
       setConflict(null);

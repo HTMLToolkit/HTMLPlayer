@@ -35,6 +35,11 @@ interface ThemeLoaderProps {
 }
 
 // ----------------------
+// Global themes storage for console access
+// ----------------------
+let globalThemes: ThemeMetadata[] = [];
+
+// ----------------------
 // Import theme JSON and CSS
 // ----------------------
 const themeJsonFiles = import.meta.glob('../themes/**/*.theme.json', { eager: true });
@@ -109,6 +114,7 @@ export const ThemeLoader: React.FC<ThemeLoaderProps> = ({
         }
 
         setThemes(loadedThemes);
+        globalThemes = loadedThemes; // Update global variable for console access
 
         // Load initial theme
         const storedThemeName = localStorage.getItem('selected-color-theme') || defaultTheme;
@@ -242,6 +248,19 @@ export const ThemeLoader: React.FC<ThemeLoaderProps> = ({
     error,
     setTheme
   };
+
+  // ----------------------
+  // Expose themes globally for console access
+  // ----------------------
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      (window as any).themeLoader = {
+        getAllThemes: () => globalThemes,
+        getCurrentTheme: () => currentTheme,
+        setTheme: setTheme
+      };
+    }
+  }, [themes, currentTheme, setTheme]);
 
   return (
     <ThemeContext.Provider value={value}>

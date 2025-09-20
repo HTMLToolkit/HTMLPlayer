@@ -164,6 +164,8 @@
       "repeat": "Default Repeat Mode",
       "autoPlay": "Auto-play Next Song",
       "autoPlayDesc": "Automatically play the next song when current song ends",
+      "sessionRestore": "Session Restore",
+      "sessionRestoreDesc": "Remember and restore the last played song and playlist when the app starts",
       "tempo": "Tempo",
       "gapless": "Gapless Playback",
       "gaplessDesc": "Play tracks back-to-back without any gaps between them."

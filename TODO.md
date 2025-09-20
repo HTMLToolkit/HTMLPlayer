@@ -2,8 +2,6 @@
 
 ## HTMLPlayer v2
 
-- [ ] Crossfade options (settings)
-
 - [ ] Gapless playback (settings)
 
 - [ ] Smart shuffle
@@ -11,8 +9,6 @@
 - [ ] Export/import playlists
 
 - [ ] Dynamic theming based on album art colors.  (settings)
-
-- [ ] Session restore (settings)
 
 - [ ] picture backgrounds in themes
 
@@ -140,6 +136,10 @@
 - [ ] picture backgrounds
 
 ## Done
+
+- [X] Crossfade options (settings)
+
+- [X] Session restore (settings)
 
 - [X] Keyboard shortcuts (settings, duh)
 

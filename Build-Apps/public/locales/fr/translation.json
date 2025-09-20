@@ -1,204 +1,206 @@
 {
-    "title": "HTMLPlayer",
-    "common": {
-        "cancel": "Annuler",
-        "close": "Fermer",
-        "create": "Créer",
-        "delete": "Supprimer",
-        "artist": "Artiste",
-        "album": "Album",
-        "duration": "Durée",
-        "loading": "Chargement...",
-        "noResults": "Aucun résultat trouvé"
+  "title": "HTMLPlayer",
+  "common": {
+    "cancel": "Annuler",
+    "close": "Fermer",
+    "create": "Créer",
+    "delete": "Supprimer",
+    "artist": "Artiste",
+    "album": "Album",
+    "duration": "Durée",
+    "loading": "Chargement...",
+    "noResults": "Aucun résultat trouvé"
+  },
+  "favorites": {
+    "favorites": "Favoris",
+    "added": "Ajouté « {{title}} » aux favoris",
+    "removed": "Supprimé « {{title}} » des favoris"
+  },
+  "delete": {
+    "songTitle": "Supprimer la chanson",
+    "confirm": "Êtes-vous sûr de vouloir supprimer « {{title}} » ? Cette action est irréversible.",
+    "noSongs": "Aucune chanson à supprimer"
+  },
+  "filePicker": {
+    "selectFiles": "Sélectionnez des fichiers audio à importer...",
+    "successImport": "Importation réussie de {{count}} chanson(s)",
+    "failedImport": "Échec de l’importation de {{count}} fichier(s)",
+    "failedOpen": "Échec de l’ouverture du sélecteur de fichiers"
+  },
+  "search": {
+    "placeholder": "Rechercher des chansons..."
+  },
+  "playlist": {
+    "addTo": "Ajouter à la playlist",
+    "noPlaylists": "Aucune playlist pour le moment. Créez votre première !",
+    "created": "Nouvelle playlist « {{name}} » créée et {{count}} chanson(s) ajoutée(s)",
+    "addedToExisting": "{{count}} chanson(s) ajoutée(s) à la playlist",
+    "addPlaylist": "Ajouter une playlist",
+    "searchPlaylists": "Rechercher des playlists...",
+    "sharePlaylist": "Partager la playlist",
+    "createPlaylist": "Créer une nouvelle playlist",
+    "editPlaylist": "Modifier la playlist",
+    "enterPlaylistName": "Entrez un nom pour votre playlist",
+    "deletePlaylist": "Supprimer la playlist",
+    "deletePlaylistConfirmation": "Êtes-vous sûr de vouloir supprimer la playlist « {{name}} » ? Cette action est irréversible.",
+    "playlistCreated": "Nouvelle playlist « {{name}} » créée",
+    "playlistRenamed": "Playlist renommée en « {{name}} »",
+    "playlistDeleted": "Playlist « {{name}} » supprimée",
+    "playlistShareTitle": "Playlist : « {{name}} »",
+    "playlistShareText": "Découvrez cette playlist « {{name}} » avec {{count}} chanson(s)",
+    "playlistShared": "Playlist partagée avec succès",
+    "playlistCopied": "Informations de la playlist copiées dans le presse-papiers !",
+    "playlistShareFailed": "Échec du partage de la playlist"
+  },
+  "noResults": {
+    "search": "Aucune chanson trouvée",
+    "playlist": "Aucune chanson dans cette playlist"
+  },
+  "songInfo": {
+    "title": "Titre",
+    "songInfoTitle": "Informations sur la chanson"
+  },
+  "actions": {
+    "selectAll": "Tout sélectionner",
+    "deselectAll": "Tout désélectionner",
+    "addTo": "Actions",
+    "back": "Back"
+  },
+  "batch": {
+    "processing": "Traitement du lot {{currentBatch}} sur {{totalBatches}}..."
+  },
+  "player": {
+    "selectSong": "Sélectionnez une chanson pour commencer la lecture",
+    "albumArtAlt": "Pochette de l’album « {{title}} »",
+    "addFavorite": "Ajouter aux favoris",
+    "removeFavorite": "Retirer des favoris",
+    "shuffleOn": "Activée",
+    "shuffleOff": "Désactivée",
+    "previous": "Précédent",
+    "next": "Suivant",
+    "play": "Lire",
+    "pause": "Pause",
+    "repeatTrack": "Piste",
+    "repeatAll": "Tout",
+    "repeatOff": "Désactivée",
+    "seek": "Avancer/Reculer",
+    "volume": "Volume",
+    "mute": "Muet",
+    "unmute": "Activer le son",
+    "visualizer": "Visualiseur",
+    "lyrics": "Paroles"
+  },
+  "allSongs": "Toutes les chansons",
+  "moreOptions": "Plus d’options",
+  "noPlaylistsFound": "Aucune playlist trouvée",
+  "themeLight": "Clair",
+  "themeDark": "Sombre",
+  "themeAuto": "Auto",
+  "currentThemeAria": "Thème actuel : {{theme}}. Cliquez pour changer le thème",
+  "expandSidebar": "Agrandir la barre latérale",
+  "menu": "Menu",
+  "playlists": "Playlists",
+  "about": "À propos",
+  "aboutHTMLPlayer": "À propos de HTMLPlayer",
+  "aboutHTMLPlayerDesc": "HTMLPlayer v2.0 - Une interface moderne de streaming musical construite avec React.",
+  "visualizers": {
+    "bars": {
+      "name": "Barres",
+      "settings": {
+        "barWidth": "Largeur des barres",
+        "barSpacing": "Espacement des barres",
+        "sensitivity": "Sensibilité"
+      }
     },
-    "favorites": {
-        "favorites": "Favoris",
-        "added": "Ajouté « {{title}} » aux favoris",
-        "removed": "Supprimé « {{title}} » des favoris"
+    "waveform": {
+      "name": "Forme d’onde",
+      "settings": {
+        "lineWidth": "Épaisseur de ligne",
+        "amplitude": "Amplitude"
+      }
     },
-    "delete": {
-        "songTitle": "Supprimer la chanson",
-        "confirm": "Êtes-vous sûr de vouloir supprimer « {{title}} » ? Cette action est irréversible.",
-        "noSongs": "Aucune chanson à supprimer"
-    },
-    "filePicker": {
-        "selectFiles": "Sélectionnez des fichiers audio à importer...",
-        "successImport": "Importation réussie de {{count}} chanson(s)",
-        "failedImport": "Échec de l’importation de {{count}} fichier(s)",
-        "failedOpen": "Échec de l’ouverture du sélecteur de fichiers"
-    },
-    "search": {
-        "placeholder": "Rechercher des chansons..."
-    },
-    "playlist": {
-        "addTo": "Ajouter à la playlist",
-        "noPlaylists": "Aucune playlist pour le moment. Créez votre première !",
-        "created": "Nouvelle playlist « {{name}} » créée et {{count}} chanson(s) ajoutée(s)",
-        "addedToExisting": "{{count}} chanson(s) ajoutée(s) à la playlist",
-        "addPlaylist": "Ajouter une playlist",
-        "searchPlaylists": "Rechercher des playlists...",
-        "sharePlaylist": "Partager la playlist",
-        "createPlaylist": "Créer une nouvelle playlist",
-        "editPlaylist": "Modifier la playlist",
-        "enterPlaylistName": "Entrez un nom pour votre playlist",
-        "deletePlaylist": "Supprimer la playlist",
-        "deletePlaylistConfirmation": "Êtes-vous sûr de vouloir supprimer la playlist « {{name}} » ? Cette action est irréversible.",
-        "playlistCreated": "Nouvelle playlist « {{name}} » créée",
-        "playlistRenamed": "Playlist renommée en « {{name}} »",
-        "playlistDeleted": "Playlist « {{name}} » supprimée",
-        "playlistShareTitle": "Playlist : « {{name}} »",
-        "playlistShareText": "Découvrez cette playlist « {{name}} » avec {{count}} chanson(s)",
-        "playlistShared": "Playlist partagée avec succès",
-        "playlistCopied": "Informations de la playlist copiées dans le presse-papiers !",
-        "playlistShareFailed": "Échec du partage de la playlist"
-    },
-    "noResults": {
-        "search": "Aucune chanson trouvée",
-        "playlist": "Aucune chanson dans cette playlist"
-    },
-    "songInfo": {
-        "title": "Titre",
-        "songInfoTitle": "Informations sur la chanson"
-    },
-    "actions": {
-        "selectAll": "Tout sélectionner",
-        "deselectAll": "Tout désélectionner",
-        "addTo": "Actions",
-        "back": "Back"
-    },
-    "batch": {
-        "processing": "Traitement du lot {{currentBatch}} sur {{totalBatches}}..."
-    },
-    "player": {
-        "selectSong": "Sélectionnez une chanson pour commencer la lecture",
-        "albumArtAlt": "Pochette de l’album « {{title}} »",
-        "addFavorite": "Ajouter aux favoris",
-        "removeFavorite": "Retirer des favoris",
-        "shuffleOn": "Activée",
-        "shuffleOff": "Désactivée",
-        "previous": "Précédent",
-        "next": "Suivant",
-        "play": "Lire",
-        "pause": "Pause",
-        "repeatTrack": "Piste",
-        "repeatAll": "Tout",
-        "repeatOff": "Désactivée",
-        "seek": "Avancer/Reculer",
-        "volume": "Volume",
-        "mute": "Muet",
-        "unmute": "Activer le son",
-        "visualizer": "Visualiseur",
-        "lyrics": "Paroles"
-    },
-    "allSongs": "Toutes les chansons",
-    "moreOptions": "Plus d’options",
-    "noPlaylistsFound": "Aucune playlist trouvée",
-    "themeLight": "Clair",
-    "themeDark": "Sombre",
-    "themeAuto": "Auto",
-    "currentThemeAria": "Thème actuel : {{theme}}. Cliquez pour changer le thème",
-    "expandSidebar": "Agrandir la barre latérale",
-    "menu": "Menu",
-    "playlists": "Playlists",
-    "about": "À propos",
-    "aboutHTMLPlayer": "À propos de HTMLPlayer",
-    "aboutHTMLPlayerDesc": "HTMLPlayer v2.0 - Une interface moderne de streaming musical construite avec React.",
-    "visualizers": {
-        "bars": {
-            "name": "Barres",
-            "settings": {
-                "barWidth": "Largeur des barres",
-                "barSpacing": "Espacement des barres",
-                "sensitivity": "Sensibilité"
-            }
-        },
-        "waveform": {
-            "name": "Forme d’onde",
-            "settings": {
-                "lineWidth": "Épaisseur de ligne",
-                "amplitude": "Amplitude"
-            }
-        },
-        "circle": {
-            "name": "Cercle",
-            "settings": {
-                "radius": "Rayon",
-                "segments": "Segments"
-            }
-        }
-    },
-    "share": "Partager",
-    "goToArtist": "Aller à l’artiste",
-    "goToAlbum": "Aller à l’album",
-    "deleteFromLibrary": "Supprimer de la bibliothèque",
-    "deletedFromLibrary": "{{song}} supprimé de votre bibliothèque",
-    "deleteSong": "Supprimer la chanson",
-    "deleteSongConfirmation": "Êtes-vous sûr de vouloir supprimer définitivement « {{song}} » ? Cette action est irréversible.",
-    "noPlaylistsYet": "Aucune playlist pour le moment. Créez votre première !",
-    "createNewPlaylist": "Créer une nouvelle playlist",
-    "songInformation": "Informations sur la chanson",
-    "songInformationDescription": "Informations détaillées sur la chanson.",
-    "songAlreadyInPlaylist": "« {{song}} » est déjà dans la playlist « {{playlist}} »",
-    "addedToPlaylist": "« {{song}} » ajouté à la playlist « {{playlist}} »",
-    "createdNewPlaylistAddedSong": "Nouvelle playlist « {{playlist}} » créée et « {{song}} » ajoutée",
-    "listenToSong": "Écoutez « {{song}} » de {{artist}}",
-    "songShared": "Chanson partagée avec succès",
-    "songInfoCopied": "Informations de la chanson copiées dans le presse-papiers",
-    "songShareFailed": "Échec du partage ou de la copie des informations de la chanson",
-    "choosePlaylistOrCreate": "Choisissez une playlist pour ajouter « {{song}} », ou créez-en une nouvelle.",
-    "choosePlaylistOrCreateMultiple": "Ajouter {{count}} chansons à une playlist ou en créer une nouvelle",
-    "settings": {
-        "title": "Paramètres",
-        "description": "Personnalisez votre expérience de lecteur de musique et vos préférences.",
-        "reset": "Rétablir les valeurs par défaut",
-        "resetError": "Erreur lors de la réinitialisation des paramètres.",
-        "themeError": "Erreur de chargement du thème !",
-        "audio": {
-            "title": "Paramètres Audio",
-            "crossfade": "Fondu enchaîné"
-        },
-        "playback": {
-            "title": "Paramètres de Lecture",
-            "shuffle": "Mode Aléatoire par Défaut",
-            "shuffleDesc": "Activer le mode aléatoire par défaut lors du démarrage de la lecture",
-            "repeat": "Mode de Répétition par Défaut",
-            "autoPlay": "Lecture Automatique de la Chanson Suivante",
-            "autoPlayDesc": "Jouer automatiquement la chanson suivante quand la chanson actuelle se termine",
-            "tempo": "Tempo",
-            "gapless": "Lecture Sans Interruption",
-            "gaplessDesc": "Jouer les pistes de manière consécutive sans pauses entre elles."
-        },
-        "interface": {
-            "title": "Paramètres d'Interface",
-            "colorTheme": "Thème de Couleur",
-            "themeMode": "Mode de Thème",
-            "themeModeDesc": "Choisissez votre mode de thème préféré",
-            "compact": "Mode Compact",
-            "compactDesc": "Utiliser une mise en page plus compacte pour afficher plus de contenu",
-            "albumArt": "Afficher la Pochette d'Album",
-            "albumArtDesc": "Afficher la pochette d'album dans l'interface du lecteur",
-            "lyrics": "Afficher les Paroles",
-            "lyricsDesc": "Afficher les paroles de la chanson quand disponibles",
-            "language": "Langue",
-            "languageDescription": "Dans quelle langue l'application est"
-        },
-        "shortcuts": {
-            "title": "Raccourcis Clavier",
-            "description": "Personnalisez les raccourcis clavier pour un accès rapide aux contrôles du lecteur",
-            "enabled": "Activer les Raccourcis Clavier",
-            "enabledDesc": "Permettre aux raccourcis clavier de contrôler le lecteur de musique",
-            "playPause": "Lecture/Pause",
-            "nextTrack": "Piste Suivante",
-            "previousTrack": "Piste Précédente",
-            "volumeUp": "Augmenter le Volume",
-            "volumeDown": "Diminuer le Volume",
-            "mute": "Activer/Désactiver le Son",
-            "toggleShuffle": "Activer/Désactiver l'Aléatoire",
-            "toggleRepeat": "Activer/Désactiver la Répétition",
-            "toggleLyrics": "Activer/Désactiver les Paroles",
-            "toggleVisualizer": "Activer/Désactiver le Visualiseur",
-            "search": "Focus Recherche",
-            "openSettings": "Ouvrir les Paramètres"
-        }
+    "circle": {
+      "name": "Cercle",
+      "settings": {
+        "radius": "Rayon",
+        "segments": "Segments"
+      }
     }
+  },
+  "share": "Partager",
+  "goToArtist": "Aller à l’artiste",
+  "goToAlbum": "Aller à l’album",
+  "deleteFromLibrary": "Supprimer de la bibliothèque",
+  "deletedFromLibrary": "{{song}} supprimé de votre bibliothèque",
+  "deleteSong": "Supprimer la chanson",
+  "deleteSongConfirmation": "Êtes-vous sûr de vouloir supprimer définitivement « {{song}} » ? Cette action est irréversible.",
+  "noPlaylistsYet": "Aucune playlist pour le moment. Créez votre première !",
+  "createNewPlaylist": "Créer une nouvelle playlist",
+  "songInformation": "Informations sur la chanson",
+  "songInformationDescription": "Informations détaillées sur la chanson.",
+  "songAlreadyInPlaylist": "« {{song}} » est déjà dans la playlist « {{playlist}} »",
+  "addedToPlaylist": "« {{song}} » ajouté à la playlist « {{playlist}} »",
+  "createdNewPlaylistAddedSong": "Nouvelle playlist « {{playlist}} » créée et « {{song}} » ajoutée",
+  "listenToSong": "Écoutez « {{song}} » de {{artist}}",
+  "songShared": "Chanson partagée avec succès",
+  "songInfoCopied": "Informations de la chanson copiées dans le presse-papiers",
+  "songShareFailed": "Échec du partage ou de la copie des informations de la chanson",
+  "choosePlaylistOrCreate": "Choisissez une playlist pour ajouter « {{song}} », ou créez-en une nouvelle.",
+  "choosePlaylistOrCreateMultiple": "Ajouter {{count}} chansons à une playlist ou en créer une nouvelle",
+  "settings": {
+    "title": "Paramètres",
+    "description": "Personnalisez votre expérience de lecteur de musique et vos préférences.",
+    "reset": "Rétablir les valeurs par défaut",
+    "resetError": "Erreur lors de la réinitialisation des paramètres.",
+    "themeError": "Erreur de chargement du thème !",
+    "audio": {
+      "title": "Paramètres Audio",
+      "crossfade": "Fondu enchaîné"
+    },
+    "playback": {
+      "title": "Paramètres de Lecture",
+      "shuffle": "Mode Aléatoire par Défaut",
+      "shuffleDesc": "Activer le mode aléatoire par défaut lors du démarrage de la lecture",
+      "repeat": "Mode de Répétition par Défaut",
+      "autoPlay": "Lecture Automatique de la Chanson Suivante",
+      "autoPlayDesc": "Jouer automatiquement la chanson suivante quand la chanson actuelle se termine",
+      "sessionRestore": "Restauration de Session",
+      "sessionRestoreDesc": "Se souvenir et restaurer la dernière chanson et playlist jouée au démarrage de l'application",
+      "tempo": "Tempo",
+      "gapless": "Lecture Sans Interruption",
+      "gaplessDesc": "Jouer les pistes de manière consécutive sans pauses entre elles."
+    },
+    "interface": {
+      "title": "Paramètres d'Interface",
+      "colorTheme": "Thème de Couleur",
+      "themeMode": "Mode de Thème",
+      "themeModeDesc": "Choisissez votre mode de thème préféré",
+      "compact": "Mode Compact",
+      "compactDesc": "Utiliser une mise en page plus compacte pour afficher plus de contenu",
+      "albumArt": "Afficher la Pochette d'Album",
+      "albumArtDesc": "Afficher la pochette d'album dans l'interface du lecteur",
+      "lyrics": "Afficher les Paroles",
+      "lyricsDesc": "Afficher les paroles de la chanson quand disponibles",
+      "language": "Langue",
+      "languageDescription": "Dans quelle langue l'application est"
+    },
+    "shortcuts": {
+      "title": "Raccourcis Clavier",
+      "description": "Personnalisez les raccourcis clavier pour un accès rapide aux contrôles du lecteur",
+      "enabled": "Activer les Raccourcis Clavier",
+      "enabledDesc": "Permettre aux raccourcis clavier de contrôler le lecteur de musique",
+      "playPause": "Lecture/Pause",
+      "nextTrack": "Piste Suivante",
+      "previousTrack": "Piste Précédente",
+      "volumeUp": "Augmenter le Volume",
+      "volumeDown": "Diminuer le Volume",
+      "mute": "Activer/Désactiver le Son",
+      "toggleShuffle": "Activer/Désactiver l'Aléatoire",
+      "toggleRepeat": "Activer/Désactiver la Répétition",
+      "toggleLyrics": "Activer/Désactiver les Paroles",
+      "toggleVisualizer": "Activer/Désactiver le Visualiseur",
+      "search": "Focus Recherche",
+      "openSettings": "Ouvrir les Paramètres"
+    }
+  }
 }
