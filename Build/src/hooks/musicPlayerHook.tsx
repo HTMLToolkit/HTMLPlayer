@@ -3,6 +3,7 @@ import { toast } from "sonner";
 import { musicIndexedDbHelper } from "../helpers/musicIndexedDbHelper";
 import { toggleMiniplayer } from "../components/Miniplayer";
 import { CrossfadeManager, AudioSource } from "../helpers/crossfadeHelper";
+import DiscordService from "../helpers/discordService";
 export type Song = {
   id: string;
   title: string;
@@ -39,6 +40,8 @@ export interface PlayerSettings {
   language: string;
   tempo: number;
   gapless?: boolean;
+  discordUserId?: string;
+  discordEnabled: boolean;
 }
 
 export type PlayerState = {
@@ -121,7 +124,9 @@ export const useMusicPlayer = () => {
     lastPlayedPlaylistId: "none",
     language: "English",
     tempo: 1,
-    gapless: false
+    gapless: false,
+    discordEnabled: false,
+    discordUserId: undefined,
   });
 
   const [library, setLibrary] = useState<MusicLibrary>(() => ({
@@ -814,6 +819,33 @@ export const useMusicPlayer = () => {
     }
   }, [playerState.currentSong, playerState.currentPlaylist, isInitialized]);
 
+  // Discord presence update function
+  const updateDiscordPresence = useCallback(
+    async (song: Song | null, isPlaying: boolean) => {
+      const discordService = DiscordService.getInstance();
+      
+      if (!settings.discordEnabled || !settings.discordUserId) {
+        return;
+      }
+
+      try {
+        if (song && isPlaying) {
+          await discordService.updatePresence({
+            userId: settings.discordUserId,
+            details: song.title,
+            state: song.artist,
+          });
+        } else {
+          // Clear presence when not playing or no song
+          await discordService.clearPresence(settings.discordUserId);
+        }
+      } catch (error) {
+        console.error('Failed to update Discord presence:', error);
+      }
+    },
+    [settings.discordEnabled, settings.discordUserId]
+  );
+
   const playSong = useCallback(
     async (song: Song, playlist?: Playlist) => {
       // Even if URL is empty, we might have it in IndexedDB
@@ -924,6 +956,9 @@ export const useMusicPlayer = () => {
         if (playlist) {
           updateSongCache(song, playlist);
         }
+
+        // Update Discord presence when song starts playing
+        updateDiscordPresence(song, true);
       }
     },
     [
@@ -932,6 +967,7 @@ export const useMusicPlayer = () => {
       getCachedSong,
       updateSongCache,
       prepareSongsForPlaylist,
+      updateDiscordPresence,
     ]
   );
 
@@ -943,6 +979,8 @@ export const useMusicPlayer = () => {
     if (playerState.isPlaying) {
       audioRef.current.pause();
       setPlayerState((prev) => ({ ...prev, isPlaying: false }));
+      // Update Discord presence when paused
+      updateDiscordPresence(playerState.currentSong, false);
     } else {
       // Check if audio source is loaded
       if (!audioRef.current.src || audioRef.current.src.includes('about:blank')) {
@@ -955,8 +993,10 @@ export const useMusicPlayer = () => {
         .play()
         .catch(() => setPlayerState((prev) => ({ ...prev, isPlaying: false })));
       setPlayerState((prev) => ({ ...prev, isPlaying: true }));
+      // Update Discord presence when playing
+      updateDiscordPresence(playerState.currentSong, true);
     }
-  }, [playerState.isPlaying, playerState.currentSong, playerState.currentPlaylist, playSong]);
+  }, [playerState.isPlaying, playerState.currentSong, playerState.currentPlaylist, playSong, updateDiscordPresence]);
 
   const playNext = useCallback(() => {
     if (!playerState.currentPlaylist || !playerState.currentSong) return;

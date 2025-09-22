@@ -2,6 +2,7 @@ import axios from "axios";
 
 const DISCORD_API = "https://discord.com/api/v10";
 
+// Exchange code for OAuth token
 export async function exchangeCodeForToken(code) {
   const params = new URLSearchParams();
   params.append("client_id", process.env.DISCORD_CLIENT_ID);
@@ -16,6 +17,7 @@ export async function exchangeCodeForToken(code) {
   return res.data; // access_token, refresh_token, expires_in
 }
 
+// Get Discord user info
 export async function getUserInfo(token) {
   const res = await axios.get(`${DISCORD_API}/users/@me`, {
     headers: { Authorization: `Bearer ${token}` }
@@ -23,11 +25,18 @@ export async function getUserInfo(token) {
   return res.data; // user object
 }
 
-export async function setActivity(token, activity) {
-  // For now, placeholder. Discord RPC activities via API are limited.
-  // If RPC endpoint is unavailable, this will need Gateway/RPC connection.
-
-  console.log("Would update Rich Presence:", activity);
-
-  // TODO: Implement RPC presence once available via API/gateway
+// Update custom status (simple Rich Presence)
+export async function setActivity(token, { details, state }) {
+  await axios.patch(
+    `${DISCORD_API}/users/@me/settings`,
+    {
+      custom_status: {
+        text: details + (state ? ` — ${state}` : ""),
+        expires_at: null
+      }
+    },
+    {
+      headers: { Authorization: `Bearer ${token}` }
+    }
+  );
 }

@@ -9,6 +9,7 @@ import {
 import { Button } from "./Button";
 import { Switch } from "./Switch";
 import { Slider } from "./Slider";
+import { Input } from "./Input";
 import {
   Select,
   SelectContent,
@@ -18,7 +19,7 @@ import {
 } from "./Select";
 import { ThemeModeSwitch } from "./ThemeModeSwitch";
 import { ShortcutConfig } from "./ShortcutConfig";
-import { Volume2, Music, Palette, RotateCcw, Keyboard } from "lucide-react";
+import { Volume2, Music, Palette, RotateCcw, Keyboard, MessageCircle } from "lucide-react";
 import styles from "./Settings.module.css";
 import { useThemeLoader } from "../helpers/themeLoader";
 import { toast } from "sonner";
@@ -41,6 +42,8 @@ export type PlayerSettings = {
   lastPlayedPlaylistId?: string;
   language: string;
   tempo: number;
+  discordUserId?: string;
+  discordEnabled: boolean;
 };
 
 export interface SettingsProps {
@@ -91,6 +94,8 @@ export const Settings = ({
         colorTheme: defaultThemeName,
         language: "English",
         tempo: 1,
+        discordEnabled: false,
+        discordUserId: undefined,
       });
     } catch {
       toast.error(t("settings.resetError"));
@@ -454,6 +459,108 @@ export const Settings = ({
               </div>
 
               <ShortcutConfig onShortcutsChanged={onShortcutsChanged} />
+            </section>
+
+            {/* Discord Integration */}
+            <section className={styles.section}>
+              <div className={styles.sectionHeader}>
+                <MessageCircle className={styles.sectionIcon} />
+                <h3 className={styles.sectionTitle}>
+                  Discord Integration
+                </h3>
+              </div>
+
+              <div className={styles.settingItem}>
+                <div className={styles.settingInfo}>
+                  <label htmlFor="discord-enabled">
+                    Enable Discord Rich Presence
+                  </label>
+                  <p className={styles.settingDescription}>
+                    Show what you're listening to in your Discord status
+                  </p>
+                </div>
+                <Switch
+                  id="discord-enabled"
+                  checked={settings.discordEnabled || false}
+                  onCheckedChange={(val) =>
+                    onSettingsChange({ discordEnabled: val })
+                  }
+                />
+              </div>
+
+              {settings.discordEnabled && (
+                <>
+                  <div className={styles.settingItem}>
+                    <div className={styles.settingInfo}>
+                      <label>Discord Connection</label>
+                      <p className={styles.settingDescription}>
+                        {settings.discordUserId 
+                          ? `Connected as Discord User ID: ${settings.discordUserId}`
+                          : "Not connected to Discord"
+                        }
+                      </p>
+                    </div>
+                    <Button
+                      variant={settings.discordUserId ? "outline" : "primary"}
+                      onClick={() => {
+                        if (settings.discordUserId) {
+                          // Disconnect Discord
+                          onSettingsChange({ discordUserId: undefined });
+                          toast.success("Disconnected from Discord");
+                        } else {
+                          // Redirect to Discord OAuth
+                          const discordOAuthUrl = "https://discord.com/oauth2/authorize?client_id=1419480226970341476&response_type=code&redirect_uri=https%3A%2F%2Fhtmlplayer-backend.onrender.com%2Foauth%2Fcallback&scope=identify+rpc.activities.write";
+                          window.open(discordOAuthUrl, '_blank');
+                          toast.info("Please complete Discord authorization in the new tab");
+                        }
+                      }}
+                    >
+                      {settings.discordUserId ? "Disconnect" : "Connect Discord"}
+                    </Button>
+                  </div>
+
+                  {!settings.discordUserId && (
+                    <div className={styles.settingItem}>
+                      <div className={styles.settingInfo}>
+                        <label htmlFor="discord-user-id">Manual Discord User ID</label>
+                        <p className={styles.settingDescription}>
+                          If the OAuth flow completed successfully, you can manually enter your Discord User ID here.
+                        </p>
+                      </div>
+                      <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                        <Input
+                          id="discord-user-id"
+                          type="text"
+                          placeholder="Discord User ID"
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              const input = e.target as HTMLInputElement;
+                              if (input.value.trim()) {
+                                onSettingsChange({ discordUserId: input.value.trim() });
+                                toast.success("Discord User ID saved");
+                                input.value = '';
+                              }
+                            }
+                          }}
+                        />
+                        <Button
+                          size="sm"
+                          onClick={(e) => {
+                            const input = (e.target as HTMLElement).previousElementSibling as HTMLInputElement;
+                            if (input && input.value.trim()) {
+                              onSettingsChange({ discordUserId: input.value.trim() });
+                              toast.success("Discord User ID saved");
+                              input.value = '';
+                            }
+                          }}
+                        >
+                          Save
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </>
+              )}
             </section>
           </div>
 
