@@ -473,10 +473,10 @@ export const Settings = ({
               <div className={styles.settingItem}>
                 <div className={styles.settingInfo}>
                   <label htmlFor="discord-enabled">
-                    Enable Discord Status Updates
+                    Enable Discord Integration (Broken Beta)
                   </label>
                   <p className={styles.settingDescription}>
-                    Show what you're listening to in your Discord custom status
+                    Note: Discord's RPC API requires special approval. Currently logs track info for testing.
                   </p>
                 </div>
                 <Switch
@@ -509,7 +509,7 @@ export const Settings = ({
                           toast.success("Disconnected from Discord");
                         } else {
                           // Redirect to Discord OAuth
-                          const discordOAuthUrl = "https://discord.com/oauth2/authorize?client_id=1419480226970341476&response_type=code&redirect_uri=https%3A%2F%2Fhtmlplayer-backend.onrender.com%2Foauth%2Fcallback&scope=identify";
+                          const discordOAuthUrl = "https://discord.com/oauth2/authorize?client_id=1419480226970341476&response_type=code&redirect_uri=https%3A%2F%2Fhtmlplayer-backend.onrender.com%2Foauth%2Fcallback&scope=identify%20rpc.activities.write";
                           window.open(discordOAuthUrl, '_blank');
                           toast.info("Please complete Discord authorization in the new tab");
                         }

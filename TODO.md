@@ -5,8 +5,7 @@
 - [ ] Discord Integration
   - **Status**: Implemented and functional
   - **Note**: **Requires Discord approval for custom status API access**
-  - **Current State**: Working for testing, but needs Discord app verification for public use
-  - **What works**: OAuth2 flow, custom status updates (Track — Artist format)
+  - **What works**: OAuth2 flow
   - **Next steps**: Submit Discord app for verification to enable public access
 
 - [ ] Gapless playback (settings)
