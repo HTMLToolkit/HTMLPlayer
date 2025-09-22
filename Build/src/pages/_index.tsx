@@ -108,10 +108,14 @@ export default function IndexPage() {
           compactMode: false,
           showAlbumArt: false,
           showLyrics: false,
+          sessionRestore: true,
+          gaplessPlayback: true,
+          smartShuffle: true,
           lastPlayedSongId: undefined,
           lastPlayedPlaylistId: undefined,
           language: "English",
-          tempo: 1
+          tempo: 1,
+          discordEnabled: false
         }} />
       </div>
     </div>

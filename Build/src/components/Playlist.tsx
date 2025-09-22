@@ -9,6 +9,8 @@ import {
   Trash2,
   Edit,
   Share,
+  Download,
+  Upload,
 } from "lucide-react";
 import { toast } from "sonner";
 import styles from "./Playlist.module.css";
@@ -54,7 +56,7 @@ export const PlaylistComponent = ({ musicPlayerHook }: PlaylistProps) => {
     null
   );
 
-  const { library, playSong, createPlaylist, removePlaylist } = musicPlayerHook;
+  const { library, playSong, createPlaylist, removePlaylist, exportPlaylist, importPlaylist } = musicPlayerHook;
 
   useEffect(() => {
     const updatePlaylistImages = async () => {
@@ -172,6 +174,27 @@ export const PlaylistComponent = ({ musicPlayerHook }: PlaylistProps) => {
     }
   };
 
+  const handleExportPlaylist = (playlist: Playlist, format: 'json' | 'm3u' = 'json') => {
+    exportPlaylist(playlist, format);
+  };
+
+  const handleImportPlaylist = () => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.json,.m3u,.m3u8';
+    input.onchange = async (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (file) {
+        try {
+          await importPlaylist(file);
+        } catch (error) {
+          // Error handling is done in the importPlaylist function
+        }
+      }
+    };
+    input.click();
+  };
+
   const getPlaylistIcon = (playlistName: string) => {
     if (playlistName.toLowerCase().includes("favorite")) return <Heart size={16} />;
     if (playlistName.toLowerCase().includes("made")) return <List size={16} />;
@@ -201,6 +224,13 @@ export const PlaylistComponent = ({ musicPlayerHook }: PlaylistProps) => {
         >
           <Plus size={16} />
           {t("playlist.addPlaylist")}
+        </button>
+        <button
+          className={`${styles.playlistItem} ${styles.addPlaylistButton}`}
+          onClick={handleImportPlaylist}
+        >
+          <Upload size={16} />
+          {t("playlist.importPlaylist")}
         </button>
       </div>
 
@@ -267,6 +297,15 @@ export const PlaylistComponent = ({ musicPlayerHook }: PlaylistProps) => {
                 <DropdownMenuItem onClick={() => handleSharePlaylist(playlist)}>
                   <Share size={16} style={{ marginRight: 8 }} />
                   {t("playlist.sharePlaylist")}
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => handleExportPlaylist(playlist, 'json')}>
+                  <Download size={16} style={{ marginRight: 8 }} />
+                  {t("playlist.exportJSON")}
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleExportPlaylist(playlist, 'm3u')}>
+                  <Download size={16} style={{ marginRight: 8 }} />
+                  {t("playlist.exportM3U")}
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem

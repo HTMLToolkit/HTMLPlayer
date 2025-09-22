@@ -38,6 +38,8 @@ export type PlayerSettings = {
   showAlbumArt: boolean;
   showLyrics: boolean;
   sessionRestore: boolean;
+  gaplessPlayback: boolean;
+  smartShuffle: boolean;
   lastPlayedSongId?: string;
   lastPlayedPlaylistId?: string;
   language: string;
@@ -91,6 +93,8 @@ export const Settings = ({
         showAlbumArt: true,
         showLyrics: false,
         sessionRestore: true,
+        gaplessPlayback: true,
+        smartShuffle: true,
         colorTheme: defaultThemeName,
         language: "English",
         tempo: 1,
@@ -232,6 +236,24 @@ export const Settings = ({
               </div>
 
               <div className={styles.settingItem}>
+                <div className={styles.settingInfo}>
+                  <label htmlFor="smart-shuffle">
+                    {t("settings.playback.smartShuffle")}
+                  </label>
+                  <p className={styles.settingDescription}>
+                    {t("settings.playback.smartShuffleDesc")}
+                  </p>
+                </div>
+                <Switch
+                  id="smart-shuffle"
+                  checked={settings.smartShuffle}
+                  onCheckedChange={(val) =>
+                    onSettingsChange({ smartShuffle: val })
+                  }
+                />
+              </div>
+
+              <div className={styles.settingItem}>
                 <div className={styles.settingLabel}>
                   <label htmlFor="default-repeat">
                     {t("settings.playback.repeat")}
@@ -290,6 +312,24 @@ export const Settings = ({
                   checked={sessionRestore}
                   onCheckedChange={(val) =>
                     onSettingsChange({ sessionRestore: val })
+                  }
+                />
+              </div>
+
+              <div className={styles.settingItem}>
+                <div className={styles.settingInfo}>
+                  <label htmlFor="gapless-playback">
+                    {t("settings.playback.gapless")}
+                  </label>
+                  <p className={styles.settingDescription}>
+                    {t("settings.playback.gaplessDesc")}
+                  </p>
+                </div>
+                <Switch
+                  id="gapless-playback"
+                  checked={settings.gaplessPlayback}
+                  onCheckedChange={(val) =>
+                    onSettingsChange({ gaplessPlayback: val })
                   }
                 />
               </div>

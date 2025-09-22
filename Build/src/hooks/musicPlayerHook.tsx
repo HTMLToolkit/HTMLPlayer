@@ -39,9 +39,11 @@ export interface PlayerSettings {
   lastPlayedPlaylistId?: string;
   language: string;
   tempo: number;
-  gapless?: boolean;
+  gaplessPlayback: boolean;
+  smartShuffle: boolean;
   discordUserId?: string;
   discordEnabled: boolean;
+  recentlyPlayed?: string[];
 }
 
 export type PlayerState = {
@@ -91,6 +93,10 @@ export const useMusicPlayer = () => {
   const currentAudioSourceRef = useRef<AudioSource | null>(null);
   const nextAudioSourceRef = useRef<AudioSource | null>(null);
   const crossfadeTimeoutRef = useRef<number | null>(null);
+  
+  // Cache the next song decision to ensure crossfade and playNext use the same song
+  const nextSongCacheRef = useRef<Song | null>(null);
+  const nextSongCacheValidRef = useRef<boolean>(false);
 
   const [isInitialized, setIsInitialized] = useState(false);
   const playNextRef = useRef<(() => void) | null>(null);
@@ -124,7 +130,8 @@ export const useMusicPlayer = () => {
     lastPlayedPlaylistId: "none",
     language: "English",
     tempo: 1,
-    gapless: false,
+    gaplessPlayback: true,
+    smartShuffle: true,
     discordEnabled: false,
     discordUserId: undefined,
   });
@@ -136,10 +143,14 @@ export const useMusicPlayer = () => {
   }));
 
   const [searchQuery, setSearchQuery] = useState("");
+  
+  // Track recently played songs for smart shuffle
+  const [recentlyPlayed, setRecentlyPlayed] = useState<string[]>([]);
 
   const settingsRef = useRef(settings);
   const playerStateRef = useRef(playerState);
   const libraryRef = useRef(library);
+  const recentlyPlayedRef = useRef<string[]>([]);
 
   // Cache management functions
   const cacheSong = async (song: Song) => {
@@ -239,6 +250,119 @@ export const useMusicPlayer = () => {
     });
   }, []);
 
+  // Smart shuffle algorithm that avoids recently played songs
+  const getSmartShuffledSong = useCallback((
+    availableSongs: Song[], 
+    currentSongId: string, 
+    recentlyPlayedIds: string[]
+  ): Song | null => {
+    if (availableSongs.length === 0) return null;
+    
+    // Filter out the current song and recently played songs
+    const filteredSongs = availableSongs.filter(song => 
+      song.id !== currentSongId && !recentlyPlayedIds.includes(song.id)
+    );
+    
+    // If we've filtered out too many songs, fall back to avoiding only the last few
+    const songsToChooseFrom = filteredSongs.length > 0 
+      ? filteredSongs 
+      : availableSongs.filter(song => 
+          song.id !== currentSongId && 
+          !recentlyPlayedIds.slice(-Math.min(3, recentlyPlayedIds.length)).includes(song.id)
+        );
+    
+    // If still no songs available, just exclude current song
+    const finalSongs = songsToChooseFrom.length > 0 
+      ? songsToChooseFrom 
+      : availableSongs.filter(song => song.id !== currentSongId);
+    
+    if (finalSongs.length === 0) return null;
+    
+    // Weighted random selection - prefer songs that haven't been played recently
+    const weights = finalSongs.map(song => {
+      const timesInRecent = recentlyPlayedIds.filter(id => id === song.id).length;
+      return Math.max(1, 10 - timesInRecent * 3); // Higher weight for less recently played
+    });
+    
+    const totalWeight = weights.reduce((sum, weight) => sum + weight, 0);
+    let randomWeight = Math.random() * totalWeight;
+    
+    for (let i = 0; i < finalSongs.length; i++) {
+      randomWeight -= weights[i];
+      if (randomWeight <= 0) {
+        return finalSongs[i];
+      }
+    }
+    
+    // Fallback to the last song
+    return finalSongs[finalSongs.length - 1];
+  }, []);
+
+  // Function to determine and cache the next song to ensure consistency between crossfade and playNext
+  const getAndCacheNextSong = useCallback((currentRecentlyPlayed?: string[]): Song | null => {
+    if (!playerStateRef.current.currentPlaylist || !playerStateRef.current.currentSong) {
+      return null;
+    }
+
+    // If we have a valid cached next song, return it
+    if (nextSongCacheValidRef.current && nextSongCacheRef.current) {
+      console.log('Using cached next song:', nextSongCacheRef.current.title);
+      return nextSongCacheRef.current;
+    }
+
+    // Use provided recently played list or current state from ref
+    const recentlyPlayedToUse = currentRecentlyPlayed || recentlyPlayedRef.current;
+
+    console.log('Computing new next song. Current song:', playerStateRef.current.currentSong.title);
+    console.log('Recently played to use:', recentlyPlayedToUse.slice(0, 3));
+    console.log('Recently played from state:', recentlyPlayed.slice(0, 3));
+    console.log('Recently played from ref:', recentlyPlayedRef.current.slice(0, 3));
+
+    const songs = playerStateRef.current.currentPlaylist.songs;
+    const currentIndex = songs.findIndex(s => s.id === playerStateRef.current.currentSong!.id);
+    let nextSong: Song | null = null;
+
+    if (playerStateRef.current.shuffle) {
+      const available = songs.filter(s => s.id !== playerStateRef.current.currentSong!.id);
+      if (available.length > 0) {
+        if (settingsRef.current.smartShuffle) {
+          // Use smart shuffle algorithm
+          nextSong = getSmartShuffledSong(available, playerStateRef.current.currentSong!.id, recentlyPlayedToUse);
+          if (!nextSong) {
+            nextSong = available[Math.floor(Math.random() * available.length)];
+          }
+          console.log('Smart shuffle selected:', nextSong?.title);
+        } else {
+          // Use regular shuffle
+          const randomIndex = Math.floor(Math.random() * available.length);
+          nextSong = available[randomIndex];
+          console.log('Regular shuffle selected:', nextSong?.title);
+        }
+      }
+    } else {
+      if (currentIndex < songs.length - 1) {
+        nextSong = songs[currentIndex + 1];
+      } else if (playerStateRef.current.repeat === "all") {
+        nextSong = songs[0];
+      }
+      console.log('Sequential next song:', nextSong?.title);
+    }
+
+    // Cache the result
+    nextSongCacheRef.current = nextSong;
+    nextSongCacheValidRef.current = true;
+    console.log('Cached next song:', nextSong?.title);
+    
+    return nextSong;
+  }, [getSmartShuffledSong]);
+
+  // Function to invalidate the next song cache
+  const invalidateNextSongCache = useCallback(() => {
+    console.log('Invalidating next song cache');
+    nextSongCacheRef.current = null;
+    nextSongCacheValidRef.current = false;
+  }, []);
+
   const updateSongCache = async (
     currentSong: Song | null,
     playlist: Playlist | null
@@ -266,8 +390,14 @@ export const useMusicPlayer = () => {
         (_, i) => i !== currentIndex
       );
       if (availableSongs.length > 0) {
-        const randomIndex = Math.floor(Math.random() * availableSongs.length);
-        nextShuffledSong = availableSongs[randomIndex];
+        if (settingsRef.current.smartShuffle) {
+          // Use smart shuffle for caching
+          nextShuffledSong = getSmartShuffledSong(availableSongs, currentSong.id, recentlyPlayed);
+        } else {
+          // Use regular shuffle for caching
+          const randomIndex = Math.floor(Math.random() * availableSongs.length);
+          nextShuffledSong = availableSongs[randomIndex];
+        }
       }
     }
 
@@ -386,7 +516,15 @@ export const useMusicPlayer = () => {
           }));
         }
 
-        if (persistedSettings) setSettings(persistedSettings);
+        if (persistedSettings) {
+          setSettings(persistedSettings);
+          
+          // Restore recently played list if available
+          if (persistedSettings.recentlyPlayed) {
+            setRecentlyPlayed(persistedSettings.recentlyPlayed);
+            console.log('Restored recently played list:', persistedSettings.recentlyPlayed.slice(0, 3));
+          }
+        }
       } catch (error) {
         console.error("Failed to load persisted data:", error);
       } finally {
@@ -412,13 +550,18 @@ export const useMusicPlayer = () => {
     if (!isInitialized) return;
     const saveSettings = async () => {
       try {
-        await musicIndexedDbHelper.saveSettings(settings);
+        // Include recently played list in settings
+        const settingsWithRecentlyPlayed = {
+          ...settings,
+          recentlyPlayed: recentlyPlayed,
+        };
+        await musicIndexedDbHelper.saveSettings(settingsWithRecentlyPlayed);
       } catch (error) {
         console.error("Failed to persist settings:", error);
       }
     };
     saveSettings();
-  }, [settings, isInitialized]);
+  }, [settings, recentlyPlayed, isInitialized]);
 
   const setupAudioContext = useCallback(() => {
     if (!audioContextRef.current && audioRef.current) {
@@ -469,28 +612,7 @@ export const useMusicPlayer = () => {
 
   // Crossfade helper functions
   const getNextSongForCrossfade = (): Song | null => {
-    if (!playerStateRef.current.currentPlaylist || !playerStateRef.current.currentSong) {
-      return null;
-    }
-
-    const songs = playerStateRef.current.currentPlaylist.songs;
-    const currentIndex = songs.findIndex(s => s.id === playerStateRef.current.currentSong!.id);
-
-    if (playerStateRef.current.shuffle) {
-      const available = songs.filter(s => s.id !== playerStateRef.current.currentSong!.id);
-      if (available.length > 0) {
-        const randomIndex = Math.floor(Math.random() * available.length);
-        return available[randomIndex];
-      }
-    } else {
-      if (currentIndex < songs.length - 1) {
-        return songs[currentIndex + 1];
-      } else if (playerStateRef.current.repeat === "all") {
-        return songs[0];
-      }
-    }
-
-    return null;
+    return getAndCacheNextSong();
   };
 
   const prepareNextSongForCrossfade = async (nextSong: Song) => {
@@ -527,6 +649,20 @@ export const useMusicPlayer = () => {
   };
 
   const updatePlayerStateAfterCrossfade = (nextSong: Song) => {
+    console.log('updatePlayerStateAfterCrossfade called with:', nextSong.title);
+    console.log('Current song before update:', playerStateRef.current.currentSong?.title);
+    console.log('Current recently played before update:', recentlyPlayed.slice(0, 3));
+    
+    // Calculate the updated recently played list for the next computation
+    let updatedRecentlyPlayed = recentlyPlayed;
+    if (playerStateRef.current.currentSong && playerStateRef.current.shuffle) {
+      updatedRecentlyPlayed = [playerStateRef.current.currentSong.id, ...recentlyPlayed.slice(0, 19)];
+      console.log('Updated recently played after crossfade:', updatedRecentlyPlayed.slice(0, 3));
+      
+      // Update the state
+      setRecentlyPlayed(updatedRecentlyPlayed);
+    }
+
     // Swap audio elements - next becomes current
     const tempAudio = audioRef.current;
     audioRef.current = nextAudioRef.current;
@@ -544,6 +680,9 @@ export const useMusicPlayer = () => {
       currentTime: 0,
       isPlaying: true,
     }));
+
+    // Invalidate next song cache since we've moved to a new song
+    invalidateNextSongCache();
   };
 
   useEffect(() => {
@@ -576,7 +715,7 @@ export const useMusicPlayer = () => {
       const hasDuration = currentAudio.duration > 0;
       const notCrossfading = !crossfadeManagerRef.current?.isCrossfading();
 
-      // Handle crossfade timing - start crossfade before song ends
+      // Handle crossfade timing - crossfade can work independently of gapless setting
       if (
         crossfadeEnabled &&
         autoPlayNext &&
@@ -648,15 +787,25 @@ export const useMusicPlayer = () => {
             audioRef.current.play();
           }
         } else if (playNextRef.current) {
-          // If crossfade is disabled or very short, use traditional gapless/delay logic
+          // Handle different transition modes based on settings
           if (settingsRef.current.crossfade === 0) {
-            if (settingsRef.current.gapless) {
+            // No crossfade - use gapless or with delay
+            if (settingsRef.current.gaplessPlayback) {
               playNextRef.current();
             } else {
               setTimeout(() => playNextRef.current?.(), 400);
             }
+          } else {
+            // Crossfade is enabled - check if transition already happened or needs to happen now
+            if (crossfadeManagerRef.current?.isCrossfading()) {
+              // Crossfade is already in progress, let it complete naturally
+              console.log('Crossfade transition already in progress');
+            } else {
+              // Crossfade didn't start in time (maybe song too short), do immediate transition
+              console.log('Starting immediate crossfade transition on song end');
+              startCrossfadeTransition();
+            }
           }
-          // If crossfade is enabled, the transition should have already started in handleTimeUpdate
         }
       }
     };
@@ -720,16 +869,48 @@ export const useMusicPlayer = () => {
   }, []);
 
   useEffect(() => {
+    const previousSettings = settingsRef.current;
     settingsRef.current = settings;
-  }, [settings]);
+    
+    // Invalidate next song cache if shuffle-related settings changed
+    if (
+      previousSettings.smartShuffle !== settings.smartShuffle ||
+      (playerState.shuffle && (
+        previousSettings.smartShuffle !== settings.smartShuffle
+      ))
+    ) {
+      invalidateNextSongCache();
+    }
+  }, [settings, playerState.shuffle, invalidateNextSongCache]);
 
   useEffect(() => {
+    const previousState = playerStateRef.current;
     playerStateRef.current = playerState;
-  }, [playerState]);
+    
+    // Invalidate next song cache if shuffle state or current playlist changed
+    if (
+      previousState.shuffle !== playerState.shuffle ||
+      previousState.currentPlaylist?.id !== playerState.currentPlaylist?.id ||
+      previousState.repeat !== playerState.repeat
+    ) {
+      invalidateNextSongCache();
+    }
+  }, [playerState, invalidateNextSongCache]);
 
   useEffect(() => {
     libraryRef.current = library;
   }, [library]);
+
+  useEffect(() => {
+    recentlyPlayedRef.current = recentlyPlayed;
+  }, [recentlyPlayed]);
+
+  useEffect(() => {
+    // Only invalidate next song cache when recently played changes AND smart shuffle is enabled AND we're in shuffle mode
+    if (settingsRef.current.smartShuffle && playerStateRef.current.shuffle) {
+      invalidateNextSongCache();
+    }
+  }, [recentlyPlayed, invalidateNextSongCache]);
 
   useEffect(() => {
     if (playerState.currentPlaylist) {
@@ -892,6 +1073,14 @@ export const useMusicPlayer = () => {
         currentTime: 0,
       }));
 
+      // Track this song in recently played list (only if this isn't the first song in a new session)
+      if (playerStateRef.current.currentSong && playerStateRef.current.currentSong.id !== song.id) {
+        setRecentlyPlayed(prev => {
+          const updated = [playerStateRef.current.currentSong!.id, ...prev.slice(0, 19)]; // Keep last 20 songs
+          return updated;
+        });
+      }
+
       if (audioRef.current) {
         // Cancel any ongoing crossfade
         if (crossfadeManagerRef.current?.isCrossfading()) {
@@ -959,6 +1148,9 @@ export const useMusicPlayer = () => {
 
         // Update Discord presence when song starts playing
         updateDiscordPresence(song, true);
+        
+        // Invalidate next song cache since current song changed
+        invalidateNextSongCache();
       }
     },
     [
@@ -968,6 +1160,8 @@ export const useMusicPlayer = () => {
       updateSongCache,
       prepareSongsForPlaylist,
       updateDiscordPresence,
+      setRecentlyPlayed,
+      invalidateNextSongCache,
     ]
   );
 
@@ -1006,27 +1200,24 @@ export const useMusicPlayer = () => {
       crossfadeManagerRef.current.cancelCrossfade();
     }
 
-    const songs = playerState.currentPlaylist.songs;
-    const currentIndex = songs.findIndex(
-      (s) => s.id === playerState.currentSong!.id
-    );
-
-    if (playerState.shuffle) {
-      const available = songs.filter(
-        (s) => s.id !== playerState.currentSong!.id
-      );
-      if (available.length > 0) {
-        const randomIndex = Math.floor(Math.random() * available.length);
-        playSong(available[randomIndex], playerState.currentPlaylist);
+    // Use the cached next song if available, otherwise determine it
+    let nextSong = getAndCacheNextSong();
+    
+    if (nextSong) {
+      // Update recently played list (for non-crossfade transitions)
+      if (playerState.shuffle && !crossfadeManagerRef.current?.isCrossfading()) {
+        setRecentlyPlayed(prev => {
+          const updated = [playerState.currentSong!.id, ...prev.slice(0, 19)]; // Keep last 20 songs
+          return updated;
+        });
       }
-    } else {
-      if (currentIndex < songs.length - 1) {
-        playSong(songs[currentIndex + 1], playerState.currentPlaylist);
-      } else if (playerState.repeat === "all") {
-        playSong(songs[0], playerState.currentPlaylist);
-      }
+      
+      // Invalidate the cache since we're consuming the cached song
+      invalidateNextSongCache();
+      
+      playSong(nextSong, playerState.currentPlaylist);
     }
-  }, [playerState, playSong]);
+  }, [playerState, playSong, getAndCacheNextSong, invalidateNextSongCache, setRecentlyPlayed]);
 
   useEffect(() => {
     playNextRef.current = playNext;
@@ -1050,8 +1241,25 @@ export const useMusicPlayer = () => {
         (s) => s.id !== playerState.currentSong!.id
       );
       if (available.length > 0) {
-        const randomIndex = Math.floor(Math.random() * available.length);
-        playSong(available[randomIndex], playerState.currentPlaylist);
+        let nextSong: Song;
+        
+        if (settings.smartShuffle) {
+          // Use smart shuffle
+          const smartSong = getSmartShuffledSong(available, playerState.currentSong!.id, recentlyPlayed);
+          nextSong = smartSong || available[Math.floor(Math.random() * available.length)];
+        } else {
+          // Use regular shuffle
+          const randomIndex = Math.floor(Math.random() * available.length);
+          nextSong = available[randomIndex];
+        }
+        
+        // Update recently played list
+        setRecentlyPlayed(prev => {
+          const updated = [playerState.currentSong!.id, ...prev.slice(0, 19)]; // Keep last 20 songs
+          return updated;
+        });
+        
+        playSong(nextSong, playerState.currentPlaylist);
       }
     } else {
       if (currentIndex > 0) {
@@ -1060,7 +1268,7 @@ export const useMusicPlayer = () => {
         playSong(songs[songs.length - 1], playerState.currentPlaylist);
       }
     }
-  }, [playerState, playSong]);
+  }, [playerState, playSong, settings.smartShuffle, recentlyPlayed, getSmartShuffledSong, setRecentlyPlayed]);
 
   const setVolume = useCallback((volume: number) => {
     const clamped = Math.max(0, Math.min(1, volume));
@@ -1375,6 +1583,137 @@ export const useMusicPlayer = () => {
     }));
   }, []);
 
+  // Export playlist to JSON or M3U format
+  const exportPlaylist = useCallback((playlist: Playlist, format: 'json' | 'm3u' = 'json') => {
+    try {
+      let content: string;
+      let filename: string;
+      let mimeType: string;
+
+      if (format === 'json') {
+        // Export as JSON with full metadata
+        const exportData = {
+          name: playlist.name,
+          created: new Date().toISOString(),
+          songs: playlist.songs.map(song => ({
+            title: song.title,
+            artist: song.artist,
+            album: song.album,
+            duration: song.duration,
+            // Don't include URL or file data for privacy/size reasons
+          }))
+        };
+        content = JSON.stringify(exportData, null, 2);
+        filename = `${playlist.name.replace(/[^a-z0-9]/gi, '_')}.json`;
+        mimeType = 'application/json';
+      } else {
+        // Export as M3U playlist
+        content = '#EXTM3U\n';
+        playlist.songs.forEach(song => {
+          content += `#EXTINF:${Math.floor(song.duration)},${song.artist} - ${song.title}\n`;
+          content += `# ${song.album}\n`;
+        });
+        filename = `${playlist.name.replace(/[^a-z0-9]/gi, '_')}.m3u`;
+        mimeType = 'audio/x-mpegurl';
+      }
+
+      // Create and download file
+      const blob = new Blob([content], { type: mimeType });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      toast.success(`Exported playlist "${playlist.name}" as ${format.toUpperCase()}`);
+    } catch (error) {
+      console.error('Export failed:', error);
+      toast.error(`Failed to export playlist: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }, []);
+
+  // Import playlist from JSON file
+  const importPlaylist = useCallback((file: File) => {
+    return new Promise<void>((resolve, reject) => {
+      const reader = new FileReader();
+      
+      reader.onload = (e) => {
+        try {
+          const content = e.target?.result as string;
+          
+          if (file.name.endsWith('.json')) {
+            // Parse JSON playlist
+            const playlistData = JSON.parse(content);
+            
+            if (!playlistData.name || !Array.isArray(playlistData.songs)) {
+              throw new Error('Invalid playlist format');
+            }
+            
+            // Create new playlist with imported metadata (songs will need to be matched/re-added)
+            const newPlaylist: Playlist = {
+              id: Date.now().toString(),
+              name: `${playlistData.name} (Imported)`,
+              songs: [], // Empty for now, user will need to add songs manually
+            };
+            
+            // Add the playlist
+            createPlaylist(newPlaylist.name, newPlaylist.songs);
+            
+            toast.success(`Imported playlist "${playlistData.name}" with ${playlistData.songs.length} song references`);
+            toast.info('Note: You\'ll need to add songs to this playlist manually as audio files cannot be imported.');
+            resolve();
+            
+          } else if (file.name.endsWith('.m3u') || file.name.endsWith('.m3u8')) {
+            // Parse M3U playlist
+            const lines = content.split('\n').filter(line => line.trim());
+            const songs: Array<{title: string, artist: string}> = [];
+            
+            for (let i = 0; i < lines.length; i++) {
+              const line = lines[i].trim();
+              if (line.startsWith('#EXTINF:')) {
+                // Extract artist and title from M3U format
+                const match = line.match(/#EXTINF:\d+,(.+?) - (.+)/);
+                if (match) {
+                  songs.push({
+                    artist: match[1],
+                    title: match[2]
+                  });
+                }
+              }
+            }
+            
+            // Create playlist
+            const playlistName = file.name.replace(/\.(m3u|m3u8)$/i, '');
+            createPlaylist(`${playlistName} (Imported)`, []);
+            
+            toast.success(`Imported M3U playlist with ${songs.length} song references`);
+            toast.info('Note: You\'ll need to add songs to this playlist manually as audio files cannot be imported.');
+            resolve();
+            
+          } else {
+            throw new Error('Unsupported file format. Please use .json, .m3u, or .m3u8 files.');
+          }
+        } catch (error) {
+          console.error('Import failed:', error);
+          const message = error instanceof Error ? error.message : 'Failed to parse playlist file';
+          toast.error(`Import failed: ${message}`);
+          reject(error);
+        }
+      };
+      
+      reader.onerror = () => {
+        const error = new Error('Failed to read file');
+        toast.error('Failed to read file');
+        reject(error);
+      };
+      
+      reader.readAsText(file);
+    });
+  }, [createPlaylist]);
+
   useEffect(() => {
     if (audioRef.current) {
       audioRef.current.playbackRate = getValidTempo(settings.tempo);
@@ -1412,5 +1751,7 @@ export const useMusicPlayer = () => {
     navigateToArtist,
     navigateToAlbum,
     navigateToSongs,
+    exportPlaylist,
+    importPlaylist,
   };
 };
