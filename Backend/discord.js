@@ -33,31 +33,19 @@ export async function getUserInfo(token) {
   return res.data; // user object
 }
 
-// Update Rich Presence activity using Discord RPC
+// Update Discord custom status (alternative to Rich Presence for web apps)
 export async function setActivity(token, { details, state }) {
-  // For Rich Presence, we need to use the RPC API
-  // This requires the rpc.activities.write scope which is already included
-  
-  console.log("Setting Discord activity:", { details, state });
-
-  const activity = {
-    name: "HTMLPlayer",
-    type: 2, // LISTENING activity type
-    details: details || "Music Player",
-    state: state || "Ready",
-    timestamps: {
-      start: Date.now()
-    }
-  };
+  console.log("Setting Discord custom status:", { details, state });
 
   try {
-    // Clear activity if both details and state are empty
+    // Clear status if both details and state are empty
     if (!details && !state) {
-      console.log("Clearing Discord presence");
-      // Send empty activity to clear presence
-      await axios.put(
-        `${DISCORD_API}/applications/${process.env.DISCORD_CLIENT_ID}/activities`,
-        {},
+      console.log("Clearing Discord custom status");
+      await axios.patch(
+        `${DISCORD_API}/users/@me/settings`,
+        {
+          custom_status: null
+        },
         {
           headers: { 
             Authorization: `Bearer ${token}`,
@@ -66,11 +54,20 @@ export async function setActivity(token, { details, state }) {
         }
       );
     } else {
-      console.log("Setting Discord Rich Presence activity");
-      // Set the Rich Presence activity
-      await axios.put(
-        `${DISCORD_API}/applications/${process.env.DISCORD_CLIENT_ID}/activities`,
-        activity,
+      console.log("Setting Discord custom status");
+      // Set custom status with music info
+      const statusText = state ? `🎵 ${details} — ${state}` : `🎵 ${details}`;
+      
+      await axios.patch(
+        `${DISCORD_API}/users/@me/settings`,
+        {
+          custom_status: {
+            text: statusText,
+            expires_at: null,
+            emoji_id: null,
+            emoji_name: "🎵"
+          }
+        },
         {
           headers: { 
             Authorization: `Bearer ${token}`,
@@ -79,9 +76,9 @@ export async function setActivity(token, { details, state }) {
         }
       );
     }
-    console.log("Discord activity updated successfully");
+    console.log("Discord status updated successfully");
   } catch (error) {
-    console.error("Failed to update Discord activity:", {
+    console.error("Failed to update Discord status:", {
       status: error.response?.status,
       statusText: error.response?.statusText,
       data: error.response?.data,
