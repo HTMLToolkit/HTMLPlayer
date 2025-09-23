@@ -1,4 +1,4 @@
-import { MutableRefObject } from "react";
+import { MutableRefObject, useCallback } from "react";
 import { musicIndexedDbHelper } from "./musicIndexedDbHelper";
 
 // Cache management utilities
@@ -82,7 +82,7 @@ export const createCacheManager = (
   };
 
   // Helper to ensure playlist songs have correct URLs
-  const prepareSongsForPlaylist = (songs: Song[]): Song[] => {
+  const prepareSongsForPlaylist = useCallback((songs: Song[]): Song[] => {
     return songs.map((song) => {
       if (song.hasStoredAudio) {
         // Always use indexeddb:// URL for stored songs
@@ -100,7 +100,7 @@ export const createCacheManager = (
       }
       return song;
     });
-  };
+  }, []);
 
   const updateSongCache = async (
     currentSong: Song | null,

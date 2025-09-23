@@ -87,7 +87,6 @@ export const toggleMiniplayer = async (controls: MiniplayerControls) => {
       return;
     }
 
-    // @ts-ignore
     const newPipWindow = await window.documentPictureInPicture.requestWindow({
       width: 400,
       height: 70,
