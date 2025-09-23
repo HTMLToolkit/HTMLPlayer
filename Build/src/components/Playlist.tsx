@@ -14,7 +14,6 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import styles from "./Playlist.module.css";
-import { Playlist } from "../hooks/musicPlayerHook";
 import { generatePlaylistImage } from "../helpers/playlistImageHelper";
 import { Button } from "./Button";
 import { Input } from "./Input";

@@ -28,7 +28,6 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
 } from "./DropdownMenu";
-import { Song, Playlist, MusicLibrary } from "../hooks/musicPlayerHook";
 import { useTranslation } from "react-i18next";
 
 interface SongActionsDropdownProps {

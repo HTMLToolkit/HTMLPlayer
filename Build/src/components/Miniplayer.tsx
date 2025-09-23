@@ -1,5 +1,3 @@
-// Miniplayer.tsx
-import { type PlayerState } from "../hooks/musicPlayerHook";
 import { createRoot } from "react-dom/client";
 import { Button } from "./Button";
 import { Play, Pause, SkipBack, SkipForward } from "lucide-react";

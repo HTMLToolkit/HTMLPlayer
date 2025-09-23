@@ -26,28 +26,6 @@ import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 import { languageNames } from "../../public/locales/supportedLanguages";
 
-export type PlayerSettings = {
-  volume: number;
-  crossfade: number;
-  defaultShuffle: boolean;
-  defaultRepeat: "off" | "one" | "all";
-  themeMode: "light" | "dark" | "auto";
-  colorTheme: string;
-  autoPlayNext: boolean;
-  compactMode: boolean;
-  showAlbumArt: boolean;
-  showLyrics: boolean;
-  sessionRestore: boolean;
-  gaplessPlayback: boolean;
-  smartShuffle: boolean;
-  lastPlayedSongId?: string;
-  lastPlayedPlaylistId?: string;
-  language: string;
-  tempo: number;
-  discordUserId?: string;
-  discordEnabled: boolean;
-};
-
 export interface SettingsProps {
   className?: string;
   open?: boolean;

@@ -3,16 +3,13 @@
 ## HTMLPlayer v2
 
 - [ ] Discord Integration
-  - **Status**: Implemented and functional
-  - **Note**: **Requires Discord approval for custom status API access**
-  - **What works**: OAuth2 flow
-  - **Next steps**: Submit Discord app for verification to enable public access
+  - Implemented and theoretically works but requires Discord approval for Rich Presence API (via server) access. Need to submit Discord app for verification to enable it.
 
-- [ ] Gapless playback (settings)
+- [X] Gapless playback (settings)
 
-- [ ] Smart shuffle
+- [X] Smart shuffle
 
-- [ ] Export/import playlists
+- [X] Export/import playlists
 
 - [ ] Dynamic theming based on album art colors.  (settings)
 
