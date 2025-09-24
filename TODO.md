@@ -5,7 +5,9 @@
 - [ ] Discord Integration
   - Implemented and theoretically works but requires Discord approval for Rich Presence API (via server) access. Need to submit Discord app for verification to enable it.
 
-- [X] Gapless playback (settings)
+- [ ] Crossfade options (settings)
+
+- [ ] Gapless playback (settings)
 
 - [X] Smart shuffle
 
@@ -139,8 +141,6 @@
 - [ ] picture backgrounds
 
 ## Done
-
-- [X] Crossfade options (settings)
 
 - [X] Session restore (settings)
 

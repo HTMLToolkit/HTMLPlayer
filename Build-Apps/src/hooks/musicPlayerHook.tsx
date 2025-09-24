@@ -694,6 +694,7 @@ export const useMusicPlayer = () => {
       !nextAudioRef.current.src.includes("about:blank")
     ) {
       // Song is already preloaded, just set up the audio source
+      nextAudioRef.current.pause();
       if (!nextAudioSourceRef.current) {
         nextAudioSourceRef.current =
           crossfadeManagerRef.current.createAudioSource(nextAudioRef.current);
@@ -710,6 +711,7 @@ export const useMusicPlayer = () => {
     }
 
     // Set up the next audio element
+    nextAudioRef.current.pause();
     nextAudioRef.current.src = cachedSong.url;
     nextAudioRef.current.playbackRate = getValidTempo(
       settingsRef.current.tempo
@@ -875,7 +877,12 @@ export const useMusicPlayer = () => {
       }));
     };
 
-    const handleEnded = () => {
+    const handleEnded = (event: Event) => {
+      const target = event.target as HTMLAudioElement;
+      if (target !== audioRef.current) {
+        return;
+      }
+
       // If crossfade is in progress, don't handle ending normally
       if (crossfadeManagerRef.current?.isCrossfading()) {
         return;
@@ -922,7 +929,23 @@ export const useMusicPlayer = () => {
         return;
       }
 
+      if (!audioRef.current) {
+        console.warn("CrossfadeTransition: No current audio element available");
+        return;
+      }
+
+      // Cancel any existing crossfade or pending timeout
+      crossfadeManagerRef.current.cancelCrossfade();
+
       try {
+        // Ensure current source is set
+        if (crossfadeManagerRef.current && audioRef.current) {
+          if (!currentAudioSourceRef.current || currentAudioSourceRef.current.element !== audioRef.current) {
+            currentAudioSourceRef.current = crossfadeManagerRef.current.createAudioSource(audioRef.current);
+          }
+          crossfadeManagerRef.current.setCurrentSource(currentAudioSourceRef.current);
+        }
+
         // Get the next song info (this is a bit tricky since we need to predict what playNext will play)
         const nextSong = getNextSongForCrossfade();
         if (!nextSong) {
@@ -932,6 +955,11 @@ export const useMusicPlayer = () => {
 
         // Prepare the next audio source
         await prepareNextSongForCrossfade(nextSong);
+
+        // Ensure audio context is running
+        if (audioContextRef.current?.state === "suspended") {
+          await audioContextRef.current.resume();
+        }
 
         // Start the crossfade
         await crossfadeManagerRef.current.startCrossfade({
@@ -1229,9 +1257,11 @@ export const useMusicPlayer = () => {
 
         // Set up crossfade manager if not already done
         if (!audioContextRef.current) setupAudioContext();
-        if (crossfadeManagerRef.current && !currentAudioSourceRef.current) {
-          currentAudioSourceRef.current =
-            crossfadeManagerRef.current.createAudioSource(audioRef.current);
+        if (crossfadeManagerRef.current) {
+          if (!currentAudioSourceRef.current) {
+            currentAudioSourceRef.current =
+              crossfadeManagerRef.current.createAudioSource(audioRef.current);
+          }
           crossfadeManagerRef.current.setCurrentSource(
             currentAudioSourceRef.current
           );

@@ -72,7 +72,7 @@ export class CrossfadeManager {
         nextSource: !!this.nextSource,
         crossfadeInProgress: this.crossfadeInProgress,
       });
-      return;
+      throw new Error("Cannot start crossfade");
     }
 
     this.crossfadeInProgress = true;

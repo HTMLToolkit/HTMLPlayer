@@ -18,5 +18,5 @@ interface PlayerSettings {
   smartShuffle: boolean;
   discordUserId?: string;
   discordEnabled: boolean;
-  recentlyPlayed?: string[];
+  playHistory?: [string, { lastPlayed: number; playCount: number }][];
 }

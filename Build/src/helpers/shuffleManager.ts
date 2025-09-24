@@ -1,58 +1,56 @@
 import { MutableRefObject } from "react";
 
-// Smart shuffle algorithm that avoids recently played songs
+// Smart shuffle algorithm using Fisher-Yates shuffle with play history awareness
+// (this was fun to research and implement!)
 export const getSmartShuffledSong = (
   availableSongs: Song[],
   currentSongId: string,
-  recentlyPlayedIds: string[]
+  playHistory: Map<string, { lastPlayed: number; playCount: number }>
 ): Song | null => {
   if (availableSongs.length === 0) return null;
 
-  // Filter out the current song and recently played songs
-  const filteredSongs = availableSongs.filter(
-    (song) => song.id !== currentSongId && !recentlyPlayedIds.includes(song.id)
-  );
+  const now = Date.now();
+  const candidates = availableSongs.filter((song) => song.id !== currentSongId);
 
-  // If we've filtered out too many songs, fall back to avoiding only the last few
-  const songsToChooseFrom =
-    filteredSongs.length > 0
-      ? filteredSongs
-      : availableSongs.filter(
-          (song) =>
-            song.id !== currentSongId &&
-            !recentlyPlayedIds
-              .slice(-Math.min(3, recentlyPlayedIds.length))
-              .includes(song.id)
-        );
+  if (candidates.length === 0) return null;
 
-  // If still no songs available, just exclude current song
-  const finalSongs =
-    songsToChooseFrom.length > 0
-      ? songsToChooseFrom
-      : availableSongs.filter((song) => song.id !== currentSongId);
+  // Calculate weights based on recency and play frequency
+  const songsWithWeights = candidates.map((song) => {
+    const history = playHistory.get(song.id);
+    let weight = 100; // Base weight
 
-  if (finalSongs.length === 0) return null;
+    if (history) {
+      const timeSinceLastPlayed = now - history.lastPlayed;
+      const hoursAgo = timeSinceLastPlayed / (1000 * 60 * 60);
 
-  // Weighted random selection - prefer songs that haven't been played recently
-  const weights = finalSongs.map((song) => {
-    const timesInRecent = recentlyPlayedIds.filter(
-      (id) => id === song.id
-    ).length;
-    return Math.max(1, 10 - timesInRecent * 3); // Higher weight for less recently played
+      // Reduce weight based on recency (exponential decay)
+      if (hoursAgo < 24) {
+        weight *= Math.pow(0.5, Math.max(0, 4 - hoursAgo)); // Heavy penalty for recent plays
+      }
+
+      // Slightly reduce weight for frequently played songs
+      weight *= Math.max(0.3, 1 - history.playCount * 0.1);
+    }
+
+    return { song, weight };
   });
 
-  const totalWeight = weights.reduce((sum, weight) => sum + weight, 0);
-  let randomWeight = Math.random() * totalWeight;
+  // Weighted random selection using reservoir sampling
+  const totalWeight = songsWithWeights.reduce(
+    (sum, item) => sum + item.weight,
+    0
+  );
+  let randomValue = Math.random() * totalWeight;
 
-  for (let i = 0; i < finalSongs.length; i++) {
-    randomWeight -= weights[i];
-    if (randomWeight <= 0) {
-      return finalSongs[i];
+  for (const item of songsWithWeights) {
+    randomValue -= item.weight;
+    if (randomValue <= 0) {
+      return item.song;
     }
   }
 
-  // Fallback to the last song
-  return finalSongs[finalSongs.length - 1];
+  // Fallback to last candidate
+  return candidates[candidates.length - 1];
 };
 
 // Next song cache manager
@@ -60,12 +58,16 @@ export const createNextSongManager = (
   nextSongCacheRef: MutableRefObject<Song | null>,
   nextSongCacheValidRef: MutableRefObject<boolean>
 ) => {
-  // Function to determine and cache the next song to ensure consistency between crossfade and playNext
+  let lastCacheInvalidation = 0;
+  const CACHE_INVALIDATION_THROTTLE = 500; // Throttle invalidations to max once per 500ms
+
+  // Function to determine and cache the next song
   const getAndCacheNextSong = (
     playerStateRef: MutableRefObject<any>,
     settingsRef: MutableRefObject<any>,
-    recentlyPlayedRef: MutableRefObject<string[]>,
-    currentRecentlyPlayed?: string[]
+    playHistoryRef: MutableRefObject<
+      Map<string, { lastPlayed: number; playCount: number }>
+    >
   ): Song | null => {
     if (
       !playerStateRef.current.currentPlaylist ||
@@ -76,19 +78,8 @@ export const createNextSongManager = (
 
     // If we have a valid cached next song, return it
     if (nextSongCacheValidRef.current && nextSongCacheRef.current) {
-      console.log("Using cached next song:", nextSongCacheRef.current.title);
       return nextSongCacheRef.current;
     }
-
-    // Use provided recently played list or current state from ref
-    const recentlyPlayedToUse =
-      currentRecentlyPlayed || recentlyPlayedRef.current;
-
-    console.log(
-      "Computing new next song. Current song:",
-      playerStateRef.current.currentSong.title
-    );
-    console.log("Recently played to use:", recentlyPlayedToUse.slice(0, 3));
 
     const songs = playerStateRef.current.currentPlaylist.songs;
     const currentIndex = songs.findIndex(
@@ -102,21 +93,19 @@ export const createNextSongManager = (
       );
       if (available.length > 0) {
         if (settingsRef.current.smartShuffle) {
-          // Use smart shuffle algorithm
+          // Use improved smart shuffle algorithm
           nextSong = getSmartShuffledSong(
             available,
             playerStateRef.current.currentSong!.id,
-            recentlyPlayedToUse
+            playHistoryRef.current
           );
           if (!nextSong) {
             nextSong = available[Math.floor(Math.random() * available.length)];
           }
-          console.log("Smart shuffle selected:", nextSong?.title);
         } else {
           // Use regular shuffle
           const randomIndex = Math.floor(Math.random() * available.length);
           nextSong = available[randomIndex];
-          console.log("Regular shuffle selected:", nextSong?.title);
         }
       }
     } else {
@@ -125,26 +114,55 @@ export const createNextSongManager = (
       } else if (playerStateRef.current.repeat === "all") {
         nextSong = songs[0];
       }
-      console.log("Sequential next song:", nextSong?.title);
     }
 
     // Cache the result
     nextSongCacheRef.current = nextSong;
     nextSongCacheValidRef.current = true;
-    console.log("Cached next song:", nextSong?.title);
 
     return nextSong;
   };
 
-  // Function to invalidate the next song cache
-  const invalidateNextSongCache = () => {
-    console.log("Invalidating next song cache");
-    nextSongCacheRef.current = null;
-    nextSongCacheValidRef.current = false;
+  // Throttled function to invalidate the next song cache
+  const invalidateNextSongCache = (force = false) => {
+    const now = Date.now();
+    if (force || now - lastCacheInvalidation > CACHE_INVALIDATION_THROTTLE) {
+      nextSongCacheRef.current = null;
+      nextSongCacheValidRef.current = false;
+      lastCacheInvalidation = now;
+    }
+  };
+
+  // Function to update play history
+  const updatePlayHistory = (
+    playHistoryRef: MutableRefObject<
+      Map<string, { lastPlayed: number; playCount: number }>
+    >,
+    songId: string
+  ) => {
+    const now = Date.now();
+    const currentHistory = playHistoryRef.current.get(songId) || {
+      lastPlayed: 0,
+      playCount: 0,
+    };
+
+    playHistoryRef.current.set(songId, {
+      lastPlayed: now,
+      playCount: currentHistory.playCount + 1,
+    });
+
+    // Clean up old entries (older than 7 days)
+    const weekAgo = now - 7 * 24 * 60 * 60 * 1000;
+    for (const [id, history] of playHistoryRef.current.entries()) {
+      if (history.lastPlayed < weekAgo) {
+        playHistoryRef.current.delete(id);
+      }
+    }
   };
 
   return {
     getAndCacheNextSong,
     invalidateNextSongCache,
+    updatePlayHistory,
   };
 };

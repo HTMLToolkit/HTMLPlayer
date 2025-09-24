@@ -20,6 +20,7 @@ export class CrossfadeManager {
   private currentSource: AudioSource | null = null;
   private nextSource: AudioSource | null = null;
   private crossfadeInProgress = false;
+  private crossfadeTimeout: number | null = null;
 
   constructor(audioContext: AudioContext) {
     this.audioContext = audioContext;
@@ -72,7 +73,7 @@ export class CrossfadeManager {
         nextSource: !!this.nextSource,
         crossfadeInProgress: this.crossfadeInProgress,
       });
-      return;
+      throw new Error("Cannot start crossfade");
     }
 
     this.crossfadeInProgress = true;
@@ -113,13 +114,14 @@ export class CrossfadeManager {
       }
 
       // Wait for crossfade to complete
-      setTimeout(() => {
+      this.crossfadeTimeout = window.setTimeout(() => {
         console.log("CrossfadeManager: Crossfade completed");
         this.completeCrossfade();
       }, duration * 1000);
     } catch (error) {
       console.error("CrossfadeManager: Crossfade failed:", error);
       this.crossfadeInProgress = false;
+      this.clearCrossfadeTimeout();
       throw error;
     }
   }
@@ -138,6 +140,17 @@ export class CrossfadeManager {
     this.currentSource = this.nextSource;
     this.nextSource = null;
     this.crossfadeInProgress = false;
+    this.clearCrossfadeTimeout();
+  }
+
+  /**
+   * Clear crossfade timeout
+   */
+  private clearCrossfadeTimeout() {
+    if (this.crossfadeTimeout) {
+      clearTimeout(this.crossfadeTimeout);
+      this.crossfadeTimeout = null;
+    }
   }
 
   /**
@@ -145,6 +158,8 @@ export class CrossfadeManager {
    */
   cancelCrossfade() {
     if (!this.crossfadeInProgress) return;
+
+    console.log("CrossfadeManager: Cancelling crossfade");
 
     // Cancel all scheduled changes
     this.currentSource?.gainNode.gain.cancelScheduledValues(
@@ -165,6 +180,7 @@ export class CrossfadeManager {
     }
 
     this.crossfadeInProgress = false;
+    this.clearCrossfadeTimeout();
   }
 
   /**

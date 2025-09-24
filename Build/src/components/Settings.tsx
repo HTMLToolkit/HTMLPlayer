@@ -184,6 +184,24 @@ export const Settings = ({
                   className={styles.slider}
                 />
               </div>
+
+                            <div className={styles.settingItem}>
+                <div className={styles.settingInfo}>
+                  <label htmlFor="gapless-playback">
+                    {t("settings.playback.gapless")}
+                  </label>
+                  <p className={styles.settingDescription}>
+                    {t("settings.playback.gaplessDesc")}
+                  </p>
+                </div>
+                <Switch
+                  id="gapless-playback"
+                  checked={settings.gaplessPlayback}
+                  onCheckedChange={(val) =>
+                    onSettingsChange({ gaplessPlayback: val })
+                  }
+                />
+              </div>
             </section>
 
             {/* Playback Settings */}
@@ -290,24 +308,6 @@ export const Settings = ({
                   checked={sessionRestore}
                   onCheckedChange={(val) =>
                     onSettingsChange({ sessionRestore: val })
-                  }
-                />
-              </div>
-
-              <div className={styles.settingItem}>
-                <div className={styles.settingInfo}>
-                  <label htmlFor="gapless-playback">
-                    {t("settings.playback.gapless")}
-                  </label>
-                  <p className={styles.settingDescription}>
-                    {t("settings.playback.gaplessDesc")}
-                  </p>
-                </div>
-                <Switch
-                  id="gapless-playback"
-                  checked={settings.gaplessPlayback}
-                  onCheckedChange={(val) =>
-                    onSettingsChange({ gaplessPlayback: val })
                   }
                 />
               </div>

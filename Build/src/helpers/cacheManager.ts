@@ -1,6 +1,12 @@
 import { MutableRefObject, useCallback } from "react";
 import { musicIndexedDbHelper } from "./musicIndexedDbHelper";
 
+const CACHE_CONFIG = {
+  PREV_SONGS: 2, // Number of previous songs to cache
+  NEXT_SONGS: 3, // Number of next songs to cache
+  CACHE_EXPIRY: 5 * 60 * 1000, // 5 minutes in milliseconds
+};
+
 // Cache management utilities
 export const createCacheManager = (
   songCacheRef: MutableRefObject<Map<string, CachedSong>>
@@ -107,12 +113,8 @@ export const createCacheManager = (
     playlist: Playlist | null,
     playerStateRef: MutableRefObject<any>,
     settingsRef: MutableRefObject<any>,
-    recentlyPlayed: string[],
-    getSmartShuffledSong: (
-      availableSongs: Song[],
-      currentSongId: string,
-      recentlyPlayedIds: string[]
-    ) => Song | null
+    playHistoryRef: MutableRefObject<Map<string, { lastPlayed: number; playCount: number }>>,
+    getSmartShuffledSong: (availableSongs: Song[], currentSongId: string, playHistory: Map<string, { lastPlayed: number; playCount: number }>) => Song | null
   ) => {
     if (!currentSong || !playlist) return;
 
@@ -142,7 +144,7 @@ export const createCacheManager = (
           nextShuffledSong = getSmartShuffledSong(
             availableSongs,
             currentSong.id,
-            recentlyPlayed
+            playHistoryRef.current
           );
         } else {
           // Use regular shuffle for caching
