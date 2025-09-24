@@ -5,7 +5,15 @@
 <!-- markdownlint-disable MD003 -->
 <!-- markdownlint-disable MD051 -->
 [![All Contributors](https://img.shields.io/github/all-contributors/HTMLToolkit/HTMLPlayer?color=ee8449&style=flat-square)](#contributors)
+
 ---
+
+<a href="https://htmltoolkit.github.io/HTMLPlayer">
+  <picture>
+    <source srcset="https://chromeos.dev/badges/en/dark.svg" media="(prefers-color-scheme: dark)">
+    <img src="https://chromeos.dev/badges/en/primary.svg" alt="Add to Chromebook"/>
+  </picture>
+</a>
 
 ## Overview
 
