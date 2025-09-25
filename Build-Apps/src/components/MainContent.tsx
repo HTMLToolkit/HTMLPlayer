@@ -29,7 +29,6 @@ import {
   DialogFooter,
 } from "./Dialog";
 import modalStyles from "./Dialog.module.css";
-import { Song } from "../hooks/musicPlayerHook";
 import styles from "./MainContent.module.css";
 import PersistentDropdownMenu from "./PersistentDropdownMenu";
 import { useTranslation } from "react-i18next";

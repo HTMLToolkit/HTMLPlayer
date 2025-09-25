@@ -4,96 +4,16 @@ import { musicIndexedDbHelper } from "../helpers/musicIndexedDbHelper";
 import { toggleMiniplayer } from "../components/Miniplayer";
 import { CrossfadeManager, AudioSource } from "../helpers/crossfadeHelper";
 import DiscordService from "../helpers/discordService";
-
-// Debouncing utility for IndexedDB saves
-const debounce = (func: (...args: any[]) => void, wait: number) => {
-  let timeout: number;
-  return function executedFunction(...args: any[]) {
-    const later = () => {
-      clearTimeout(timeout);
-      func(...args);
-    };
-    clearTimeout(timeout);
-    timeout = window.setTimeout(later, wait);
-  };
-};
-export type Song = {
-  id: string;
-  title: string;
-  artist: string;
-  album: string;
-  duration: number;
-  url: string;
-  fileData?: ArrayBuffer;
-  mimeType?: string;
-  hasStoredAudio?: boolean;
-  albumArt?: string;
-};
-
-export type Playlist = {
-  id: string;
-  name: string;
-  songs: Song[];
-};
-
-export interface PlayerSettings {
-  volume: number;
-  crossfade: number;
-  colorTheme: string;
-  defaultShuffle: boolean;
-  defaultRepeat: "off" | "one" | "all";
-  autoPlayNext: boolean;
-  themeMode: "light" | "dark" | "auto";
-  compactMode: boolean;
-  showAlbumArt: boolean;
-  showLyrics: boolean;
-  sessionRestore: boolean;
-  lastPlayedSongId?: string;
-  lastPlayedPlaylistId?: string;
-  language: string;
-  tempo: number;
-  gaplessPlayback: boolean;
-  smartShuffle: boolean;
-  discordUserId?: string;
-  discordEnabled: boolean;
-  recentlyPlayed?: string[];
-}
-
-export type PlayerState = {
-  currentSong: Song | null;
-  currentPlaylist: Playlist | null;
-  isPlaying: boolean;
-  volume: number;
-  currentTime: number;
-  duration: number;
-  shuffle: boolean;
-  repeat: "off" | "one" | "all";
-  analyserNode: AnalyserNode | null;
-  view: "songs" | "artist" | "album";
-  currentArtist?: string;
-  currentAlbum?: string;
-};
-
-export type MusicLibrary = {
-  songs: Song[];
-  playlists: Playlist[];
-  favorites: string[];
-};
-
-// Type for cached song
-type CachedSong = {
-  song: Song;
-  audioBuffer: ArrayBuffer;
-  url: string;
-  loadedAt: number;
-};
-
-// Cache configuration
-const CACHE_CONFIG = {
-  PREV_SONGS: 2, // Number of previous songs to cache
-  NEXT_SONGS: 3, // Number of next songs to cache
-  CACHE_EXPIRY: 5 * 60 * 1000, // 5 minutes in milliseconds
-};
+import { getValidTempo } from "../helpers/musicPlayerUtils";
+import { createCacheManager } from "../helpers/cacheManager";
+import {
+  getSmartShuffledSong,
+  createNextSongManager,
+} from "../helpers/shuffleManager";
+import { createCrossfadeManager } from "../helpers/crossfadeUtils";
+import { createAudioProcessor } from "../helpers/audioProcessor";
+import { createPlaylistManager } from "../helpers/playlistManager";
+import { debounce } from "lodash";
 
 export const useMusicPlayer = () => {
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -106,10 +26,12 @@ export const useMusicPlayer = () => {
   const currentAudioSourceRef = useRef<AudioSource | null>(null);
   const nextAudioSourceRef = useRef<AudioSource | null>(null);
   const crossfadeTimeoutRef = useRef<number | null>(null);
+  const preloadTimeoutRef = useRef<number | null>(null);
 
   // Cache the next song decision to ensure crossfade and playNext use the same song
   const nextSongCacheRef = useRef<Song | null>(null);
   const nextSongCacheValidRef = useRef<boolean>(false);
+  const isPreloadingRef = useRef<boolean>(false);
 
   const [isInitialized, setIsInitialized] = useState(false);
   const playNextRef = useRef<(() => void) | null>(null);
@@ -157,10 +79,14 @@ export const useMusicPlayer = () => {
 
   const [searchQuery, setSearchQuery] = useState("");
 
-  // Track recently played songs for smart shuffle
-  const [recentlyPlayed, setRecentlyPlayed] = useState<string[]>([]);
+  // Create refs for settings and state
+  const playHistoryRef = useRef<
+    Map<string, { lastPlayed: number; playCount: number }>
+  >(new Map());
+  const settingsRef = useRef(settings);
+  const playerStateRef = useRef(playerState);
 
-  // Create debounced save functions to prevent excessive IndexedDB writes
+  // Create debounced save functions
   const debouncedSaveLibrary = useCallback(
     debounce(async (library: MusicLibrary) => {
       try {
@@ -169,352 +95,139 @@ export const useMusicPlayer = () => {
       } catch (error) {
         console.error("Failed to persist library data:", error);
       }
-    }, 500), // 500ms delay
+    }, 500),
     []
   );
 
   const debouncedSaveSettings = useCallback(
-    debounce(async (settings: PlayerSettings, recentlyPlayed: string[]) => {
-      try {
-        const settingsWithRecentlyPlayed = {
-          ...settings,
-          recentlyPlayed: recentlyPlayed,
-        };
-        await musicIndexedDbHelper.saveSettings(settingsWithRecentlyPlayed);
-        console.log("Saved playerSettings to IndexedDB");
-      } catch (error) {
-        console.error("Failed to persist settings:", error);
-      }
-    }, 300), // 300ms delay
+    debounce(
+      async (
+        settings: PlayerSettings,
+        playHistory: Map<string, { lastPlayed: number; playCount: number }>
+      ) => {
+        try {
+          // Convert play history to serializable format
+          const playHistoryArray = Array.from(playHistory.entries());
+          const settingsWithPlayHistory = {
+            ...settings,
+            playHistory: playHistoryArray,
+          };
+          await musicIndexedDbHelper.saveSettings(settingsWithPlayHistory);
+          console.log("Saved playerSettings to IndexedDB");
+        } catch (error) {
+          console.error("Failed to persist settings:", error);
+        }
+      },
+      300
+    ),
     []
   );
 
-  const settingsRef = useRef(settings);
-  const playerStateRef = useRef(playerState);
-  const libraryRef = useRef(library);
-  const recentlyPlayedRef = useRef<string[]>([]);
-
-  // Cache management functions
-  const cacheSong = async (song: Song) => {
-    // Check if song is already cached by ID
-    if (songCacheRef.current.has(song.id)) {
-      // Update the cached song's URL if it's from IndexedDB
-      if (song.hasStoredAudio && song.url.startsWith("indexeddb://")) {
-        const cached = songCacheRef.current.get(song.id);
-        if (cached) {
-          return; // URL is still valid
-        }
-      }
-      return;
-    }
-
-    try {
-      let audioData;
-      // First try to load from IndexedDB
-      if (song.hasStoredAudio) {
-        audioData = await musicIndexedDbHelper.loadSongAudio(song.id);
-        if (audioData) {
-          const url = URL.createObjectURL(
-            new Blob([audioData.fileData], { type: audioData.mimeType })
-          );
-          songCacheRef.current.set(song.id, {
-            song: { ...song, url }, // Update song with real URL
-            audioBuffer: audioData.fileData,
-            url,
-            loadedAt: Date.now(),
-          });
-          return;
-        }
-      }
-
-      // If not in IndexedDB or failed to load, fetch from original URL
-      // Don't try to fetch if we don't have a real URL
-      if (!song.url || song.url.startsWith("indexeddb://")) {
-        console.error("No valid URL to fetch song from:", song.id);
-        return;
-      }
-
-      const response = await fetch(song.url);
-      const buffer = await response.arrayBuffer();
-      const mimeType = response.headers.get("content-type") || "audio/mpeg";
-      const url = URL.createObjectURL(new Blob([buffer], { type: mimeType }));
-
-      // Cache in memory
-      songCacheRef.current.set(song.id, {
-        song: { ...song, url }, // Update song with real URL
-        audioBuffer: buffer,
-        url,
-        loadedAt: Date.now(),
-      });
-
-      // Save to IndexedDB for future use
-      await musicIndexedDbHelper.saveSongAudio(song.id, {
-        fileData: buffer,
-        mimeType: mimeType,
-      });
-    } catch (error) {
-      console.error("Failed to cache song:", error);
-    }
-  };
-
-  const getCachedSong = (songId: string): CachedSong | undefined => {
-    return songCacheRef.current.get(songId);
-  };
-
-  const clearExpiredCache = () => {
-    const now = Date.now();
-    for (const [id, cached] of songCacheRef.current.entries()) {
-      if (now - cached.loadedAt > CACHE_CONFIG.CACHE_EXPIRY) {
-        URL.revokeObjectURL(cached.url);
-        songCacheRef.current.delete(id);
-      }
-    }
-  };
-
-  // Helper to ensure playlist songs have correct URLs
-  const prepareSongsForPlaylist = useCallback((songs: Song[]): Song[] => {
-    return songs.map((song) => {
-      if (song.hasStoredAudio) {
-        // Always use indexeddb:// URL for stored songs
-        return {
-          ...song,
-          url: `indexeddb://${song.id}`,
-        };
-      } else if (songCacheRef.current.has(song.id)) {
-        // If song is in cache, use its cached URL
-        const cached = songCacheRef.current.get(song.id);
-        return {
-          ...song,
-          url: cached?.url || song.url,
-        };
-      }
-      return song;
-    });
-  }, []);
-
-  // Smart shuffle algorithm that avoids recently played songs
-  const getSmartShuffledSong = useCallback(
-    (
-      availableSongs: Song[],
-      currentSongId: string,
-      recentlyPlayedIds: string[]
-    ): Song | null => {
-      if (availableSongs.length === 0) return null;
-
-      // Filter out the current song and recently played songs
-      const filteredSongs = availableSongs.filter(
-        (song) =>
-          song.id !== currentSongId && !recentlyPlayedIds.includes(song.id)
-      );
-
-      // If we've filtered out too many songs, fall back to avoiding only the last few
-      const songsToChooseFrom =
-        filteredSongs.length > 0
-          ? filteredSongs
-          : availableSongs.filter(
-              (song) =>
-                song.id !== currentSongId &&
-                !recentlyPlayedIds
-                  .slice(-Math.min(3, recentlyPlayedIds.length))
-                  .includes(song.id)
-            );
-
-      // If still no songs available, just exclude current song
-      const finalSongs =
-        songsToChooseFrom.length > 0
-          ? songsToChooseFrom
-          : availableSongs.filter((song) => song.id !== currentSongId);
-
-      if (finalSongs.length === 0) return null;
-
-      // Weighted random selection - prefer songs that haven't been played recently
-      const weights = finalSongs.map((song) => {
-        const timesInRecent = recentlyPlayedIds.filter(
-          (id) => id === song.id
-        ).length;
-        return Math.max(1, 10 - timesInRecent * 3); // Higher weight for less recently played
-      });
-
-      const totalWeight = weights.reduce((sum, weight) => sum + weight, 0);
-      let randomWeight = Math.random() * totalWeight;
-
-      for (let i = 0; i < finalSongs.length; i++) {
-        randomWeight -= weights[i];
-        if (randomWeight <= 0) {
-          return finalSongs[i];
-        }
-      }
-
-      // Fallback to the last song
-      return finalSongs[finalSongs.length - 1];
-    },
-    []
+  // Initialize the managers
+  const cacheManager = createCacheManager(songCacheRef);
+  const nextSongManager = createNextSongManager(
+    nextSongCacheRef,
+    nextSongCacheValidRef
+  );
+  const crossfadeManager = createCrossfadeManager(
+    audioRef,
+    nextAudioRef,
+    crossfadeManagerRef,
+    currentAudioSourceRef,
+    nextAudioSourceRef
+  );
+  const audioProcessor = createAudioProcessor();
+  const playlistManager = createPlaylistManager(
+    setLibrary,
+    library,
+    setSearchQuery,
+    searchQuery,
+    setPlayerState
   );
 
-  // Function to determine and cache the next song to ensure consistency between crossfade and playNext
-  const getAndCacheNextSong = useCallback(
-    (currentRecentlyPlayed?: string[]): Song | null => {
-      if (
-        !playerStateRef.current.currentPlaylist ||
-        !playerStateRef.current.currentSong
-      ) {
-        return null;
-      }
+  // Extract manager functions
+  const {
+    cacheSong,
+    getCachedSong,
+    prepareSongsForPlaylist,
+    updateSongCache,
+    clearAllCache,
+  } = cacheManager;
 
-      // If we have a valid cached next song, return it
-      if (nextSongCacheValidRef.current && nextSongCacheRef.current) {
-        console.log("Using cached next song:", nextSongCacheRef.current.title);
-        return nextSongCacheRef.current;
-      }
+  const { getAndCacheNextSong, invalidateNextSongCache, updatePlayHistory } =
+    nextSongManager;
 
-      // Use provided recently played list or current state from ref
-      const recentlyPlayedToUse =
-        currentRecentlyPlayed || recentlyPlayedRef.current;
+  const {
+    setupCrossfadeManager,
+    prepareNextSongForCrossfade,
+    preloadNextSong,
+    startCrossfadeTransition,
+    cleanupCrossfadeManager,
+  } = crossfadeManager;
 
-      console.log(
-        "Computing new next song. Current song:",
-        playerStateRef.current.currentSong.title
-      );
-      console.log("Recently played to use:", recentlyPlayedToUse.slice(0, 3));
-      console.log("Recently played from state:", recentlyPlayed.slice(0, 3));
-      console.log(
-        "Recently played from ref:",
-        recentlyPlayedRef.current.slice(0, 3)
-      );
+  const { processAudioBatch } = audioProcessor;
 
-      const songs = playerStateRef.current.currentPlaylist.songs;
-      const currentIndex = songs.findIndex(
-        (s) => s.id === playerStateRef.current.currentSong!.id
-      );
-      let nextSong: Song | null = null;
+  const {
+    createPlaylist,
+    removePlaylist,
+    addToFavorites,
+    removeFromFavorites,
+    addToPlaylist,
+    toggleFavorite,
+    isFavorited,
+    getFavoriteSongs,
+    searchSongs,
+    getSearchResults,
+    navigateToArtist,
+    navigateToAlbum,
+    navigateToSongs,
+    exportPlaylist,
+    importPlaylist,
+  } = playlistManager;
 
-      if (playerStateRef.current.shuffle) {
-        const available = songs.filter(
-          (s) => s.id !== playerStateRef.current.currentSong!.id
-        );
-        if (available.length > 0) {
-          if (settingsRef.current.smartShuffle) {
-            // Use smart shuffle algorithm
-            nextSong = getSmartShuffledSong(
-              available,
-              playerStateRef.current.currentSong!.id,
-              recentlyPlayedToUse
-            );
-            if (!nextSong) {
-              nextSong =
-                available[Math.floor(Math.random() * available.length)];
-            }
-            console.log("Smart shuffle selected:", nextSong?.title);
-          } else {
-            // Use regular shuffle
-            const randomIndex = Math.floor(Math.random() * available.length);
-            nextSong = available[randomIndex];
-            console.log("Regular shuffle selected:", nextSong?.title);
-          }
-        }
+  const setupAudioContext = useCallback(() => {
+    if (!audioContextRef.current && audioRef.current) {
+      const context = new (window.AudioContext ||
+        (window as any).webkitAudioContext)();
+      const analyser = context.createAnalyser();
+      analyser.fftSize = 2048;
+
+      audioContextRef.current = context;
+
+      // Setup crossfade manager with the new audio context
+      setupCrossfadeManager(context);
+
+      // Connect analyzer between master gain and destination
+      if (crossfadeManagerRef.current) {
+        crossfadeManagerRef.current.getMasterGainNode().connect(analyser);
+        analyser.connect(context.destination);
       } else {
-        if (currentIndex < songs.length - 1) {
-          nextSong = songs[currentIndex + 1];
-        } else if (playerStateRef.current.repeat === "all") {
-          nextSong = songs[0];
-        }
-        console.log("Sequential next song:", nextSong?.title);
+        // Fallback: connect directly
+        analyser.connect(context.destination);
       }
 
-      // Cache the result
-      nextSongCacheRef.current = nextSong;
-      nextSongCacheValidRef.current = true;
-      console.log("Cached next song:", nextSong?.title);
+      setPlayerState((prev) => ({ ...prev, analyserNode: analyser }));
+    }
+  }, [setupCrossfadeManager]);
 
-      return nextSong;
-    },
-    [getSmartShuffledSong]
-  );
+  // Clear timeouts on unmount
+  useEffect(() => {
+    return () => {
+      cleanupCrossfadeManager();
 
-  // Function to invalidate the next song cache
-  const invalidateNextSongCache = useCallback(() => {
-    console.log("Invalidating next song cache");
-    nextSongCacheRef.current = null;
-    nextSongCacheValidRef.current = false;
-  }, []);
-
-  const updateSongCache = async (
-    currentSong: Song | null,
-    playlist: Playlist | null
-  ) => {
-    if (!currentSong || !playlist) return;
-
-    clearExpiredCache();
-
-    const currentIndex = playlist.songs.findIndex(
-      (s) => s.id === currentSong.id
-    );
-    if (currentIndex === -1) return;
-
-    // Get the range of songs to cache
-    const start = Math.max(0, currentIndex - CACHE_CONFIG.PREV_SONGS);
-    const end = Math.min(
-      playlist.songs.length - 1,
-      currentIndex + CACHE_CONFIG.NEXT_SONGS
-    );
-
-    // Get next shuffled song if shuffle is enabled
-    let nextShuffledSong: Song | null = null;
-    if (playerStateRef.current.shuffle) {
-      const availableSongs = playlist.songs.filter(
-        (_, i) => i !== currentIndex
-      );
-      if (availableSongs.length > 0) {
-        if (settingsRef.current.smartShuffle) {
-          // Use smart shuffle for caching
-          nextShuffledSong = getSmartShuffledSong(
-            availableSongs,
-            currentSong.id,
-            recentlyPlayed
-          );
-        } else {
-          // Use regular shuffle for caching
-          const randomIndex = Math.floor(Math.random() * availableSongs.length);
-          nextShuffledSong = availableSongs[randomIndex];
-        }
+      // Clear any timeouts
+      if (crossfadeTimeoutRef.current) {
+        clearTimeout(crossfadeTimeoutRef.current);
       }
-    }
-
-    // Create a set of songs to cache
-    const songsToCache = new Set([
-      ...playlist.songs.slice(start, end + 1),
-      ...(nextShuffledSong ? [nextShuffledSong] : []),
-    ]);
-
-    // Cache new songs and remove old ones
-    const promises: Promise<void>[] = [];
-    for (const song of songsToCache) {
-      if (!songCacheRef.current.has(song.id)) {
-        promises.push(cacheSong(song));
+      if (preloadTimeoutRef.current) {
+        clearTimeout(preloadTimeoutRef.current);
       }
-    }
 
-    // Remove songs that are no longer needed
-    for (const [id, cached] of songCacheRef.current.entries()) {
-      // Compare by ID instead of full song object
-      if (
-        !Array.from(songsToCache).some((song) => song.id === cached.song.id)
-      ) {
-        URL.revokeObjectURL(cached.url);
-        songCacheRef.current.delete(id);
-      }
-    }
+      clearAllCache();
+    };
+  }, []); // Only run on unmount
 
-    await Promise.all(promises);
-  };
-
-  const getValidTempo = (tempo: number | undefined) => {
-    if (typeof tempo !== "number" || !Number.isFinite(tempo) || tempo <= 0) {
-      return 1; // fallback to normal speed
-    }
-    return tempo;
-  };
-
+  // Initialize data loading
   useEffect(() => {
     const loadPersistedData = async () => {
       try {
@@ -528,6 +241,7 @@ export const useMusicPlayer = () => {
               (song: Song) => song.url && song.url !== ""
             ),
           };
+
           // Create or ensure All Songs playlist exists with prepared songs
           const allSongsPlaylist = {
             id: "all-songs",
@@ -538,15 +252,17 @@ export const useMusicPlayer = () => {
           // Add or update All Songs playlist
           const updatedLibrary = {
             ...validLibrary,
-            playlists: validLibrary.playlists.some((p) => p.id === "all-songs")
-              ? validLibrary.playlists.map((p) =>
-                  p.id === "all-songs"
-                    ? {
-                        ...p,
-                        songs: prepareSongsForPlaylist(validLibrary.songs),
-                      }
-                    : p
-                )
+            playlists: validLibrary.playlists.some(
+              (p: any) => p.id === "all-songs"
+            )
+              ? validLibrary.playlists.map((p: any) =>
+                p.id === "all-songs"
+                  ? {
+                    ...p,
+                    songs: prepareSongsForPlaylist(validLibrary.songs),
+                  }
+                  : p
+              )
               : [allSongsPlaylist, ...validLibrary.playlists],
           };
 
@@ -560,13 +276,14 @@ export const useMusicPlayer = () => {
             if (persistedSettings?.lastPlayedSongId) {
               songToPlay =
                 updatedLibrary.songs.find(
-                  (s) => s.id === persistedSettings.lastPlayedSongId
+                  (s: Song) => s.id === persistedSettings.lastPlayedSongId
                 ) || null;
             }
             if (persistedSettings?.lastPlayedPlaylistId) {
               playlistToSet =
                 updatedLibrary.playlists.find(
-                  (p) => p.id === persistedSettings.lastPlayedPlaylistId
+                  (p: Playlist) =>
+                    p.id === persistedSettings.lastPlayedPlaylistId
                 ) || null;
             }
           }
@@ -597,18 +314,18 @@ export const useMusicPlayer = () => {
             currentTime: 0,
             duration: songToPlay?.duration || 0,
           }));
-        }
+          if (persistedSettings) {
+            setSettings(persistedSettings);
 
-        if (persistedSettings) {
-          setSettings(persistedSettings);
-
-          // Restore recently played list if available
-          if (persistedSettings.recentlyPlayed) {
-            setRecentlyPlayed(persistedSettings.recentlyPlayed);
-            console.log(
-              "Restored recently played list:",
-              persistedSettings.recentlyPlayed.slice(0, 3)
-            );
+            // Restore play history if available
+            if (persistedSettings.playHistory) {
+              playHistoryRef.current = new Map(persistedSettings.playHistory);
+              console.log(
+                "Restored play history with",
+                persistedSettings.playHistory.length,
+                "entries"
+              );
+            }
           }
         }
       } catch (error) {
@@ -618,8 +335,9 @@ export const useMusicPlayer = () => {
       }
     };
     loadPersistedData();
-  }, []);
+  }, [prepareSongsForPlaylist]);
 
+  // Save data when changed
   useEffect(() => {
     if (!isInitialized) return;
     debouncedSaveLibrary(library);
@@ -627,437 +345,43 @@ export const useMusicPlayer = () => {
 
   useEffect(() => {
     if (!isInitialized) return;
-    debouncedSaveSettings(settings, recentlyPlayed);
-  }, [settings, recentlyPlayed, isInitialized, debouncedSaveSettings]);
+    debouncedSaveSettings(settings, playHistoryRef.current);
+  }, [settings, isInitialized, debouncedSaveSettings]);
 
-  const setupAudioContext = useCallback(() => {
-    if (!audioContextRef.current && audioRef.current) {
-      const context = new (window.AudioContext ||
-        (window as any).webkitAudioContext)();
-      const analyser = context.createAnalyser();
-      analyser.fftSize = 2048;
-
-      // Initialize crossfade manager
-      if (!crossfadeManagerRef.current) {
-        crossfadeManagerRef.current = new CrossfadeManager(context);
-      }
-
-      // Setup current audio source
-      if (!currentAudioSourceRef.current) {
-        currentAudioSourceRef.current =
-          crossfadeManagerRef.current.createAudioSource(audioRef.current);
-        crossfadeManagerRef.current.setCurrentSource(
-          currentAudioSourceRef.current
-        );
-      }
-
-      // Connect analyzer to the crossfade manager's master gain
-      currentAudioSourceRef.current.sourceNode.connect(analyser);
-
-      audioContextRef.current = context;
-      setPlayerState((prev) => ({ ...prev, analyserNode: analyser }));
-    }
-  }, []);
-
-  // Cleanup cache on unmount
-  useEffect(() => {
-    return () => {
-      // Cleanup crossfade manager
-      if (crossfadeManagerRef.current) {
-        crossfadeManagerRef.current.destroy();
-      }
-
-      // Clear any crossfade timeout
-      if (crossfadeTimeoutRef.current) {
-        clearTimeout(crossfadeTimeoutRef.current);
-      }
-
-      // Revoke all object URLs and clear the cache
-      for (const [, cached] of songCacheRef.current.entries()) {
-        URL.revokeObjectURL(cached.url);
-      }
-      songCacheRef.current.clear();
-    };
-  }, []);
-
-  // Crossfade helper functions
-  const getNextSongForCrossfade = (): Song | null => {
-    return getAndCacheNextSong();
-  };
-
-  const prepareNextSongForCrossfade = async (nextSong: Song) => {
-    if (!nextAudioRef.current || !crossfadeManagerRef.current) return;
-
-    // Check if song is already preloaded
-    if (
-      nextAudioRef.current.src &&
-      !nextAudioRef.current.src.includes("about:blank")
-    ) {
-      // Song is already preloaded, just set up the audio source
-      nextAudioRef.current.pause();
-      if (!nextAudioSourceRef.current) {
-        nextAudioSourceRef.current =
-          crossfadeManagerRef.current.createAudioSource(nextAudioRef.current);
-      }
-      crossfadeManagerRef.current.prepareNextSource(nextAudioSourceRef.current);
-      return;
-    }
-
-    // Song not preloaded, do full preparation
-    await cacheSong(nextSong);
-    const cachedSong = getCachedSong(nextSong.id);
-    if (!cachedSong) {
-      throw new Error("Failed to cache next song for crossfade");
-    }
-
-    // Set up the next audio element
-    nextAudioRef.current.pause();
-    nextAudioRef.current.src = cachedSong.url;
-    nextAudioRef.current.playbackRate = getValidTempo(
-      settingsRef.current.tempo
-    );
-
-    // Create audio source for crossfade manager
-    if (!nextAudioSourceRef.current) {
-      nextAudioSourceRef.current =
-        crossfadeManagerRef.current.createAudioSource(nextAudioRef.current);
-    }
-
-    // Prepare for crossfade
-    crossfadeManagerRef.current.prepareNextSource(nextAudioSourceRef.current);
-  };
-
-  const updatePlayerStateAfterCrossfade = (nextSong: Song) => {
-    console.log("updatePlayerStateAfterCrossfade called with:", nextSong.title);
-    console.log(
-      "Current song before update:",
-      playerStateRef.current.currentSong?.title
-    );
-    console.log(
-      "Current recently played before update:",
-      recentlyPlayed.slice(0, 3)
-    );
-
-    // Update recently played ONLY if we're in shuffle mode and have a current song
-    if (playerStateRef.current.currentSong && playerStateRef.current.shuffle) {
-      const updatedRecentlyPlayed = [
-        playerStateRef.current.currentSong.id,
-        ...recentlyPlayed.slice(0, 19),
-      ];
-      console.log(
-        "Updated recently played after crossfade:",
-        updatedRecentlyPlayed.slice(0, 3)
-      );
-
-      // Update the state
-      setRecentlyPlayed(updatedRecentlyPlayed);
-    }
-
-    // Swap audio elements - next becomes current
-    const tempAudio = audioRef.current;
-    audioRef.current = nextAudioRef.current;
-    nextAudioRef.current = tempAudio;
-
-    // Swap audio sources
-    const tempSource = currentAudioSourceRef.current;
-    currentAudioSourceRef.current = nextAudioSourceRef.current;
-    nextAudioSourceRef.current = tempSource;
-
-    // Update player state
-    setPlayerState((prev) => ({
-      ...prev,
-      currentSong: nextSong,
-      currentTime: 0,
-      isPlaying: true,
-    }));
-
-    // Only invalidate next song cache if we're actually in shuffle mode or smart shuffle is enabled
-    // The cache invalidation will be handled by the useEffect hooks that watch for state changes
-    // No need to invalidate here since the state change will trigger it automatically
-  };
-
-  useEffect(() => {
-    // Initialize primary audio element
-    audioRef.current = new Audio();
-    audioRef.current.crossOrigin = "anonymous";
-    audioRef.current.controls = true; // Enable browser controls
-
-    // Initialize secondary audio element for crossfading
-    nextAudioRef.current = new Audio();
-    nextAudioRef.current.crossOrigin = "anonymous";
-    nextAudioRef.current.controls = true;
-
-    const audio = audioRef.current;
-
-    const handleTimeUpdate = () => {
-      const currentAudio = audioRef.current;
-      if (!currentAudio) return;
-
-      setPlayerState((prev) => ({
-        ...prev,
-        currentTime: currentAudio.currentTime,
-      }));
-
-      // Debug the crossfade conditions first
-      const crossfadeEnabled = settingsRef.current.crossfade > 0;
-      const autoPlayNext = settingsRef.current.autoPlayNext;
-      const playNextAvailable = !!playNextRef.current;
-      const notRepeatOne = playerStateRef.current.repeat !== "one";
-      const hasDuration = currentAudio.duration > 0;
-      const notCrossfading = !crossfadeManagerRef.current?.isCrossfading();
-
-      // Handle crossfade timing - crossfade can work independently of gapless setting
-      if (
-        crossfadeEnabled &&
-        autoPlayNext &&
-        playNextAvailable &&
-        notRepeatOne &&
-        hasDuration &&
-        notCrossfading
-      ) {
-        const timeRemaining = currentAudio.duration - currentAudio.currentTime;
-        const crossfadeDuration = settingsRef.current.crossfade;
-        const preloadTime = Math.max(crossfadeDuration + 2, 5); // Preload 2 seconds before crossfade starts, minimum 5 seconds
-
-        // Preload next song early
-        if (timeRemaining <= preloadTime && timeRemaining > preloadTime - 0.5) {
-          preloadNextSong();
-        }
-
-        // Start crossfade when time remaining equals crossfade duration
-        if (
-          timeRemaining <= crossfadeDuration &&
-          timeRemaining > crossfadeDuration - 0.5
-        ) {
-          console.log(
-            "Triggering crossfade at",
-            timeRemaining.toFixed(1),
-            "seconds remaining"
-          );
-          startCrossfadeTransition();
-        }
-      }
-    };
-
-    const preloadNextSong = async () => {
-      if (
-        !nextAudioRef.current ||
-        crossfadeManagerRef.current?.isCrossfading()
-      ) {
-        return;
-      }
-
-      const nextSong = getNextSongForCrossfade();
-      if (!nextSong) return;
-
-      try {
-        // Cache the next song without starting playback
-        await cacheSong(nextSong);
-        const cachedSong = getCachedSong(nextSong.id);
-        if (cachedSong) {
-          // Pre-set the source but don't play yet
-          nextAudioRef.current.src = cachedSong.url;
-          nextAudioRef.current.playbackRate = getValidTempo(
-            settingsRef.current.tempo
-          );
-          console.log("Preloaded next song for crossfade:", nextSong.title);
-        }
-      } catch (error) {
-        console.warn("Failed to preload next song:", error);
-      }
-    };
-
-    const handleLoadedMetadata = () => {
-      const currentAudio = audioRef.current;
-      if (!currentAudio) return;
-
-      setPlayerState((prev) => ({
-        ...prev,
-        duration: currentAudio.duration,
-      }));
-    };
-
-    const handleEnded = (event: Event) => {
-      const target = event.target as HTMLAudioElement;
-      if (target !== audioRef.current) {
-        return;
-      }
-
-      // If crossfade is in progress, don't handle ending normally
-      if (crossfadeManagerRef.current?.isCrossfading()) {
-        return;
-      }
-
-      if (settingsRef.current.autoPlayNext) {
-        if (playerStateRef.current.repeat === "one") {
-          if (audioRef.current) {
-            audioRef.current.currentTime = 0;
-            audioRef.current.play();
-          }
-        } else if (playNextRef.current) {
-          // Handle different transition modes based on settings
-          if (settingsRef.current.crossfade === 0) {
-            // No crossfade - use gapless or with delay
-            if (settingsRef.current.gaplessPlayback) {
-              playNextRef.current();
-            } else {
-              setTimeout(() => playNextRef.current?.(), 400);
-            }
-          } else {
-            // Crossfade is enabled - check if transition already happened or needs to happen now
-            if (crossfadeManagerRef.current?.isCrossfading()) {
-              // Crossfade is already in progress, let it complete naturally
-              console.log("Crossfade transition already in progress");
-            } else {
-              // Crossfade didn't start in time (maybe song too short), do immediate transition
-              console.log(
-                "Starting immediate crossfade transition on song end"
-              );
-              startCrossfadeTransition();
-            }
-          }
-        }
-      }
-    };
-
-    const startCrossfadeTransition = async () => {
-      if (
-        !playNextRef.current ||
-        !crossfadeManagerRef.current ||
-        !nextAudioRef.current
-      ) {
-        return;
-      }
-
-      if (!audioRef.current) {
-        console.warn("CrossfadeTransition: No current audio element available");
-        return;
-      }
-
-      // Cancel any existing crossfade or pending timeout
-      crossfadeManagerRef.current.cancelCrossfade();
-
-      try {
-        // Ensure current source is set
-        if (crossfadeManagerRef.current && audioRef.current) {
-          if (!currentAudioSourceRef.current || currentAudioSourceRef.current.element !== audioRef.current) {
-            currentAudioSourceRef.current = crossfadeManagerRef.current.createAudioSource(audioRef.current);
-          }
-          crossfadeManagerRef.current.setCurrentSource(currentAudioSourceRef.current);
-        }
-
-        // Get the next song info (this is a bit tricky since we need to predict what playNext will play)
-        const nextSong = getNextSongForCrossfade();
-        if (!nextSong) {
-          console.warn("No next song found for crossfade");
-          return;
-        }
-
-        // Prepare the next audio source
-        await prepareNextSongForCrossfade(nextSong);
-
-        // Ensure audio context is running
-        if (audioContextRef.current?.state === "suspended") {
-          await audioContextRef.current.resume();
-        }
-
-        // Start the crossfade
-        await crossfadeManagerRef.current.startCrossfade({
-          duration: settingsRef.current.crossfade,
-          curve: "exponential",
-        });
-
-        // Update current song state after crossfade completes
-        console.log("Crossfade completed, updating state");
-        updatePlayerStateAfterCrossfade(nextSong);
-      } catch (error) {
-        console.error("Crossfade failed:", error);
-        // Fallback to regular transition
-        playNextRef.current();
-      }
-    };
-
-    audio.addEventListener("timeupdate", handleTimeUpdate);
-    audio.addEventListener("loadedmetadata", handleLoadedMetadata);
-    audio.addEventListener("ended", handleEnded);
-
-    // Also attach event listeners to the secondary audio element for crossfading
-    const nextAudio = nextAudioRef.current;
-    nextAudio.addEventListener("timeupdate", handleTimeUpdate);
-    nextAudio.addEventListener("loadedmetadata", handleLoadedMetadata);
-    nextAudio.addEventListener("ended", handleEnded);
-
-    return () => {
-      audio.removeEventListener("timeupdate", handleTimeUpdate);
-      audio.removeEventListener("loadedmetadata", handleLoadedMetadata);
-      audio.removeEventListener("ended", handleEnded);
-
-      nextAudio.removeEventListener("timeupdate", handleTimeUpdate);
-      nextAudio.removeEventListener("loadedmetadata", handleLoadedMetadata);
-      nextAudio.removeEventListener("ended", handleEnded);
-
-      audio.pause();
-      nextAudio.pause();
-    };
-  }, []);
-
+  // Update refs when state changes
   useEffect(() => {
     const previousSettings = settingsRef.current;
     settingsRef.current = settings;
 
-    // Only invalidate next song cache if shuffle-related settings that actually affect next song selection changed
-    if (
-      previousSettings.smartShuffle !== settings.smartShuffle ||
-      (playerState.shuffle &&
-        previousSettings.smartShuffle !== settings.smartShuffle)
-    ) {
-      console.log(
-        "Smart shuffle setting changed, invalidating next song cache"
-      );
-      invalidateNextSongCache();
+    // Only invalidate if smart shuffle setting changed
+    if (previousSettings.smartShuffle !== settings.smartShuffle) {
+      console.log("Smart shuffle setting changed, invalidating cache");
+      invalidateNextSongCache(true);
     }
-  }, [settings.smartShuffle, playerState.shuffle, invalidateNextSongCache]);
+  }, [settings.smartShuffle, invalidateNextSongCache]);
 
   useEffect(() => {
     const previousState = playerStateRef.current;
     playerStateRef.current = playerState;
 
-    // Only invalidate next song cache if specific properties that affect next song selection changed
-    if (
-      previousState.shuffle !== playerState.shuffle ||
+    // Only invalidate cache if playlist changed or shuffle/repeat mode changed significantly
+    const shouldInvalidate =
       previousState.currentPlaylist?.id !== playerState.currentPlaylist?.id ||
-      previousState.repeat !== playerState.repeat
-    ) {
-      console.log(
-        "Player state affecting next song changed, invalidating cache"
-      );
-      invalidateNextSongCache();
+      (previousState.shuffle !== playerState.shuffle && playerState.shuffle) ||
+      previousState.repeat !== playerState.repeat;
+
+    if (shouldInvalidate) {
+      console.log("Player state changed significantly, invalidating cache");
+      invalidateNextSongCache(true);
     }
   }, [
-    playerState.shuffle,
     playerState.currentPlaylist?.id,
+    playerState.shuffle,
     playerState.repeat,
     invalidateNextSongCache,
   ]);
 
-  useEffect(() => {
-    libraryRef.current = library;
-  }, [library]);
-
-  useEffect(() => {
-    recentlyPlayedRef.current = recentlyPlayed;
-
-    // Only invalidate next song cache when recently played changes AND smart shuffle is enabled AND we're in shuffle mode
-    // Also check if there was actually a meaningful change to avoid unnecessary invalidations
-    if (
-      settingsRef.current.smartShuffle &&
-      playerStateRef.current.shuffle &&
-      recentlyPlayed.length > 0
-    ) {
-      invalidateNextSongCache();
-    }
-  }, [recentlyPlayed, invalidateNextSongCache]);
-
+  // Update playlist when library changes
   useEffect(() => {
     if (playerState.currentPlaylist) {
       const updatedPlaylist = library.playlists.find(
@@ -1075,12 +399,16 @@ export const useMusicPlayer = () => {
     }
   }, [library.playlists, playerState.currentPlaylist?.id]);
 
+  // Update audio volume when settings change
   useEffect(() => {
-    if (audioRef.current) {
+    if (crossfadeManagerRef.current) {
+      crossfadeManagerRef.current.setMasterVolume(settings.volume);
+    } else if (audioRef.current) {
       audioRef.current.volume = settings.volume;
     }
   }, [settings.volume]);
 
+  // Update player state when settings change
   useEffect(() => {
     setPlayerState((prev) => ({
       ...prev,
@@ -1090,8 +418,10 @@ export const useMusicPlayer = () => {
     }));
   }, [settings.volume, settings.defaultShuffle, settings.defaultRepeat]);
 
+  // Media session and last played updates
   useEffect(() => {
     if (!isInitialized) return;
+
     // Update last played song and playlist IDs in settings when they change (only if sessionRestore is enabled)
     if (settings.sessionRestore) {
       setSettings((prev) => ({
@@ -1110,10 +440,10 @@ export const useMusicPlayer = () => {
         album: playerState.currentSong.album,
         artwork: playerState.currentSong.albumArt
           ? [
-              {
-                src: playerState.currentSong.albumArt,
-              },
-            ]
+            {
+              src: playerState.currentSong.albumArt,
+            },
+          ]
           : [],
       });
 
@@ -1154,6 +484,16 @@ export const useMusicPlayer = () => {
     }
   }, [playerState.currentSong, playerState.currentPlaylist, isInitialized]);
 
+  // Update tempo when settings change
+  useEffect(() => {
+    if (audioRef.current) {
+      audioRef.current.playbackRate = getValidTempo(settings.tempo);
+    }
+    if (nextAudioRef.current) {
+      nextAudioRef.current.playbackRate = getValidTempo(settings.tempo);
+    }
+  }, [settings.tempo]);
+
   // Discord presence update function
   const updateDiscordPresence = useCallback(
     async (song: Song | null, isPlaying: boolean) => {
@@ -1181,6 +521,45 @@ export const useMusicPlayer = () => {
     [settings.discordEnabled, settings.discordUserId]
   );
 
+  // Improved preload function
+  const smartPreloadNextSong = useCallback(async () => {
+    if (isPreloadingRef.current || !playerState.currentSong || !playerState.currentPlaylist) {
+      return;
+    }
+
+    // Don't preload if repeat one is enabled
+    if (playerState.repeat === "one") {
+      return;
+    }
+
+    isPreloadingRef.current = true;
+
+    try {
+      // Get next song using the same logic as crossfade and playNext
+      const nextSong = getAndCacheNextSong(playerStateRef, settingsRef, playHistoryRef);
+
+      if (nextSong) {
+        // Cache the next song decision (already done by getAndCacheNextSong, but ensure consistency)
+        nextSongCacheRef.current = nextSong;
+        nextSongCacheValidRef.current = true;
+
+        // Preload for crossfade if enabled
+        if (settings.crossfade > 0 && nextAudioRef.current) {
+          await preloadNextSong(
+            () => nextSong,
+            cacheSong,
+            getCachedSong,
+            settingsRef
+          );
+        }
+      }
+    } catch (error) {
+      console.error("Failed to preload next song:", error);
+    } finally {
+      isPreloadingRef.current = false;
+    }
+  }, [playerState, settings, preloadNextSong, cacheSong, getCachedSong, getAndCacheNextSong]);
+
   const playSong = useCallback(
     async (song: Song, playlist?: Playlist) => {
       // Even if URL is empty, we might have it in IndexedDB
@@ -1195,15 +574,25 @@ export const useMusicPlayer = () => {
         audioContextRef.current.resume();
       }
 
-      // Prepare song for playing, handling both IndexedDB and direct URLs
+      // Clear any pending timeouts
+      if (crossfadeTimeoutRef.current) {
+        clearTimeout(crossfadeTimeoutRef.current);
+        crossfadeTimeoutRef.current = null;
+      }
+      if (preloadTimeoutRef.current) {
+        clearTimeout(preloadTimeoutRef.current);
+        preloadTimeoutRef.current = null;
+      }
+
+      // Prepare song for playing
       const songToPlay = song.hasStoredAudio
         ? {
-            ...song,
-            url: `indexeddb://${song.id}`, // Use indexeddb:// URL
-          }
+          ...song,
+          url: `indexeddb://${song.id}`,
+        }
         : song;
 
-      // First ensure the song is cached
+      // Cache the song
       await cacheSong(songToPlay);
       const cachedSong = getCachedSong(song.id);
       if (!cachedSong) {
@@ -1214,9 +603,9 @@ export const useMusicPlayer = () => {
       // Prepare playlist songs if setting a new playlist
       const preparedPlaylist = playlist
         ? {
-            ...playlist,
-            songs: prepareSongsForPlaylist(playlist.songs),
-          }
+          ...playlist,
+          songs: prepareSongsForPlaylist(playlist.songs),
+        }
         : playerStateRef.current.currentPlaylist;
 
       setPlayerState((prev) => ({
@@ -1227,18 +616,12 @@ export const useMusicPlayer = () => {
         currentTime: 0,
       }));
 
-      // Track this song in recently played list (only if this isn't the first song in a new session)
+      // Track this song in play history
       if (
         playerStateRef.current.currentSong &&
         playerStateRef.current.currentSong.id !== song.id
       ) {
-        setRecentlyPlayed((prev) => {
-          const updated = [
-            playerStateRef.current.currentSong!.id,
-            ...prev.slice(0, 19),
-          ]; // Keep last 20 songs
-          return updated;
-        });
+        updatePlayHistory(playHistoryRef, playerStateRef.current.currentSong.id);
       }
 
       if (audioRef.current) {
@@ -1247,80 +630,53 @@ export const useMusicPlayer = () => {
           crossfadeManagerRef.current.cancelCrossfade();
         }
 
-        // Use the cached URL instead of the original URL
+        // Use the cached URL
         audioRef.current.src = cachedSong.url;
+        audioRef.current.playbackRate = getValidTempo(settingsRef.current.tempo);
 
-        // Apply persisted tempo immediately
-        audioRef.current.playbackRate = getValidTempo(
-          settingsRef.current.tempo
-        );
-
-        // Set up crossfade manager if not already done
+        // Set up crossfade manager if needed
         if (!audioContextRef.current) setupAudioContext();
+        if (audioContextRef.current && !crossfadeManagerRef.current) {
+          setupCrossfadeManager(audioContextRef.current);
+        }
         if (crossfadeManagerRef.current) {
-          if (!currentAudioSourceRef.current) {
+          if (!currentAudioSourceRef.current || currentAudioSourceRef.current.element !== audioRef.current) {
             currentAudioSourceRef.current =
               crossfadeManagerRef.current.createAudioSource(audioRef.current);
           }
-          crossfadeManagerRef.current.setCurrentSource(
-            currentAudioSourceRef.current
-          );
+          crossfadeManagerRef.current.setCurrentSource(currentAudioSourceRef.current);
         }
 
         try {
-          await audioRef.current.play().catch(async (error: any) => {
-            if (
-              error.name === "NotSupportedError" &&
-              song.fileData &&
-              song.mimeType
-            ) {
-              try {
-                const blob = new Blob([song.fileData], { type: song.mimeType });
-                const newUrl = URL.createObjectURL(blob);
-                const updatedSong = { ...song, url: newUrl };
-
-                setPlayerState((prev) => ({
-                  ...prev,
-                  currentSong: updatedSong,
-                }));
-                setLibrary((prev) => ({
-                  ...prev,
-                  songs: prev.songs.map((s) =>
-                    s.id === song.id ? updatedSong : s
-                  ),
-                }));
-
-                audioRef.current!.src = newUrl;
-                await audioRef.current!.play();
-              } catch {
-                setPlayerState((prev) => ({ ...prev, isPlaying: false }));
-              }
-            } else {
-              console.error("Failed to play song:", error);
-              toast.error(`Failed to play "${song.title}"`, {
-                description: error.message || "Unknown error occurred",
-              });
-              setPlayerState((prev) => ({ ...prev, isPlaying: false }));
-            }
-          });
+          await audioRef.current.play();
         } catch (error: any) {
           console.error("Failed to play song:", error);
           toast.error(`Failed to play "${song.title}"`, {
             description: error.message || "Unknown error occurred",
           });
           setPlayerState((prev) => ({ ...prev, isPlaying: false }));
+          return;
         }
 
-        // Update the cache for surrounding songs and next shuffled song
+        // Update the cache and invalidate next song cache
         if (playlist) {
-          updateSongCache(song, playlist);
+          updateSongCache(
+            song,
+            playlist,
+            playerStateRef,
+            settingsRef,
+            playHistoryRef,
+            getSmartShuffledSong
+          );
         }
 
-        // Update Discord presence when song starts playing
         updateDiscordPresence(song, true);
-
-        // Invalidate next song cache since current song changed
         invalidateNextSongCache();
+
+        // Smart preload the next song after a short delay
+        preloadTimeoutRef.current = window.setTimeout(() => {
+          smartPreloadNextSong();
+        }, 2000);
       }
     },
     [
@@ -1330,10 +686,228 @@ export const useMusicPlayer = () => {
       updateSongCache,
       prepareSongsForPlaylist,
       updateDiscordPresence,
-      setRecentlyPlayed,
       invalidateNextSongCache,
+      smartPreloadNextSong,
     ]
   );
+
+  // Audio event handling setup
+  useEffect(() => {
+    // Initialize primary audio element
+    audioRef.current = new Audio();
+    audioRef.current.crossOrigin = "anonymous";
+
+    // Initialize secondary audio element for crossfading
+    nextAudioRef.current = new Audio();
+    nextAudioRef.current.crossOrigin = "anonymous";
+
+    const audio = audioRef.current;
+
+    const handleTimeUpdate = (event: Event) => {
+      const target = event.target as HTMLAudioElement;
+      const currentAudio = audioRef.current;
+      const nextAudio = nextAudioRef.current;
+      
+      let shouldUpdateFrom = currentAudio;
+      
+      // During crossfade, use the next audio element since that's the song becoming current
+      // But only if the crossfade is actually in progress and hasn't failed
+      if (crossfadeManagerRef.current?.isCrossfading() && nextAudio && nextAudio.src && !nextAudio.src.includes("about:blank")) {
+        shouldUpdateFrom = nextAudio;
+      }
+      
+      // Only update if this event is from the element that should control progress
+      if (target !== shouldUpdateFrom) return;
+
+      setPlayerState((prev) => {
+        return {
+          ...prev,
+          currentTime: target.currentTime,
+        };
+      });
+
+      // Handle crossfade and gapless timing
+      const crossfadeEnabled = settingsRef.current.crossfade > 0;
+      const gaplessEnabled = settingsRef.current.gaplessPlayback;
+      const autoPlayNext = settingsRef.current.autoPlayNext;
+      const playNextAvailable = !!playNextRef.current;
+      const notRepeatOne = playerStateRef.current.repeat !== "one";
+      const hasDuration = currentAudio && currentAudio.duration > 0;
+      const notCrossfading = !crossfadeManagerRef.current?.isCrossfading();
+
+      if (
+        autoPlayNext &&
+        playNextAvailable &&
+        notRepeatOne &&
+        hasDuration &&
+        notCrossfading &&
+        currentAudio
+      ) {
+        const timeRemaining = currentAudio.duration - currentAudio.currentTime;
+
+        if (crossfadeEnabled) {
+          const crossfadeDuration = settingsRef.current.crossfade;
+          const preloadTime = Math.max(crossfadeDuration + 5, 10);
+
+          // Preload next song early
+          if (timeRemaining <= preloadTime && timeRemaining > preloadTime - 1) {
+            if (!isPreloadingRef.current) {
+              smartPreloadNextSong();
+            }
+          }
+
+          // Start crossfade
+          if (timeRemaining <= crossfadeDuration) {
+            console.log("Triggering crossfade at", timeRemaining.toFixed(1), "seconds remaining");
+            startCrossfadeTransition(
+              playNextRef,
+              () => nextSongCacheRef.current || getAndCacheNextSong(playerStateRef, settingsRef, playHistoryRef),
+              (nextSong: Song) =>
+                prepareNextSongForCrossfade(
+                  nextSong,
+                  cacheSong,
+                  getCachedSong,
+                  settingsRef
+                ),
+              playerStateRef,
+              playHistoryRef,
+              updatePlayHistory,
+              setPlayerState,
+              settingsRef,
+              audioContextRef,
+              invalidateNextSongCache
+            ).catch((error: any) => {
+              console.error("Crossfade transition failed:", error);
+            });
+          }
+        } else if (gaplessEnabled) {
+          // For gapless playback, prepare next song earlier
+          if (timeRemaining <= 3 && timeRemaining > 2.5) {
+            if (!isPreloadingRef.current) {
+              smartPreloadNextSong();
+            }
+          }
+        }
+      }
+    };
+
+    const handleLoadedMetadata = () => {
+      const currentAudio = audioRef.current;
+      if (!currentAudio) return;
+
+      setPlayerState((prev) => ({
+        ...prev,
+        duration: currentAudio.duration,
+      }));
+    };
+
+    const handleEnded = (event: Event) => {
+      const target = event.target as HTMLAudioElement;
+      if (target !== audioRef.current) {
+        return;
+      }
+
+      // If crossfade is in progress and current song ends, complete crossfade immediately
+      if (crossfadeManagerRef.current?.isCrossfading()) {
+        console.log("Current song ended during crossfade, completing immediately");
+        // Force complete the crossfade since the current song has ended
+        if (crossfadeManagerRef.current) {
+          // The completeCrossfade method will handle the state transitions
+          // But we need to trigger the player state update that normally happens after startCrossfade resolves
+          setTimeout(() => {
+            // This should trigger the updatePlayerStateAfterCrossfade logic
+            // But since we're in the middle of crossfade, we need to be careful
+            console.log("Crossfade interrupted by song end");
+          }, 100);
+        }
+        return;
+      }
+
+      if (settingsRef.current.autoPlayNext) {
+        if (playerStateRef.current.repeat === "one") {
+          if (audioRef.current) {
+            audioRef.current.currentTime = 0;
+            audioRef.current.play();
+          }
+        } else if (playNextRef.current) {
+          // Handle different transition modes based on settings
+          if (settingsRef.current.crossfade === 0) {
+            // No crossfade - use gapless or with delay
+            if (settingsRef.current.gaplessPlayback) {
+              playNextRef.current();
+            } else {
+              setTimeout(() => playNextRef.current?.(), 400);
+            }
+          } else {
+            // Crossfade is enabled - check if transition already happened or needs to happen now
+            if (crossfadeManagerRef.current?.isCrossfading()) {
+              // Crossfade is already in progress, let it complete naturally
+              console.log("Crossfade transition already in progress");
+            } else {
+              // Crossfade didn't start in time (maybe song too short), do immediate transition
+              console.log("Starting immediate crossfade transition on song end");
+
+              // Clear any existing crossfade timeout to prevent conflicts
+              if (crossfadeTimeoutRef.current) {
+                clearTimeout(crossfadeTimeoutRef.current);
+                crossfadeTimeoutRef.current = null;
+              }
+
+              // Start immediate crossfade with proper error handling
+              startCrossfadeTransition(
+                playNextRef,
+                () => nextSongCacheRef.current || getAndCacheNextSong(playerStateRef, settingsRef, playHistoryRef),
+                (nextSong: Song) =>
+                  prepareNextSongForCrossfade(
+                    nextSong,
+                    cacheSong,
+                    getCachedSong,
+                    settingsRef
+                  ),
+                playerStateRef,
+                playHistoryRef,
+                updatePlayHistory,
+                setPlayerState,
+                settingsRef,
+                audioContextRef,
+                invalidateNextSongCache
+              ).catch((error: any) => {
+                console.error("Immediate crossfade failed:", error);
+                // Fallback to regular playNext if crossfade fails
+                if (playNextRef.current) {
+                  console.log("Falling back to regular playNext");
+                  playNextRef.current();
+                }
+              });
+            }
+          }
+        }
+      }
+    };
+
+    audio.addEventListener("timeupdate", handleTimeUpdate);
+    audio.addEventListener("loadedmetadata", handleLoadedMetadata);
+    audio.addEventListener("ended", handleEnded);
+
+    // Also attach event listeners to the secondary audio element for crossfading
+    const nextAudio = nextAudioRef.current;
+    nextAudio.addEventListener("timeupdate", handleTimeUpdate);
+    nextAudio.addEventListener("loadedmetadata", handleLoadedMetadata);
+    nextAudio.addEventListener("ended", handleEnded);
+
+    return () => {
+      audio.removeEventListener("timeupdate", handleTimeUpdate);
+      audio.removeEventListener("loadedmetadata", handleLoadedMetadata);
+      audio.removeEventListener("ended", handleEnded);
+
+      nextAudio.removeEventListener("timeupdate", handleTimeUpdate);
+      nextAudio.removeEventListener("loadedmetadata", handleLoadedMetadata);
+      nextAudio.removeEventListener("ended", handleEnded);
+
+      audio.pause();
+      nextAudio.pause();
+    };
+  }, []);
 
   const togglePlayPause = useCallback(async () => {
     if (!audioRef.current || !playerState.currentSong) return;
@@ -1343,7 +917,6 @@ export const useMusicPlayer = () => {
     if (playerState.isPlaying) {
       audioRef.current.pause();
       setPlayerState((prev) => ({ ...prev, isPlaying: false }));
-      // Update Discord presence when paused
       updateDiscordPresence(playerState.currentSong, false);
     } else {
       // Check if audio source is loaded
@@ -1359,12 +932,13 @@ export const useMusicPlayer = () => {
         return; // playSong will set isPlaying to true
       }
 
-      audioRef.current
-        .play()
-        .catch(() => setPlayerState((prev) => ({ ...prev, isPlaying: false })));
-      setPlayerState((prev) => ({ ...prev, isPlaying: true }));
-      // Update Discord presence when playing
-      updateDiscordPresence(playerState.currentSong, true);
+      try {
+        await audioRef.current.play();
+        setPlayerState((prev) => ({ ...prev, isPlaying: true }));
+        updateDiscordPresence(playerState.currentSong, true);
+      } catch (error) {
+        setPlayerState((prev) => ({ ...prev, isPlaying: false }));
+      }
     }
   }, [
     playerState.isPlaying,
@@ -1382,32 +956,43 @@ export const useMusicPlayer = () => {
       crossfadeManagerRef.current.cancelCrossfade();
     }
 
-    // Use the cached next song if available, otherwise determine it
-    let nextSong = getAndCacheNextSong();
+    // Clear any pending timeouts
+    if (crossfadeTimeoutRef.current) {
+      clearTimeout(crossfadeTimeoutRef.current);
+      crossfadeTimeoutRef.current = null;
+    }
+    if (preloadTimeoutRef.current) {
+      clearTimeout(preloadTimeoutRef.current);
+      preloadTimeoutRef.current = null;
+    }
+
+    // Use cached next song if available, otherwise get it using the same logic as crossfade
+    let nextSong: Song | null = null;
+
+    if (nextSongCacheRef.current && nextSongCacheValidRef.current) {
+      nextSong = nextSongCacheRef.current;
+      // Clear the cache since we're using it
+      nextSongCacheRef.current = null;
+      nextSongCacheValidRef.current = false;
+    } else {
+      // Get next song using the same logic as crossfade
+      nextSong = getAndCacheNextSong(playerStateRef, settingsRef, playHistoryRef);
+    }
 
     if (nextSong) {
-      // Update recently played list (for non-crossfade transitions)
-      if (
-        playerState.shuffle &&
-        !crossfadeManagerRef.current?.isCrossfading()
-      ) {
-        setRecentlyPlayed((prev) => {
-          const updated = [playerState.currentSong!.id, ...prev.slice(0, 19)]; // Keep last 20 songs
-          return updated;
-        });
+      // Update play history for shuffle mode
+      if (playerState.shuffle) {
+        updatePlayHistory(playHistoryRef, playerState.currentSong.id);
       }
-
-      // Invalidate the cache since we're consuming the cached song
-      invalidateNextSongCache();
 
       playSong(nextSong, playerState.currentPlaylist);
     }
   }, [
     playerState,
+    settings.smartShuffle,
+    updatePlayHistory,
     playSong,
     getAndCacheNextSong,
-    invalidateNextSongCache,
-    setRecentlyPlayed,
   ]);
 
   useEffect(() => {
@@ -1422,56 +1007,49 @@ export const useMusicPlayer = () => {
       crossfadeManagerRef.current.cancelCrossfade();
     }
 
+    // Clear any pending timeouts
+    if (crossfadeTimeoutRef.current) {
+      clearTimeout(crossfadeTimeoutRef.current);
+      crossfadeTimeoutRef.current = null;
+    }
+    if (preloadTimeoutRef.current) {
+      clearTimeout(preloadTimeoutRef.current);
+      preloadTimeoutRef.current = null;
+    }
+
     const songs = playerState.currentPlaylist.songs;
     const currentIndex = songs.findIndex(
       (s) => s.id === playerState.currentSong!.id
     );
 
+    let previousSong: Song | null = null;
+
     if (playerState.shuffle) {
-      const available = songs.filter(
-        (s) => s.id !== playerState.currentSong!.id
-      );
-      if (available.length > 0) {
-        let nextSong: Song;
-
-        if (settings.smartShuffle) {
-          // Use smart shuffle
-          const smartSong = getSmartShuffledSong(
-            available,
-            playerState.currentSong!.id,
-            recentlyPlayed
-          );
-          nextSong =
-            smartSong ||
-            available[Math.floor(Math.random() * available.length)];
-        } else {
-          // Use regular shuffle
-          const randomIndex = Math.floor(Math.random() * available.length);
-          nextSong = available[randomIndex];
-        }
-
-        // Update recently played list
-        setRecentlyPlayed((prev) => {
-          const updated = [playerState.currentSong!.id, ...prev.slice(0, 19)]; // Keep last 20 songs
-          return updated;
-        });
-
-        playSong(nextSong, playerState.currentPlaylist);
-      }
+      // In shuffle mode, "previous" just picks another random song using the same logic
+      previousSong = getAndCacheNextSong(playerStateRef, settingsRef, playHistoryRef);
     } else {
+      // Sequential play - go to previous song
       if (currentIndex > 0) {
-        playSong(songs[currentIndex - 1], playerState.currentPlaylist);
+        previousSong = songs[currentIndex - 1];
       } else if (playerState.repeat === "all") {
-        playSong(songs[songs.length - 1], playerState.currentPlaylist);
+        previousSong = songs[songs.length - 1];
       }
+    }
+
+    if (previousSong) {
+      // Update play history for shuffle mode
+      if (playerState.shuffle) {
+        updatePlayHistory(playHistoryRef, playerState.currentSong.id);
+      }
+
+      playSong(previousSong, playerState.currentPlaylist);
     }
   }, [
     playerState,
-    playSong,
     settings.smartShuffle,
-    recentlyPlayed,
-    getSmartShuffledSong,
-    setRecentlyPlayed,
+    updatePlayHistory,
+    playSong,
+    getAndCacheNextSong,
   ]);
 
   const setVolume = useCallback((volume: number) => {
@@ -1488,7 +1066,9 @@ export const useMusicPlayer = () => {
 
   const toggleShuffle = useCallback(() => {
     setPlayerState((prev) => ({ ...prev, shuffle: !prev.shuffle }));
-  }, []);
+    // Invalidate next song cache when shuffle mode changes
+    invalidateNextSongCache(true);
+  }, [invalidateNextSongCache]);
 
   const toggleRepeat = useCallback(() => {
     setPlayerState((prev) => ({
@@ -1504,76 +1084,22 @@ export const useMusicPlayer = () => {
 
   const seekTo = useCallback((time: number) => {
     if (audioRef.current) {
+      const beforeSeek = audioRef.current.currentTime;
+      console.log("Seeking to:", time, "from:", beforeSeek, "readyState:", audioRef.current.readyState);
       audioRef.current.currentTime = time;
+      
+      // Check if seek actually worked
+      setTimeout(() => {
+        const afterSeek = audioRef.current?.currentTime;
+        console.log("After seek - requested:", time, "actual:", afterSeek);
+        if (Math.abs((afterSeek || 0) - time) > 0.1) {
+          console.warn("Seek failed or was overridden!");
+        }
+      }, 100);
+      
       setPlayerState((prev) => ({ ...prev, currentTime: time }));
     }
   }, []);
-
-  const processAudioBatch = useCallback(
-    async (songs: Song[]): Promise<Song[]> => {
-      const processedSongs: Song[] = [];
-      const totalSongs = songs.length;
-      let processedCount = 0;
-
-      // Show initial toast
-      const toastId = toast.loading(`Processing 0/${totalSongs} songs...`);
-
-      for (const song of songs) {
-        if (song.url.startsWith("blob:")) {
-          try {
-            // Load the audio data
-            const res = await fetch(song.url);
-            const buf = await res.arrayBuffer();
-            const mimeType = res.headers.get("content-type") || "audio/mpeg";
-
-            // Save to IndexedDB audio store
-            await musicIndexedDbHelper.saveSongAudio(song.id, {
-              fileData: buf,
-              mimeType,
-            });
-
-            // Add processed song without the audio data
-            processedSongs.push({
-              ...song,
-              hasStoredAudio: true,
-              albumArt: song.albumArt, // Preserve album art when processing
-            });
-
-            processedCount++;
-            // Update toast with progress
-            toast.loading(
-              `Processing ${processedCount}/${totalSongs} songs...`,
-              {
-                id: toastId,
-                description: `Current: ${song.title}`,
-              }
-            );
-          } catch (error) {
-            const err = error as Error;
-            console.error(
-              `Failed to process audio for song: ${song.title}`,
-              err
-            );
-            toast.error(`Failed to process "${song.title}"`, {
-              description: err.message || "Unknown error occurred",
-            });
-            processedSongs.push(song);
-          }
-        } else {
-          processedSongs.push(song);
-          processedCount++;
-        }
-      }
-
-      // Show completion toast
-      toast.success(`Processed ${processedCount} songs`, {
-        id: toastId,
-      });
-
-      return processedSongs;
-    },
-    []
-  );
 
   const addSong = useCallback(
     async (song: Song) => {
@@ -1658,296 +1184,6 @@ export const useMusicPlayer = () => {
       console.error("Failed to remove song audio from IndexedDB:", error);
     }
   }, []);
-
-  const createPlaylist = useCallback(
-    (name: string, songs: Song[] = []) => {
-      const newPlaylist: Playlist = {
-        id: Date.now().toString(),
-        name,
-        songs: prepareSongsForPlaylist(songs),
-      };
-      setLibrary((prev) => ({
-        ...prev,
-        playlists: [...prev.playlists, newPlaylist],
-      }));
-      return newPlaylist;
-    },
-    [prepareSongsForPlaylist]
-  );
-
-  const removePlaylist = useCallback((playlistId: string) => {
-    setLibrary((prev) => ({
-      ...prev,
-      playlists: prev.playlists.filter((p) => p.id !== playlistId),
-    }));
-  }, []);
-
-  const addToFavorites = useCallback((songId: string) => {
-    setLibrary((prev) => ({
-      ...prev,
-      favorites: prev.favorites.includes(songId)
-        ? prev.favorites
-        : [...prev.favorites, songId],
-    }));
-  }, []);
-
-  const removeFromFavorites = useCallback((songId: string) => {
-    setLibrary((prev) => ({
-      ...prev,
-      favorites: prev.favorites.filter((id) => id !== songId),
-    }));
-  }, []);
-
-  const addToPlaylist = useCallback((playlistId: string, songId: string) => {
-    setLibrary((prev) => {
-      // Find the song and playlist
-      const song = prev.songs.find((s) => s.id === songId);
-      if (!song) return prev;
-
-      return {
-        ...prev,
-        playlists: prev.playlists.map((p) => {
-          if (p.id === playlistId) {
-            // Don't add if song is already in playlist
-            if (p.songs.some((s) => s.id === songId)) return p;
-            return {
-              ...p,
-              songs: [...p.songs, song],
-            };
-          }
-          return p;
-        }),
-      };
-    });
-  }, []);
-
-  const toggleFavorite = useCallback(
-    (songId: string) => {
-      const isFav = library.favorites.includes(songId);
-      if (isFav) removeFromFavorites(songId);
-      else addToFavorites(songId);
-      return !isFav;
-    },
-    [library.favorites, addToFavorites, removeFromFavorites]
-  );
-
-  const isFavorited = useCallback(
-    (songId: string) => {
-      return library.favorites.includes(songId);
-    },
-    [library.favorites]
-  );
-
-  const getFavoriteSongs = useCallback(() => {
-    return library.songs.filter((s) => library.favorites.includes(s.id));
-  }, [library]);
-
-  const searchSongs = useCallback(
-    (query: string) => {
-      setSearchQuery(query);
-      if (!query.trim()) return library.songs;
-      return library.songs.filter(
-        (s) =>
-          s.title.toLowerCase().includes(query.toLowerCase()) ||
-          s.artist.toLowerCase().includes(query.toLowerCase())
-      );
-    },
-    [library.songs]
-  );
-
-  const getSearchResults = useCallback(() => {
-    return searchSongs(searchQuery);
-  }, [searchSongs, searchQuery]);
-
-  const navigateToArtist = useCallback((artist: string) => {
-    setPlayerState((prev) => ({
-      ...prev,
-      view: "artist",
-      currentArtist: artist,
-    }));
-  }, []);
-
-  const navigateToAlbum = useCallback((album: string) => {
-    setPlayerState((prev) => ({
-      ...prev,
-      view: "album",
-      currentAlbum: album,
-    }));
-  }, []);
-
-  const navigateToSongs = useCallback(() => {
-    setPlayerState((prev) => ({
-      ...prev,
-      view: "songs",
-      currentArtist: undefined,
-      currentAlbum: undefined,
-    }));
-  }, []);
-
-  // Export playlist to JSON or M3U format
-  const exportPlaylist = useCallback(
-    (playlist: Playlist, format: "json" | "m3u" = "json") => {
-      try {
-        let content: string;
-        let filename: string;
-        let mimeType: string;
-
-        if (format === "json") {
-          // Export as JSON with full metadata
-          const exportData = {
-            name: playlist.name,
-            created: new Date().toISOString(),
-            songs: playlist.songs.map((song) => ({
-              title: song.title,
-              artist: song.artist,
-              album: song.album,
-              duration: song.duration,
-              // Don't include URL or file data for privacy/size reasons
-            })),
-          };
-          content = JSON.stringify(exportData, null, 2);
-          filename = `${playlist.name.replace(/[^a-z0-9]/gi, "_")}.json`;
-          mimeType = "application/json";
-        } else {
-          // Export as M3U playlist
-          content = "#EXTM3U\n";
-          playlist.songs.forEach((song) => {
-            content += `#EXTINF:${Math.floor(song.duration)},${song.artist} - ${
-              song.title
-            }\n`;
-            content += `# ${song.album}\n`;
-          });
-          filename = `${playlist.name.replace(/[^a-z0-9]/gi, "_")}.m3u`;
-          mimeType = "audio/x-mpegurl";
-        }
-
-        // Create and download file
-        const blob = new Blob([content], { type: mimeType });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = filename;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-
-        toast.success(
-          `Exported playlist "${playlist.name}" as ${format.toUpperCase()}`
-        );
-      } catch (error) {
-        console.error("Export failed:", error);
-        toast.error(
-          `Failed to export playlist: ${
-            error instanceof Error ? error.message : "Unknown error"
-          }`
-        );
-      }
-    },
-    []
-  );
-
-  // Import playlist from JSON file
-  const importPlaylist = useCallback(
-    (file: File) => {
-      return new Promise<void>((resolve, reject) => {
-        const reader = new FileReader();
-
-        reader.onload = (e) => {
-          try {
-            const content = e.target?.result as string;
-
-            if (file.name.endsWith(".json")) {
-              // Parse JSON playlist
-              const playlistData = JSON.parse(content);
-
-              if (!playlistData.name || !Array.isArray(playlistData.songs)) {
-                throw new Error("Invalid playlist format");
-              }
-
-              // Create new playlist with imported metadata (songs will need to be matched/re-added)
-              const newPlaylist: Playlist = {
-                id: Date.now().toString(),
-                name: `${playlistData.name} (Imported)`,
-                songs: [], // Empty for now, user will need to add songs manually
-              };
-
-              // Add the playlist
-              createPlaylist(newPlaylist.name, newPlaylist.songs);
-
-              toast.success(
-                `Imported playlist "${playlistData.name}" with ${playlistData.songs.length} song references`
-              );
-              toast.info(
-                "Note: You'll need to add songs to this playlist manually as audio files cannot be imported."
-              );
-              resolve();
-            } else if (
-              file.name.endsWith(".m3u") ||
-              file.name.endsWith(".m3u8")
-            ) {
-              // Parse M3U playlist
-              const lines = content.split("\n").filter((line) => line.trim());
-              const songs: Array<{ title: string; artist: string }> = [];
-
-              for (let i = 0; i < lines.length; i++) {
-                const line = lines[i].trim();
-                if (line.startsWith("#EXTINF:")) {
-                  // Extract artist and title from M3U format
-                  const match = line.match(/#EXTINF:\d+,(.+?) - (.+)/);
-                  if (match) {
-                    songs.push({
-                      artist: match[1],
-                      title: match[2],
-                    });
-                  }
-                }
-              }
-
-              // Create playlist
-              const playlistName = file.name.replace(/\.(m3u|m3u8)$/i, "");
-              createPlaylist(`${playlistName} (Imported)`, []);
-
-              toast.success(
-                `Imported M3U playlist with ${songs.length} song references`
-              );
-              toast.info(
-                "Note: You'll need to add songs to this playlist manually as audio files cannot be imported."
-              );
-              resolve();
-            } else {
-              throw new Error(
-                "Unsupported file format. Please use .json, .m3u, or .m3u8 files."
-              );
-            }
-          } catch (error) {
-            console.error("Import failed:", error);
-            const message =
-              error instanceof Error
-                ? error.message
-                : "Failed to parse playlist file";
-            toast.error(`Import failed: ${message}`);
-            reject(error);
-          }
-        };
-
-        reader.onerror = () => {
-          const error = new Error("Failed to read file");
-          toast.error("Failed to read file");
-          reject(error);
-        };
-
-        reader.readAsText(file);
-      });
-    },
-    [createPlaylist]
-  );
-
-  useEffect(() => {
-    if (audioRef.current) {
-      audioRef.current.playbackRate = getValidTempo(settings.tempo);
-    }
-  }, [settings.tempo]);
 
   return {
     playerState,

@@ -51,6 +51,9 @@
     "playlistShared": "Playlist shared successfully",
     "playlistCopied": "Playlist info copied to clipboard!",
     "playlistShareFailed": "Failed to share playlist",
+    "importPlaylist": "Import Playlist",
+    "exportJSON": "Export as JSON",
+    "exportM3U": "Export as M3U",
     "noPlaylistsYet": "No playlists yet. Create your first one!",
     "createNewPlaylist": "Create New Playlist"
   },
@@ -155,12 +158,15 @@
     "themeError": "Theme load error!",
     "audio": {
       "title": "Audio Settings",
-      "crossfade": "Crossfade"
+      "crossfade": "Crossfade",
+      "crossfadeDisabled": "disabled when gapless is enabled"
     },
     "playback": {
       "title": "Playback Settings",
       "shuffle": "Default Shuffle Mode",
       "shuffleDesc": "Enable shuffle by default when starting playback",
+      "smartShuffle": "Smart Shuffle",
+      "smartShuffleDesc": "Intelligent shuffle that avoids recently played songs and prefers less-played tracks",
       "repeat": "Default Repeat Mode",
       "autoPlay": "Auto-play Next Song",
       "autoPlayDesc": "Automatically play the next song when current song ends",

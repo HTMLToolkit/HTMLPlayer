@@ -50,7 +50,10 @@
     "playlistShareText": "Découvrez cette playlist « {{name}} » avec {{count}} chanson(s)",
     "playlistShared": "Playlist partagée avec succès",
     "playlistCopied": "Informations de la playlist copiées dans le presse-papiers !",
-    "playlistShareFailed": "Échec du partage de la playlist"
+    "playlistShareFailed": "Échec du partage de la playlist",
+    "importPlaylist": "Importer une playlist",
+    "exportJSON": "Exporter en JSON",
+    "exportM3U": "Exporter en M3U"
   },
   "noResults": {
     "search": "Aucune chanson trouvée",
@@ -155,12 +158,15 @@
     "themeError": "Erreur de chargement du thème !",
     "audio": {
       "title": "Paramètres Audio",
-      "crossfade": "Fondu enchaîné"
+      "crossfade": "Fondu enchaîné",
+      "crossfadeDisabled": "désactivé lorsque le mode sans interruption est activé"
     },
     "playback": {
       "title": "Paramètres de Lecture",
       "shuffle": "Mode Aléatoire par Défaut",
       "shuffleDesc": "Activer le mode aléatoire par défaut lors du démarrage de la lecture",
+      "smartShuffle": "Lecture Aléatoire Intelligente",
+      "smartShuffleDesc": "Lecture aléatoire intelligente qui évite les chansons récemment jouées et préfère les pistes moins jouées",
       "repeat": "Mode de Répétition par Défaut",
       "autoPlay": "Lecture Automatique de la Chanson Suivante",
       "autoPlayDesc": "Jouer automatiquement la chanson suivante quand la chanson actuelle se termine",

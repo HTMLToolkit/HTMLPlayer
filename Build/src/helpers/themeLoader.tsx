@@ -40,10 +40,11 @@ interface ThemeLoaderProps {
 let globalThemes: ThemeMetadata[] = [];
 
 // ----------------------
-// Import theme JSON and CSS
+// Import theme JSON, CSS, and images
 // ----------------------
 const themeJsonFiles = import.meta.glob('../themes/**/*.theme.json', { eager: true });
 const themeCssFiles = import.meta.glob('../themes/**/*.theme.css', { query: '?raw', import: 'default', eager: false });
+const themeImageFiles = import.meta.glob('../themes/**/*.{jpg,jpeg,png,gif,webp,svg}', { eager: true });
 
 // ----------------------
 // ThemeLoader Component
@@ -167,12 +168,36 @@ export const ThemeLoader: React.FC<ThemeLoaderProps> = ({
         throw new Error(`Invalid CSS content for ${cssPath}: ${typeof cssModule}`);
       }
 
+      // Process CSS to replace image URLs with Vite asset URLs
+      let processedCss = cssModule;
+      const themeDir = cssPath.replace(/\/[^\/]+$/, ''); // Get directory containing the CSS file
+      
+      // Replace relative image URLs with imported asset URLs
+      processedCss = processedCss.replace(/url\(['"]?([^'"\)]+)['"]?\)/g, (match, url) => {
+        // Skip data URIs and absolute URLs
+        if (url.startsWith('data:') || url.startsWith('http') || url.startsWith('/')) {
+          return match;
+        }
+        
+        // Find the corresponding imported image
+        const imagePath = `${themeDir}/${url}`;
+        const imageModule = themeImageFiles[imagePath];
+        
+        if (imageModule) {
+          return `url('${(imageModule as any).default}')`;
+        }
+        
+        // If not found, return original (might be handled by other means)
+        console.warn(`Image not found in imports: ${imagePath}`);
+        return match;
+      });
+
       console.log('Theme loaded');
 
       // Create a style element and inject the CSS
       const styleElement = document.createElement('style');
       styleElement.id = `theme-stylesheet-${theme.name}`;
-      styleElement.textContent = cssModule;
+      styleElement.textContent = processedCss;
 
       // Use requestAnimationFrame to sync with browser rendering
       await new Promise(resolve => requestAnimationFrame(() => setTimeout(resolve, 50)));

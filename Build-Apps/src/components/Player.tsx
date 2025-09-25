@@ -21,7 +21,6 @@ import { Visualizer } from "./Visualizer";
 import { Lyrics } from "./Lyrics";
 import styles from "./Player.module.css";
 import { SongActionsDropdown } from "./SongActionsDropdown";
-import { PlayerSettings } from "./Settings";
 import { useTranslation } from "react-i18next";
 import DOMPurify from "dompurify";
 import { toggleMiniplayer } from "./Miniplayer";

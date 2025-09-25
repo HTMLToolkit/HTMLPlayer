@@ -1,5 +1,3 @@
-// Miniplayer.tsx
-import { type PlayerState } from "../hooks/musicPlayerHook";
 import { createRoot } from "react-dom/client";
 import { Button } from "./Button";
 import { Play, Pause, SkipBack, SkipForward } from "lucide-react";
@@ -89,7 +87,6 @@ export const toggleMiniplayer = async (controls: MiniplayerControls) => {
       return;
     }
 
-    // @ts-ignore
     const newPipWindow = await window.documentPictureInPicture.requestWindow({
       width: 400,
       height: 70,

@@ -1,7 +1,6 @@
 import { create } from 'zustand';
 import { subscribeWithSelector } from 'zustand/middleware';
 import { useEffect, useRef } from 'react';
-import { Song } from '../hooks/musicPlayerHook';
 
 export interface AudioEvent {
   type: 'play' | 'pause' | 'seek' | 'volume' | 'next' | 'previous' | 'timeUpdate' | 'songChange';

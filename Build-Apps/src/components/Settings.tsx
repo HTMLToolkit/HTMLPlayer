@@ -9,6 +9,7 @@ import {
 import { Button } from "./Button";
 import { Switch } from "./Switch";
 import { Slider } from "./Slider";
+import { Input } from "./Input";
 import {
   Select,
   SelectContent,
@@ -18,30 +19,13 @@ import {
 } from "./Select";
 import { ThemeModeSwitch } from "./ThemeModeSwitch";
 import { ShortcutConfig } from "./ShortcutConfig";
-import { Volume2, Music, Palette, RotateCcw, Keyboard } from "lucide-react";
+import { Volume2, Music, Palette, RotateCcw, Keyboard, MessageCircle } from "lucide-react";
 import styles from "./Settings.module.css";
 import { useThemeLoader } from "../helpers/themeLoader";
 import { toast } from "sonner";
+import { useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { languageNames } from "../../public/locales/supportedLanguages";
-
-export type PlayerSettings = {
-  volume: number;
-  crossfade: number;
-  defaultShuffle: boolean;
-  defaultRepeat: "off" | "one" | "all";
-  themeMode: "light" | "dark" | "auto";
-  colorTheme: string;
-  autoPlayNext: boolean;
-  compactMode: boolean;
-  showAlbumArt: boolean;
-  showLyrics: boolean;
-  sessionRestore: boolean;
-  lastPlayedSongId?: string;
-  lastPlayedPlaylistId?: string;
-  language: string;
-  tempo: number;
-};
 
 export interface SettingsProps {
   className?: string;
@@ -62,6 +46,9 @@ export const Settings = ({
 }: SettingsProps) => {
   const { t, i18n } = useTranslation();
 
+  // Use the persisted crossfadeBeforeGapless value, fallback to current crossfade
+  const previousCrossfadeRef = useRef<number>(settings.crossfadeBeforeGapless ?? settings.crossfade);
+
   const volume = [Math.round(settings.volume * 100)];
   const crossfade = [settings.crossfade];
   const defaultShuffle = settings.defaultShuffle;
@@ -81,6 +68,7 @@ export const Settings = ({
       onSettingsChange({
         volume: 0.75,
         crossfade: 3,
+        crossfadeBeforeGapless: undefined,
         defaultShuffle: false,
         defaultRepeat: "off",
         autoPlayNext: true,
@@ -88,9 +76,13 @@ export const Settings = ({
         showAlbumArt: true,
         showLyrics: false,
         sessionRestore: true,
+        gaplessPlayback: true,
+        smartShuffle: true,
         colorTheme: defaultThemeName,
         language: "English",
         tempo: 1,
+        discordEnabled: false,
+        discordUserId: undefined,
       });
     } catch {
       toast.error(t("settings.resetError"));
@@ -102,7 +94,16 @@ export const Settings = ({
   };
 
   const handleCrossfadeChange = (newCrossfade: number[]) => {
-    onSettingsChange({ crossfade: newCrossfade[0] });
+    // Prevent crossfade changes when gapless playback is enabled
+    if (settings.gaplessPlayback) {
+      return;
+    }
+    const newValue = newCrossfade[0];
+    previousCrossfadeRef.current = newValue; // Update stored value
+    onSettingsChange({ 
+      crossfade: newValue,
+      crossfadeBeforeGapless: undefined // Clear stored value when manually changed
+    });
   };
 
   // Get supported languages dynamically from i18next config
@@ -185,16 +186,59 @@ export const Settings = ({
                 <div className={styles.settingLabel}>
                   <label htmlFor="crossfade-slider">
                     {t("settings.audio.crossfade")}
+                    {settings.gaplessPlayback && (
+                      <span className={styles.settingDescription}>
+                        {" "}({t("settings.audio.crossfadeDisabled")})
+                      </span>
+                    )}
                   </label>
-                  <span className={styles.settingValue}>{crossfade[0]}s</span>
+                  <span className={styles.settingValue}>
+                    {settings.gaplessPlayback ? "0s" : `${crossfade[0]}s`}
+                  </span>
                 </div>
                 <Slider
                   id="crossfade-slider"
-                  value={crossfade}
+                  value={settings.gaplessPlayback ? [0] : crossfade}
                   onValueChange={handleCrossfadeChange}
                   max={10}
                   step={1}
                   className={styles.slider}
+                  disabled={settings.gaplessPlayback}
+                />
+              </div>
+
+                            <div className={styles.settingItem}>
+                <div className={styles.settingInfo}>
+                  <label htmlFor="gapless-playback">
+                    {t("settings.playback.gapless")}
+                  </label>
+                  <p className={styles.settingDescription}>
+                    {t("settings.playback.gaplessDesc")}
+                  </p>
+                </div>
+                <Switch
+                  id="gapless-playback"
+                  checked={settings.gaplessPlayback}
+                  onCheckedChange={(val) => {
+                    if (val) {
+                      // Store current crossfade value before setting to 0
+                      const currentCrossfade = settings.crossfade;
+                      previousCrossfadeRef.current = currentCrossfade;
+                      onSettingsChange({ 
+                        gaplessPlayback: val,
+                        crossfade: 0,
+                        crossfadeBeforeGapless: currentCrossfade
+                      });
+                    } else {
+                      // Restore previous crossfade value when disabling gapless
+                      const restoreValue = settings.crossfadeBeforeGapless ?? previousCrossfadeRef.current;
+                      onSettingsChange({ 
+                        gaplessPlayback: val,
+                        crossfade: restoreValue,
+                        crossfadeBeforeGapless: undefined // Clear the stored value
+                      });
+                    }
+                  }}
                 />
               </div>
             </section>
@@ -222,6 +266,24 @@ export const Settings = ({
                   checked={defaultShuffle}
                   onCheckedChange={(val) =>
                     onSettingsChange({ defaultShuffle: val })
+                  }
+                />
+              </div>
+
+              <div className={styles.settingItem}>
+                <div className={styles.settingInfo}>
+                  <label htmlFor="smart-shuffle">
+                    {t("settings.playback.smartShuffle")}
+                  </label>
+                  <p className={styles.settingDescription}>
+                    {t("settings.playback.smartShuffleDesc")}
+                  </p>
+                </div>
+                <Switch
+                  id="smart-shuffle"
+                  checked={settings.smartShuffle}
+                  onCheckedChange={(val) =>
+                    onSettingsChange({ smartShuffle: val })
                   }
                 />
               </div>
@@ -454,6 +516,108 @@ export const Settings = ({
               </div>
 
               <ShortcutConfig onShortcutsChanged={onShortcutsChanged} />
+            </section>
+
+            {/* Discord Integration */}
+            <section className={styles.section}>
+              <div className={styles.sectionHeader}>
+                <MessageCircle className={styles.sectionIcon} />
+                <h3 className={styles.sectionTitle}>
+                  Discord Integration
+                </h3>
+              </div>
+
+              <div className={styles.settingItem}>
+                <div className={styles.settingInfo}>
+                  <label htmlFor="discord-enabled">
+                    Enable Discord Integration (Broken Beta)
+                  </label>
+                  <p className={styles.settingDescription}>
+                    Note: Discord's RPC API requires special approval. Currently logs track info for testing.
+                  </p>
+                </div>
+                <Switch
+                  id="discord-enabled"
+                  checked={settings.discordEnabled || false}
+                  onCheckedChange={(val) =>
+                    onSettingsChange({ discordEnabled: val })
+                  }
+                />
+              </div>
+
+              {settings.discordEnabled && (
+                <>
+                  <div className={styles.settingItem}>
+                    <div className={styles.settingInfo}>
+                      <label>Discord Connection</label>
+                      <p className={styles.settingDescription}>
+                        {settings.discordUserId 
+                          ? `Connected as Discord User ID: ${settings.discordUserId}`
+                          : "Not connected to Discord"
+                        }
+                      </p>
+                    </div>
+                    <Button
+                      variant={settings.discordUserId ? "outline" : "primary"}
+                      onClick={() => {
+                        if (settings.discordUserId) {
+                          // Disconnect Discord
+                          onSettingsChange({ discordUserId: undefined });
+                          toast.success("Disconnected from Discord");
+                        } else {
+                          // Redirect to Discord OAuth
+                          const discordOAuthUrl = "https://discord.com/oauth2/authorize?client_id=1419480226970341476&response_type=code&redirect_uri=https%3A%2F%2Fhtmlplayer-backend.onrender.com%2Foauth%2Fcallback&scope=identify%20rpc.activities.write";
+                          window.open(discordOAuthUrl, '_blank');
+                          toast.info("Please complete Discord authorization in the new tab");
+                        }
+                      }}
+                    >
+                      {settings.discordUserId ? "Disconnect" : "Connect Discord"}
+                    </Button>
+                  </div>
+
+                  {!settings.discordUserId && (
+                    <div className={styles.settingItem}>
+                      <div className={styles.settingInfo}>
+                        <label htmlFor="discord-user-id">Manual Discord User ID</label>
+                        <p className={styles.settingDescription}>
+                          If the OAuth flow completed successfully, you can manually enter your Discord User ID here.
+                        </p>
+                      </div>
+                      <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                        <Input
+                          id="discord-user-id"
+                          type="text"
+                          placeholder="Discord User ID"
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              const input = e.target as HTMLInputElement;
+                              if (input.value.trim()) {
+                                onSettingsChange({ discordUserId: input.value.trim() });
+                                toast.success("Discord User ID saved");
+                                input.value = '';
+                              }
+                            }
+                          }}
+                        />
+                        <Button
+                          size="sm"
+                          onClick={(e) => {
+                            const input = (e.target as HTMLElement).previousElementSibling as HTMLInputElement;
+                            if (input && input.value.trim()) {
+                              onSettingsChange({ discordUserId: input.value.trim() });
+                              toast.success("Discord User ID saved");
+                              input.value = '';
+                            }
+                          }}
+                        >
+                          Save
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </>
+              )}
             </section>
           </div>
 

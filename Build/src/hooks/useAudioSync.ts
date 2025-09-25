@@ -42,22 +42,34 @@ export const useAudioSync = ({ musicPlayerHook, isMiniplayer = false }: AudioSyn
     seekTo
   };
 
+  // Check if crossfading to avoid syncing during transitions
+  const isCrossfading = (musicPlayerHook as any).crossfadeManagerRef?.current?.isCrossfading?.() || false;
+
   // Sync state from music player to audio store (one-way sync)
+  // Skip syncing during crossfade to avoid conflicts
   useEffect(() => {
-    setPlaying(playerState.isPlaying, source);
-  }, [playerState.isPlaying, setPlaying, source]);
+    if (!isCrossfading) {
+      setPlaying(playerState.isPlaying, source);
+    }
+  }, [playerState.isPlaying, setPlaying, source, isCrossfading]);
 
   useEffect(() => {
-    setCurrentTime(playerState.currentTime, source);
-  }, [playerState.currentTime, setCurrentTime, source]);
+    if (!isCrossfading) {
+      setCurrentTime(playerState.currentTime, source);
+    }
+  }, [playerState.currentTime, setCurrentTime, source, isCrossfading]);
 
   useEffect(() => {
-    setVolume(playerState.volume, source);
-  }, [playerState.volume, setVolume, source]);
+    if (!isCrossfading) {
+      setVolume(playerState.volume, source);
+    }
+  }, [playerState.volume, setVolume, source, isCrossfading]);
 
   useEffect(() => {
-    setCurrentSong(playerState.currentSong, source);
-  }, [playerState.currentSong, setCurrentSong, source]);
+    if (!isCrossfading) {
+      setCurrentSong(playerState.currentSong, source);
+    }
+  }, [playerState.currentSong, setCurrentSong, source, isCrossfading]);
 
   useEffect(() => {
     if (playerState.currentSong?.duration) {

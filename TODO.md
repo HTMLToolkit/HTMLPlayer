@@ -5,17 +5,21 @@
 - [ ] Discord Integration
   - Implemented and theoretically works but requires Discord approval for Rich Presence API (via server) access. Need to submit Discord app for verification to enable it.
 
-- [ ] Crossfade options (settings)
+- [X] Crossfade options (settings)
 
-- [ ] Gapless playback (settings)
+- [X] Gapless playback (settings)
 
 - [X] Smart shuffle
 
 - [X] Export/import playlists
 
-- [ ] Dynamic theming based on album art colors.  (settings)
+- [X] animated themes (example)
 
-- [ ] picture backgrounds in themes
+- [X] picture backgrounds in themes (example)
+
+- [ ] custom pictures in themes
+
+- [ ] Dynamic theming based on album art colors.  (settings)
 
 - [ ] Synced lyrics using id3v2 embedded lyrics (music-metadata has tons of stuff for this)
 
@@ -83,7 +87,7 @@
 
 - [ ] scrobbling (settings)
 
-- [ ] Visualizer → audio-reactive backgrounds (basically picture background theme but actually visualizer and not theme)
+- [ ] Visualizer → audio-reactive backgrounds (basically picture background theme but actually visualizer and not theme) (can easily pipe through background-image or background via image)
 
 - [ ] Duplicate file detection (not just by title but checksum as well).
 

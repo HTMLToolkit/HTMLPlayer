@@ -158,7 +158,8 @@
     "themeError": "Theme load error!",
     "audio": {
       "title": "Audio Settings",
-      "crossfade": "Crossfade"
+      "crossfade": "Crossfade",
+      "crossfadeDisabled": "disabled when gapless is enabled"
     },
     "playback": {
       "title": "Playback Settings",

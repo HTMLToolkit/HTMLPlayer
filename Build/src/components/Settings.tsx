@@ -23,6 +23,7 @@ import { Volume2, Music, Palette, RotateCcw, Keyboard, MessageCircle } from "luc
 import styles from "./Settings.module.css";
 import { useThemeLoader } from "../helpers/themeLoader";
 import { toast } from "sonner";
+import { useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { languageNames } from "../../public/locales/supportedLanguages";
 
@@ -45,6 +46,9 @@ export const Settings = ({
 }: SettingsProps) => {
   const { t, i18n } = useTranslation();
 
+  // Use the persisted crossfadeBeforeGapless value, fallback to current crossfade
+  const previousCrossfadeRef = useRef<number>(settings.crossfadeBeforeGapless ?? settings.crossfade);
+
   const volume = [Math.round(settings.volume * 100)];
   const crossfade = [settings.crossfade];
   const defaultShuffle = settings.defaultShuffle;
@@ -64,6 +68,7 @@ export const Settings = ({
       onSettingsChange({
         volume: 0.75,
         crossfade: 3,
+        crossfadeBeforeGapless: undefined,
         defaultShuffle: false,
         defaultRepeat: "off",
         autoPlayNext: true,
@@ -89,7 +94,16 @@ export const Settings = ({
   };
 
   const handleCrossfadeChange = (newCrossfade: number[]) => {
-    onSettingsChange({ crossfade: newCrossfade[0] });
+    // Prevent crossfade changes when gapless playback is enabled
+    if (settings.gaplessPlayback) {
+      return;
+    }
+    const newValue = newCrossfade[0];
+    previousCrossfadeRef.current = newValue; // Update stored value
+    onSettingsChange({ 
+      crossfade: newValue,
+      crossfadeBeforeGapless: undefined // Clear stored value when manually changed
+    });
   };
 
   // Get supported languages dynamically from i18next config
@@ -172,16 +186,24 @@ export const Settings = ({
                 <div className={styles.settingLabel}>
                   <label htmlFor="crossfade-slider">
                     {t("settings.audio.crossfade")}
+                    {settings.gaplessPlayback && (
+                      <span className={styles.settingDescription}>
+                        {" "}({t("settings.audio.crossfadeDisabled")})
+                      </span>
+                    )}
                   </label>
-                  <span className={styles.settingValue}>{crossfade[0]}s</span>
+                  <span className={styles.settingValue}>
+                    {settings.gaplessPlayback ? "0s" : `${crossfade[0]}s`}
+                  </span>
                 </div>
                 <Slider
                   id="crossfade-slider"
-                  value={crossfade}
+                  value={settings.gaplessPlayback ? [0] : crossfade}
                   onValueChange={handleCrossfadeChange}
                   max={10}
                   step={1}
                   className={styles.slider}
+                  disabled={settings.gaplessPlayback}
                 />
               </div>
 
@@ -197,9 +219,26 @@ export const Settings = ({
                 <Switch
                   id="gapless-playback"
                   checked={settings.gaplessPlayback}
-                  onCheckedChange={(val) =>
-                    onSettingsChange({ gaplessPlayback: val })
-                  }
+                  onCheckedChange={(val) => {
+                    if (val) {
+                      // Store current crossfade value before setting to 0
+                      const currentCrossfade = settings.crossfade;
+                      previousCrossfadeRef.current = currentCrossfade;
+                      onSettingsChange({ 
+                        gaplessPlayback: val,
+                        crossfade: 0,
+                        crossfadeBeforeGapless: currentCrossfade
+                      });
+                    } else {
+                      // Restore previous crossfade value when disabling gapless
+                      const restoreValue = settings.crossfadeBeforeGapless ?? previousCrossfadeRef.current;
+                      onSettingsChange({ 
+                        gaplessPlayback: val,
+                        crossfade: restoreValue,
+                        crossfadeBeforeGapless: undefined // Clear the stored value
+                      });
+                    }
+                  }}
                 />
               </div>
             </section>

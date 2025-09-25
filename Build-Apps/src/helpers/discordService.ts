@@ -23,45 +23,19 @@ export class DiscordService {
   }
 
   /**
-   * Send track update to Discord backend
+   * Log track update instead of sending to Discord backend
    */
   public async updatePresence(data: DiscordPresenceData): Promise<boolean> {
-    try {
-      const response = await fetch(`${DiscordService.API_BASE_URL}/presence`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
-      });
-
-      if (!response.ok) {
-        console.error('Failed to update Discord presence:', response.status, response.statusText);
-        return false;
-      }
-
-      return true;
-    } catch (error) {
-      console.error('Error updating Discord presence:', error);
-      return false;
-    }
+    console.log(`[DiscordService] Would POST to ${DiscordService.API_BASE_URL}/presence with:`, data);
+    return true;
   }
 
   /**
-   * Clear Discord presence (when music stops)
+   * Log clear presence instead of sending to Discord backend
    */
   public async clearPresence(userId: string): Promise<boolean> {
-    try {
-      // Send empty details and state to clear presence
-      return await this.updatePresence({
-        userId,
-        details: '',
-        state: '',
-      });
-    } catch (error) {
-      console.error('Error clearing Discord presence:', error);
-      return false;
-    }
+    console.log(`[DiscordService] Would clear presence for userId: ${userId}`);
+    return true;
   }
 
   /**

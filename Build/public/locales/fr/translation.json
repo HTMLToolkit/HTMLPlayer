@@ -158,7 +158,8 @@
     "themeError": "Erreur de chargement du thème !",
     "audio": {
       "title": "Paramètres Audio",
-      "crossfade": "Fondu enchaîné"
+      "crossfade": "Fondu enchaîné",
+      "crossfadeDisabled": "désactivé lorsque le mode sans interruption est activé"
     },
     "playback": {
       "title": "Paramètres de Lecture",
