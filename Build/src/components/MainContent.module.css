@@ -108,6 +108,13 @@
   border-color: var(--primary-border-stronger);
 }
 
+.sortingControls {
+  display: flex;
+  gap: var(--spacing-2);
+  margin-bottom: var(--spacing-4);
+  flex-wrap: wrap;
+}
+
 /* Song list */
 .songList {
   background: var(--themecolor2-transparent);

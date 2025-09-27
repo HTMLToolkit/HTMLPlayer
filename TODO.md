@@ -2,6 +2,24 @@
 
 ## HTMLPlayer v2
 
+__
+
+### wip
+
+- fix ui of sort options
+- fix favorite and rate functions missing
+- fix move to ... actions
+- replace alert with react modal
+- better signify click on folder to expand
+- fix click on folder to expand
+- 3rd click on sort option to remove option (click -> up, down, none)
+- 4 buttons feels too much for sidebar, lessen?
+- implement rename + delete folders
+- better playlist folder UI?
+- change add folder icon to + as well
+- some other stuff idk i can't remember
+__
+
 - [ ] Sort Tracks with drag-and-drop reordering
     Issue: Tracks cannot be sorted (e.g., by name, rating).
     Improvement: Add sorting options.

@@ -1,5 +1,5 @@
 type MusicLibrary = {
   songs: Song[];
-  playlists: Playlist[];
+  playlists: (Playlist | PlaylistFolder)[];
   favorites: string[];
 };

@@ -32,6 +32,118 @@ import modalStyles from "./Dialog.module.css";
 import styles from "./MainContent.module.css";
 import PersistentDropdownMenu from "./PersistentDropdownMenu";
 import { useTranslation } from "react-i18next";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import {
+  useSortable,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+
+interface SortableSongItemProps {
+  song: Song;
+  isCurrent: boolean;
+  isSelected: boolean;
+  onClick: () => void;
+  onCheckboxChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  isSelectActive: boolean;
+  ratings: Record<string, "thumbs-up" | "thumbs-down" | "none">;
+  onRatingChange: (rating: "thumbs-up" | "thumbs-down") => void;
+  onFavoriteToggle: (e: React.MouseEvent<HTMLButtonElement>) => void;
+  isFavorited: boolean;
+  formatDuration: (seconds: number) => string;
+  styles: any;
+  SongActionsDropdown: any;
+  library: MusicLibrary;
+  createPlaylist: (name: string) => void;
+  addToPlaylist: (playlistId: string, songId: string) => void;
+  playSong: (song: Song, playlist?: Playlist) => void;
+  removeSong: (songId: string) => void;
+}
+
+const SortableSongItem = ({
+  song,
+  isCurrent,
+  isSelected,
+  onClick,
+  onCheckboxChange,
+  isSelectActive,
+  ratings,
+  onRatingChange,
+  onFavoriteToggle,
+  isFavorited,
+  formatDuration,
+  styles,
+  SongActionsDropdown,
+  library,
+  createPlaylist,
+  addToPlaylist,
+  playSong,
+  removeSong,
+}: SortableSongItemProps) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: song.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={`${styles.songItem} ${isCurrent ? styles.currentSong : ""}`}
+      onClick={onClick}
+      {...attributes}
+      {...listeners}
+    >
+      <div className={styles.songInfo}>
+        {isSelectActive && (
+          <Checkbox
+            checked={isSelected}
+            onChange={onCheckboxChange}
+          />
+        )}
+        <div className={styles.albumArt}>
+          {song.albumArt && <img src={song.albumArt} alt={`${song.title} album art`} style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "inherit" }} />}
+        </div>
+        <div className={styles.songDetails}>
+          <div className={styles.songTitle}>{song.title}</div>
+          <div className={styles.songArtist}>{song.artist} • {formatDuration(song.duration)}</div>
+        </div>
+      </div>
+      <div className={styles.artistName}>{song.artist}</div>
+      <div className={styles.songActions}>
+        <Button variant="ghost" size="icon-sm" className={`${styles.songActionButton} ${isFavorited ? styles.favorited : ""}`} onClick={onFavoriteToggle}>
+          <Heart size={14} fill={isFavorited ? "currentColor" : "none"} />
+        </Button>
+        <Button variant="ghost" size="icon-sm" className={`${styles.songActionButton} ${ratings[song.id] === "thumbs-up" ? styles.active : ""}`} onClick={() => onRatingChange("thumbs-up")}><ThumbsUp size={14} /></Button>
+        <Button variant="ghost" size="icon-sm" className={`${styles.songActionButton} ${ratings[song.id] === "thumbs-down" ? styles.active : ""}`} onClick={() => onRatingChange("thumbs-down")}><ThumbsDown size={14} /></Button>
+        <SongActionsDropdown song={song} library={library} onCreatePlaylist={createPlaylist} onAddToPlaylist={addToPlaylist} onRemoveSong={removeSong} onPlaySong={playSong} size={14} className={styles.songActionButton} />
+      </div>
+    </div>
+  );
+};
 
 type MainContentProps = {
   musicPlayerHook: ReturnType<
@@ -42,7 +154,16 @@ type MainContentProps = {
 export const MainContent = ({ musicPlayerHook }: MainContentProps) => {
   const { t } = useTranslation();
 
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
   const [songSearchQuery, setSongSearchQuery] = useState("");
+  const [sortBy, setSortBy] = useState<"name" | "artist" | "album" | "rating" | null>(null);
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
   const [ratings, setRatings] = useState<
     Record<string, "thumbs-up" | "thumbs-down" | "none">
   >({});
@@ -66,6 +187,7 @@ export const MainContent = ({ musicPlayerHook }: MainContentProps) => {
     isFavorited,
     createPlaylist,
     addToPlaylist,
+    reorderPlaylistSongs,
     navigateToArtist,
     navigateToAlbum,
     navigateToSongs,
@@ -111,7 +233,55 @@ export const MainContent = ({ musicPlayerHook }: MainContentProps) => {
       song.artist.toLowerCase().includes(songSearchQuery.toLowerCase())
   );
 
+  const sortedSongs = React.useMemo(() => {
+    let sorted = [...filteredSongs];
+    if (sortBy) {
+      sorted.sort((a, b) => {
+        let aVal: string | number;
+        let bVal: string | number;
+        switch (sortBy) {
+          case "name":
+            aVal = a.title.toLowerCase();
+            bVal = b.title.toLowerCase();
+            break;
+          case "artist":
+            aVal = a.artist.toLowerCase();
+            bVal = b.artist.toLowerCase();
+            break;
+          case "album":
+            aVal = a.album?.toLowerCase() || "";
+            bVal = b.album?.toLowerCase() || "";
+            break;
+          case "rating":
+            aVal = ratings[a.id] === "thumbs-up" ? 1 : ratings[a.id] === "thumbs-down" ? -1 : 0;
+            bVal = ratings[b.id] === "thumbs-up" ? 1 : ratings[b.id] === "thumbs-down" ? -1 : 0;
+            break;
+          default:
+            return 0;
+        }
+        if (aVal < bVal) return sortOrder === "asc" ? -1 : 1;
+        if (aVal > bVal) return sortOrder === "asc" ? 1 : -1;
+        return 0;
+      });
+    }
+    return sorted;
+  }, [filteredSongs, sortBy, sortOrder, ratings]);
+
   const handleSongSearch = (query: string) => setSongSearchQuery(query);
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+
+    if (playerState.currentPlaylist) {
+      const oldIndex = sortedSongs.findIndex((song) => song.id === active.id);
+      const newIndex = sortedSongs.findIndex((song) => song.id === over.id);
+      if (oldIndex !== -1 && newIndex !== -1) {
+        const newSongs = arrayMove(sortedSongs, oldIndex, newIndex);
+        reorderPlaylistSongs(playerState.currentPlaylist.id, newSongs);
+      }
+    }
+  };
 
   const handleSongClick = (song: Song) => {
     playSong(song, playerState.currentPlaylist || undefined);
@@ -225,8 +395,8 @@ export const MainContent = ({ musicPlayerHook }: MainContentProps) => {
   };
 
   const handleSelectAll = () => {
-    if (selectedSongs.length === filteredSongs.length) setSelectedSongs([]);
-    else setSelectedSongs(filteredSongs.map((song) => song.id));
+    if (selectedSongs.length === sortedSongs.length) setSelectedSongs([]);
+    else setSelectedSongs(sortedSongs.map((song) => song.id));
   };
 
   const handleAddToPlaylist = () => setShowPlaylistDialog(true);
@@ -310,7 +480,7 @@ export const MainContent = ({ musicPlayerHook }: MainContentProps) => {
           >
             <Button variant="ghost" onClick={handleSelectAll}>
               <ListChecks size={16} style={{ marginRight: 8 }} />
-              {selectedSongs.length === filteredSongs.length ? t("actions.deselectAll") : t("actions.selectAll")}
+              {selectedSongs.length === sortedSongs.length ? t("actions.deselectAll") : t("actions.selectAll")}
             </Button>
             <Button variant="ghost" onClick={handleAddToPlaylist}>
               <Plus size={16} style={{ marginRight: 8 }} />
@@ -327,57 +497,126 @@ export const MainContent = ({ musicPlayerHook }: MainContentProps) => {
         </div>
       </div>
 
+      {/* Sorting controls */}
+      <div className={styles.sortingControls}>
+        <Button
+          variant={sortBy === "name" ? "primary" : "outline"}
+          size="sm"
+          onClick={() => {
+            if (sortBy === "name") {
+              setSortOrder(sortOrder === "asc" ? "desc" : "asc");
+            } else {
+              setSortBy("name");
+              setSortOrder("asc");
+            }
+          }}
+        >
+          {t("sort.name")} {sortBy === "name" && (sortOrder === "asc" ? "↑" : "↓")}
+        </Button>
+        <Button
+          variant={sortBy === "artist" ? "primary" : "outline"}
+          size="sm"
+          onClick={() => {
+            if (sortBy === "artist") {
+              setSortOrder(sortOrder === "asc" ? "desc" : "asc");
+            } else {
+              setSortBy("artist");
+              setSortOrder("asc");
+            }
+          }}
+        >
+          {t("sort.artist")} {sortBy === "artist" && (sortOrder === "asc" ? "↑" : "↓")}
+        </Button>
+        <Button
+          variant={sortBy === "album" ? "primary" : "outline"}
+          size="sm"
+          onClick={() => {
+            if (sortBy === "album") {
+              setSortOrder(sortOrder === "asc" ? "desc" : "asc");
+            } else {
+              setSortBy("album");
+              setSortOrder("asc");
+            }
+          }}
+        >
+          {t("sort.album")} {sortBy === "album" && (sortOrder === "asc" ? "↑" : "↓")}
+        </Button>
+        <Button
+          variant={sortBy === "rating" ? "primary" : "outline"}
+          size="sm"
+          onClick={() => {
+            if (sortBy === "rating") {
+              setSortOrder(sortOrder === "asc" ? "desc" : "asc");
+            } else {
+              setSortBy("rating");
+              setSortOrder("asc");
+            }
+          }}
+        >
+          {t("sort.rating")} {sortBy === "rating" && (sortOrder === "asc" ? "↑" : "↓")}
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => {
+            setSortBy(null);
+            setSortOrder("asc");
+          }}
+        >
+          {t("sort.clear")}
+        </Button>
+      </div>
+
       {/* Song list */}
       <div className={styles.songListWrapper}>
-        <div className={styles.songList}>
-          <div className={styles.songListHeader}>
-            <span className={styles.columnHeader}>{t("songInfo.title")}</span>
-            <span className={styles.columnHeader}>{t("common.artist")}</span>
-            <span className={styles.columnHeader}>{t("actions.addTo")}</span>
-          </div>
-          {filteredSongs.map((song: Song) => (
-            <div
-              key={song.id}
-              className={`${styles.songItem} ${playerState.currentSong?.id === song.id ? styles.currentSong : ""}`}
-              onClick={() => handleSongClick(song)}
-            >
-              <div className={styles.songInfo}>
-                {isSelectSongsActive && (
-                  <Checkbox
-                    checked={selectedSongs.includes(song.id)}
-                    onChange={(e) => {
-                      e.stopPropagation();
-                      setSelectedSongs(prev =>
-                        prev.includes(song.id) ? prev.filter(id => id !== song.id) : [...prev, song.id]
-                      );
-                    }}
-                  />
-                )}
-                <div className={styles.albumArt}>
-                  {song.albumArt && <img src={song.albumArt} alt={`${song.title} album art`} style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "inherit" }} />}
-                </div>
-                <div className={styles.songDetails}>
-                  <div className={styles.songTitle}>{song.title}</div>
-                  <div className={styles.songArtist}>{song.artist} • {formatDuration(song.duration)}</div>
-                </div>
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragEnd={handleDragEnd}
+        >
+          <SortableContext items={sortedSongs.map(song => song.id)} strategy={verticalListSortingStrategy}>
+            <div className={styles.songList}>
+              <div className={styles.songListHeader}>
+                <span className={styles.columnHeader}>{t("songInfo.title")}</span>
+                <span className={styles.columnHeader}>{t("common.artist")}</span>
+                <span className={styles.columnHeader}>{t("actions.addTo")}</span>
               </div>
-              <div className={styles.artistName}>{song.artist}</div>
-              <div className={styles.songActions}>
-                <Button variant="ghost" size="icon-sm" className={`${styles.songActionButton} ${isFavorited(song.id) ? styles.favorited : ""}`} onClick={(e: any) => handleToggleFavorite(e, song.id)}>
-                  <Heart size={14} fill={isFavorited(song.id) ? "currentColor" : "none"} />
-                </Button>
-                <Button variant="ghost" size="icon-sm" className={`${styles.songActionButton} ${ratings[song.id] === "thumbs-up" ? styles.active : ""}`} onClick={() => handleRating(song.id, "thumbs-up")}><ThumbsUp size={14} /></Button>
-                <Button variant="ghost" size="icon-sm" className={`${styles.songActionButton} ${ratings[song.id] === "thumbs-down" ? styles.active : ""}`} onClick={() => handleRating(song.id, "thumbs-down")}><ThumbsDown size={14} /></Button>
-                <SongActionsDropdown song={song} library={library} onCreatePlaylist={createPlaylist} onAddToPlaylist={addToPlaylist} onRemoveSong={removeSong} onPlaySong={playSong} size={14} className={styles.songActionButton} />
-              </div>
+              {sortedSongs.map((song: Song) => (
+                <SortableSongItem
+                  key={song.id}
+                  song={song}
+                  isCurrent={playerState.currentSong?.id === song.id}
+                  isSelected={selectedSongs.includes(song.id)}
+                  onClick={() => handleSongClick(song)}
+                  onCheckboxChange={(e) => {
+                    e.stopPropagation();
+                    setSelectedSongs(prev =>
+                      prev.includes(song.id) ? prev.filter(id => id !== song.id) : [...prev, song.id]
+                    );
+                  }}
+                  isSelectActive={isSelectSongsActive}
+                  ratings={ratings}
+                  onRatingChange={(rating) => handleRating(song.id, rating)}
+                  onFavoriteToggle={(e) => handleToggleFavorite(e, song.id)}
+                  isFavorited={isFavorited(song.id)}
+                  formatDuration={formatDuration}
+                  styles={styles}
+                  SongActionsDropdown={SongActionsDropdown}
+                  library={library}
+                  createPlaylist={createPlaylist}
+                  addToPlaylist={addToPlaylist}
+                  playSong={playSong}
+                  removeSong={removeSong}
+                />
+              ))}
+              {sortedSongs.length === 0 && (
+                <div className={styles.noResults}>
+                  {songSearchQuery ? t("noResults.search") : t("noResults.playlist")}
+                </div>
+              )}
             </div>
-          ))}
-          {filteredSongs.length === 0 && (
-            <div className={styles.noResults}>
-              {songSearchQuery ? t("noResults.search") : t("noResults.playlist")}
-            </div>
-          )}
-        </div>
+          </SortableContext>
+        </DndContext>
       </div>
 
       {/* Delete Modal */}

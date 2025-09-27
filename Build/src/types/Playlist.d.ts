@@ -3,3 +3,9 @@ type Playlist = {
   name: string;
   songs: Song[];
 };
+
+type PlaylistFolder = {
+  id: string;
+  name: string;
+  children: (Playlist | PlaylistFolder)[];
+};

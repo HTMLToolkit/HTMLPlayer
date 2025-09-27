@@ -41,6 +41,19 @@ export const createPlaylistManager = (
     return newPlaylist;
   };
 
+  const createFolder = (name: string) => {
+    const newFolder: PlaylistFolder = {
+      id: Date.now().toString(),
+      name,
+      children: [],
+    };
+    setLibrary((prev) => ({
+      ...prev,
+      playlists: [...prev.playlists, newFolder],
+    }));
+    return newFolder;
+  };
+
   const removePlaylist = (playlistId: string) => {
     setLibrary((prev) => ({
       ...prev,
@@ -66,14 +79,14 @@ export const createPlaylistManager = (
 
   const addToPlaylist = (playlistId: string, songId: string) => {
     setLibrary((prev) => {
-      // Find the song and playlist
+      // Find the song
       const song = prev.songs.find((s) => s.id === songId);
       if (!song) return prev;
 
       return {
         ...prev,
         playlists: prev.playlists.map((p) => {
-          if (p.id === playlistId) {
+          if (p.id === playlistId && 'songs' in p) {
             // Don't add if song is already in playlist
             if (p.songs.some((s) => s.id === songId)) return p;
             return {
@@ -84,6 +97,57 @@ export const createPlaylistManager = (
           return p;
         }),
       };
+    });
+  };
+
+  const reorderPlaylistSongs = (playlistId: string, newSongs: Song[]) => {
+    setLibrary((prev) => ({
+      ...prev,
+      playlists: prev.playlists.map((p) => {
+        if (p.id === playlistId && 'songs' in p) {
+          return {
+            ...p,
+            songs: newSongs,
+          };
+        }
+        return p;
+      }),
+    }));
+  };
+
+  const moveToFolder = (itemId: string, folderId: string | null) => {
+    setLibrary((prev) => {
+      const item = prev.playlists.find((p) => p.id === itemId);
+      if (!item) return prev;
+
+      // Remove from current location
+      const removeFrom = (items: (Playlist | PlaylistFolder)[]): (Playlist | PlaylistFolder)[] => {
+        return items
+          .filter((p) => p.id !== itemId)
+          .map((p) => {
+            if ('children' in p) {
+              return { ...p, children: removeFrom(p.children) };
+            }
+            return p;
+          });
+      };
+
+      let newPlaylists = removeFrom(prev.playlists);
+
+      if (folderId) {
+        // Add to folder
+        newPlaylists = newPlaylists.map((p) => {
+          if (p.id === folderId && 'children' in p) {
+            return { ...p, children: [...p.children, item] };
+          }
+          return p;
+        });
+      } else {
+        // Add to root
+        newPlaylists.push(item);
+      }
+
+      return { ...prev, playlists: newPlaylists };
     });
   };
 
@@ -297,10 +361,13 @@ export const createPlaylistManager = (
   return {
     prepareSongsForPlaylist,
     createPlaylist,
+    createFolder,
     removePlaylist,
     addToFavorites,
     removeFromFavorites,
     addToPlaylist,
+    reorderPlaylistSongs,
+    moveToFolder,
     toggleFavorite,
     isFavorited,
     getFavoriteSongs,

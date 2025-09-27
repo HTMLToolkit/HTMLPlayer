@@ -168,10 +168,13 @@ export const useMusicPlayer = () => {
 
   const {
     createPlaylist,
+    createFolder,
     removePlaylist,
     addToFavorites,
     removeFromFavorites,
     addToPlaylist,
+    reorderPlaylistSongs,
+    moveToFolder,
     toggleFavorite,
     isFavorited,
     getFavoriteSongs,
@@ -367,6 +370,7 @@ export const useMusicPlayer = () => {
       );
       if (
         updatedPlaylist &&
+        'songs' in updatedPlaylist &&
         updatedPlaylist.songs !== playerState.currentPlaylist.songs
       ) {
         setPlayerState((prev) => ({
@@ -567,12 +571,14 @@ export const useMusicPlayer = () => {
       }
 
       // Prepare playlist songs if setting a new playlist
-      const preparedPlaylist = playlist
+      const preparedPlaylist = playlist && 'songs' in playlist
         ? {
           ...playlist,
           songs: prepareSongsForPlaylist(playlist.songs),
         }
-        : playerStateRef.current.currentPlaylist;
+        : playerStateRef.current.currentPlaylist && 'songs' in playerStateRef.current.currentPlaylist
+        ? playerStateRef.current.currentPlaylist
+        : null;
 
       setPlayerState((prev) => ({
         ...prev,
@@ -1131,10 +1137,15 @@ export const useMusicPlayer = () => {
     // First, update library synchronously
     setLibrary((prev) => {
       const newSongs = prev.songs.filter((s) => s.id !== songId);
-      const newPlaylists = prev.playlists.map((p) => ({
-        ...p,
-        songs: p.songs.filter((s) => s.id !== songId),
-      }));
+      const newPlaylists = prev.playlists.map((p) => {
+        if ('songs' in p) {
+          return {
+            ...p,
+            songs: p.songs.filter((s: Song) => s.id !== songId),
+          };
+        }
+        return p;
+      });
       return {
         ...prev,
         songs: newSongs,
@@ -1169,8 +1180,11 @@ export const useMusicPlayer = () => {
     addSong,
     removeSong,
     createPlaylist,
+    createFolder,
     removePlaylist,
     addToPlaylist,
+    reorderPlaylistSongs,
+    moveToFolder,
     addToFavorites,
     removeFromFavorites,
     toggleFavorite,
