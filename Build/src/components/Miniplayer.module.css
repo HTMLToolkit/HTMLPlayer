@@ -58,7 +58,7 @@
 /* Base button styling matching Player controls */
 .controls button {
   color: var(--foreground-subtle);
-  background: transparent;
+  background: var(--surface-transparent);
   border: none;
   cursor: pointer;
   padding: var(--spacing-2);
@@ -75,7 +75,7 @@
 
 .controls button:hover {
   color: var(--themecolor);
-  background: var(--surface-transparent-1);
+  background: var(--themecolor1-transparent);
   transform: translateY(-1px);
 }
 
@@ -152,7 +152,8 @@
   top: 0;
   left: 0;
   height: 100%;
-  width: 50%; /* Placeholder for dynamic width */
+  width: 50%;
+  /* Placeholder for dynamic width */
   background: linear-gradient(135deg, var(--themecolor) 0%, var(--themecolor3) 100%);
   border-radius: var(--radius-full);
   transition: width 0.3s ease;

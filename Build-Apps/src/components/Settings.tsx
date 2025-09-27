@@ -518,12 +518,12 @@ export const Settings = ({
               <ShortcutConfig onShortcutsChanged={onShortcutsChanged} />
             </section>
 
-            {/* Discord Integration */}
+            {/* Integrations */}
             <section className={styles.section}>
               <div className={styles.sectionHeader}>
                 <MessageCircle className={styles.sectionIcon} />
                 <h3 className={styles.sectionTitle}>
-                  Discord Integration
+                  Integrations
                 </h3>
               </div>
 

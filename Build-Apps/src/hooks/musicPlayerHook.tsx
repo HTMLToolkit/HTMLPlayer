@@ -20,15 +20,15 @@ export const useMusicPlayer = () => {
   const audioContextRef = useRef<AudioContext | null>(null);
   const songCacheRef = useRef<Map<string, CachedSong>>(new Map());
 
-  // Crossfade-related refs
+  // Simplified crossfade-related refs
   const nextAudioRef = useRef<HTMLAudioElement | null>(null);
   const crossfadeManagerRef = useRef<CrossfadeManager | null>(null);
   const currentAudioSourceRef = useRef<AudioSource | null>(null);
   const nextAudioSourceRef = useRef<AudioSource | null>(null);
-  const crossfadeTimeoutRef = useRef<number | null>(null);
   const preloadTimeoutRef = useRef<number | null>(null);
+  const crossfadeTimeoutRef = useRef<number | null>(null);
 
-  // Cache the next song decision to ensure crossfade and playNext use the same song
+  // Cache the next song decision
   const nextSongCacheRef = useRef<Song | null>(null);
   const nextSongCacheValidRef = useRef<boolean>(false);
   const isPreloadingRef = useRef<boolean>(false);
@@ -106,7 +106,6 @@ export const useMusicPlayer = () => {
         playHistory: Map<string, { lastPlayed: number; playCount: number }>
       ) => {
         try {
-          // Convert play history to serializable format
           const playHistoryArray = Array.from(playHistory.entries());
           const settingsWithPlayHistory = {
             ...settings,
@@ -189,24 +188,15 @@ export const useMusicPlayer = () => {
     if (!audioContextRef.current && audioRef.current) {
       const context = new (window.AudioContext ||
         (window as any).webkitAudioContext)();
-      const analyser = context.createAnalyser();
-      analyser.fftSize = 2048;
 
       audioContextRef.current = context;
 
       // Setup crossfade manager with the new audio context
-      setupCrossfadeManager(context);
-
-      // Connect analyzer between master gain and destination
-      if (crossfadeManagerRef.current) {
-        crossfadeManagerRef.current.getMasterGainNode().connect(analyser);
-        analyser.connect(context.destination);
-      } else {
-        // Fallback: connect directly
-        analyser.connect(context.destination);
+      const manager = setupCrossfadeManager(context);
+      if (manager) {
+        const analyserNode = manager.getAnalyzerNode();
+        setPlayerState((prev) => ({ ...prev, analyserNode }));
       }
-
-      setPlayerState((prev) => ({ ...prev, analyserNode: analyser }));
     }
   }, [setupCrossfadeManager]);
 
@@ -215,17 +205,13 @@ export const useMusicPlayer = () => {
     return () => {
       cleanupCrossfadeManager();
 
-      // Clear any timeouts
-      if (crossfadeTimeoutRef.current) {
-        clearTimeout(crossfadeTimeoutRef.current);
-      }
       if (preloadTimeoutRef.current) {
         clearTimeout(preloadTimeoutRef.current);
       }
 
       clearAllCache();
     };
-  }, []); // Only run on unmount
+  }, []);
 
   // Initialize data loading
   useEffect(() => {
@@ -242,14 +228,12 @@ export const useMusicPlayer = () => {
             ),
           };
 
-          // Create or ensure All Songs playlist exists with prepared songs
           const allSongsPlaylist = {
             id: "all-songs",
             name: "All Songs",
             songs: prepareSongsForPlaylist(validLibrary.songs),
           };
 
-          // Add or update All Songs playlist
           const updatedLibrary = {
             ...validLibrary,
             playlists: validLibrary.playlists.some(
@@ -271,7 +255,6 @@ export const useMusicPlayer = () => {
           let songToPlay: Song | null = null;
           let playlistToSet: Playlist | null = null;
 
-          // Only restore session if sessionRestore is enabled
           if (persistedSettings?.sessionRestore !== false) {
             if (persistedSettings?.lastPlayedSongId) {
               songToPlay =
@@ -288,7 +271,6 @@ export const useMusicPlayer = () => {
             }
           }
 
-          // Default to All Songs playlist if none set or if last played playlist doesn't exist
           if (
             !playlistToSet ||
             !playlistToSet.songs ||
@@ -297,7 +279,6 @@ export const useMusicPlayer = () => {
             playlistToSet = allSongsPlaylist;
           }
 
-          // If no song set but we have songs and session restore is enabled, play the first one from the current playlist
           if (
             !songToPlay &&
             playlistToSet.songs.length > 0 &&
@@ -314,10 +295,9 @@ export const useMusicPlayer = () => {
             currentTime: 0,
             duration: songToPlay?.duration || 0,
           }));
+
           if (persistedSettings) {
             setSettings(persistedSettings);
-
-            // Restore play history if available
             if (persistedSettings.playHistory) {
               playHistoryRef.current = new Map(persistedSettings.playHistory);
               console.log(
@@ -337,7 +317,7 @@ export const useMusicPlayer = () => {
     loadPersistedData();
   }, [prepareSongsForPlaylist]);
 
-  // Save data when changed
+  // Save data when changed (same as before)
   useEffect(() => {
     if (!isInitialized) return;
     debouncedSaveLibrary(library);
@@ -353,7 +333,6 @@ export const useMusicPlayer = () => {
     const previousSettings = settingsRef.current;
     settingsRef.current = settings;
 
-    // Only invalidate if smart shuffle setting changed
     if (previousSettings.smartShuffle !== settings.smartShuffle) {
       console.log("Smart shuffle setting changed, invalidating cache");
       invalidateNextSongCache(true);
@@ -364,7 +343,6 @@ export const useMusicPlayer = () => {
     const previousState = playerStateRef.current;
     playerStateRef.current = playerState;
 
-    // Only invalidate cache if playlist changed or shuffle/repeat mode changed significantly
     const shouldInvalidate =
       previousState.currentPlaylist?.id !== playerState.currentPlaylist?.id ||
       (previousState.shuffle !== playerState.shuffle && playerState.shuffle) ||
@@ -399,7 +377,7 @@ export const useMusicPlayer = () => {
     }
   }, [library.playlists, playerState.currentPlaylist?.id]);
 
-  // Update audio volume when settings change
+  // Update master volume through crossfade manager
   useEffect(() => {
     if (crossfadeManagerRef.current) {
       crossfadeManagerRef.current.setMasterVolume(settings.volume);
@@ -418,11 +396,10 @@ export const useMusicPlayer = () => {
     }));
   }, [settings.volume, settings.defaultShuffle, settings.defaultRepeat]);
 
-  // Media session and last played updates
+  // Media session and last played updates (same as before)
   useEffect(() => {
     if (!isInitialized) return;
 
-    // Update last played song and playlist IDs in settings when they change (only if sessionRestore is enabled)
     if (settings.sessionRestore) {
       setSettings((prev) => ({
         ...prev,
@@ -432,22 +409,16 @@ export const useMusicPlayer = () => {
       }));
     }
 
-    // Update Media Session metadata with album art
     if ("mediaSession" in navigator && playerState.currentSong) {
       navigator.mediaSession.metadata = new MediaMetadata({
         title: playerState.currentSong.title,
         artist: playerState.currentSong.artist,
         album: playerState.currentSong.album,
         artwork: playerState.currentSong.albumArt
-          ? [
-            {
-              src: playerState.currentSong.albumArt,
-            },
-          ]
+          ? [{ src: playerState.currentSong.albumArt }]
           : [],
       });
 
-      // Set up Media Session action handlers for previous and next track
       navigator.mediaSession.setActionHandler("previoustrack", () => {
         playPrevious();
       });
@@ -511,7 +482,6 @@ export const useMusicPlayer = () => {
             state: song.artist,
           });
         } else {
-          // Clear presence when not playing or no song
           await discordService.clearPresence(settings.discordUserId);
         }
       } catch (error) {
@@ -527,7 +497,6 @@ export const useMusicPlayer = () => {
       return;
     }
 
-    // Don't preload if repeat one is enabled
     if (playerState.repeat === "one") {
       return;
     }
@@ -535,15 +504,12 @@ export const useMusicPlayer = () => {
     isPreloadingRef.current = true;
 
     try {
-      // Get next song using the same logic as crossfade and playNext
       const nextSong = getAndCacheNextSong(playerStateRef, settingsRef, playHistoryRef);
 
       if (nextSong) {
-        // Cache the next song decision (already done by getAndCacheNextSong, but ensure consistency)
         nextSongCacheRef.current = nextSong;
         nextSongCacheValidRef.current = true;
 
-        // Preload for crossfade if enabled
         if (settings.crossfade > 0 && nextAudioRef.current) {
           await preloadNextSong(
             () => nextSong,
@@ -707,15 +673,15 @@ export const useMusicPlayer = () => {
       const target = event.target as HTMLAudioElement;
       const currentAudio = audioRef.current;
       const nextAudio = nextAudioRef.current;
-      
+
       let shouldUpdateFrom = currentAudio;
-      
+
       // During crossfade, use the next audio element since that's the song becoming current
       // But only if the crossfade is actually in progress and hasn't failed
       if (crossfadeManagerRef.current?.isCrossfading() && nextAudio && nextAudio.src && !nextAudio.src.includes("about:blank")) {
         shouldUpdateFrom = nextAudio;
       }
-      
+
       // Only update if this event is from the element that should control progress
       if (target !== shouldUpdateFrom) return;
 
@@ -1087,7 +1053,7 @@ export const useMusicPlayer = () => {
       const beforeSeek = audioRef.current.currentTime;
       console.log("Seeking to:", time, "from:", beforeSeek, "readyState:", audioRef.current.readyState);
       audioRef.current.currentTime = time;
-      
+
       // Check if seek actually worked
       setTimeout(() => {
         const afterSeek = audioRef.current?.currentTime;
@@ -1096,7 +1062,7 @@ export const useMusicPlayer = () => {
           console.warn("Seek failed or was overridden!");
         }
       }, 100);
-      
+
       setPlayerState((prev) => ({ ...prev, currentTime: time }));
     }
   }, []);

@@ -10,9 +10,9 @@ export const createCrossfadeManager = (
 ) => {
   const getValidTempo = (tempo: number | undefined) => {
     if (typeof tempo !== "number" || !Number.isFinite(tempo) || tempo <= 0) {
-      return 1; // fallback to normal speed
+      return 1;
     }
-    return Math.max(0.25, Math.min(4.0, tempo)); // Clamp to reasonable range
+    return Math.max(0.25, Math.min(4.0, tempo));
   };
 
   const setupCrossfadeManager = (audioContext: AudioContext) => {
@@ -27,10 +27,6 @@ export const createCrossfadeManager = (
         console.log("CrossfadeUtils: Setting up current audio source");
         currentAudioSourceRef.current =
           crossfadeManagerRef.current.createAudioSource(audioRef.current);
-        // Update the audio ref if a new element was created
-        if (currentAudioSourceRef.current.element !== audioRef.current) {
-          audioRef.current = currentAudioSourceRef.current.element;
-        }
         crossfadeManagerRef.current.setCurrentSource(
           currentAudioSourceRef.current
         );
@@ -78,33 +74,6 @@ export const createCrossfadeManager = (
     );
 
     try {
-      // Check if song is already preloaded and ready
-      const isAlreadyLoaded =
-        nextAudioRef.current.src &&
-        !nextAudioRef.current.src.includes("about:blank") &&
-        nextAudioRef.current.readyState >= 2;
-
-      if (isAlreadyLoaded) {
-        console.log(
-          "CrossfadeUtils: Next song already loaded, setting up audio source"
-        );
-        if (
-          !nextAudioSourceRef.current ||
-          nextAudioSourceRef.current.element !== nextAudioRef.current
-        ) {
-          nextAudioSourceRef.current =
-            crossfadeManagerRef.current.createAudioSource(nextAudioRef.current);
-          // Update the audio ref if a new element was created
-          if (nextAudioSourceRef.current.element !== nextAudioRef.current) {
-            nextAudioRef.current = nextAudioSourceRef.current.element;
-          }
-        }
-        crossfadeManagerRef.current.prepareNextSource(
-          nextAudioSourceRef.current
-        );
-        return;
-      }
-
       // Cache the song first
       console.log("CrossfadeUtils: Caching next song");
       await cacheSong(nextSong);
@@ -121,7 +90,6 @@ export const createCrossfadeManager = (
       nextAudioRef.current.playbackRate = getValidTempo(
         settingsRef.current.tempo
       );
-      nextAudioRef.current.volume = 1; // Will be controlled by gain node
 
       console.log("CrossfadeUtils: Waiting for next audio to be ready");
 
@@ -173,10 +141,6 @@ export const createCrossfadeManager = (
       ) {
         nextAudioSourceRef.current =
           crossfadeManagerRef.current.createAudioSource(nextAudioRef.current);
-        // Update the audio ref if a new element was created
-        if (nextAudioSourceRef.current.element !== nextAudioRef.current) {
-          nextAudioRef.current = nextAudioSourceRef.current.element;
-        }
       }
 
       crossfadeManagerRef.current.prepareNextSource(nextAudioSourceRef.current);
@@ -238,17 +202,21 @@ export const createCrossfadeManager = (
       const tempSource = currentAudioSourceRef.current;
       currentAudioSourceRef.current = nextAudioSourceRef.current;
       nextAudioSourceRef.current = tempSource;
+
+      // Get current time from the crossfade manager (which tracks the active element)
+      const currentTime = crossfadeManagerRef.current?.getCurrentTime() || 0;
+
       // Update player state
       setPlayerState((prev: any) => {
         console.log(
           "CrossfadeUtils: Finalizing player state after crossfade:",
           nextSong.title,
           "currentTime:",
-          audioRef.current?.currentTime || 0
+          currentTime
         );
         return {
           ...prev,
-          currentTime: audioRef.current?.currentTime || 0,
+          currentTime: currentTime,
           // currentSong and duration already set at crossfade start
         };
       });
@@ -300,7 +268,6 @@ export const createCrossfadeManager = (
         nextAudioRef.current.playbackRate = getValidTempo(
           settingsRef.current.tempo
         );
-        nextAudioRef.current.volume = 1;
 
         // Preload the audio data
         nextAudioRef.current.preload = "auto";
@@ -404,25 +371,6 @@ export const createCrossfadeManager = (
         0.5,
         Math.min(10, settingsRef.current.crossfade || 3)
       );
-      console.log(
-        "CrossfadeUtils: Starting crossfade with duration:",
-        crossfadeDuration
-      );
-
-      // Update player state immediately when crossfade starts
-      console.log("CrossfadeUtils: Updating player state at crossfade start");
-      setPlayerState((prev: any) => ({
-        ...prev,
-        currentSong: nextSong,
-        currentTime: 0, // Start from beginning for the new song
-        duration: nextSong.duration || 0,
-        isPlaying: true,
-      }));
-
-      // Start the crossfade
-      if (!crossfadeManagerRef.current) {
-        throw new Error("Crossfade manager is not initialized");
-      }
 
       // If there's less time remaining than the crossfade duration, shorten the crossfade
       const timeRemaining = audioRef.current ? audioRef.current.duration - audioRef.current.currentTime : crossfadeDuration;
@@ -437,9 +385,20 @@ export const createCrossfadeManager = (
         timeRemaining.toFixed(1) + ")"
       );
 
-      await crossfadeManagerRef.current.startCrossfade({
+      // Update player state immediately when crossfade starts
+      console.log("CrossfadeUtils: Updating player state at crossfade start");
+      setPlayerState((prev: any) => ({
+        ...prev,
+        currentSong: nextSong,
+        currentTime: 0, // Start from beginning for the new song
+        duration: nextSong.duration || 0,
+        isPlaying: true,
+      }));
+
+      // Start the crossfade
+      await crossfadeManagerRef.current!.startCrossfade({
         duration: effectiveCrossfadeDuration,
-        curve: "smooth", // Use the improved smooth curve
+        curve: "smooth",
       });
 
       console.log("CrossfadeUtils: Crossfade completed, finalizing player state");

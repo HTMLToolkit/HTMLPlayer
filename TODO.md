@@ -2,39 +2,31 @@
 
 ## HTMLPlayer v2
 
-- [ ] Discord Integration
-  - Implemented and theoretically works but requires Discord approval for Rich Presence API (via server) access. Need to submit Discord app for verification to enable it.
+- [ ] Sort Tracks with drag-and-drop reordering
+    Issue: Tracks cannot be sorted (e.g., by name, rating).
+    Improvement: Add sorting options.
 
-- [X] Crossfade options (settings)
-
-- [X] Gapless playback (settings)
-
-- [X] Smart shuffle
-
-- [X] Export/import playlists
-
-- [X] animated themes (example)
-
-- [X] picture backgrounds in themes (example)
-
-- [ ] custom pictures in themes
+- [ ] add folders for playlists.
 
 - [ ] Dynamic theming based on album art colors.  (settings)
 
 - [ ] Synced lyrics using id3v2 embedded lyrics (music-metadata has tons of stuff for this)
 
-- [ ] Check out what music-metadata can do, and maybe implement those things
+- [X] Check out what music-metadata can do, and maybe implement those things
+  - [ ] Encoding & Format Details (for song info modal): get bitrate, duration, codec, sample rate, channels, and bit depth for each track
+  - [ ] MusicBrainz Tags + ReplayGain using `music-metadata`: read MusicBrainz identifiers and volume normalization metadata
+  - [ ] Gapless Playback Info: use pre/post-silence info for seamless playback between tracks
+  - [ ] Custom Metadata Parsing (AKA ACAPlayer (lol)): access nonstandard or raw tags embedded in audio files
+  - [ ] ReplayGain / Loudness Info: normalize or adjust playback volume based on track metadata
+
+- [ ] Discord Integration
+  - Implemented and theoretically works but requires Discord approval for Rich Presence API (via server) access. Need to submit Discord app for verification to enable it.
 
 - [ ] 🔼 I'll need to add some sort of quick guide and help menu or something to HTMLPlayer.
 
-- [ ] add folders for playlists.
+- [ ] 🔼 custom theme builder with custom picture backgrounds
 
-- [ ] ⬆️ a Whisper based, fully in browser, Live Lyrics thing
-
-- [ ] Sort Tracks with drag-and-drop reordering
-
-    **Issue**: Tracks cannot be sorted (e.g., by name, rating).
-    **Improvement**: Add sorting options.
+- [ ] 🔼 a Whisper based, fully in browser, Live Lyrics thing
 
 ## Either now or future versions
 
@@ -44,12 +36,12 @@
 
 - [ ] Auto-fetch album art from MusicBrainz/Discogs if missing.
 
-- [ ] metadata editing.
+- [ ] metadata editor that saves to IndexedDB, or downloads file
 
-- [ ] **Add showDirectoryPicker API and ponyfil**
-    **Issue**: `showDirectoryPicker` missing but is not supported in all browsers (e.g., Safari).
-    **Improvement**: Fallback to file input for unsupported browsers.
-    **Implementation**:
+- [ ] Add showDirectoryPicker API and ponyfil
+    Issue: `showDirectoryPicker` missing but is not supported in all browsers (e.g., Safari).
+    Improvement: Fallback to file input for unsupported browsers.
+    Implementation:
       ```javascript
       document.getElementById("uploadBtn").onclick = async () => {
         if (window.showDirectoryPicker) {
@@ -91,9 +83,9 @@
 
 - [ ] Duplicate file detection (not just by title but checksum as well).
 
-- [ ] **Equalizer Settings**
-    **Issue**: No audio customization options.
-    **Improvement**: Add a equalizer using the Web Audio API or an external library.
+- [ ] Equalizer Settings
+    Issue: No audio customization options.
+    Improvement: Add a equalizer using the Web Audio API or an external library.
 
 - [ ] 🔼 (when HTMLPlayer is almost ready) add HTMLPlayer Store (below)
 
@@ -145,6 +137,20 @@
 - [ ] picture backgrounds
 
 ## Done
+
+- [X] fix some crossfade and gapless edge cases
+
+- [X] Crossfade options (settings)
+
+- [X] Gapless playback (settings)
+
+- [X] Smart shuffle
+
+- [X] Export/import playlists
+
+- [X] animated themes (example)
+
+- [X] picture backgrounds in themes (example)
 
 - [X] Session restore (settings)
 
@@ -226,10 +232,10 @@
 
 - [X] window.confirm doesn't work in PWAs, so replace with custom dialog.
 
-- [X] **Lyrics Display**
-    **Issue**: No support for displaying lyrics.
-    **Improvement**: Add a lyrics panel that fetches lyrics from lyrics.ovh or metadata.
-    **Implementation**:
+- [X] Lyrics Display
+    Issue: No support for displaying lyrics.
+    Improvement: Add a lyrics panel that fetches lyrics from lyrics.ovh or metadata.
+    Implementation:
       ```html
       <div id="lyricsPanel" style="display: none; padding: 10px;"></div>
       ```
@@ -249,46 +255,46 @@
       }
       ```
 
-- [X] **Optimize IndexedDB Transactions**
-    **Issue**: Multiple simultaneous IndexedDB transactions can degrade performance.
-    **Improvement**: Batch operations (e.g., saving multiple tracks) into a single transaction where possible.
+- [X] Optimize IndexedDB Transactions
+    Issue: Multiple simultaneous IndexedDB transactions can degrade performance.
+    Improvement: Batch operations (e.g., saving multiple tracks) into a single transaction where possible.
 
-- [X] **Cache DOM Queries**
-    **Issue**: Repeated `document.getElementById` calls are inefficient.
-    **Improvement**: Cache DOM elements in variables at initialization.
+- [X] Cache DOM Queries
+    Issue: Repeated `document.getElementById` calls are inefficient.
+    Improvement: Cache DOM elements in variables at initialization.
 
-- [X] **Visual Feedback for Loading States**
-    **Issue**: The "Adding..." and "Processing..." popups are basic and may not clearly indicate progress.
-    **Improvement**: Add a progress bar or spinner to the popups for better feedback.
+- [X] Visual Feedback for Loading States
+    Issue: The "Adding..." and "Processing..." popups are basic and may not clearly indicate progress.
+    Improvement: Add a progress bar or spinner to the popups for better feedback.
 
-- [X] **Improved Playlist Creation UX**
-    **Issue**: Users can create a playlist with an empty name or a duplicate name without clear feedback.
-    **Improvement**: Add validation and feedback for playlist creation.
+- [X] Improved Playlist Creation UX
+    Issue: Users can create a playlist with an empty name or a duplicate name without clear feedback.
+    Improvement: Add validation and feedback for playlist creation.
 
-- [X] **ARIA Attributes**
-    **Issue**: The interface lacks ARIA attributes for screen reader compatibility.
-    **Improvement**: Add ARIA labels and roles to interactive elements.
+- [X] ARIA Attributes
+    Issue: The interface lacks ARIA attributes for screen reader compatibility.
+    Improvement: Add ARIA labels and roles to interactive elements.
 
-- [X] **Focus Management**
-    **Issue**: Keyboard focus is not clearly managed for interactive elements.
-    **Improvement**: Ensure focus states are visible and logical tab order is maintained.
+- [X] Focus Management
+    Issue: Keyboard focus is not clearly managed for interactive elements.
+    Improvement: Ensure focus states are visible and logical tab order is maintained.
 
-- [X] **Logging for Debugging**
-    **Issue**: Debugging is difficult without structured logging.
-    **Improvement**: Implement a logging system for development.
+- [X] Logging for Debugging
+    Issue: Debugging is difficult without structured logging.
+    Improvement: Implement a logging system for development.
 
-- [X] **Use Constants for Repeated Values**
-    **Issue**: Hardcoded values (e.g., colors, sizes) are repeated throughout CSS and JS.
-    **Improvement**: Define CSS custom properties and JS constants.
+- [X] Use Constants for Repeated Values
+    Issue: Hardcoded values (e.g., colors, sizes) are repeated throughout CSS and JS.
+    Improvement: Define CSS custom properties and JS constants.
 
-- [X] **Comprehensive Error Handling**
-    **Issue**: Errors (e.g., database failures, file access issues) are minimally handled.
-    **Improvement**: Add robust error handling with user feedback.
+- [X] Comprehensive Error Handling
+    Issue: Errors (e.g., database failures, file access issues) are minimally handled.
+    Improvement: Add robust error handling with user feedback.
 
-- [X] **Test Audio Format Support**
-    **Issue**: Some browsers may not support certain audio formats (e.g., OGG).
-    **Improvement**: Check format support and notify users.
-    **Implementation**:
+- [X] Test Audio Format Support
+    Issue: Some browsers may not support certain audio formats (e.g., OGG).
+    Improvement: Check format support and notify users.
+    Implementation:
       ```javascript
       function isAudioFormatSupported(format) {
         const audio = document.createElement("audio");
@@ -310,18 +316,18 @@
       };
       ```
 
-  - [X] **Debounce Rapid Clicks on Controls**
-      **Issue**: Rapid clicks on buttons like play/pause, next, or previous can cause unintended behavior or race conditions.
-      **Improvement**: Add a debounce mechanism to prevent multiple rapid clicks.
+  - [X] Debounce Rapid Clicks on Controls
+      Issue: Rapid clicks on buttons like play/pause, next, or previous can cause unintended behavior or race conditions.
+      Improvement: Add a debounce mechanism to prevent multiple rapid clicks.
 
-  - [X] **Lazy Load Playlist Art**
-      **Issue**: Loading all playlist images at once can slow down rendering, especially with many playlists or large images.
-      **Improvement**: Use the `loading="lazy"` attribute for playlist and track images to defer offscreen image loading.
+  - [X] Lazy Load Playlist Art
+      Issue: Loading all playlist images at once can slow down rendering, especially with many playlists or large images.
+      Improvement: Use the `loading="lazy"` attribute for playlist and track images to defer offscreen image loading.
 
-  - [X] **Handle Missing Track Files**
-      **Issue**: If a track file is missing or inaccessible, the player may fail silently.
-      **Improvement**: Add error handling for file access.
+  - [X] Handle Missing Track Files
+      Issue: If a track file is missing or inaccessible, the player may fail silently.
+      Improvement: Add error handling for file access.
 
-  - [X] **Adaptive Progress Bar**
-      **Issue**: Progress bar width is not optimal for very wide screens.
-      **Improvement**: Cap the maximum width more dynamically.
+  - [X] Adaptive Progress Bar
+      Issue: Progress bar width is not optimal for very wide screens.
+      Improvement: Cap the maximum width more dynamically.
