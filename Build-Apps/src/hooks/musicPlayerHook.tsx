@@ -168,10 +168,13 @@ export const useMusicPlayer = () => {
 
   const {
     createPlaylist,
+    createFolder,
     removePlaylist,
     addToFavorites,
     removeFromFavorites,
     addToPlaylist,
+    reorderPlaylistSongs,
+    moveToFolder,
     toggleFavorite,
     isFavorited,
     getFavoriteSongs,
@@ -362,9 +365,20 @@ export const useMusicPlayer = () => {
   // Update playlist when library changes
   useEffect(() => {
     if (playerState.currentPlaylist) {
-      const updatedPlaylist = library.playlists.find(
-        (p) => p.id === playerState.currentPlaylist?.id
-      );
+      // Recursive function to find playlist in the tree
+      const findPlaylist = (items: (Playlist | PlaylistFolder)[]): Playlist | null => {
+        for (const item of items) {
+          if ('songs' in item && item.id === playerState.currentPlaylist?.id) {
+            return item;
+          }
+          if ('children' in item) {
+            const found = findPlaylist(item.children);
+            if (found) return found;
+          }
+        }
+        return null;
+      };
+      const updatedPlaylist = findPlaylist(library.playlists);
       if (
         updatedPlaylist &&
         updatedPlaylist.songs !== playerState.currentPlaylist.songs
@@ -427,29 +441,39 @@ export const useMusicPlayer = () => {
         playNext();
       });
 
-      navigator.mediaSession.setActionHandler(
-        "enterpictureinpicture" as any,
-        () => {
-          toggleMiniplayer({
-            playerState: {
-              currentSong: playerState.currentSong,
-              isPlaying: playerState.isPlaying,
-            },
-            togglePlayPause,
-            playNext,
-            playPrevious,
-          });
-        }
-      );
+      // Only set enterpictureinpicture handler if supported
+      try {
+        navigator.mediaSession.setActionHandler(
+          "enterpictureinpicture" as any,
+          () => {
+            toggleMiniplayer({
+              playerState: {
+                currentSong: playerState.currentSong,
+                isPlaying: playerState.isPlaying,
+              },
+              togglePlayPause,
+              playNext,
+              playPrevious,
+            });
+          }
+        );
+      } catch (error) {
+        // Browser doesn't support enterpictureinpicture action
+        console.log("enterpictureinpicture action not supported");
+      }
 
       return () => {
         if ("mediaSession" in navigator) {
           navigator.mediaSession.setActionHandler("previoustrack", null);
           navigator.mediaSession.setActionHandler("nexttrack", null);
-          navigator.mediaSession.setActionHandler(
-            "enterpictureinpicture" as any,
-            null
-          );
+          try {
+            navigator.mediaSession.setActionHandler(
+              "enterpictureinpicture" as any,
+              null
+            );
+          } catch (error) {
+            // Browser doesn't support enterpictureinpicture action
+          }
         }
       };
     }
@@ -567,12 +591,14 @@ export const useMusicPlayer = () => {
       }
 
       // Prepare playlist songs if setting a new playlist
-      const preparedPlaylist = playlist
+      const preparedPlaylist = playlist && 'songs' in playlist
         ? {
           ...playlist,
           songs: prepareSongsForPlaylist(playlist.songs),
         }
-        : playerStateRef.current.currentPlaylist;
+        : playerStateRef.current.currentPlaylist && 'songs' in playerStateRef.current.currentPlaylist
+        ? playerStateRef.current.currentPlaylist
+        : null;
 
       setPlayerState((prev) => ({
         ...prev,
@@ -1131,10 +1157,15 @@ export const useMusicPlayer = () => {
     // First, update library synchronously
     setLibrary((prev) => {
       const newSongs = prev.songs.filter((s) => s.id !== songId);
-      const newPlaylists = prev.playlists.map((p) => ({
-        ...p,
-        songs: p.songs.filter((s) => s.id !== songId),
-      }));
+      const newPlaylists = prev.playlists.map((p) => {
+        if ('songs' in p) {
+          return {
+            ...p,
+            songs: p.songs.filter((s: Song) => s.id !== songId),
+          };
+        }
+        return p;
+      });
       return {
         ...prev,
         songs: newSongs,
@@ -1169,8 +1200,11 @@ export const useMusicPlayer = () => {
     addSong,
     removeSong,
     createPlaylist,
+    createFolder,
     removePlaylist,
     addToPlaylist,
+    reorderPlaylistSongs,
+    moveToFolder,
     addToFavorites,
     removeFromFavorites,
     toggleFavorite,

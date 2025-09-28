@@ -180,10 +180,10 @@ const loadFromIndexedDB = async (
 };
 
 // Add new type for song audio data
-type SongAudioData = {
+interface SongAudioData {
   fileData: ArrayBuffer;
   mimeType: string;
-};
+}
 
 export const musicIndexedDbHelper = {
   async loadLibrary(): Promise<MusicLibrary | null> {

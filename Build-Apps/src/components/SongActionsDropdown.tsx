@@ -57,6 +57,23 @@ export const SongActionsDropdown = ({
   const [newPlaylistName, setNewPlaylistName] = useState("");
   const [isCreatingNew, setIsCreatingNew] = useState(false);
 
+  const getAllPlaylists = (items: (Playlist | PlaylistFolder)[]): Playlist[] => {
+    const result: Playlist[] = [];
+    for (const item of items) {
+      if ('children' in item) {
+        // This is a PlaylistFolder, recurse into children
+        result.push(...getAllPlaylists(item.children));
+      } else if ('songs' in item) {
+        // This is a Playlist
+        result.push(item);
+      }
+      // Skip items that are neither playlists nor folders
+    }
+    return result;
+  };
+
+  const allPlaylists = getAllPlaylists(library.playlists);
+
   const handleAddToPlaylist = (playlist?: Playlist) => {
     if (playlist) {
       const isAlreadyInPlaylist = playlist.songs.some((s) => s.id === song.id);
@@ -230,7 +247,7 @@ export const SongActionsDropdown = ({
               <Input
                 placeholder={t("playlist.enterPlaylistName")}
                 value={newPlaylistName}
-                onChange={(e: any) => setNewPlaylistName(e.target.value)}
+                onChange={(e) => setNewPlaylistName(e.target.value)}
               />
               <div className={`${modalStyles.flex} ${modalStyles.gap2}`}>
                 <Button
@@ -246,14 +263,11 @@ export const SongActionsDropdown = ({
             </div>
           ) : (
             <div className={modalStyles.spaceY4}>
-              {library.playlists.filter((p) => p.id !== "all-songs").length >
-              0 ? (
+              {allPlaylists.length > 0 ? (
                 <div className={modalStyles.spaceY2}>
-                  {library.playlists
-                    .filter((playlist) => playlist.id !== "all-songs")
-                    .map((playlist) => (
+                  {allPlaylists.map((playlist) => (
                       <div
-                        key={playlist.name}
+                        key={playlist.id}
                         className={`${modalStyles.flex} ${modalStyles.gap2}`}
                       >
                         <Button
@@ -261,6 +275,7 @@ export const SongActionsDropdown = ({
                           className={`${modalStyles["w-full"]} ${modalStyles["justify-start"]}`}
                           onClick={() => handleAddToPlaylist(playlist)}
                         >
+                          <Music size={16} className="mr-2" />
                           {playlist.name}
                         </Button>
                       </div>

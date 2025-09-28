@@ -7,21 +7,22 @@ import '@uppy/dashboard/css/style.min.css';
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../components/Dialog";
 import ReactDOM from "react-dom/client";
+import { useTranslation } from "react-i18next";
 
-export type AudioFile = {
+export interface AudioFile {
   file: File;
   name: string;
   size: number;
   type: string;
-};
+}
 
-export type AudioMetadata = {
+export interface AudioMetadata {
   title: string;
   artist: string;
   album: string;
   duration: number;
   albumArt?: string;
-};
+}
 
 // Track processing state for beforeunload prompt
 let isProcessing = false;
@@ -72,6 +73,7 @@ async function withTimeoutAndRetry<T>(
 export function pickAudioFiles(): Promise<AudioFile[]> {
   return new Promise((resolve) => {
     const ReactUppyWrapper = () => {
+      const { t } = useTranslation();
       const [uppy] = useState(() =>
         new Uppy({
           autoProceed: false,
@@ -141,7 +143,7 @@ export function pickAudioFiles(): Promise<AudioFile[]> {
         >
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Select Audio Files</DialogTitle>
+              <DialogTitle>{t("filePicker.selectAudioFiles")}</DialogTitle>
             </DialogHeader>
 
             {/* Force remount on theme change */}
@@ -152,7 +154,7 @@ export function pickAudioFiles(): Promise<AudioFile[]> {
                 hideUploadButton={false}
                 hideCancelButton={true}
                 hideProgressDetails={false}
-                note="You can only upload audio files"
+                note={t("filePicker.onlyAudioFiles")}
               />
             </div>
           </DialogContent>
@@ -209,7 +211,7 @@ export async function extractAudioMetadata(file: File): Promise<AudioMetadata> {
           if (error) reject(new Error(error));
           else resolve({ ...metadata, albumArt });
         };
-        worker.onerror = (_error) => reject(new Error('Worker error'));
+        worker.onerror = (error) => reject(new Error('Worker error: ' + error.message));
         worker.postMessage({ file, fileName: file.name });
       }),
       15000,

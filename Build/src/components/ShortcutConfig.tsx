@@ -4,12 +4,14 @@ import type { ShortcutConfig as ShortcutConfigType } from "../helpers/shortcutsI
 import { Button } from "./Button";
 import { Pencil, Save, X } from "lucide-react";
 import styles from "./Settings.module.css";
+import { useTranslation } from "react-i18next";
 
 interface ShortcutConfigProps {
   onShortcutsChanged?: () => void;
 }
 
 export const ShortcutConfig: React.FC<ShortcutConfigProps> = ({ onShortcutsChanged }) => {
+  const { t } = useTranslation();
   const [shortcuts, setShortcuts] = useState<ShortcutConfigType>({});
   const [mergedShortcuts, setMergedShortcuts] = useState<ShortcutConfigType>({});
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -38,7 +40,7 @@ export const ShortcutConfig: React.FC<ShortcutConfigProps> = ({ onShortcutsChang
   };
 
   const getDisplayValue = () => {
-    if (!editValue || !editValue.key) return "Press a key...";
+    if (!editValue || !editValue.key) return t("shortcuts.pressKey");
     return formatShortcutKey(editValue as KeyboardShortcut);
   };
 
@@ -48,7 +50,7 @@ export const ShortcutConfig: React.FC<ShortcutConfigProps> = ({ onShortcutsChang
     // Ensure we have a base shortcut to work with
     const baseShortcut = shortcuts[editingId] || mergedShortcuts[editingId];
     if (!baseShortcut) {
-      setConflict("Unable to find shortcut configuration.");
+      setConflict(t("shortcuts.unableToFindConfig"));
       return;
     }
     
@@ -60,7 +62,7 @@ export const ShortcutConfig: React.FC<ShortcutConfigProps> = ({ onShortcutsChang
     
     const isConflict = await shortcutsDb.isShortcutConflict(newShortcut, editingId);
     if (isConflict) {
-      setConflict("Shortcut conflicts with another action.");
+      setConflict(t("shortcuts.conflict"));
       return;
     }
     try {
@@ -74,7 +76,7 @@ export const ShortcutConfig: React.FC<ShortcutConfigProps> = ({ onShortcutsChang
       onShortcutsChanged?.();
     } catch (error) {
       console.error('Failed to save shortcut:', error);
-      setConflict(error instanceof Error ? error.message : "Failed to save shortcut.");
+      setConflict(error instanceof Error ? error.message : t("shortcuts.failedToSaveGeneral"));
     }
   };
 
@@ -86,7 +88,7 @@ export const ShortcutConfig: React.FC<ShortcutConfigProps> = ({ onShortcutsChang
 
   return (
     <div className={styles.shortcutConfigPanel}>
-      <h4>Keyboard Shortcuts</h4>
+      <h4>{t("shortcuts.title")}</h4>
       <div className={styles.shortcutConfigList}>
         {Object.keys(mergedShortcuts).length > 0 && Object.values(mergedShortcuts).map((shortcut) => {
           if (!shortcut || !shortcut.id) return null;
@@ -101,13 +103,13 @@ export const ShortcutConfig: React.FC<ShortcutConfigProps> = ({ onShortcutsChang
                     className={styles.shortcutConfigInput}
                     value={getDisplayValue()}
                     onKeyDown={handleKeyCapture}
-                    placeholder="Press new key..."
+                    placeholder={t("shortcuts.pressNewKey")}
                     style={{ width: 120 }}
                   />
-                  <Button size="sm" onClick={handleSave} title="Save shortcut">
+                  <Button size="sm" onClick={handleSave} title={t("shortcuts.saveShortcut")}>
                     <Save size={16} />
                   </Button>
-                  <Button size="sm" onClick={handleCancel} title="Cancel">
+                  <Button size="sm" onClick={handleCancel} title={t("common.cancel")}>
                     <X size={16} />
                   </Button>
                   {conflict && <span className={styles.shortcutConflict}>{conflict}</span>}
@@ -115,7 +117,7 @@ export const ShortcutConfig: React.FC<ShortcutConfigProps> = ({ onShortcutsChang
               ) : (
                 <>
                   <span className={styles.shortcutConfigKey}>{formatShortcutKey(shortcut)}</span>
-                  <Button size="sm" onClick={() => handleEdit(shortcut.id)} title="Edit shortcut">
+                  <Button size="sm" onClick={() => handleEdit(shortcut.id)} title={t("shortcuts.editShortcut")}>
                     <Pencil size={16} />
                   </Button>
                 </>

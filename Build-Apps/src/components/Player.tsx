@@ -23,15 +23,15 @@ import styles from "./Player.module.css";
 import { SongActionsDropdown } from "./SongActionsDropdown";
 import { useTranslation } from "react-i18next";
 import DOMPurify from "dompurify";
-import { toggleMiniplayer } from "./Miniplayer";
+import { toggleMiniplayer, isMiniplayerSupported } from "./Miniplayer";
 import { useAudioSync } from "../hooks/useAudioSync";
 
-type PlayerProps = {
+interface PlayerProps {
   musicPlayerHook: ReturnType<
     typeof import("../hooks/musicPlayerHook").useMusicPlayer
   >;
   settings: PlayerSettings;
-};
+}
 
 export const Player = ({ musicPlayerHook, settings }: PlayerProps) => {
   const { t } = useTranslation();
@@ -354,25 +354,27 @@ export const Player = ({ musicPlayerHook, settings }: PlayerProps) => {
             <Button variant="ghost" size="icon-sm" className={`${styles.secondaryButton} ${showLyrics ? styles.active : ""}`} onClick={handleLyricsToggle} title={t("player.lyrics")}>
               <Type size={16} />
             </Button>
-            <Button
-              variant="ghost"
-              size="icon-sm"
-              className={styles.secondaryButton}
-              onClick={() => {
-                toggleMiniplayer({
-                  playerState: {
-                    currentSong,
-                    isPlaying
-                  },
-                  togglePlayPause,
-                  playNext,
-                  playPrevious
-                });
-              }}
-              title="Picture-in-Picture"
-            >
-              <PictureInPicture2 size={16} />
-            </Button>
+            {isMiniplayerSupported() && (
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                className={styles.secondaryButton}
+                onClick={() => {
+                  toggleMiniplayer({
+                    playerState: {
+                      currentSong,
+                      isPlaying
+                    },
+                    togglePlayPause,
+                    playNext,
+                    playPrevious
+                  });
+                }}
+                title="Picture-in-Picture"
+              >
+                <PictureInPicture2 size={16} />
+              </Button>
+            )}
           </div>
 
           <div className={styles.volumeControls}>

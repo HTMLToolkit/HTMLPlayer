@@ -28,9 +28,11 @@ export const createPlaylistManager = (
     });
   };
 
+  const uuid = () => crypto.randomUUID ? crypto.randomUUID() : (Math.random().toString(36).slice(2) + Date.now());
+
   const createPlaylist = (name: string, songs: Song[] = []) => {
     const newPlaylist: Playlist = {
-      id: Date.now().toString(),
+      id: uuid(),
       name,
       songs: prepareSongsForPlaylist(songs),
     };
@@ -43,7 +45,7 @@ export const createPlaylistManager = (
 
   const createFolder = (name: string) => {
     const newFolder: PlaylistFolder = {
-      id: Date.now().toString(),
+      id: uuid(),
       name,
       children: [],
     };
@@ -55,10 +57,24 @@ export const createPlaylistManager = (
   };
 
   const removePlaylist = (playlistId: string) => {
-    setLibrary((prev) => ({
-      ...prev,
-      playlists: prev.playlists.filter((p) => p.id !== playlistId),
-    }));
+    setLibrary((prev) => {
+      // Recursive function to remove playlist from the tree
+      const removeFrom = (items: (Playlist | PlaylistFolder)[]): (Playlist | PlaylistFolder)[] => {
+        return items
+          .filter((p) => p.id !== playlistId)
+          .map((p) => {
+            if ('children' in p) {
+              return { ...p, children: removeFrom(p.children) };
+            }
+            return p;
+          });
+      };
+
+      return {
+        ...prev,
+        playlists: removeFrom(prev.playlists),
+      };
+    });
   };
 
   const addToFavorites = (songId: string) => {
@@ -83,9 +99,9 @@ export const createPlaylistManager = (
       const song = prev.songs.find((s) => s.id === songId);
       if (!song) return prev;
 
-      return {
-        ...prev,
-        playlists: prev.playlists.map((p) => {
+      // Recursive function to update playlists in the tree
+      const updatePlaylists = (items: (Playlist | PlaylistFolder)[]): (Playlist | PlaylistFolder)[] => {
+        return items.map((p) => {
           if (p.id === playlistId && 'songs' in p) {
             // Don't add if song is already in playlist
             if (p.songs.some((s) => s.id === songId)) return p;
@@ -94,57 +110,149 @@ export const createPlaylistManager = (
               songs: [...p.songs, song],
             };
           }
+          if ('children' in p) {
+            return { ...p, children: updatePlaylists(p.children) };
+          }
           return p;
-        }),
+        });
+      };
+
+      return {
+        ...prev,
+        playlists: updatePlaylists(prev.playlists),
       };
     });
   };
 
-  const reorderPlaylistSongs = (playlistId: string, newSongs: Song[]) => {
-    setLibrary((prev) => ({
-      ...prev,
-      playlists: prev.playlists.map((p) => {
-        if (p.id === playlistId && 'songs' in p) {
-          return {
-            ...p,
-            songs: newSongs,
-          };
-        }
-        return p;
-      }),
-    }));
+  const reorderPlaylistSongs = (playlistId: string | null, newSongs: Song[]) => {
+    setLibrary((prev) => {
+      // If playlistId is undefined, update root songs (for All Songs)
+      if (!playlistId) {
+        return {
+          ...prev,
+          songs: newSongs,
+          playlists: prev.playlists.map((p) =>
+            p.id === "all-songs"
+              ? { ...p, songs: newSongs }
+              : p
+          ),
+        };
+      }
+      // Otherwise, update the playlist in the tree
+      const updatePlaylists = (items: (Playlist | PlaylistFolder)[]): (Playlist | PlaylistFolder)[] => {
+        return items.map((p) => {
+          if (p.id === playlistId && 'songs' in p) {
+            return {
+              ...p,
+              songs: newSongs,
+            };
+          }
+          if ('children' in p) {
+            return { ...p, children: updatePlaylists(p.children) };
+          }
+          return p;
+        });
+      };
+      return {
+        ...prev,
+        playlists: updatePlaylists(prev.playlists),
+      };
+    });
   };
 
-  const moveToFolder = (itemId: string, folderId: string | null) => {
+  const moveToFolder = (itemId: string, folderId: string | null, beforeId?: string | null) => {
     setLibrary((prev) => {
-      const item = prev.playlists.find((p) => p.id === itemId);
-      if (!item) return prev;
-
-      // Remove from current location
-      const removeFrom = (items: (Playlist | PlaylistFolder)[]): (Playlist | PlaylistFolder)[] => {
+      // Debug logs: log the intent of the move
+      console.debug('[playlistManager] moveToFolder called with', { itemId, folderId, beforeId });
+      // Recursively find and remove the item from any depth
+      let removedItem: Playlist | PlaylistFolder | null = null;
+      const removeRecursive = (items: (Playlist | PlaylistFolder)[]): (Playlist | PlaylistFolder)[] => {
         return items
-          .filter((p) => p.id !== itemId)
+          .filter((p) => {
+            if (p.id === itemId) {
+              removedItem = p;
+              return false;
+            }
+            return true;
+          })
           .map((p) => {
             if ('children' in p) {
-              return { ...p, children: removeFrom(p.children) };
+              return { ...p, children: removeRecursive(p.children) };
             }
             return p;
           });
       };
 
-      let newPlaylists = removeFrom(prev.playlists);
+      // Remove the item from the tree
+      let newPlaylists = removeRecursive(prev.playlists);
+      if (!removedItem) {
+        // eslint-disable-next-line no-console
+        console.warn('[playlistManager] moveToFolder: item not found', itemId);
+        return prev;
+      }
 
-      if (folderId) {
-        // Add to folder
-        newPlaylists = newPlaylists.map((p) => {
-          if (p.id === folderId && 'children' in p) {
-            return { ...p, children: [...p.children, item] };
+      // Prevent moving folder into itself or its descendants
+      if (folderId && removedItem && 'children' in removedItem) {
+        const isDescendant = (items: (Playlist | PlaylistFolder)[], targetId: string): boolean => {
+          for (const item of items) {
+            if (item.id === targetId) return true;
+            if ('children' in item && isDescendant(item.children, targetId)) return true;
+          }
+          return false;
+        };
+        // Find the target folder
+        const findFolder = (items: (Playlist | PlaylistFolder)[], id: string): PlaylistFolder | null => {
+          for (const item of items) {
+            if (item.id === id && 'children' in item) return item as PlaylistFolder;
+            if ('children' in item) {
+              const found = findFolder(item.children, id);
+              if (found) return found;
+            }
+          }
+          return null;
+        };
+        const targetFolder = findFolder(newPlaylists, folderId);
+        const removedFolder = removedItem as PlaylistFolder;
+        if (targetFolder && isDescendant(removedFolder.children, folderId)) {
+          return prev;
+        }
+      }
+
+      // Recursively insert the item into the target folder or root
+      const insertRecursive = (items: (Playlist | PlaylistFolder)[], parentId: string | null, newItem: Playlist | PlaylistFolder, beforeId: string | null): (Playlist | PlaylistFolder)[] => {
+        if (parentId === null) {
+          // Insert at root
+          if (!beforeId) return [...items, newItem];
+          const idx = items.findIndex((p) => p.id === beforeId);
+          if (idx === -1) return [...items, newItem];
+          return [...items.slice(0, idx), newItem, ...items.slice(idx)];
+        }
+        return items.map((p) => {
+          if (p.id === parentId && 'children' in p) {
+            const children = p.children;
+            if (!beforeId) {
+              return { ...p, children: [...children, newItem] };
+            }
+            const idx = children.findIndex((c) => c.id === beforeId);
+            if (idx === -1) {
+              return { ...p, children: [...children, newItem] };
+            }
+            return { ...p, children: [...children.slice(0, idx), newItem, ...children.slice(idx)] };
+          } else if ('children' in p) {
+            return { ...p, children: insertRecursive(p.children, parentId, newItem, beforeId) };
           }
           return p;
         });
+      };
+
+      if (folderId) {
+        // eslint-disable-next-line no-console
+        console.debug('[playlistManager] inserting into folder', folderId, 'beforeId', beforeId);
+        newPlaylists = insertRecursive(newPlaylists, folderId, removedItem, beforeId || null);
       } else {
-        // Add to root
-        newPlaylists.push(item);
+        // eslint-disable-next-line no-console
+        console.debug('[playlistManager] inserting into root beforeId', beforeId);
+        newPlaylists = insertRecursive(newPlaylists, null, removedItem, beforeId || null);
       }
 
       return { ...prev, playlists: newPlaylists };

@@ -25,10 +25,10 @@ SOFTWARE.
 
 import { useState, useLayoutEffect } from "react";
 
-type UseMediaQueryOptions = {
+interface UseMediaQueryOptions {
   defaultValue?: boolean;
   initializeWithValue?: boolean;
-};
+}
 
 const IS_SERVER = typeof window === "undefined";
 

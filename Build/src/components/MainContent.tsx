@@ -7,7 +7,16 @@ import {
   ThumbsDown,
   Heart,
   PlusCircle,
+  Music,
   ListChecks,
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown,
+  X,
+  Type,
+  User,
+  Disc,
+  Star,
 } from "lucide-react";
 import { SongActionsDropdown } from "./SongActionsDropdown";
 import { Checkbox } from "./Checkbox";
@@ -30,7 +39,7 @@ import {
 } from "./Dialog";
 import modalStyles from "./Dialog.module.css";
 import styles from "./MainContent.module.css";
-import PersistentDropdownMenu from "./PersistentDropdownMenu";
+import PersistentDropdownMenu, { PersistentDropdownMenuRef } from "./PersistentDropdownMenu";
 import { useTranslation } from "react-i18next";
 import {
   DndContext,
@@ -93,6 +102,8 @@ const SortableSongItem = ({
   playSong,
   removeSong,
 }: SortableSongItemProps) => {
+  const { t } = useTranslation();
+
   const {
     attributes,
     listeners,
@@ -125,14 +136,14 @@ const SortableSongItem = ({
           />
         )}
         <div className={styles.albumArt}>
-          {song.albumArt && <img src={song.albumArt} alt={`${song.title} album art`} style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "inherit" }} />}
+          {song.albumArt && <img src={song.albumArt} alt={t("player.albumArtAlt", { title: song.title })} style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "inherit" }} />}
         </div>
         <div className={styles.songDetails}>
           <div className={styles.songTitle}>{song.title}</div>
           <div className={styles.songArtist}>{song.artist} • {formatDuration(song.duration)}</div>
         </div>
       </div>
-      <div className={styles.artistName}>{song.artist}</div>
+      <div className={styles.albumName}>{song.album || t("common.unknownAlbum")}</div>
       <div className={styles.songActions}>
         <Button variant="ghost" size="icon-sm" className={`${styles.songActionButton} ${isFavorited ? styles.favorited : ""}`} onClick={onFavoriteToggle}>
           <Heart size={14} fill={isFavorited ? "currentColor" : "none"} />
@@ -145,17 +156,21 @@ const SortableSongItem = ({
   );
 };
 
-type MainContentProps = {
+interface MainContentProps {
   musicPlayerHook: ReturnType<
     typeof import("../hooks/musicPlayerHook").useMusicPlayer
   >;
-};
+}
 
 export const MainContent = ({ musicPlayerHook }: MainContentProps) => {
   const { t } = useTranslation();
 
   const sensors = useSensors(
-    useSensor(PointerSensor),
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
     })
@@ -176,6 +191,7 @@ export const MainContent = ({ musicPlayerHook }: MainContentProps) => {
   const [showPlaylistDialog, setShowPlaylistDialog] = useState(false);
   const [newPlaylistName, setNewPlaylistName] = useState("");
   const [isCreatingNew, setIsCreatingNew] = useState(false);
+  const sortDropdownRef = React.useRef<PersistentDropdownMenuRef>(null);
 
   const {
     playerState,
@@ -204,6 +220,14 @@ export const MainContent = ({ musicPlayerHook }: MainContentProps) => {
     window.addEventListener("navigate", handleNavigate);
     return () => window.removeEventListener("navigate", handleNavigate);
   }, [navigateToArtist, navigateToAlbum]);
+
+  // Clear sorting when entering playlist view
+  React.useEffect(() => {
+    if (playerState.currentPlaylist) {
+      setSortBy(null);
+      setSortOrder("asc");
+    }
+  }, [playerState.currentPlaylist]);
 
   const songsToDisplay = React.useMemo(() => {
     if (playerState.view === "artist" && playerState.currentArtist) {
@@ -273,17 +297,19 @@ export const MainContent = ({ musicPlayerHook }: MainContentProps) => {
     const { active, over } = event;
     if (!over || active.id === over.id) return;
 
-    if (playerState.currentPlaylist) {
+    if (playerState.currentPlaylist && songSearchQuery.trim() === "") {
       const oldIndex = sortedSongs.findIndex((song) => song.id === active.id);
       const newIndex = sortedSongs.findIndex((song) => song.id === over.id);
       if (oldIndex !== -1 && newIndex !== -1) {
         const newSongs = arrayMove(sortedSongs, oldIndex, newIndex);
         reorderPlaylistSongs(playerState.currentPlaylist.id, newSongs);
+        // If All Songs, also update library.songs
+        if (playerState.currentPlaylist.id === "all-songs") {
+          reorderPlaylistSongs(null, newSongs); // null means update root songs
+        }
       }
     }
-  };
-
-  const handleSongClick = (song: Song) => {
+  };  const handleSongClick = (song: Song) => {
     playSong(song, playerState.currentPlaylist || undefined);
   };
 
@@ -295,7 +321,7 @@ export const MainContent = ({ musicPlayerHook }: MainContentProps) => {
     const newRating = currentRating === rating ? "none" : rating;
     setRatings((prev) => ({ ...prev, [songId]: newRating }));
   };
-
+  
   const handleToggleFavorite = (
     e: React.MouseEvent<HTMLButtonElement, MouseEvent>,
     songId: string
@@ -359,7 +385,7 @@ export const MainContent = ({ musicPlayerHook }: MainContentProps) => {
               id: generateUniqueId(),
               title: metadata.title,
               artist: metadata.artist,
-              album: metadata.album || t("songInfo.album", { title: "Unknown Album" }),
+              album: metadata.album || t("songInfo.album", { title: t("common.unknownAlbum") }),
               duration: metadata.duration,
               url: audioUrl,
               albumArt: metadata.albumArt,
@@ -397,6 +423,21 @@ export const MainContent = ({ musicPlayerHook }: MainContentProps) => {
   const handleSelectAll = () => {
     if (selectedSongs.length === sortedSongs.length) setSelectedSongs([]);
     else setSelectedSongs(sortedSongs.map((song) => song.id));
+  };
+
+  const getAllPlaylists = (items: (Playlist | PlaylistFolder)[]): Playlist[] => {
+    const result: Playlist[] = [];
+    for (const item of items) {
+      if ('children' in item) {
+        // This is a PlaylistFolder, recurse into children
+        result.push(...getAllPlaylists(item.children));
+      } else if ('songs' in item) {
+        // This is a Playlist
+        result.push(item);
+      }
+      // Skip items that are neither playlists nor folders
+    }
+    return result;
   };
 
   const handleAddToPlaylist = () => setShowPlaylistDialog(true);
@@ -471,6 +512,47 @@ export const MainContent = ({ musicPlayerHook }: MainContentProps) => {
             <Trash2 size={16} />
           </Button>
           <PersistentDropdownMenu
+            ref={sortDropdownRef}
+            trigger={
+              <Button variant="outline" size="icon-md" className={styles.actionButton}>
+                <ArrowUpDown size={16} />
+              </Button>
+            }
+            onClose={() => {}}
+          >
+            <Button variant="ghost" onClick={() => setSortBy('name')} className="w-full justify-start text-sm">
+              <Type size={16} className="mr-2" />
+              {t("sort.name")}
+              {sortBy === 'name' && <span className="ml-auto">•</span>}
+            </Button>
+            <Button variant="ghost" onClick={() => setSortBy('artist')} className="w-full justify-start text-sm">
+              <User size={16} className="mr-2" />
+              {t("sort.artist")}
+              {sortBy === 'artist' && <span className="ml-auto">•</span>}
+            </Button>
+            <Button variant="ghost" onClick={() => setSortBy('album')} className="w-full justify-start text-sm">
+              <Disc size={16} className="mr-2" />
+              {t("sort.album")}
+              {sortBy === 'album' && <span className="ml-auto">•</span>}
+            </Button>
+            <Button variant="ghost" onClick={() => setSortBy('rating')} className="w-full justify-start text-sm">
+              <Star size={16} className="mr-2" />
+              {t("sort.rating")}
+              {sortBy === 'rating' && <span className="ml-auto">•</span>}
+            </Button>
+            <div className="border-t my-1"></div>
+            <Button variant="ghost" onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')} className="w-full justify-start text-sm">
+              <ArrowUp size={16} className={sortOrder === 'asc' ? 'visible mr-2' : 'invisible mr-2'} />
+              <ArrowDown size={16} className={sortOrder === 'desc' ? 'visible mr-2' : 'invisible mr-2'} />
+              {sortOrder === 'asc' ? t('sort.ascending') : t('sort.descending')}
+            </Button>
+            <div className="border-t my-1"></div>
+            <Button variant="ghost" onClick={() => { setSortBy(null); sortDropdownRef.current?.close(); }} className="w-full justify-start text-sm">
+              <X size={16} className="mr-2" />
+              {t('sort.clear')}
+            </Button>
+          </PersistentDropdownMenu>
+          <PersistentDropdownMenu
             trigger={
               <Button variant="outline" size="icon-md" className={styles.actionButton} onClick={handleSelectSongsToggle}>
                 <ListChecks size={16} />
@@ -497,76 +579,6 @@ export const MainContent = ({ musicPlayerHook }: MainContentProps) => {
         </div>
       </div>
 
-      {/* Sorting controls */}
-      <div className={styles.sortingControls}>
-        <Button
-          variant={sortBy === "name" ? "primary" : "outline"}
-          size="sm"
-          onClick={() => {
-            if (sortBy === "name") {
-              setSortOrder(sortOrder === "asc" ? "desc" : "asc");
-            } else {
-              setSortBy("name");
-              setSortOrder("asc");
-            }
-          }}
-        >
-          {t("sort.name")} {sortBy === "name" && (sortOrder === "asc" ? "↑" : "↓")}
-        </Button>
-        <Button
-          variant={sortBy === "artist" ? "primary" : "outline"}
-          size="sm"
-          onClick={() => {
-            if (sortBy === "artist") {
-              setSortOrder(sortOrder === "asc" ? "desc" : "asc");
-            } else {
-              setSortBy("artist");
-              setSortOrder("asc");
-            }
-          }}
-        >
-          {t("sort.artist")} {sortBy === "artist" && (sortOrder === "asc" ? "↑" : "↓")}
-        </Button>
-        <Button
-          variant={sortBy === "album" ? "primary" : "outline"}
-          size="sm"
-          onClick={() => {
-            if (sortBy === "album") {
-              setSortOrder(sortOrder === "asc" ? "desc" : "asc");
-            } else {
-              setSortBy("album");
-              setSortOrder("asc");
-            }
-          }}
-        >
-          {t("sort.album")} {sortBy === "album" && (sortOrder === "asc" ? "↑" : "↓")}
-        </Button>
-        <Button
-          variant={sortBy === "rating" ? "primary" : "outline"}
-          size="sm"
-          onClick={() => {
-            if (sortBy === "rating") {
-              setSortOrder(sortOrder === "asc" ? "desc" : "asc");
-            } else {
-              setSortBy("rating");
-              setSortOrder("asc");
-            }
-          }}
-        >
-          {t("sort.rating")} {sortBy === "rating" && (sortOrder === "asc" ? "↑" : "↓")}
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => {
-            setSortBy(null);
-            setSortOrder("asc");
-          }}
-        >
-          {t("sort.clear")}
-        </Button>
-      </div>
-
       {/* Song list */}
       <div className={styles.songListWrapper}>
         <DndContext
@@ -578,7 +590,7 @@ export const MainContent = ({ musicPlayerHook }: MainContentProps) => {
             <div className={styles.songList}>
               <div className={styles.songListHeader}>
                 <span className={styles.columnHeader}>{t("songInfo.title")}</span>
-                <span className={styles.columnHeader}>{t("common.artist")}</span>
+                <span className={styles.columnHeader}>{t("common.album")}</span>
                 <span className={styles.columnHeader}>{t("actions.addTo")}</span>
               </div>
               {sortedSongs.map((song: Song) => (
@@ -683,13 +695,13 @@ export const MainContent = ({ musicPlayerHook }: MainContentProps) => {
             </div>
           ) : (
             <div className={modalStyles.spaceY4}>
-              {library.playlists.filter((p) => p.id !== "all-songs").length > 0 ? (
+              {getAllPlaylists(library.playlists).filter((p) => p.id !== "all-songs").length > 0 ? (
                 <div className={modalStyles.spaceY2}>
-                  {library.playlists
+                  {getAllPlaylists(library.playlists)
                     .filter((playlist) => playlist.id !== "all-songs")
                     .map((playlist) => (
                       <div
-                        key={playlist.name}
+                        key={playlist.id}
                         className={`${modalStyles.flex} ${modalStyles.gap2}`}
                       >
                         <Button
@@ -697,6 +709,7 @@ export const MainContent = ({ musicPlayerHook }: MainContentProps) => {
                           className={`${modalStyles["w-full"]} ${modalStyles["justify-start"]}`}
                           onClick={() => handleAddToExistingPlaylist(playlist.id)}
                         >
+                          <Music size={16} className="mr-2" />
                           {playlist.name}
                         </Button>
                       </div>

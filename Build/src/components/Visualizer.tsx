@@ -12,11 +12,11 @@ import {
 } from "./DropdownMenu";
 import styles from "./Visualizer.module.css";
 
-type VisualizerProps = {
+interface VisualizerProps {
   analyserNode: AnalyserNode | null;
   isPlaying: boolean;
   className?: string;
-};
+}
 
 export const Visualizer = ({
   analyserNode,

@@ -1,4 +1,4 @@
-type Song = {
+interface Song {
   id: string;
   title: string;
   artist: string;
@@ -9,4 +9,4 @@ type Song = {
   mimeType?: string;
   hasStoredAudio?: boolean;
   albumArt?: string;
-};
+}

@@ -1,4 +1,5 @@
 import { createRoot } from "react-dom/client";
+import { useTranslation } from "react-i18next";
 import { Button } from "./Button";
 import { Play, Pause, SkipBack, SkipForward } from "lucide-react";
 import { getCurrentThemeCSS } from "../helpers/themeMode";
@@ -57,6 +58,7 @@ function copyAllStyles(pipWindow: Window) {
         }
       } catch (e) {
         // Skip inaccessible stylesheets (CORS/cross-origin)
+        console.warn('Could not access stylesheet:', styleSheet.href, e);
       }
     });
   } catch (e) {
@@ -65,6 +67,13 @@ function copyAllStyles(pipWindow: Window) {
   
   console.log(`Copied ${copiedRulesCount} CSS rules to PiP window`);
 }
+
+/**
+ * Check if Document Picture-in-Picture API is supported
+ */
+export const isMiniplayerSupported = (): boolean => {
+  return 'documentPictureInPicture' in window && !!window.documentPictureInPicture;
+};
 
 /**
  * Toggle Picture-in-Picture miniplayer
@@ -82,7 +91,8 @@ export const toggleMiniplayer = async (controls: MiniplayerControls) => {
       return;
     }
 
-    if (!window.documentPictureInPicture) {
+    // Check if Document Picture-in-Picture API is supported
+    if (!('documentPictureInPicture' in window) || !window.documentPictureInPicture) {
       console.error("Document Picture-in-Picture not supported");
       return;
     }
@@ -206,6 +216,7 @@ interface MiniplayerProps {
 }
 
 const MiniplayerContent: React.FC = () => {
+  const { t } = useTranslation();
   const { currentSong, isPlaying, play, pause, next, previous } = useAudioStore();
 
   const handlePlayPause = () => {
@@ -225,14 +236,14 @@ const MiniplayerContent: React.FC = () => {
   };
 
   if (!currentSong) {
-    return <div>No song is currently playing</div>;
+    return <div>{t("player.noSongPlaying")}</div>;
   }
 
   return (
     <div className={styles.miniplayer}>
       <img
         src={currentSong.albumArt || ""}
-        alt="Album Art"
+        alt={t("player.albumArt")}
         className={styles.albumArt}
       />
       <div className={styles.songInfo}>
@@ -261,18 +272,19 @@ const MiniplayerContent: React.FC = () => {
 
 // Standalone miniplayer component
 const Miniplayer = ({ controls }: MiniplayerProps) => {
+  const { t } = useTranslation();
   const { playerState, togglePlayPause, playNext, playPrevious } = controls;
   const { currentSong, isPlaying } = playerState;
 
   if (!currentSong) {
-    return <div className={styles.miniplayer}>No song is currently playing</div>;
+    return <div className={styles.miniplayer}>{t("player.noSongPlaying")}</div>;
   }
 
   return (
     <div className={styles.miniplayer}>
       <img
         src={currentSong.albumArt || ""}
-        alt="Album Art"
+        alt={t("player.albumArt")}
         className={styles.albumArt}
       />
       <div className={styles.songInfo}>
@@ -280,11 +292,11 @@ const Miniplayer = ({ controls }: MiniplayerProps) => {
         <div className={styles.artist}>{currentSong.artist}</div>
       </div>
       <div className={styles.controls}>
-        <Button onClick={playPrevious}>Previous</Button>
+        <Button onClick={playPrevious}>{t("player.previousTrack")}</Button>
         <Button onClick={togglePlayPause}>
-          {isPlaying ? "Pause" : "Play"}
+          {isPlaying ? t("player.pause") : t("player.play")}
         </Button>
-        <Button onClick={playNext}>Next</Button>
+        <Button onClick={playNext}>{t("player.nextTrack")}</Button>
       </div>
     </div>
   );

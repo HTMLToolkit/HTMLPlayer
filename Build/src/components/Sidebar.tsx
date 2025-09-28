@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, memo } from "react";
 import { useTranslation } from "react-i18next";
 import {
   Menu,
@@ -20,7 +20,7 @@ import {
 import { PlaylistComponent } from "./Playlist";
 import styles from "./Sidebar.module.css";
 
-type SidebarProps = {
+interface SidebarProps {
   musicPlayerHook: ReturnType<
     typeof import("../hooks/musicPlayerHook").useMusicPlayer
   >;
@@ -28,12 +28,12 @@ type SidebarProps = {
   onShortcutsChanged?: () => void;
   settingsOpen?: boolean;
   onSettingsOpenChange?: (open: boolean) => void;
-};
+}
 
 const COLLAPSED_WIDTH = "40px";
 const EXPANDED_WIDTH = "250px";
 
-export const Sidebar = ({
+export const Sidebar = memo(({
   musicPlayerHook,
   onCollapseChange,
   onShortcutsChanged,
@@ -121,7 +121,7 @@ export const Sidebar = ({
           onClick={handleAbout}
         >
           <Info size={16} />
-          {t("about")}
+          {t("aboutMenu")}
         </Button>
         <Button
           variant="ghost"
@@ -158,4 +158,12 @@ export const Sidebar = ({
       </Dialog>
     </div>
   );
-};
+}, (prevProps, nextProps) => {
+  // Only re-render if the library playlists or songs have actually changed
+  return (
+    prevProps.musicPlayerHook.library.playlists === nextProps.musicPlayerHook.library.playlists &&
+    prevProps.musicPlayerHook.library.songs === nextProps.musicPlayerHook.library.songs &&
+    prevProps.musicPlayerHook.library.favorites === nextProps.musicPlayerHook.library.favorites &&
+    prevProps.settingsOpen === nextProps.settingsOpen
+  );
+});

@@ -2,31 +2,17 @@
 
 ## HTMLPlayer v2
 
-__
+- [ ] drag songs to playlists to move to playlist 
 
-### wip
+- [ ] combine buttons and options that do similar things
 
-- fix ui of sort options
-- fix favorite and rate functions missing
-- fix move to ... actions
-- replace alert with react modal
-- better signify click on folder to expand
-- fix click on folder to expand
-- 3rd click on sort option to remove option (click -> up, down, none)
-- 4 buttons feels too much for sidebar, lessen?
-- implement rename + delete folders
-- better playlist folder UI?
-- change add folder icon to + as well
-- some other stuff idk i can't remember
-__
+- [ ] replace white screen on load with cool "Loading HTMLPlayer..." thing
 
-- [ ] Sort Tracks with drag-and-drop reordering
-    Issue: Tracks cannot be sorted (e.g., by name, rating).
-    Improvement: Add sorting options.
+- [ ] long text can break the UI (+ also cause scrolling horizontally) but I can reuse the scroll thing from song titles (maybe modularize that into a new component: ScrollText.tsx?)
 
-- [ ] add folders for playlists.
+- [ ] Make all 3-dot menus also open on right click
 
-- [ ] Dynamic theming based on album art colors.  (settings)
+- [ ] Dynamic theming based on album art colors. 
 
 - [ ] Synced lyrics using id3v2 embedded lyrics (music-metadata has tons of stuff for this)
 
@@ -34,7 +20,7 @@ __
   - [ ] Encoding & Format Details (for song info modal): get bitrate, duration, codec, sample rate, channels, and bit depth for each track
   - [ ] MusicBrainz Tags + ReplayGain using `music-metadata`: read MusicBrainz identifiers and volume normalization metadata
   - [ ] Gapless Playback Info: use pre/post-silence info for seamless playback between tracks
-  - [ ] Custom Metadata Parsing (AKA ACAPlayer (lol)): access nonstandard or raw tags embedded in audio files
+  - [ ] Custom Metadata Parsing (AKA ACAPlayer (lol aka aca)): access nonstandard or raw tags embedded in audio files
   - [ ] ReplayGain / Loudness Info: normalize or adjust playback volume based on track metadata
 
 - [ ] Discord Integration
@@ -95,7 +81,7 @@ __
 
 - [ ] Smart playlists (maybe)
 
-- [ ] scrobbling (settings)
+- [ ] scrobbling
 
 - [ ] Visualizer → audio-reactive backgrounds (basically picture background theme but actually visualizer and not theme) (can easily pipe through background-image or background via image)
 
@@ -156,11 +142,23 @@ __
 
 ## Done
 
+- [X] Sort Tracks with drag-and-drop reordering
+    Issue: Tracks cannot be sorted (e.g., by name, rating).
+    Improvement: Add sorting options.
+
+- [X] add folders for playlists.
+
+- [X] make miniplayer `enterpictureinpicture` trigger be conditional so that init doesn't fail on Safari or other browsers that don't support that API
+
+- [X] add eslint 
+
+- [X] replace artist column with album as artist already is there below song
+
 - [X] fix some crossfade and gapless edge cases
 
-- [X] Crossfade options (settings)
+- [X] Crossfade options
 
-- [X] Gapless playback (settings)
+- [X] Gapless playback
 
 - [X] Smart shuffle
 
@@ -170,7 +168,7 @@ __
 
 - [X] picture backgrounds in themes (example)
 
-- [X] Session restore (settings)
+- [X] Session restore
 
 - [X] Keyboard shortcuts (settings, duh)
 
@@ -192,7 +190,7 @@ __
 
 - [X] use fontsource rather than network loading
 
-- [X] Pitch/Tempo Control (settings)
+- [X] Pitch/Tempo Control
 
 - [X] make PWA top bar dynamic
   - <https://css-tricks.com/meta-theme-color-and-trickery>

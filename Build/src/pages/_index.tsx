@@ -12,8 +12,10 @@ import {
 } from "../helpers/themeMode";
 import { musicIndexedDbHelper } from "../helpers/musicIndexedDbHelper";
 import styles from "./_index.module.css";
+import { useTranslation } from "react-i18next";
 
 export default function IndexPage() {
+  const { t } = useTranslation();
   const musicPlayerHook = useMusicPlayer();
   const [, setThemeMode] = useState<ThemeMode>("auto");
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -48,20 +50,19 @@ export default function IndexPage() {
 
   useEffect(() => {
     // Set the document title
-    document.title = "HTMLPlayer";
+    document.title = t("title");
 
     // Set the meta description
     const metaDescription = document.querySelector('meta[name="description"]');
     if (metaDescription) {
       metaDescription.setAttribute(
         "content",
-        "A modern music player interface with playlists, song management, and an amazing visualizer."
+        t("description")
       );
     } else {
       const meta = document.createElement("meta");
       meta.name = "description";
-      meta.content =
-        "A modern music player interface with playlists, song management, and an amazing visualizer.";
+      meta.content = t("description");
       document.head.appendChild(meta);
     }
 

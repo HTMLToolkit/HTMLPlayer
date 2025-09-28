@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useImperativeHandle, forwardRef } from "react";
 import styles from "./PersistentDropdownMenu.module.css";
 
 interface CustomDropdownMenuProps {
@@ -7,17 +7,31 @@ interface CustomDropdownMenuProps {
   onClose: () => void;
 }
 
-const PersistentDropdownMenu: React.FC<CustomDropdownMenuProps> = ({
+export interface PersistentDropdownMenuRef {
+  close: () => void;
+}
+
+const PersistentDropdownMenu = forwardRef<PersistentDropdownMenuRef, CustomDropdownMenuProps>(({
   children,
   trigger,
   onClose,
-}) => {
+}, ref) => {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const toggleOpen = () => {
     setIsOpen(!isOpen);
   };
+
+  const closeDropdown = () => {
+    setIsOpen(false);
+    onClose();
+  };
+
+  // Expose close method to parent components
+  useImperativeHandle(ref, () => ({
+    close: closeDropdown,
+  }));
 
   // Close the dropdown when clicking outside
   useEffect(() => {
@@ -50,6 +64,6 @@ const PersistentDropdownMenu: React.FC<CustomDropdownMenuProps> = ({
       {isOpen && <div className={styles.content}>{children}</div>}
     </div>
   );
-};
+});
 
 export default PersistentDropdownMenu;

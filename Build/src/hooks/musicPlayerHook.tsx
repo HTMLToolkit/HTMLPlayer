@@ -365,12 +365,22 @@ export const useMusicPlayer = () => {
   // Update playlist when library changes
   useEffect(() => {
     if (playerState.currentPlaylist) {
-      const updatedPlaylist = library.playlists.find(
-        (p) => p.id === playerState.currentPlaylist?.id
-      );
+      // Recursive function to find playlist in the tree
+      const findPlaylist = (items: (Playlist | PlaylistFolder)[]): Playlist | null => {
+        for (const item of items) {
+          if ('songs' in item && item.id === playerState.currentPlaylist?.id) {
+            return item;
+          }
+          if ('children' in item) {
+            const found = findPlaylist(item.children);
+            if (found) return found;
+          }
+        }
+        return null;
+      };
+      const updatedPlaylist = findPlaylist(library.playlists);
       if (
         updatedPlaylist &&
-        'songs' in updatedPlaylist &&
         updatedPlaylist.songs !== playerState.currentPlaylist.songs
       ) {
         setPlayerState((prev) => ({
@@ -431,29 +441,39 @@ export const useMusicPlayer = () => {
         playNext();
       });
 
-      navigator.mediaSession.setActionHandler(
-        "enterpictureinpicture" as any,
-        () => {
-          toggleMiniplayer({
-            playerState: {
-              currentSong: playerState.currentSong,
-              isPlaying: playerState.isPlaying,
-            },
-            togglePlayPause,
-            playNext,
-            playPrevious,
-          });
-        }
-      );
+      // Only set enterpictureinpicture handler if supported
+      try {
+        navigator.mediaSession.setActionHandler(
+          "enterpictureinpicture" as any,
+          () => {
+            toggleMiniplayer({
+              playerState: {
+                currentSong: playerState.currentSong,
+                isPlaying: playerState.isPlaying,
+              },
+              togglePlayPause,
+              playNext,
+              playPrevious,
+            });
+          }
+        );
+      } catch (error) {
+        // Browser doesn't support enterpictureinpicture action
+        console.log("enterpictureinpicture action not supported");
+      }
 
       return () => {
         if ("mediaSession" in navigator) {
           navigator.mediaSession.setActionHandler("previoustrack", null);
           navigator.mediaSession.setActionHandler("nexttrack", null);
-          navigator.mediaSession.setActionHandler(
-            "enterpictureinpicture" as any,
-            null
-          );
+          try {
+            navigator.mediaSession.setActionHandler(
+              "enterpictureinpicture" as any,
+              null
+            );
+          } catch (error) {
+            // Browser doesn't support enterpictureinpicture action
+          }
         }
       };
     }

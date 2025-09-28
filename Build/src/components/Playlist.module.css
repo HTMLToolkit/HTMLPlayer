@@ -53,6 +53,8 @@
   flex-direction: column;
   gap: var(--spacing-1);
   overflow-y: auto;
+  overflow-x: hidden;
+  max-width: 100%;
 }
 
 .playlistItemContainer {
@@ -101,6 +103,19 @@
 .playlistItem.active {
   background: var(--primary-transparent-4);
   border: 1px solid var(--primary-border-strong);
+}
+
+.folderItem {
+  cursor: pointer;
+}
+
+.chevron {
+  transition: transform var(--animation-duration-fast) ease;
+  color: var(--foreground-muted);
+}
+
+.chevronOpen {
+  transform: rotate(180deg);
 }
 
 .songCount {

@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useCallback, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import styles from "./Lyrics.module.css";
 import {
   MetadataFilter,
@@ -9,15 +10,15 @@ import {
   createRemasteredFilter,
 } from "@web-scrobbler/metadata-filter";
 
-type LyricsProps = {
+interface LyricsProps {
   artist: string;
   title: string;
   visible: boolean;
   onClose?: () => void;
-};
+}
 
-type LyricsResponse = { lyrics: string };
-type LyricsState = { lyrics: string; loading: boolean; error: string | null };
+interface LyricsResponse { lyrics: string }
+interface LyricsState { lyrics: string; loading: boolean; error: string | null }
 
 const INITIAL_STATE: LyricsState = { lyrics: "", loading: false, error: null };
 
@@ -67,6 +68,7 @@ const cleanMetadata = (artist: string, title: string) => {
 };
 
 export const Lyrics = ({ artist, title, visible, onClose }: LyricsProps) => {
+  const { t } = useTranslation();
   const [state, setState] = useState<LyricsState>(INITIAL_STATE);
   const abortControllerRef = useRef<AbortController | null>(null);
 
@@ -80,7 +82,7 @@ export const Lyrics = ({ artist, title, visible, onClose }: LyricsProps) => {
     if (artist.trim().toLowerCase() === "unknown artist") {
       setState((prev) => ({
         ...prev,
-        error: "Cannot search for lyrics without a known artist",
+        error: t("lyrics.cannotSearchWithoutArtist"),
         loading: false,
       }));
       return;
@@ -119,16 +121,16 @@ export const Lyrics = ({ artist, title, visible, onClose }: LyricsProps) => {
 
         lastError = new Error(
           response.status === 404
-            ? "Lyrics not found for this song"
-            : `Failed to fetch lyrics (${response.status})`
+            ? t("lyrics.notFound")
+            : t("lyrics.failedToFetch", { status: response.status })
         );
       } catch (error) {
         if (error instanceof Error && error.name === "AbortError") return;
-        lastError = error instanceof Error ? error : new Error("Failed to load lyrics");
+        lastError = error instanceof Error ? error : new Error(t("lyrics.failedToLoad"));
       }
     }
 
-    setState({ lyrics: "", loading: false, error: lastError?.message || "Failed to load lyrics" });
+    setState({ lyrics: "", loading: false, error: lastError?.message || t("lyrics.failedToLoad") });
   }, []);
 
   useEffect(() => {
@@ -160,15 +162,15 @@ export const Lyrics = ({ artist, title, visible, onClose }: LyricsProps) => {
         </header>
 
         <div className={styles.lyricsContent}>
-          {loading && <div className={styles.loading}>Loading lyrics...</div>}
+          {loading && <div className={styles.loading}>{t("lyrics.loading")}</div>}
           {error && (
             <div className={styles.error}>
               <p>{error}</p>
-              <button onClick={handleRetry} className={styles.retryButton}>Try Again</button>
+              <button onClick={handleRetry} className={styles.retryButton}>{t("lyrics.tryAgain")}</button>
             </div>
           )}
           {!loading && !error && lyrics && <pre className={styles.lyricsText}>{lyrics}</pre>}
-          {!loading && !error && !lyrics && <div className={styles.error}>No lyrics available for this song.</div>}
+          {!loading && !error && !lyrics && <div className={styles.error}>{t("lyrics.noLyricsAvailable")}</div>}
         </div>
       </div>
     </div>

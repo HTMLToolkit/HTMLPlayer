@@ -533,7 +533,7 @@ export const Settings = ({
                     Enable Discord Integration (Broken Beta)
                   </label>
                   <p className={styles.settingDescription}>
-                    Note: Discord's RPC API requires special approval. Currently logs track info for testing.
+                    Note: Discord&apos;s RPC API requires special approval. Currently logs track info for testing.
                   </p>
                 </div>
                 <Switch
@@ -549,11 +549,11 @@ export const Settings = ({
                 <>
                   <div className={styles.settingItem}>
                     <div className={styles.settingInfo}>
-                      <label>Discord Connection</label>
+                      <label>{t("discord.connection")}</label>
                       <p className={styles.settingDescription}>
                         {settings.discordUserId 
-                          ? `Connected as Discord User ID: ${settings.discordUserId}`
-                          : "Not connected to Discord"
+                          ? t("discord.connected", { userId: settings.discordUserId })
+                          : t("discord.notConnected")
                         }
                       </p>
                     </div>
@@ -563,38 +563,38 @@ export const Settings = ({
                         if (settings.discordUserId) {
                           // Disconnect Discord
                           onSettingsChange({ discordUserId: undefined });
-                          toast.success("Disconnected from Discord");
+                          toast.success(t("discord.disconnected"));
                         } else {
                           // Redirect to Discord OAuth
                           const discordOAuthUrl = "https://discord.com/oauth2/authorize?client_id=1419480226970341476&response_type=code&redirect_uri=https%3A%2F%2Fhtmlplayer-backend.onrender.com%2Foauth%2Fcallback&scope=identify%20rpc.activities.write";
                           window.open(discordOAuthUrl, '_blank');
-                          toast.info("Please complete Discord authorization in the new tab");
+                          toast.info(t("discord.completeAuth"));
                         }
                       }}
                     >
-                      {settings.discordUserId ? "Disconnect" : "Connect Discord"}
+                      {settings.discordUserId ? t("discord.disconnect") : t("discord.connect")}
                     </Button>
                   </div>
 
                   {!settings.discordUserId && (
                     <div className={styles.settingItem}>
                       <div className={styles.settingInfo}>
-                        <label htmlFor="discord-user-id">Manual Discord User ID</label>
+                        <label htmlFor="discord-user-id">{t("discord.manualUserId")}</label>
                         <p className={styles.settingDescription}>
-                          If the OAuth flow completed successfully, you can manually enter your Discord User ID here.
+                          {t("discord.manualUserIdDescription")}
                         </p>
                       </div>
                       <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                         <Input
                           id="discord-user-id"
                           type="text"
-                          placeholder="Discord User ID"
+                          placeholder={t("discord.userId")}
                           onKeyDown={(e) => {
                             if (e.key === 'Enter') {
                               const input = e.target as HTMLInputElement;
                               if (input.value.trim()) {
                                 onSettingsChange({ discordUserId: input.value.trim() });
-                                toast.success("Discord User ID saved");
+                                toast.success(t("discord.userIdSaved"));
                                 input.value = '';
                               }
                             }
@@ -606,12 +606,12 @@ export const Settings = ({
                             const input = (e.target as HTMLElement).previousElementSibling as HTMLInputElement;
                             if (input && input.value.trim()) {
                               onSettingsChange({ discordUserId: input.value.trim() });
-                              toast.success("Discord User ID saved");
+                              toast.success(t("discord.userIdSaved"));
                               input.value = '';
                             }
                           }}
                         >
-                          Save
+                          {t("common.save")}
                         </Button>
                       </div>
                     </div>

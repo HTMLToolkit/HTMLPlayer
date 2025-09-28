@@ -1,4 +1,4 @@
-type PlayerState = {
+interface PlayerState {
   currentSong: Song | null;
   currentPlaylist: Playlist | null;
   isPlaying: boolean;
@@ -11,4 +11,4 @@ type PlayerState = {
   view: "songs" | "artist" | "album";
   currentArtist?: string;
   currentAlbum?: string;
-};
+}

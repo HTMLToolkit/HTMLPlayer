@@ -108,6 +108,104 @@
   border-color: var(--primary-border-stronger);
 }
 
+.sortingControls {
+  display: flex;
+  gap: var(--spacing-2);
+  margin-bottom: var(--spacing-4);
+  flex-wrap: wrap;
+}
+
+.sortControls {
+  display: flex;
+  gap: var(--spacing-3);
+  margin-bottom: var(--spacing-4);
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.sortPresets {
+  display: flex;
+  gap: var(--spacing-1);
+}
+
+.sortIndicators {
+  display: flex;
+  gap: var(--spacing-4);
+  margin-left: auto;
+}
+
+.sortColumn {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  padding: var(--spacing-1) var(--spacing-2);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: background-color var(--animation-duration-fast) ease;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--foreground-muted);
+}
+
+.sortColumn:hover {
+  background: var(--primary-transparent-1);
+}
+
+.sortColumn.sorted {
+  background: var(--primary-transparent-2);
+  color: var(--primary-foreground);
+}
+
+.arrows {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.arrows svg {
+  opacity: 0.3;
+  transition: opacity var(--animation-duration-fast) ease;
+}
+
+.arrows svg.active {
+  opacity: 1;
+  color: var(--primary);
+}
+
+/* Responsive design */
+.desktopOnly {
+  display: block;
+}
+
+.mobileOnly {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .desktopOnly {
+    display: none;
+  }
+  
+  .mobileOnly {
+    display: block;
+  }
+  
+  .sortControls {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--spacing-2);
+  }
+  
+  .sortPresets {
+    justify-content: center;
+  }
+  
+  .sortIndicators {
+    margin-left: 0;
+    justify-content: center;
+  }
+}
+
 /* Song list */
 .songList {
   background: var(--themecolor2-transparent);
@@ -124,7 +222,7 @@
 
 .songListHeader {
   display: grid;
-  grid-template-columns: 2fr 1fr 120px;
+  grid-template-columns: 2fr 1.5fr 120px;
   gap: var(--spacing-4);
   padding: var(--spacing-4);
   border-bottom: 1px solid var(--surface-transparent-1);
@@ -141,7 +239,7 @@
 
 .songItem {
   display: grid;
-  grid-template-columns: 2fr 1fr 120px;
+  grid-template-columns: 2fr 1.5fr 120px;
   gap: var(--spacing-4);
   padding: var(--spacing-4);
   border-bottom: 1px solid var(--surface-transparent-05);
@@ -225,7 +323,7 @@
   color: var(--foreground-subtle);
 }
 
-.artistName {
+.albumName {
   display: flex;
   align-items: center;
   font-family: var(--font-family-base);
