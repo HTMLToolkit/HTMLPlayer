@@ -33,10 +33,10 @@
     "@radix-ui/react-switch": "^1.2.6",
     "@radix-ui/react-tooltip": "^1.2.8",
     "@uppy/core": "^5.0.2",
+    "@uppy/dashboard": "^5.0.2",
     "@uppy/react": "^5.1.0",
     "@web-scrobbler/metadata-filter": "^3.2.0",
     "dompurify": "^3.2.7",
-    "eruda": "^3.4.3",
     "i18next": "^25.5.2",
     "i18next-browser-languagedetector": "^8.2.0",
     "i18next-http-backend": "^3.0.2",
@@ -59,13 +59,11 @@
     "@types/react-dom": "^19.1.9",
     "@typescript-eslint/eslint-plugin": "^8.44.1",
     "@typescript-eslint/parser": "^8.44.1",
-    "@vite-pwa/assets-generator": "^1.0.0",
     "@vitejs/plugin-react": "^5.0.4",
-    "cloc": "^2.6.0-cloc",
+    "cloc": "^2.11.0",
     "eslint": "^9.36.0",
     "eslint-plugin-react": "^7.37.5",
-    "vite": "^7.1.7",
-    "vite-plugin-pwa": "^1.0.3"
+    "vite": "^7.1.7"
   },
   "eslintConfig": {
     "extends": [
