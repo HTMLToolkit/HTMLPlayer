@@ -479,13 +479,33 @@ export const PlaylistComponent = ({ musicPlayerHook }: PlaylistProps) => {
       id: item.id,
     });
 
+    // Separate drop zone for songs (doesn't interfere with playlist dragging)
+    const { setNodeRef: setSongDropRef, isOver: isSongOver } = useDroppable({
+      id: `playlist-${item.id}`,
+    });
+
     const style = transform ? {
       transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
       opacity: isDragging ? 0.5 : 1,
     } : undefined;
 
     return (
-      <div data-id={item.id} className={styles.playlistItemContainer} style={{ marginLeft: `${depth * 20}px`, ...style, backgroundColor: isOver ? 'rgba(0,0,0,0.05)' : undefined }} ref={(node) => { setNodeRef(node); setDropRef(node); }} {...listeners} {...attributes}>
+      <div data-id={item.id} className={styles.playlistItemContainer} style={{ marginLeft: `${depth * 20}px`, ...style, backgroundColor: isOver ? 'rgba(0,0,0,0.05)' : undefined, position: 'relative' }} ref={(node) => { setNodeRef(node); setDropRef(node); }} {...listeners} {...attributes}>
+        {/* Song drop zone overlay */}
+        <div
+          ref={setSongDropRef}
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            zIndex: 1,
+            backgroundColor: isSongOver ? 'rgba(0, 123, 255, 0.1)' : 'transparent',
+            border: isSongOver ? '2px dashed rgba(0, 123, 255, 0.5)' : 'none',
+            pointerEvents: 'none', // Allow clicks to pass through when not dragging
+          }}
+        />
         <button
           className={styles.playlistItem}
           onClick={() => handlePlaylistSelect(item)}

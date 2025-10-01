@@ -13,12 +13,101 @@ import {
 import { musicIndexedDbHelper } from "../helpers/musicIndexedDbHelper";
 import styles from "./_index.module.css";
 import { useTranslation } from "react-i18next";
+import {
+  DndContext,
+  DragEndEvent,
+  PointerSensor,
+  KeyboardSensor,
+  useSensor,
+  useSensors,
+  closestCenter,
+  DragOverEvent,
+} from "@dnd-kit/core";
+import { sortableKeyboardCoordinates, arrayMove } from "@dnd-kit/sortable";
+import { toast } from "sonner";
 
 export default function IndexPage() {
   const { t } = useTranslation();
   const musicPlayerHook = useMusicPlayer();
   const [, setThemeMode] = useState<ThemeMode>("auto");
   const [settingsOpen, setSettingsOpen] = useState(false);
+
+  // Set up drag and drop sensors
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  // Unified drag and drop handler
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+
+    const activeId = active.id as string;
+    const overId = over.id as string;
+
+    // Only handle song-related drags, let playlist component handle playlist drags
+    if (!activeId.startsWith('song-')) {
+      return; // Let the playlist DndContext handle this
+    }
+
+    // Check if we're dropping a song onto a playlist
+    if (activeId.startsWith('song-') && overId.startsWith('playlist-')) {
+      const songId = activeId.replace('song-', '');
+      const targetPlaylistId = overId.replace('playlist-', '');
+      
+      // Get the current playlist from playerState
+      const sourcePlaylistId = musicPlayerHook.playerState.currentPlaylist?.id || null;
+      
+      // Move the song to the target playlist
+      musicPlayerHook.moveSongToPlaylist(songId, sourcePlaylistId, targetPlaylistId);
+      
+      // Find the song and target playlist for toast message
+      const song = musicPlayerHook.library.songs.find(s => s.id === songId);
+      const targetPlaylist = findPlaylistById(musicPlayerHook.library.playlists, targetPlaylistId);
+      
+      if (song && targetPlaylist) {
+        toast.success(t("songMovedToPlaylist", { song: song.title, playlist: targetPlaylist.name }));
+      }
+      return;
+    }
+
+    // Handle song reordering within a playlist (existing logic)
+    if (activeId.startsWith('song-') && overId.startsWith('song-')) {
+      const currentPlaylist = musicPlayerHook.playerState.currentPlaylist;
+      if (currentPlaylist) {
+        const songs = currentPlaylist.songs;
+        const oldIndex = songs.findIndex(song => `song-${song.id}` === activeId);
+        const newIndex = songs.findIndex(song => `song-${song.id}` === overId);
+        
+        if (oldIndex !== -1 && newIndex !== -1) {
+          const newSongs = arrayMove(songs, oldIndex, newIndex);
+          musicPlayerHook.reorderPlaylistSongs(currentPlaylist.id, newSongs);
+        }
+      }
+      return;
+    }
+  };
+
+  // Helper function to find playlist by ID in the nested structure
+  const findPlaylistById = (items: (Playlist | PlaylistFolder)[], id: string): Playlist | null => {
+    for (const item of items) {
+      if (item.id === id && 'songs' in item) {
+        return item as Playlist;
+      }
+      if ('children' in item) {
+        const found = findPlaylistById(item.children, id);
+        if (found) return found;
+      }
+    }
+    return null;
+  };
 
   // Initialize keyboard shortcuts with the new hook
   const { reloadShortcuts } = useKeyboardShortcuts({
@@ -89,36 +178,42 @@ export default function IndexPage() {
   }, []);
 
   return (
-    <div className={styles.container}>
-      <Sidebar 
-        musicPlayerHook={musicPlayerHook} 
-        onShortcutsChanged={reloadShortcuts}
-        settingsOpen={settingsOpen}
-        onSettingsOpenChange={setSettingsOpen}
-      />
-      <div className={styles.mainSection}>
-        <MainContent musicPlayerHook={musicPlayerHook} />
-        <Player musicPlayerHook={musicPlayerHook} settings={{
-          volume: 0,
-          crossfade: 0,
-          defaultShuffle: false,
-          defaultRepeat: "off",
-          themeMode: "light",
-          colorTheme: "",
-          autoPlayNext: false,
-          compactMode: false,
-          showAlbumArt: false,
-          showLyrics: false,
-          sessionRestore: true,
-          gaplessPlayback: true,
-          smartShuffle: true,
-          lastPlayedSongId: undefined,
-          lastPlayedPlaylistId: undefined,
-          language: "English",
-          tempo: 1,
-          discordEnabled: false
-        }} />
+    <DndContext
+      sensors={sensors}
+      collisionDetection={closestCenter}
+      onDragEnd={handleDragEnd}
+    >
+      <div className={styles.container}>
+        <Sidebar 
+          musicPlayerHook={musicPlayerHook} 
+          onShortcutsChanged={reloadShortcuts}
+          settingsOpen={settingsOpen}
+          onSettingsOpenChange={setSettingsOpen}
+        />
+        <div className={styles.mainSection}>
+          <MainContent musicPlayerHook={musicPlayerHook} />
+          <Player musicPlayerHook={musicPlayerHook} settings={{
+            volume: 0,
+            crossfade: 0,
+            defaultShuffle: false,
+            defaultRepeat: "off",
+            themeMode: "light",
+            colorTheme: "",
+            autoPlayNext: false,
+            compactMode: false,
+            showAlbumArt: false,
+            showLyrics: false,
+            sessionRestore: true,
+            gaplessPlayback: true,
+            smartShuffle: true,
+            lastPlayedSongId: undefined,
+            lastPlayedPlaylistId: undefined,
+            language: "English",
+            tempo: 1,
+            discordEnabled: false
+          }} />
+        </div>
       </div>
-    </div>
+    </DndContext>
   );
 }

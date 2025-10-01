@@ -160,6 +160,67 @@ export const createPlaylistManager = (
     });
   };
 
+  const moveSongToPlaylist = (songId: string, sourcePlaylistId: string | null, targetPlaylistId: string) => {
+    setLibrary((prev) => {
+      // Find the song first
+      const song = prev.songs.find((s) => s.id === songId);
+      if (!song) return prev;
+
+      // Helper function to remove song from a playlist
+      const removeSongFromPlaylist = (items: (Playlist | PlaylistFolder)[], playlistId: string | null): (Playlist | PlaylistFolder)[] => {
+        if (playlistId === null || playlistId === "all-songs") {
+          // Don't remove from "all-songs" or null (root songs)
+          return items;
+        }
+        
+        return items.map((p) => {
+          if (p.id === playlistId && 'songs' in p) {
+            return {
+              ...p,
+              songs: p.songs.filter((s) => s.id !== songId),
+            };
+          }
+          if ('children' in p) {
+            return { ...p, children: removeSongFromPlaylist(p.children, playlistId) };
+          }
+          return p;
+        });
+      };
+
+      // Helper function to add song to a playlist
+      const addSongToPlaylist = (items: (Playlist | PlaylistFolder)[], playlistId: string): (Playlist | PlaylistFolder)[] => {
+        return items.map((p) => {
+          if (p.id === playlistId && 'songs' in p) {
+            // Don't add if song is already in playlist
+            if (p.songs.some((s) => s.id === songId)) return p;
+            return {
+              ...p,
+              songs: [...p.songs, song],
+            };
+          }
+          if ('children' in p) {
+            return { ...p, children: addSongToPlaylist(p.children, playlistId) };
+          }
+          return p;
+        });
+      };
+
+      // Remove from source playlist (if specified and not "all-songs")
+      let updatedPlaylists = prev.playlists;
+      if (sourcePlaylistId && sourcePlaylistId !== "all-songs") {
+        updatedPlaylists = removeSongFromPlaylist(updatedPlaylists, sourcePlaylistId);
+      }
+
+      // Add to target playlist
+      updatedPlaylists = addSongToPlaylist(updatedPlaylists, targetPlaylistId);
+
+      return {
+        ...prev,
+        playlists: updatedPlaylists,
+      };
+    });
+  };
+
   const moveToFolder = (itemId: string, folderId: string | null, beforeId?: string | null) => {
     setLibrary((prev) => {
       // Debug logs: log the intent of the move
@@ -475,6 +536,7 @@ export const createPlaylistManager = (
     removeFromFavorites,
     addToPlaylist,
     reorderPlaylistSongs,
+    moveSongToPlaylist,
     moveToFolder,
     toggleFavorite,
     isFavorited,

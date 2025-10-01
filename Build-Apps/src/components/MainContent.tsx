@@ -42,18 +42,7 @@ import styles from "./MainContent.module.css";
 import PersistentDropdownMenu, { PersistentDropdownMenuRef } from "./PersistentDropdownMenu";
 import { useTranslation } from "react-i18next";
 import {
-  DndContext,
-  closestCenter,
-  KeyboardSensor,
-  PointerSensor,
-  useSensor,
-  useSensors,
-  DragEndEvent,
-} from "@dnd-kit/core";
-import {
-  arrayMove,
   SortableContext,
-  sortableKeyboardCoordinates,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import {
@@ -111,7 +100,7 @@ const SortableSongItem = ({
     transform,
     transition,
     isDragging,
-  } = useSortable({ id: song.id });
+  } = useSortable({ id: `song-${song.id}` });
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -165,16 +154,7 @@ interface MainContentProps {
 export const MainContent = ({ musicPlayerHook }: MainContentProps) => {
   const { t } = useTranslation();
 
-  const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 8,
-      },
-    }),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    })
-  );
+
 
   const [songSearchQuery, setSongSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState<"name" | "artist" | "album" | "rating" | null>(null);
@@ -293,23 +273,7 @@ export const MainContent = ({ musicPlayerHook }: MainContentProps) => {
 
   const handleSongSearch = (query: string) => setSongSearchQuery(query);
 
-  const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event;
-    if (!over || active.id === over.id) return;
-
-    if (playerState.currentPlaylist && songSearchQuery.trim() === "") {
-      const oldIndex = sortedSongs.findIndex((song) => song.id === active.id);
-      const newIndex = sortedSongs.findIndex((song) => song.id === over.id);
-      if (oldIndex !== -1 && newIndex !== -1) {
-        const newSongs = arrayMove(sortedSongs, oldIndex, newIndex);
-        reorderPlaylistSongs(playerState.currentPlaylist.id, newSongs);
-        // If All Songs, also update library.songs
-        if (playerState.currentPlaylist.id === "all-songs") {
-          reorderPlaylistSongs(null, newSongs); // null means update root songs
-        }
-      }
-    }
-  };  const handleSongClick = (song: Song) => {
+  const handleSongClick = (song: Song) => {
     playSong(song, playerState.currentPlaylist || undefined);
   };
 
@@ -581,18 +545,13 @@ export const MainContent = ({ musicPlayerHook }: MainContentProps) => {
 
       {/* Song list */}
       <div className={styles.songListWrapper}>
-        <DndContext
-          sensors={sensors}
-          collisionDetection={closestCenter}
-          onDragEnd={handleDragEnd}
-        >
-          <SortableContext items={sortedSongs.map(song => song.id)} strategy={verticalListSortingStrategy}>
-            <div className={styles.songList}>
-              <div className={styles.songListHeader}>
-                <span className={styles.columnHeader}>{t("songInfo.title")}</span>
-                <span className={styles.columnHeader}>{t("common.album")}</span>
-                <span className={styles.columnHeader}>{t("actions.addTo")}</span>
-              </div>
+        <SortableContext items={sortedSongs.map(song => `song-${song.id}`)} strategy={verticalListSortingStrategy}>
+          <div className={styles.songList}>
+            <div className={styles.songListHeader}>
+              <span className={styles.columnHeader}>{t("songInfo.title")}</span>
+              <span className={styles.columnHeader}>{t("common.album")}</span>
+              <span className={styles.columnHeader}>{t("actions.addTo")}</span>
+            </div>
               {sortedSongs.map((song: Song) => (
                 <SortableSongItem
                   key={song.id}
@@ -628,7 +587,6 @@ export const MainContent = ({ musicPlayerHook }: MainContentProps) => {
               )}
             </div>
           </SortableContext>
-        </DndContext>
       </div>
 
       {/* Delete Modal */}

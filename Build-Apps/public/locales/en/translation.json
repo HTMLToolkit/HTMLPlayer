@@ -391,6 +391,7 @@
   "songInformationDescription": "Detailed information about the song.",
   "songAlreadyInPlaylist": "\"{{song}}\" is already in playlist \"{{playlist}}\"",
   "addedToPlaylist": "Added \"{{song}}\" to playlist \"{{playlist}}\"",
+  "songMovedToPlaylist": "Moved \"{{song}}\" to playlist \"{{playlist}}\"",
   "createdNewPlaylistAddedSong": "Created new playlist \"{{playlist}}\" and added \"{{song}}\"",
   "listenToSong": "Listen to \"{{song}}\" by {{artist}}",
   "songShared": "Song shared successfully",
