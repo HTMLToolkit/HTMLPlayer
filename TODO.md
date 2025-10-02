@@ -2,19 +2,14 @@
 
 ## HTMLPlayer v2
 
-- [ ] drag songs to playlists to move to playlist 
-
 - [ ] combine buttons and options that do similar things
-
-- [ ] replace white screen on load with cool "Loading HTMLPlayer..." thing
 
 - [ ] long text can break the UI (+ also cause scrolling horizontally) but I can reuse the scroll thing from song titles (maybe modularize that into a new component: ScrollText.tsx?)
 
-- [ ] Make all 3-dot menus also open on right click
-
-- [ ] Dynamic theming based on album art colors. 
-
 - [ ] Synced lyrics using id3v2 embedded lyrics (music-metadata has tons of stuff for this)
+
+- [ ] slow down/speed up tracks without changing pitch (DJ style 😎)
+  - [PitchShift](https://tonejs.github.io/docs/15.1.22/classes/PitchShift.html)
 
 - [X] Check out what music-metadata can do, and maybe implement those things
   - [ ] Encoding & Format Details (for song info modal): get bitrate, duration, codec, sample rate, channels, and bit depth for each track
@@ -23,9 +18,6 @@
   - [ ] Custom Metadata Parsing (AKA ACAPlayer (lol aka aca)): access nonstandard or raw tags embedded in audio files
   - [ ] ReplayGain / Loudness Info: normalize or adjust playback volume based on track metadata
 
-- [ ] Discord Integration
-  - Implemented and theoretically works but requires Discord approval for Rich Presence API (via server) access. Need to submit Discord app for verification to enable it.
-
 - [ ] 🔼 I'll need to add some sort of quick guide and help menu or something to HTMLPlayer.
 
 - [ ] 🔼 custom theme builder with custom picture backgrounds
@@ -33,6 +25,8 @@
 - [ ] 🔼 a Whisper based, fully in browser, Live Lyrics thing
 
 ## Either now or future versions
+
+- [ ] Dynamic theming based on album art colors. 
 
 - [ ] add htmlplayer to system right click menu
 
@@ -70,9 +64,6 @@
 
 ## Future (probably)
 
-- [ ] slow down/speed up tracks without changing pitch (DJ style 😎)
-  - [PitchShift](https://tonejs.github.io/docs/15.1.22/classes/PitchShift.html)
-
 - [ ] Now Playing Screen (fullscreen, minimal UI)
 
 - [ ] Compact Mode for tiny screens or embedded view.
@@ -82,6 +73,10 @@
 - [ ] Smart playlists (maybe)
 
 - [ ] scrobbling
+
+- [ ] Discord Integration
+  - Implemented and theoretically works but requires Discord approval for Rich Presence API (via server) access. Need to submit Discord app for verification to enable it.
+    - Asked Discord currently, they understandably said no.
 
 - [ ] Visualizer → audio-reactive backgrounds (basically picture background theme but actually visualizer and not theme) (can easily pipe through background-image or background via image)
 
@@ -117,30 +112,25 @@
 
 #### Dev Details
 
-- [ ] need good API if I want this (not the current visualizer stuff 🫣)
+- [ ] need good APIs if I want this (not the current visualizer stuff 🫣)
 
 ##### Icons
 
-- [ ] in each file that uses icons, have, instead of lucide-react, have one file with a bunch of references
-  - example:
-  
-    ```json
-      {
-        "settingsIcon": "lucide-react.Gear",
-      }
-    ```
-
-- [ ] like i18n
-
-- [ ] to be easily configurable and/or swappable
-
-- [ ] can also link to images
-
-##### Themes
-
-- [ ] picture backgrounds
+- [x] Design a custom icon abstraction layer inspired by i18n
+  - [x] Must be easily configurable and swappable
+  - [x] Must support icon libraries, images, and local SVGs
+  - [x] Plan a central registry file (`icons.ts`) and a generic `<Icon>` component
+- [ ] Implement the Icon Registry and the `<Icon>` component.
 
 ## Done
+
+- [X] add Update HTMLPlayer button in settings.tsx that clears page cache (but not local storage or indexeddb) and clears i18n cache
+
+- [X] replace white screen on load with cool "Loading HTMLPlayer..." thing
+
+- [X] Make all 3-dot menus also open on right click
+
+- [X] drag songs to playlists to move to playlist 
 
 - [X] Sort Tracks with drag-and-drop reordering
     Issue: Tracks cannot be sorted (e.g., by name, rating).

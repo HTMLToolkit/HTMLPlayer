@@ -1,4 +1,6 @@
 // IndexedDB configuration
+import i18n from "i18next";
+
 const DB_NAME = "HTMLPlayerDB";
 const DB_VERSION = 1; // set back to 1 as new name/db
 const STORES = {
@@ -154,9 +156,9 @@ const loadFromIndexedDB = async (
         return {
           // Ensure all required fields exist first
           id: song.id || `song-${Date.now()}-${Math.random()}`,
-          title: song.title || "Unknown Title",
-          artist: song.artist || "Unknown Artist",
-          album: song.album || "Unknown Album",
+          title: song.title || i18n.t("common.unknownTitle"),
+          artist: song.artist || i18n.t("common.unknownArtist"),
+          album: song.album || i18n.t("common.unknownAlbum"),
           duration: song.duration || 0,
           // Then add the library-specific fields
           url: placeholderUrl,

@@ -5,6 +5,7 @@ interface CustomDropdownMenuProps {
   children: React.ReactNode;
   trigger: React.ReactNode;
   onClose: () => void;
+  enableRightClick?: boolean;
 }
 
 export interface PersistentDropdownMenuRef {
@@ -15,6 +16,7 @@ const PersistentDropdownMenu = forwardRef<PersistentDropdownMenuRef, CustomDropd
   children,
   trigger,
   onClose,
+  enableRightClick = false,
 }, ref) => {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -32,6 +34,15 @@ const PersistentDropdownMenu = forwardRef<PersistentDropdownMenuRef, CustomDropd
   useImperativeHandle(ref, () => ({
     close: closeDropdown,
   }));
+
+  // Handle right-click to open menu
+  const handleContextMenu = (e: React.MouseEvent) => {
+    if (enableRightClick) {
+      e.preventDefault();
+      e.stopPropagation();
+      setIsOpen(true);
+    }
+  };
 
   // Close the dropdown when clicking outside
   useEffect(() => {
@@ -53,7 +64,7 @@ const PersistentDropdownMenu = forwardRef<PersistentDropdownMenuRef, CustomDropd
   }, [children, toggleOpen, onClose]);
 
   return (
-    <div className={styles.persistentDropdown} ref={dropdownRef}>
+    <div className={styles.persistentDropdown} ref={dropdownRef} onContextMenu={handleContextMenu}>
       <div
         onClick={() => {
           toggleOpen();

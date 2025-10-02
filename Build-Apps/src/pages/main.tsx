@@ -31,6 +31,17 @@ i18n
     }
   });
 
+// Hide loading screen once React is ready
+const hideLoadingScreen = () => {
+  const loadingScreen = document.getElementById('loading-screen');
+  if (loadingScreen) {
+    loadingScreen.classList.add('fade-out');
+    setTimeout(() => {
+      loadingScreen.remove();
+    }, 500); // Match the CSS transition duration
+  }
+};
+
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <I18nextProvider i18n={i18n}>
@@ -41,3 +52,6 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
     </I18nextProvider>
   </React.StrictMode>
 );
+
+// Hide loading screen after render
+hideLoadingScreen();

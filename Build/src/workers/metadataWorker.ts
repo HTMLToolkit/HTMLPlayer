@@ -1,5 +1,9 @@
 import { parseBlob, selectCover } from "music-metadata";
 
+// Constants for missing metadata (will be translated in main thread)
+const UNKNOWN_ARTIST = "__UNKNOWN_ARTIST__";
+const UNKNOWN_ALBUM = "__UNKNOWN_ALBUM__";
+
 // Worker receives file and processes metadata
 self.onmessage = async (event: MessageEvent) => {
   const { file, fileName } = event.data;
@@ -31,10 +35,10 @@ self.onmessage = async (event: MessageEvent) => {
         : fileName.replace(/\.[^/.]+$/, ""),
       artist: (metadata.common.artist && typeof metadata.common.artist === "string")
         ? metadata.common.artist
-        : "Unknown Artist",
+        : UNKNOWN_ARTIST,
       album: (metadata.common.album && typeof metadata.common.album === "string")
         ? metadata.common.album
-        : "Unknown Album",
+        : UNKNOWN_ALBUM,
       duration: metadata.format.duration ?? 0,
     };
 

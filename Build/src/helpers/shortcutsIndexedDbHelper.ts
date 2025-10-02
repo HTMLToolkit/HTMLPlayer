@@ -18,75 +18,76 @@ const DB_VERSION = 1;
 const STORE_NAME = 'shortcuts';
 
 // Default keyboard shortcuts configuration
+// Note: description fields contain translation keys, not hardcoded text
 export const DEFAULT_SHORTCUTS: ShortcutConfig = {
   playPause: {
     id: 'playPause',
     key: ' ',
     action: 'playPause',
-    description: 'Play/Pause',
+    description: 'settings.shortcuts.playPause',
     category: 'playback'
   },
   nextSong: {
     id: 'nextSong',
     key: 'ArrowRight',
     action: 'nextSong',
-    description: 'Next Song',
+    description: 'settings.shortcuts.nextSong',
     category: 'playback'
   },
   previousSong: {
     id: 'previousSong',
     key: 'ArrowLeft',
     action: 'previousSong',
-    description: 'Previous Song',
+    description: 'settings.shortcuts.previousSong',
     category: 'playback'
   },
   volumeUp: {
     id: 'volumeUp',
     key: 'ArrowUp',
     action: 'volumeUp',
-    description: 'Volume Up',
+    description: 'settings.shortcuts.volumeUpAction',
     category: 'audio'
   },
   volumeDown: {
     id: 'volumeDown',
     key: 'ArrowDown',
     action: 'volumeDown',
-    description: 'Volume Down',
+    description: 'settings.shortcuts.volumeDownAction',
     category: 'audio'
   },
   mute: {
     id: 'mute',
     key: 'm',
     action: 'mute',
-    description: 'Mute/Unmute',
+    description: 'settings.shortcuts.mute',
     category: 'audio'
   },
   toggleShuffle: {
     id: 'toggleShuffle',
     key: 's',
     action: 'toggleShuffle',
-    description: 'Toggle Shuffle',
+    description: 'settings.shortcuts.toggleShuffleAction',
     category: 'playback'
   },
   toggleRepeat: {
     id: 'toggleRepeat',
     key: 'r',
     action: 'toggleRepeat',
-    description: 'Toggle Repeat',
+    description: 'settings.shortcuts.toggleRepeatAction',
     category: 'playback'
   },
   toggleLyrics: {
     id: 'toggleLyrics',
     key: 'l',
     action: 'toggleLyrics',
-    description: 'Toggle Lyrics',
+    description: 'settings.shortcuts.toggleLyricsAction',
     category: 'interface'
   },
   toggleVisualizer: {
     id: 'toggleVisualizer',
     key: 'v',
     action: 'toggleVisualizer',
-    description: 'Toggle Visualizer',
+    description: 'settings.shortcuts.toggleVisualizerAction',
     category: 'interface'
   },
   search: {
@@ -94,7 +95,7 @@ export const DEFAULT_SHORTCUTS: ShortcutConfig = {
     key: 'f',
     ctrlKey: true,
     action: 'search',
-    description: 'Open Search',
+    description: 'settings.shortcuts.openSearch',
     category: 'navigation'
   },
   openSettings: {
@@ -102,7 +103,7 @@ export const DEFAULT_SHORTCUTS: ShortcutConfig = {
     key: ',',
     ctrlKey: true,
     action: 'openSettings',
-    description: 'Open Settings',
+    description: 'settings.shortcuts.openSettingsAction',
     category: 'navigation'
   }
 };

@@ -251,7 +251,7 @@ const MiniplayerContent: React.FC = () => {
         <div className={styles.artist}>{currentSong.artist}</div>
       </div>
       <div className={styles.controls}>
-        <Button id="prevBtn" title="Previous track" onClick={handlePrevious}>
+        <Button id="prevBtn" title={t("player.previousTrack")} onClick={handlePrevious}>
           <SkipBack />
         </Button>
         <Button
@@ -262,7 +262,7 @@ const MiniplayerContent: React.FC = () => {
         >
           {isPlaying ? <Pause /> : <Play />}
         </Button>
-        <Button id="nextBtn" title="Next track" onClick={handleNext}>
+        <Button id="nextBtn" title={t("player.nextTrack")} onClick={handleNext}>
           <SkipForward />
         </Button>
       </div>

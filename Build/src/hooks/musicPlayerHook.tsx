@@ -14,8 +14,10 @@ import { createCrossfadeManager } from "../helpers/crossfadeUtils";
 import { createAudioProcessor } from "../helpers/audioProcessor";
 import { createPlaylistManager } from "../helpers/playlistManager";
 import { debounce } from "lodash";
+import { useTranslation } from "react-i18next";
 
 export const useMusicPlayer = () => {
+  const { t } = useTranslation();
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
   const songCacheRef = useRef<Map<string, CachedSong>>(new Map());
@@ -234,7 +236,7 @@ export const useMusicPlayer = () => {
 
           const allSongsPlaylist = {
             id: "all-songs",
-            name: "All Songs",
+            name: t("allSongs"),
             songs: prepareSongsForPlaylist(validLibrary.songs),
           };
 
@@ -341,7 +343,7 @@ export const useMusicPlayer = () => {
       console.log("Smart shuffle setting changed, invalidating cache");
       invalidateNextSongCache(true);
     }
-  }, [settings.smartShuffle, invalidateNextSongCache]);
+  }, [settings, invalidateNextSongCache]);
 
   useEffect(() => {
     const previousState = playerStateRef.current;
@@ -357,9 +359,7 @@ export const useMusicPlayer = () => {
       invalidateNextSongCache(true);
     }
   }, [
-    playerState.currentPlaylist?.id,
-    playerState.shuffle,
-    playerState.repeat,
+    playerState,
     invalidateNextSongCache,
   ]);
 
@@ -1113,7 +1113,7 @@ export const useMusicPlayer = () => {
           newPlaylists = [
             {
               id: "all-songs",
-              name: "All Songs",
+              name: t("allSongs"),
               songs: prepareSongsForPlaylist(newSongs),
             },
             ...newPlaylists,

@@ -164,6 +164,7 @@ export const Sidebar = memo(({
     prevProps.musicPlayerHook.library.playlists === nextProps.musicPlayerHook.library.playlists &&
     prevProps.musicPlayerHook.library.songs === nextProps.musicPlayerHook.library.songs &&
     prevProps.musicPlayerHook.library.favorites === nextProps.musicPlayerHook.library.favorites &&
+    prevProps.musicPlayerHook.settings === nextProps.musicPlayerHook.settings &&
     prevProps.settingsOpen === nextProps.settingsOpen
   );
 });

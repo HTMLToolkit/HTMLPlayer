@@ -39,6 +39,8 @@ interface SongActionsDropdownProps {
   onPlaySong: (song: Song, playlist?: Playlist) => void;
   size?: number;
   className?: string;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
 export const SongActionsDropdown = ({
@@ -49,6 +51,8 @@ export const SongActionsDropdown = ({
   onRemoveSong,
   size = 16,
   className = "",
+  open: externalOpen,
+  onOpenChange: externalOnOpenChange,
 }: SongActionsDropdownProps) => {
   const { t } = useTranslation();
   const [showPlaylistDialog, setShowPlaylistDialog] = useState(false);
@@ -56,6 +60,11 @@ export const SongActionsDropdown = ({
   const [showInfoDialog, setShowInfoDialog] = useState(false);
   const [newPlaylistName, setNewPlaylistName] = useState("");
   const [isCreatingNew, setIsCreatingNew] = useState(false);
+
+  // Use external state if provided, otherwise use internal state
+  const [internalOpen, setInternalOpen] = useState(false);
+  const open = externalOpen !== undefined ? externalOpen : internalOpen;
+  const setOpen = externalOnOpenChange || setInternalOpen;
 
   const getAllPlaylists = (items: (Playlist | PlaylistFolder)[]): Playlist[] => {
     const result: Playlist[] = [];
@@ -165,7 +174,7 @@ export const SongActionsDropdown = ({
   };
 
   return (
-    <DropdownMenu>
+    <DropdownMenu open={open} onOpenChange={setOpen}>
       <DropdownMenuTrigger asChild>
         <Button
           variant="ghost"

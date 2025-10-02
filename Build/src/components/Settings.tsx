@@ -19,7 +19,7 @@ import {
 } from "./Select";
 import { ThemeModeSwitch } from "./ThemeModeSwitch";
 import { ShortcutConfig } from "./ShortcutConfig";
-import { Volume2, Music, Palette, RotateCcw, Keyboard, MessageCircle } from "lucide-react";
+import { Volume2, Music, Palette, RotateCcw, Keyboard, MessageCircle, Trash2 } from "lucide-react";
 import styles from "./Settings.module.css";
 import { useThemeLoader } from "../helpers/themeLoader";
 import { toast } from "sonner";
@@ -48,16 +48,6 @@ export const Settings = ({
 
   // Use the persisted crossfadeBeforeGapless value, fallback to current crossfade
   const previousCrossfadeRef = useRef<number>(settings.crossfadeBeforeGapless ?? settings.crossfade);
-
-  const volume = [Math.round(settings.volume * 100)];
-  const crossfade = [settings.crossfade];
-  const defaultShuffle = settings.defaultShuffle;
-  const defaultRepeat = settings.defaultRepeat;
-  const autoPlayNext = settings.autoPlayNext;
-  const compactMode = settings.compactMode;
-  const showAlbumArt = settings.showAlbumArt;
-  const showLyrics = settings.showLyrics;
-  const sessionRestore = settings.sessionRestore;
 
   const { themes, currentTheme, setTheme } = useThemeLoader();
 
@@ -116,7 +106,34 @@ export const Settings = ({
 
   const handleLanguageChange = (lang: string) => {
     i18n.changeLanguage(lang);
-    toast.success(`Language set to ${languageNames[lang] || lang}`);
+    toast.success(t("settings.interface.languageSet", { language: languageNames[lang] || lang }));
+  };
+
+  const handleClearCache = async () => {
+    try {
+      // Clear all cache storage (service worker caches)
+      if ('caches' in window) {
+        const cacheNames = await caches.keys();
+        await Promise.all(
+          cacheNames.map(cacheName => caches.delete(cacheName))
+        );
+      }
+
+      // Clear i18n resource cache
+      if (i18n.services.resourceStore) {
+        Object.keys(i18n.services.resourceStore.data).forEach(lang => {
+          i18n.services.resourceStore.data[lang] = {};
+        });
+      }
+
+      // Reload i18n resources
+      await i18n.reloadResources();
+
+      toast.success(t("settings.cacheClearedSuccess"));
+    } catch (error) {
+      console.error("Failed to clear cache:", error);
+      toast.error(t("settings.cacheClearedError"));
+    }
   };
 
   return (
@@ -170,11 +187,11 @@ export const Settings = ({
               <div className={styles.settingItem}>
                 <div className={styles.settingLabel}>
                   <label htmlFor="volume-slider">{t("player.volume")}</label>
-                  <span className={styles.settingValue}>{volume[0]}%</span>
+                  <span className={styles.settingValue}>{Math.round(settings.volume * 100)}%</span>
                 </div>
                 <Slider
                   id="volume-slider"
-                  value={volume}
+                  value={[Math.round(settings.volume * 100)]}
                   onValueChange={handleVolumeChange}
                   max={100}
                   step={1}
@@ -193,12 +210,12 @@ export const Settings = ({
                     )}
                   </label>
                   <span className={styles.settingValue}>
-                    {settings.gaplessPlayback ? "0s" : `${crossfade[0]}s`}
+                    {settings.gaplessPlayback ? "0s" : `${settings.crossfade}s`}
                   </span>
                 </div>
                 <Slider
                   id="crossfade-slider"
-                  value={settings.gaplessPlayback ? [0] : crossfade}
+                  value={settings.gaplessPlayback ? [0] : [settings.crossfade]}
                   onValueChange={handleCrossfadeChange}
                   max={10}
                   step={1}
@@ -263,7 +280,7 @@ export const Settings = ({
                 </div>
                 <Switch
                   id="default-shuffle"
-                  checked={defaultShuffle}
+                  checked={settings.defaultShuffle}
                   onCheckedChange={(val) =>
                     onSettingsChange({ defaultShuffle: val })
                   }
@@ -295,7 +312,7 @@ export const Settings = ({
                   </label>
                 </div>
                 <Select
-                  value={defaultRepeat}
+                  value={settings.defaultRepeat}
                   onValueChange={(val) =>
                     onSettingsChange({
                       defaultRepeat: val as PlayerSettings["defaultRepeat"],
@@ -326,7 +343,7 @@ export const Settings = ({
                 </div>
                 <Switch
                   id="auto-play-next"
-                  checked={autoPlayNext}
+                  checked={settings.autoPlayNext}
                   onCheckedChange={(val) =>
                     onSettingsChange({ autoPlayNext: val })
                   }
@@ -344,7 +361,7 @@ export const Settings = ({
                 </div>
                 <Switch
                   id="session-restore"
-                  checked={sessionRestore}
+                  checked={settings.sessionRestore}
                   onCheckedChange={(val) =>
                     onSettingsChange({ sessionRestore: val })
                   }
@@ -419,7 +436,7 @@ export const Settings = ({
                 </div>
                 <Switch
                   id="compact-mode"
-                  checked={compactMode}
+                  checked={settings.compactMode}
                   onCheckedChange={(val) =>
                     onSettingsChange({ compactMode: val })
                   }
@@ -437,7 +454,7 @@ export const Settings = ({
                 </div>
                 <Switch
                   id="show-album-art"
-                  checked={showAlbumArt}
+                  checked={settings.showAlbumArt}
                   onCheckedChange={(val) =>
                     onSettingsChange({ showAlbumArt: val })
                   }
@@ -455,7 +472,7 @@ export const Settings = ({
                 </div>
                 <Switch
                   id="show-lyrics"
-                  checked={showLyrics}
+                  checked={settings.showLyrics}
                   onCheckedChange={(val) =>
                     onSettingsChange({ showLyrics: val })
                   }
@@ -489,6 +506,23 @@ export const Settings = ({
                     ))}
                   </SelectContent>
                 </Select>
+              </div>
+
+              <div className={styles.settingItem}>
+                <div className={styles.settingInfo}>
+                  <label>{t("settings.interface.clearCache")}</label>
+                  <p className={styles.settingDescription}>
+                    {t("settings.interface.clearCacheDesc")}
+                  </p>
+                </div>
+                <Button
+                  variant="outline"
+                  onClick={handleClearCache}
+                  size="sm"
+                >
+                  <Trash2 size={16} />
+                  {t("settings.interface.clearCacheButton")}
+                </Button>
               </div>
             </section>
 

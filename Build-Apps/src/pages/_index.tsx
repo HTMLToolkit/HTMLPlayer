@@ -13,18 +13,9 @@ import {
 import { musicIndexedDbHelper } from "../helpers/musicIndexedDbHelper";
 import styles from "./_index.module.css";
 import { useTranslation } from "react-i18next";
-import {
-  DndContext,
-  DragEndEvent,
-  PointerSensor,
-  KeyboardSensor,
-  useSensor,
-  useSensors,
-  closestCenter,
-  DragOverEvent,
-} from "@dnd-kit/core";
-import { sortableKeyboardCoordinates, arrayMove } from "@dnd-kit/sortable";
 import { toast } from "sonner";
+import { DraggableProvider, DragItem, DropZone } from "../components/Draggable";
+
 
 export default function IndexPage() {
   const { t } = useTranslation();
@@ -32,82 +23,158 @@ export default function IndexPage() {
   const [, setThemeMode] = useState<ThemeMode>("auto");
   const [settingsOpen, setSettingsOpen] = useState(false);
 
-  // Set up drag and drop sensors
-  const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 8,
-      },
-    }),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    })
-  );
+  // Handle all drag operations with our unified system
+  const handleDragOperation = (dragItem: DragItem, dropZone: DropZone) => {
+    console.log('Drag operation:', { dragItem, dropZone });
 
-  // Unified drag and drop handler
-  const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event;
-    if (!over || active.id === over.id) return;
+    // Handle song being dropped on a playlist
+    if (dragItem.type === 'song' && dropZone.type === 'playlist') {
+      const songId = dragItem.id;
+      const targetPlaylistId = dropZone.id;
 
-    const activeId = active.id as string;
-    const overId = over.id as string;
+      console.log('Adding song to playlist:', { songId, targetPlaylistId });
 
-    // Only handle song-related drags, let playlist component handle playlist drags
-    if (!activeId.startsWith('song-')) {
-      return; // Let the playlist DndContext handle this
-    }
-
-    // Check if we're dropping a song onto a playlist
-    if (activeId.startsWith('song-') && overId.startsWith('playlist-')) {
-      const songId = activeId.replace('song-', '');
-      const targetPlaylistId = overId.replace('playlist-', '');
-      
-      // Get the current playlist from playerState
-      const sourcePlaylistId = musicPlayerHook.playerState.currentPlaylist?.id || null;
-      
-      // Move the song to the target playlist
-      musicPlayerHook.moveSongToPlaylist(songId, sourcePlaylistId, targetPlaylistId);
-      
       // Find the song and target playlist for toast message
       const song = musicPlayerHook.library.songs.find(s => s.id === songId);
+      const findPlaylistById = (items: (Playlist | PlaylistFolder)[], id: string): Playlist | null => {
+        for (const item of items) {
+          if (item.id === id && 'songs' in item) {
+            return item as Playlist;
+          }
+          if ('children' in item) {
+            const found = findPlaylistById(item.children, id);
+            if (found) return found;
+          }
+        }
+        return null;
+      };
       const targetPlaylist = findPlaylistById(musicPlayerHook.library.playlists, targetPlaylistId);
-      
+
+      // Check if song is already in the playlist
+      if (targetPlaylist && targetPlaylist.songs.some(s => s.id === songId)) {
+        if (song && targetPlaylist) {
+          toast.info(t("songAlreadyInPlaylist", { song: song.title, playlist: targetPlaylist.name }));
+        }
+        return;
+      }
+
+      // Add the song to the target playlist
+      musicPlayerHook.addToPlaylist(targetPlaylistId, songId);
+
       if (song && targetPlaylist) {
-        toast.success(t("songMovedToPlaylist", { song: song.title, playlist: targetPlaylist.name }));
+        // Show success toast
+        toast.success(t("songMovedToPlaylist", { song: song.title, playlist: targetPlaylist.name }), {
+          duration: 3000,
+        });
       }
       return;
     }
 
-    // Handle song reordering within a playlist (existing logic)
-    if (activeId.startsWith('song-') && overId.startsWith('song-')) {
+    // Handle song reordering within a playlist
+    if (dragItem.type === 'song' && dropZone.type === 'song') {
       const currentPlaylist = musicPlayerHook.playerState.currentPlaylist;
       if (currentPlaylist) {
         const songs = currentPlaylist.songs;
-        const oldIndex = songs.findIndex(song => `song-${song.id}` === activeId);
-        const newIndex = songs.findIndex(song => `song-${song.id}` === overId);
-        
+        const oldIndex = songs.findIndex(song => song.id === dragItem.id);
+        const newIndex = songs.findIndex(song => song.id === dropZone.id);
+
         if (oldIndex !== -1 && newIndex !== -1) {
-          const newSongs = arrayMove(songs, oldIndex, newIndex);
+          // We need arrayMove, let me import it
+          const newSongs = [...songs];
+          const [movedSong] = newSongs.splice(oldIndex, 1);
+          newSongs.splice(newIndex, 0, movedSong);
+
           musicPlayerHook.reorderPlaylistSongs(currentPlaylist.id, newSongs);
+          console.log('Reordered songs in playlist:', { from: oldIndex, to: newIndex });
         }
       }
       return;
     }
+
+    // Handle playlist being dropped on another playlist (reordering)
+    if (dragItem.type === 'playlist' && dropZone.type === 'playlist') {
+      const playlistId = dragItem.id;
+      const targetPlaylistId = dropZone.id;
+      
+      // Find the parent folder of the target playlist to maintain folder structure
+      const findParentFolder = (items: (Playlist | PlaylistFolder)[], targetId: string, parentId: string | null = null): string | null | undefined => {
+        for (const item of items) {
+          if (item.id === targetId) {
+            return parentId;
+          }
+          if ('children' in item) {
+            const found = findParentFolder(item.children, targetId, item.id);
+            if (found !== undefined) return found;
+          }
+        }
+        return undefined;
+      };
+      
+      const targetParentFolderId = findParentFolder(musicPlayerHook.library.playlists, targetPlaylistId);
+      const draggedPlaylist = dragItem.data;
+      
+      // Move the dragged playlist to be before the target playlist, in the same folder
+      musicPlayerHook.moveToFolder(playlistId, targetParentFolderId ?? null, targetPlaylistId);
+      
+      toast.success(t("playlist.reordered", { 
+        item: draggedPlaylist?.name || 'Playlist'
+      }) || `Moved "${draggedPlaylist?.name || 'Playlist'}" playlist`);
+      return;
+    }
+
+    // Handle playlist being dropped on a folder
+    if (dragItem.type === 'playlist' && dropZone.type === 'folder') {
+      const playlistId = dragItem.id;
+      const targetFolderId = dropZone.id;
+      
+      musicPlayerHook.moveToFolder(playlistId, targetFolderId);
+      toast.success(t("playlist.movedToFolder", { 
+        item: dragItem.data?.name || 'Playlist',
+        folder: dropZone.data?.name || 'Folder'
+      }));
+      return;
+    }
+
+    // Handle folder being dropped on another folder (reordering)
+    if (dragItem.type === 'folder' && dropZone.type === 'folder') {
+      const folderId = dragItem.id;
+      const targetFolderId = dropZone.id;
+      
+      // Prevent dropping a folder into itself
+      if (folderId === targetFolderId) {
+        return;
+      }
+      
+      // Find the parent folder of the target folder to maintain folder structure
+      const findParentFolder = (items: (Playlist | PlaylistFolder)[], targetId: string, parentId: string | null = null): string | null | undefined => {
+        for (const item of items) {
+          if (item.id === targetId) {
+            return parentId;
+          }
+          if ('children' in item) {
+            const found = findParentFolder(item.children, targetId, item.id);
+            if (found !== undefined) return found;
+          }
+        }
+        return undefined;
+      };
+      
+      const targetParentFolderId = findParentFolder(musicPlayerHook.library.playlists, targetFolderId);
+      
+      // Move the folder to be before the target folder, in the same parent folder
+      musicPlayerHook.moveToFolder(folderId, targetParentFolderId ?? null, targetFolderId);
+      
+      toast.success(t("playlist.reordered", { 
+        item: dragItem.data?.name || 'Folder'
+      }) || `Reordered "${dragItem.data?.name || 'Folder'}" folder`);
+      return;
+    }
+
+    // TODO: Handle playlist/folder operations
+    console.log('Unhandled drag operation:', { dragItem, dropZone });
   };
 
-  // Helper function to find playlist by ID in the nested structure
-  const findPlaylistById = (items: (Playlist | PlaylistFolder)[], id: string): Playlist | null => {
-    for (const item of items) {
-      if (item.id === id && 'songs' in item) {
-        return item as Playlist;
-      }
-      if ('children' in item) {
-        const found = findPlaylistById(item.children, id);
-        if (found) return found;
-      }
-    }
-    return null;
-  };
+
 
   // Initialize keyboard shortcuts with the new hook
   const { reloadShortcuts } = useKeyboardShortcuts({
@@ -118,8 +185,8 @@ export default function IndexPage() {
     onToggleLyrics: () => {
       // Toggle lyrics visibility in player settings
       const currentSettings = musicPlayerHook.settings;
-      musicPlayerHook.updateSettings({ 
-        showLyrics: !currentSettings.showLyrics 
+      musicPlayerHook.updateSettings({
+        showLyrics: !currentSettings.showLyrics
       });
     },
     onToggleVisualizer: () => {
@@ -146,12 +213,12 @@ export default function IndexPage() {
     if (metaDescription) {
       metaDescription.setAttribute(
         "content",
-        t("description")
+        t("about.description")
       );
     } else {
       const meta = document.createElement("meta");
       meta.name = "description";
-      meta.content = t("description");
+      meta.content = t("about.description");
       document.head.appendChild(meta);
     }
 
@@ -175,17 +242,23 @@ export default function IndexPage() {
     }
 
     loadThemeMode();
+
+    // Hide loading screen once React has fully rendered
+    const loadingScreen = document.getElementById('loading-screen');
+    if (loadingScreen) {
+      // Let the CSS animation handle the fade-out
+      // Just remove it from DOM after animation completes
+      setTimeout(() => {
+        loadingScreen.remove();
+      }, 1100);
+    }
   }, []);
 
   return (
-    <DndContext
-      sensors={sensors}
-      collisionDetection={closestCenter}
-      onDragEnd={handleDragEnd}
-    >
+    <DraggableProvider onDragOperation={handleDragOperation}>
       <div className={styles.container}>
-        <Sidebar 
-          musicPlayerHook={musicPlayerHook} 
+        <Sidebar
+          musicPlayerHook={musicPlayerHook}
           onShortcutsChanged={reloadShortcuts}
           settingsOpen={settingsOpen}
           onSettingsOpenChange={setSettingsOpen}
@@ -214,6 +287,6 @@ export default function IndexPage() {
           }} />
         </div>
       </div>
-    </DndContext>
+    </DraggableProvider>
   );
 }

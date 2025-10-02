@@ -125,7 +125,7 @@ export default defineConfig({
             './src/visualizers/waterfall.visualizer.tsx',
             './src/visualizers/waveformrings.visualizer.tsx',
             './src/visualizers/waveformspectrum.visualizer.tsx',
-            './src/visualizers/waveformtunnel.tsx',
+            './src/visualizers/waveformtunnel.visualizer.tsx',
             './src/visualizers/waveinterference.visualizer.tsx',
             './src/visualizers/weather.visualizer.tsx'
           ]

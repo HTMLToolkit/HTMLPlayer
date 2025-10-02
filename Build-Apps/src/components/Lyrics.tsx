@@ -79,7 +79,7 @@ export const Lyrics = ({ artist, title, visible, onClose }: LyricsProps) => {
 
     setState((prev) => ({ ...prev, loading: true, error: null }));
 
-    if (artist.trim().toLowerCase() === "unknown artist") {
+    if (artist.trim().toLowerCase() === t("common.unknownArtist").toLowerCase()) {
       setState((prev) => ({
         ...prev,
         error: t("lyrics.cannotSearchWithoutArtist"),

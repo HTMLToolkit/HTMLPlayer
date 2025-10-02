@@ -193,7 +193,10 @@
     "selectAll": "Tout sélectionner",
     "deselectAll": "Tout désélectionner",
     "addTo": "Actions",
-    "back": "Retour"
+    "back": "Retour",
+    "delete": "Supprimer",
+    "selectSongs": "Sélectionner des chansons",
+    "addMusic": "Ajouter de la musique"
   },
   "batch": {
     "processing": "Traitement du lot {{currentBatch}} sur {{totalBatches}}..."
@@ -335,7 +338,8 @@
     "ascending": "Croissant",
     "descending": "Décroissant",
     "none": "Aucun tri",
-    "clear": "Effacer le tri"
+    "clear": "Effacer le tri",
+    "sortBy": "Trier par"
   },
   "noPlaylistsFound": "Aucune playlist trouvée",
   "themeLight": "Clair",
@@ -378,6 +382,7 @@
     "failedToCopy": "Échec de copie dans le presse-papiers :"
   },
   "visualizer": {
+    "selectVisualizer": "Sélectionner un visualiseur",
     "failedToLoad": "Échec du chargement du visualiseur :",
     "failedToLoadWithKey": "Échec du chargement du visualiseur {{key}} :"
   },
@@ -404,6 +409,8 @@
     "reset": "Rétablir les valeurs par défaut",
     "resetError": "Erreur lors de la réinitialisation des paramètres.",
     "themeError": "Erreur de chargement du thème !",
+    "cacheClearedSuccess": "Cache de page et fichiers de langue effacés avec succès",
+    "cacheClearedError": "Échec de l'effacement du cache",
     "audio": {
       "title": "Paramètres Audio",
       "crossfade": "Fondu enchaîné",
@@ -437,7 +444,10 @@
       "lyricsDesc": "Afficher les paroles de la chanson quand disponibles",
       "language": "Langue",
       "languageDescription": "Dans quelle langue l'application est",
-      "languageSet": "Langue définie à {{language}}"
+      "languageSet": "Langue définie à {{language}}",
+      "clearCache": "Effacer le Cache de Page",
+      "clearCacheDesc": "Effacer les ressources de page en cache et les fichiers de langue (n'affecte pas votre bibliothèque musicale ou paramètres)",
+      "clearCacheButton": "Effacer le Cache"
     },
     "shortcuts": {
       "title": "Raccourcis Clavier",

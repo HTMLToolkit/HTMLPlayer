@@ -14,16 +14,7 @@ import {
   ChevronDown,
 } from "lucide-react";
 import { toast } from "sonner";
-import {
-  DndContext,
-  DragEndEvent,
-  useDraggable,
-  useDroppable,
-  PointerSensor,
-  KeyboardSensor,
-  useSensor,
-  useSensors,
-} from "@dnd-kit/core";
+import { DropZone, DraggableItem } from "./Draggable";
 import styles from "./Playlist.module.css";
 import { generatePlaylistImage } from "../helpers/playlistImageHelper";
 import modalStyles from "./Dialog.module.css";
@@ -48,6 +39,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
+  useRightClickMenu,
 } from "./DropdownMenu";
 
 interface PlaylistProps {
@@ -92,14 +84,6 @@ export const PlaylistComponent = ({ musicPlayerHook }: PlaylistProps) => {
   const [showCreateFolderDialog, setShowCreateFolderDialog] = useState(false);
   const [newFolderName, setNewFolderName] = useState("");
 
-  const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 8,
-      },
-    }),
-    useSensor(KeyboardSensor)
-  );
 
   const { library, playSong, createPlaylist, createFolder, removePlaylist, moveToFolder, exportPlaylist, importPlaylist } = musicPlayerHook;
 
@@ -289,178 +273,8 @@ export const PlaylistComponent = ({ musicPlayerHook }: PlaylistProps) => {
     setShowRenameDialog(true);
   }, []);
 
-  const lastClientXRef = useRef<number | null>(null);
   const playlistListRef = useRef<HTMLDivElement | null>(null);
 
-  const handleDragOver = useCallback((event: any) => {
-    // event.event is the original DOM event when using PointerSensor
-    const domEvent = event?.event as PointerEvent | undefined;
-    if (domEvent && typeof domEvent.clientX === 'number') {
-      lastClientXRef.current = domEvent.clientX;
-    }
-  }, []);
-
-  const handleDragEnd = useCallback((event: DragEndEvent) => {
-    const { active, over } = event;
-    if (!over) {
-      return;
-    }
-
-    const draggedId = active.id as string;
-    const targetId = over.id as string;
-
-    // Prevent moving item into itself
-    if (draggedId === targetId) {
-      lastClientXRef.current = null;
-      return;
-    }
-
-    // Find the dragged item
-    const findItem = (items: (Playlist | PlaylistFolder)[], id: string): Playlist | PlaylistFolder | null => {
-      for (const item of items) {
-        if (item.id === id) return item;
-        if ('children' in item) {
-          const found = findItem(item.children, id);
-          if (found) return found;
-        }
-      }
-      return null;
-    };
-
-    const draggedItem = findItem(library.playlists, draggedId);
-    if (!draggedItem) {
-      lastClientXRef.current = null;
-      return;
-    }
-
-    // Check if we have pointer X from onDragOver and if dropping to the left should move to root
-    if (lastClientXRef.current !== null) {
-      try {
-        const listEl = playlistListRef.current;
-        if (listEl) {
-          const listRect = listEl.getBoundingClientRect();
-          // If drop X is within the left gutter area (60px from list left), treat as move-to-root
-          if (lastClientXRef.current < listRect.left + 60) {
-            moveToFolder(draggedId, null, null);
-            lastClientXRef.current = null;
-            return;
-          }
-        }
-      } catch (e) {
-        // ignore
-      }
-    }
-
-    // Handle special drop zones
-    if (targetId === 'root-dropzone') {
-      moveToFolder(draggedId, null, null);
-      lastClientXRef.current = null;
-      return;
-    }
-
-    if (targetId.startsWith('empty-folder-')) {
-      const folderId = targetId.replace('empty-folder-', '');
-      // Prevent moving item into itself (for folders)
-      if (draggedId === folderId) {
-        toast.error(t("playlist.cannotMoveIntoItself"));
-        lastClientXRef.current = null;
-        return;
-      }
-      const targetFolder = findItem(library.playlists, folderId);
-      if (targetFolder && 'children' in targetFolder) {
-        moveToFolder(draggedId, folderId);
-        toast.success(t("playlist.movedToFolder", { item: draggedItem.name, folder: targetFolder.name }));
-      }
-      lastClientXRef.current = null;
-      return;
-    }
-
-    if (targetId.startsWith('folder-drop-')) {
-      const folderId = targetId.replace('folder-drop-', '');
-      // Prevent moving item into itself (for folders)
-      if (draggedId === folderId) {
-        toast.error(t("playlist.cannotMoveIntoItself"));
-        lastClientXRef.current = null;
-        return;
-      }
-      const targetFolder = findItem(library.playlists, folderId);
-      if (targetFolder && 'children' in targetFolder) {
-        moveToFolder(draggedId, folderId);
-        toast.success(t("playlist.movedToFolder", { item: draggedItem.name, folder: targetFolder.name }));
-      }
-      lastClientXRef.current = null;
-      return;
-    }
-
-    const targetItem = findItem(library.playlists, targetId);
-    if (!targetItem) {
-      lastClientXRef.current = null;
-      return;
-    }
-
-    // Find parent of an item
-    const findParent = (items: (Playlist | PlaylistFolder)[], id: string, parent: string | null = null): string | null => {
-      for (const item of items) {
-        if (item.id === id) return parent;
-        if ('children' in item) {
-          const found = findParent(item.children, id, item.id);
-          if (found !== null) return found;
-        }
-      }
-      return null;
-    };
-
-    const draggedParent = findParent(library.playlists, draggedId);
-    const targetParent = findParent(library.playlists, targetId);
-
-    // Comprehensive prevention of moving item into itself or its descendants
-    if ('children' in draggedItem && targetItem) {
-      // Check if target is the dragged item itself
-      if (draggedItem.id === targetItem.id) {
-        toast.error(t("playlist.cannotMoveIntoItself"));
-        lastClientXRef.current = null;
-        return;
-      }
-
-      // Check if target is a descendant of dragged item
-      const isDescendant = (item: PlaylistFolder, targetId: string): boolean => {
-        for (const child of item.children) {
-          if (child.id === targetId) return true;
-          if ('children' in child && isDescendant(child, targetId)) return true;
-        }
-        return false;
-      };
-      if (isDescendant(draggedItem as PlaylistFolder, targetId)) {
-        toast.error(t("playlist.cannotMoveFolderIntoDescendant"));
-        lastClientXRef.current = null;
-        return;
-      }
-    }
-
-    // Regular item reordering/moving logic
-    if (draggedParent === targetParent) {
-      // Same parent: reorder within the same level
-      moveToFolder(draggedId, draggedParent, targetId);
-    } else if (targetParent === null) {
-      // Move to root (before target)
-      moveToFolder(draggedId, null, targetId);
-    } else if ('children' in targetItem) {
-      // Target is a folder: move dragged item into the folder
-      // Additional check to prevent moving into itself
-      if (draggedId === targetItem.id) {
-        toast.error(t("playlist.cannotMoveIntoItself"));
-        lastClientXRef.current = null;
-        return;
-      }
-      moveToFolder(draggedId, targetId);
-      toast.success(t("playlist.movedToFolder", { item: draggedItem.name, folder: targetItem.name }));
-    } else {
-      // Target is not a folder: move dragged item to target's parent, before target
-      moveToFolder(draggedId, targetParent, targetId);
-    }
-
-    lastClientXRef.current = null;
-  }, [library.playlists, moveToFolder]);
 
   const renderPlaylistItem = (item: Playlist | PlaylistFolder, depth = 0) => {
     if ('songs' in item) {
@@ -471,57 +285,48 @@ export const PlaylistComponent = ({ musicPlayerHook }: PlaylistProps) => {
   };
 
   const PlaylistItem = memo(({ item, depth }: { item: Playlist; depth: number }) => {
-    const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
-      id: item.id,
-    });
-
-    const { setNodeRef: setDropRef, isOver } = useDroppable({
-      id: item.id,
-    });
-
-    // Separate drop zone for songs (doesn't interfere with playlist dragging)
-    const { setNodeRef: setSongDropRef, isOver: isSongOver } = useDroppable({
-      id: `playlist-${item.id}`,
-    });
-
-    const style = transform ? {
-      transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
-      opacity: isDragging ? 0.5 : 1,
-    } : undefined;
+    const { open, setOpen, containerRef } = useRightClickMenu(true);
 
     return (
-      <div data-id={item.id} className={styles.playlistItemContainer} style={{ marginLeft: `${depth * 20}px`, ...style, backgroundColor: isOver ? 'rgba(0,0,0,0.05)' : undefined, position: 'relative' }} ref={(node) => { setNodeRef(node); setDropRef(node); }} {...listeners} {...attributes}>
-        {/* Song drop zone overlay */}
-        <div
-          ref={setSongDropRef}
-          style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            zIndex: 1,
-            backgroundColor: isSongOver ? 'rgba(0, 123, 255, 0.1)' : 'transparent',
-            border: isSongOver ? '2px dashed rgba(0, 123, 255, 0.5)' : 'none',
-            pointerEvents: 'none', // Allow clicks to pass through when not dragging
-          }}
-        />
-        <button
-          className={styles.playlistItem}
-          onClick={() => handlePlaylistSelect(item)}
-        >
-          {playlistImages[item.id] ? (
-            <div className={styles.playlistImage}>
-              <img src={playlistImages[item.id]} alt="" loading="lazy" />
-            </div>
-          ) : (
-            getPlaylistIcon(item.name)
-          )}
-          {item.name}
-          <span className={styles.songCount}>{item.songs.length}</span>
-        </button>
+      <div
+        data-id={item.id}
+        className={styles.playlistItemContainer}
+        style={{
+          marginLeft: `${depth * 20}px`
+        }}
+        ref={containerRef}
+      >
+        <div className={styles.playlistItemMain}>
+          <DraggableItem
+            id={item.id}
+            type="playlist"
+            data={item}
+          >
+            <DropZone
+              id={item.id}
+              type="playlist"
+              data={item}
+              className={styles.playlistDropZone}
+            >
+              <button
+                className={styles.playlistItem}
+                onClick={() => handlePlaylistSelect(item)}
+              >
+                {playlistImages[item.id] ? (
+                  <div className={styles.playlistImage}>
+                    <img src={playlistImages[item.id]} alt="" loading="lazy" />
+                  </div>
+                ) : (
+                  getPlaylistIcon(item.name)
+                )}
+                {item.name}
+                <span className={styles.songCount}>{item.songs.length}</span>
+              </button>
+            </DropZone>
+          </DraggableItem>
+        </div>
 
-        <DropdownMenu key={`dropdown-${item.id}`}>
+        <DropdownMenu key={`dropdown-${item.id}`} open={open} onOpenChange={setOpen}>
           <DropdownMenuTrigger asChild>
             <Button
               variant="ghost"
@@ -532,94 +337,91 @@ export const PlaylistComponent = ({ musicPlayerHook }: PlaylistProps) => {
               <MoreHorizontal size={16} />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" sideOffset={8}>
-            <DropdownMenuItem onClick={() => handleRenameItem(item)}>
-              <Edit size={16} style={{ marginRight: 8 }} />
-              {t("playlist.renamePlaylist")}
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => handleSharePlaylist(item)}>
-              <Share size={16} style={{ marginRight: 8 }} />
-              {t("playlist.sharePlaylist")}
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => handleMoveToFolder(item)}>
-              <List size={16} style={{ marginRight: 8 }} />
-              {t("playlist.moveToFolder")}
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => {
-              moveToFolder(item.id, null); // Move to root
-              toast.success(t("playlist.movedToRoot", { item: item.name }));
-            }}>
-              <List size={16} style={{ marginRight: 8 }} />
-              {t("playlist.moveToRoot")}
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => handleExportPlaylist(item, 'json')}>
-              <Download size={16} style={{ marginRight: 8 }} />
-              {t("playlist.exportJSON")}
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => handleExportPlaylist(item, 'm3u')}>
-              <Download size={16} style={{ marginRight: 8 }} />
-              {t("playlist.exportM3U")}
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-              onClick={() => handleDeletePlaylist(item)}
-              className={styles.deleteMenuItem}
-            >
-              <Trash2 size={16} style={{ marginRight: 8 }} />
-              {t("playlist.deletePlaylist")}
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+            <DropdownMenuContent align="end" sideOffset={8}>
+              <DropdownMenuItem onClick={() => handleRenameItem(item)}>
+                <Edit size={16} style={{ marginRight: 8 }} />
+                {t("playlist.renamePlaylist")}
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleSharePlaylist(item)}>
+                <Share size={16} style={{ marginRight: 8 }} />
+                {t("playlist.sharePlaylist")}
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => handleMoveToFolder(item)}>
+                <List size={16} style={{ marginRight: 8 }} />
+                {t("playlist.moveToFolder")}
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => {
+                moveToFolder(item.id, null); // Move to root
+                toast.success(t("playlist.movedToRoot", { item: item.name }));
+              }}>
+                <List size={16} style={{ marginRight: 8 }} />
+                {t("playlist.moveToRoot")}
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => handleExportPlaylist(item, 'json')}>
+                <Download size={16} style={{ marginRight: 8 }} />
+                {t("playlist.exportJSON")}
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleExportPlaylist(item, 'm3u')}>
+                <Download size={16} style={{ marginRight: 8 }} />
+                {t("playlist.exportM3U")}
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={() => handleDeletePlaylist(item)}
+                className={styles.deleteMenuItem}
+              >
+                <Trash2 size={16} style={{ marginRight: 8 }} />
+                {t("playlist.deletePlaylist")}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
       </div>
     );
   });
 
   const FolderItem = memo(({ item, depth, renderPlaylistItem }: { item: PlaylistFolder; depth: number; renderPlaylistItem: (item: Playlist | PlaylistFolder, depth: number) => JSX.Element }) => {
-    const { attributes: dragAttributes, listeners: dragListeners, setNodeRef: setDragRef, transform: dragTransform, isDragging: isDragDragging } = useDraggable({
-      id: item.id,
-    });
-
-    // Folder header drop zone for dropping items into the folder
-    const { setNodeRef: setFolderDropRef, isOver: isFolderOver } = useDroppable({
-      id: `folder-drop-${item.id}`,
-    });
-
-    const dragStyle = dragTransform ? {
-      transform: `translate3d(${dragTransform.x}px, ${dragTransform.y}px, 0)`,
-      opacity: isDragDragging ? 0.5 : 1,
-    } : undefined;
-
     const isOpen = openFolders.has(item.id);
+    const { open, setOpen, containerRef } = useRightClickMenu(true);
 
     return (
       <Collapsible key={item.id} open={isOpen} onOpenChange={() => toggleFolder(item.id)}>
-        <div className={styles.playlistItemContainer} style={{ marginLeft: `${depth * 20}px`, ...dragStyle }} ref={setDragRef} data-id={item.id} {...dragAttributes} {...dragListeners}>
-          {/* Folder header with drop zone for moving items into folder */}
-          <div
-            ref={setFolderDropRef}
-            style={{
-              backgroundColor: isFolderOver ? 'rgba(0,0,0,0.1)' : undefined,
-              borderRadius: '4px',
-              transition: 'background-color 0.2s',
-              width: '100%'
-            }}
-          >
-            <CollapsibleTrigger asChild>
-              <button className={`${styles.playlistItem} ${styles.folderItem}`} style={{ width: '100%' }}>
-                <ChevronDown
-                  size={16}
-                  className={`${styles.chevron} ${isOpen ? styles.chevronOpen : ''}`}
-                />
-                <List size={16} />
-                {item.name}
-                <span className={styles.songCount}>{item.children.length}</span>
-              </button>
-            </CollapsibleTrigger>
+        <div 
+          className={styles.playlistItemContainer} 
+          style={{ marginLeft: `${depth * 20}px` }} 
+          data-id={item.id}
+          ref={containerRef}
+        >
+          {/* Folder header */}
+          <div className={styles.playlistItemMain}>
+            <DraggableItem
+              id={item.id}
+              type="folder"
+              data={item}
+            >
+              <DropZone
+                id={item.id}
+                type="folder"
+                data={item}
+                className={styles.playlistDropZone}
+              >
+                <CollapsibleTrigger asChild>
+                  <button className={`${styles.playlistItem} ${styles.folderItem}`} style={{ width: '100%' }}>
+                    <ChevronDown
+                      size={16}
+                      className={`${styles.chevron} ${isOpen ? styles.chevronOpen : ''}`}
+                    />
+                    <List size={16} />
+                    {item.name}
+                    <span className={styles.songCount}>{item.children.length}</span>
+                  </button>
+                </CollapsibleTrigger>
+              </DropZone>
+            </DraggableItem>
           </div>
 
-          <DropdownMenu key={`dropdown-${item.id}`}>
+          <DropdownMenu key={`dropdown-${item.id}`} open={open} onOpenChange={setOpen}>
             <DropdownMenuTrigger asChild>
               <Button
                 variant="ghost"
@@ -664,63 +466,26 @@ export const PlaylistComponent = ({ musicPlayerHook }: PlaylistProps) => {
         <CollapsibleContent>
           <div>
             {item.children.map((child) => renderPlaylistItem(child, depth + 1))}
-            {/* Empty folder drop zone - only shown when folder is empty */}
-            {item.children.length === 0 && <EmptyFolderDropZone folderId={item.id} />}
+            {/* Empty folder styling handled by CSS now */}
+            {item.children.length === 0 && (
+              <div style={{
+                height: 20,
+                margin: '4px 0 4px 20px',
+                color: '#999',
+                fontSize: 12,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}>
+                Empty folder
+              </div>
+            )}
           </div>
         </CollapsibleContent>
       </Collapsible>
     );
   });
 
-  // Root drop zone component - for dropping at the end of the root level
-  const RootDropZone = () => {
-    const { setNodeRef, isOver } = useDroppable({ id: 'root-dropzone' });
-    return (
-      <div
-        ref={setNodeRef}
-        style={{
-          height: 20,
-          margin: '8px 0',
-          background: isOver ? 'rgba(0,0,0,0.03)' : 'transparent',
-          borderRadius: '4px',
-          border: isOver ? '2px dashed rgba(0,0,0,0.2)' : '2px dashed transparent',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          fontSize: '12px',
-          color: isOver ? '#666' : 'transparent',
-          transition: 'all 0.2s'
-        }}
-      >
-        {isOver && t('playlist.dropHereToMoveToRoot')}
-      </div>
-    );
-  };
-
-  // Empty folder drop zone - shown inside empty folders
-  const EmptyFolderDropZone = ({ folderId }: { folderId: string }) => {
-    const { setNodeRef, isOver } = useDroppable({ id: `empty-folder-${folderId}` });
-    return (
-      <div
-        ref={setNodeRef}
-        style={{
-          height: 40,
-          margin: '4px 0 4px 20px',
-          background: isOver ? 'rgba(0,0,0,0.05)' : 'rgba(0,0,0,0.02)',
-          borderRadius: '4px',
-          border: isOver ? '2px dashed rgba(0,0,0,0.2)' : '2px dashed rgba(0,0,0,0.1)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          color: isOver ? '#666' : '#999',
-          fontSize: 12,
-          transition: 'all 0.2s'
-        }}
-      >
-        Drop here to move into folder
-      </div>
-    );
-  };
 
   return (
     <div className={styles.playlistContainer}>
@@ -765,49 +530,38 @@ export const PlaylistComponent = ({ musicPlayerHook }: PlaylistProps) => {
       </div>
 
       <div ref={playlistListRef} className={styles.playlistList} style={{ position: 'relative' }}>
-        <DndContext
-          sensors={sensors}
-          onDragEnd={handleDragEnd}
-          onDragOver={handleDragOver}
-          autoScroll={false}
+        {/* All Songs */}
+        <button
+          className={`${styles.playlistItem} ${styles.allSongsItem}`}
+          onClick={handleAllSongsClick}
         >
-          {/* All Songs */}
-          <button
-            className={`${styles.playlistItem} ${styles.allSongsItem}`}
-            onClick={handleAllSongsClick}
-          >
-            <Music size={16} />
-            {t("allSongs")}
-            <span className={styles.songCount}>{library.songs.length}</span>
-          </button>
+          <Music size={16} />
+          {t("allSongs")}
+          <span className={styles.songCount}>{library.songs.length}</span>
+        </button>
 
-          {/* Favorites */}
-          <button
-            className={`${styles.playlistItem} ${styles.favoritesItem}`}
-            onClick={() =>
-              handlePlaylistSelect({
-                id: "favorites",
-                name: t("favorites.favorites"),
-                songs: library.songs.filter((s) => library.favorites.includes(s.id)),
-              })
-            }
-          >
-            <Heart size={16} />
-            {t("favorites.favorites")}
-            <span className={styles.songCount}>{library.favorites.length}</span>
-          </button>
+        {/* Favorites */}
+        <button
+          className={`${styles.playlistItem} ${styles.favoritesItem}`}
+          onClick={() =>
+            handlePlaylistSelect({
+              id: "favorites",
+              name: t("favorites.favorites"),
+              songs: library.songs.filter((s) => library.favorites.includes(s.id)),
+            })
+          }
+        >
+          <Heart size={16} />
+          {t("favorites.favorites")}
+          <span className={styles.songCount}>{library.favorites.length}</span>
+        </button>
 
-          {/* User playlists and folders */}
-          {filteredPlaylists.map((item) => renderPlaylistItem(item))}
+        {/* User playlists and folders */}
+        {filteredPlaylists.map((item) => renderPlaylistItem(item))}
 
-          {/* Root drop zone at the end for moving items to root */}
-          <RootDropZone />
-
-          {filteredPlaylists.length === 0 && playlistSearchQuery && (
-            <div className={styles.noResults}>{t("noPlaylistsFound")}</div>
-          )}
-
-        </DndContext>
+        {filteredPlaylists.length === 0 && playlistSearchQuery && (
+          <div className={styles.noResults}>{t("noPlaylistsFound")}</div>
+        )}
       </div>
 
       {/* Create Playlist Modal */}

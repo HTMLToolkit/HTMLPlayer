@@ -170,8 +170,11 @@
     "dropHereToMoveToRoot": "Drop here to move to root",
     "failedToGenerateImage": "Failed to generate playlist image:",
     "exportFailed": "Export failed:",
+    "exportedAs": "Exported playlist \"{{name}}\" as {{format}}",
     "invalidFormat": "Invalid playlist format",
+    "importedPlaylist": "Imported playlist \"{{name}}\" with {{count}} song references",
     "importedM3u": "Imported M3U playlist with {{count}} song references",
+    "noteManualAdd": "Note: You'll need to add songs to this playlist manually as audio files cannot be imported.",
     "unsupportedFormat": "Unsupported file format. Please use .json, .m3u, or .m3u8 files.",
     "importFailed": "Import failed:",
     "failedToParse": "Failed to parse playlist file",
@@ -193,7 +196,10 @@
     "selectAll": "Select All",
     "deselectAll": "Deselect All",
     "addTo": "Actions",
-    "back": "Back"
+    "back": "Back",
+    "delete": "Delete",
+    "selectSongs": "Select Songs",
+    "addMusic": "Add Music"
   },
   "batch": {
     "processing": "Processing batch {{currentBatch}} of {{totalBatches}}..."
@@ -335,7 +341,8 @@
     "ascending": "Ascending",
     "descending": "Descending",
     "none": "No sorting",
-    "clear": "Clear Sort"
+    "clear": "Clear Sort",
+    "sortBy": "Sort By"
   },
   "noPlaylistsFound": "No playlists found",
   "themeLight": "Light",
@@ -378,6 +385,7 @@
     "failedToCopy": "Failed to copy to clipboard:"
   },
   "visualizer": {
+    "selectVisualizer": "Select a visualizer",
     "failedToLoad": "Failed to load visualizer:",
     "failedToLoadWithKey": "Failed to load visualizer {{key}}:"
   },
@@ -405,6 +413,8 @@
     "reset": "Reset to Defaults",
     "resetError": "Error resetting settings.",
     "themeError": "Theme load error!",
+    "cacheClearedSuccess": "Page cache and language files cleared successfully",
+    "cacheClearedError": "Failed to clear cache",
     "audio": {
       "title": "Audio Settings",
       "crossfade": "Crossfade",
@@ -438,7 +448,10 @@
       "lyricsDesc": "Display song lyrics when available",
       "language": "Language",
       "languageDescription": "What language the app is in",
-      "languageSet": "Language set to {{language}}"
+      "languageSet": "Language set to {{language}}",
+      "clearCache": "Clear Page Cache",
+      "clearCacheDesc": "Clear cached page resources and language files (does not affect your music library or settings)",
+      "clearCacheButton": "Clear Cache"
     },
     "shortcuts": {
       "title": "Keyboard Shortcuts",

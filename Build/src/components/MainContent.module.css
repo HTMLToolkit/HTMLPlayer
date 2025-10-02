@@ -64,9 +64,10 @@
 
 .actions {
   display: flex;
-  gap: var(--spacing-3);
+  gap: var(--spacing-2);
   align-items: center;
   flex-wrap: wrap; /* Wrap buttons on narrow screens */
+  min-width: 0; /* Allow shrinking */
 }
 
 .searchWrapper {
@@ -101,11 +102,22 @@
   border: 1px solid var(--primary-border-strong);
   color: var(--primary-foreground);
   font-weight: 500;
+  transition: all var(--animation-duration-fast) ease;
 }
 
 .actionButton:hover {
   background: var(--primary-transparent-5);
   border-color: var(--primary-border-stronger);
+  transform: translateY(-1px);
+}
+
+.actionButton:focus-visible {
+  outline: 2px solid var(--themecolor2);
+  outline-offset: 2px;
+}
+
+.actionButton:active {
+  transform: translateY(0);
 }
 
 .sortingControls {
@@ -250,6 +262,8 @@
 .songItem:hover {
   background: var(--primary-transparent-1);
   border-radius: var(--radius);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px var(--primary-transparent-2);
 }
 
 .songItem.currentSong {
@@ -337,6 +351,18 @@
   gap: var(--spacing-1);
 }
 
+.songDropZone {
+  width: 100%;
+  border-radius: var(--radius);
+  transition: all var(--animation-duration-fast) ease;
+}
+
+.songDropZone[data-droppable="true"] {
+  background: var(--primary-transparent-2);
+  border: 1px dashed var(--themecolor2);
+  transform: translateY(-2px);
+}
+
 .songActionButton {
   color: var(--foreground-subtle);
 }
@@ -374,21 +400,26 @@
   .header {
     flex-direction: column;
     align-items: flex-start;
+    gap: var(--spacing-3);
   }
 
   .titleArea {
     gap: var(--spacing-2);
+    width: 100%;
   }
 
   .actions {
     width: 100%;
-    justify-content: space-between;
+    justify-content: flex-start;
     flex-wrap: wrap;
     gap: var(--spacing-2);
+    order: 2;
   }
 
   .searchWrapper {
     width: 100%;
+    order: 1;
+    margin-bottom: var(--spacing-2);
   }
 
   .songListHeader {

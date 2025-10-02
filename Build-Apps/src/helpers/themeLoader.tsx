@@ -57,7 +57,6 @@ export const ThemeLoader: React.FC<ThemeLoaderProps> = ({
   const [themes, setThemes] = useState<ThemeMetadata[]>([]);
   const [currentTheme, setCurrentTheme] = useState<ThemeMetadata | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [isThemeLoaded, setIsThemeLoaded] = useState(false); // For FOUC
   const [error, setError] = useState<string | null>(null);
 
   // ----------------------
@@ -213,8 +212,6 @@ export const ThemeLoader: React.FC<ThemeLoaderProps> = ({
           setTimeout(resolve, 100); // Additional delay for CSS variables to propagate
         });
       });
-      
-      setIsThemeLoaded(true); // Show content after style injection
 
       // Update state after successful injection
       setCurrentTheme(theme);
@@ -248,7 +245,6 @@ export const ThemeLoader: React.FC<ThemeLoaderProps> = ({
       const errorMessage = err instanceof Error ? err.message : 'Failed to apply theme';
       setError(errorMessage);
       console.error('Theme application error:', err);
-      setIsThemeLoaded(true); // Show content even on error
       throw err; // Re-throw for caller handling
     }
   }, [onThemeChange]);
@@ -262,7 +258,6 @@ export const ThemeLoader: React.FC<ThemeLoaderProps> = ({
       throw new Error(`Theme "${themeName}" not found`);
     }
 
-    setIsThemeLoaded(false); // Hide content during theme switch
     await applyTheme(theme);
   }, [themes, applyTheme]);
 
@@ -289,9 +284,7 @@ export const ThemeLoader: React.FC<ThemeLoaderProps> = ({
 
   return (
     <ThemeContext.Provider value={value}>
-      <div style={{ opacity: isThemeLoaded ? 1 : 0, transition: 'opacity 0.3s ease-in-out', minHeight: '100vh' }}>
-        {children}
-      </div>
+      {children}
     </ThemeContext.Provider>
   );
 };

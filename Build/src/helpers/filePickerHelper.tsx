@@ -8,6 +8,7 @@ import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../components/Dialog";
 import ReactDOM from "react-dom/client";
 import { useTranslation } from "react-i18next";
+import i18n from "i18next";
 
 export interface AudioFile {
   file: File;
@@ -204,12 +205,21 @@ export async function extractAudioMetadata(file: File): Promise<AudioMetadata> {
   const worker = new Worker(new URL('../workers/metadataWorker.ts', import.meta.url), { type: 'module' });
 
   try {
-    return await withTimeoutAndRetry(
+    const result = await withTimeoutAndRetry(
       new Promise<AudioMetadata>((resolve, reject) => {
         worker.onmessage = (event) => {
           const { metadata, albumArt, error } = event.data;
           if (error) reject(new Error(error));
-          else resolve({ ...metadata, albumArt });
+          else {
+            // Translate placeholder values from worker
+            const translatedMetadata = {
+              ...metadata,
+              artist: metadata.artist === "__UNKNOWN_ARTIST__" ? i18n.t("common.unknownArtist") : metadata.artist,
+              album: metadata.album === "__UNKNOWN_ALBUM__" ? i18n.t("common.unknownAlbum") : metadata.album,
+              albumArt
+            };
+            resolve(translatedMetadata);
+          }
         };
         worker.onerror = (error) => reject(new Error('Worker error: ' + error.message));
         worker.postMessage({ file, fileName: file.name });
@@ -218,10 +228,11 @@ export async function extractAudioMetadata(file: File): Promise<AudioMetadata> {
       3,
       `Metadata extraction for ${file.name}`
     );
+    return result;
   } catch (e) {
     console.warn(`Failed to read metadata for ${file.name}:`, e);
     const fileName = file.name.replace(/\.[^/.]+$/, "");
-    let title = fileName, artist = "Unknown Artist", album = "Unknown Album", duration = 0, albumArt: string | undefined;
+    let title = fileName, artist = i18n.t("common.unknownArtist"), album = i18n.t("common.unknownAlbum"), duration = 0, albumArt: string | undefined;
 
     try {
       const metadata = await withTimeoutAndRetry(

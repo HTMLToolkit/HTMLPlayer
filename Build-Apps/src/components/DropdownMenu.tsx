@@ -3,6 +3,32 @@ import * as DropdownMenuPrimitive from "@radix-ui/react-dropdown-menu";
 import { Check, ChevronRight } from "lucide-react";
 import styles from "./DropdownMenu.module.css";
 
+// Hook to add right-click support to DropdownMenu
+export const useRightClickMenu = (enableRightClick: boolean = false) => {
+  const [open, setOpen] = React.useState(false);
+  const containerRef = React.useRef<HTMLDivElement>(null);
+
+  const handleContextMenu = React.useCallback((e: MouseEvent) => {
+    if (enableRightClick) {
+      e.preventDefault();
+      e.stopPropagation();
+      setOpen(true);
+    }
+  }, [enableRightClick]);
+
+  React.useEffect(() => {
+    const element = containerRef.current;
+    if (enableRightClick && element) {
+      element.addEventListener('contextmenu', handleContextMenu);
+      return () => {
+        element.removeEventListener('contextmenu', handleContextMenu);
+      };
+    }
+  }, [enableRightClick, handleContextMenu]);
+
+  return { open, setOpen, containerRef };
+};
+
 const DropdownMenu = DropdownMenuPrimitive.Root;
 
 const DropdownMenuTrigger = DropdownMenuPrimitive.Trigger;

@@ -40,7 +40,7 @@ export const ShortcutConfig: React.FC<ShortcutConfigProps> = ({ onShortcutsChang
   };
 
   const getDisplayValue = () => {
-    if (!editValue || !editValue.key) return t("shortcuts.pressKey");
+    if (!editValue || !editValue.key) return t("settings.shortcuts.pressKey");
     return formatShortcutKey(editValue as KeyboardShortcut);
   };
 
@@ -50,7 +50,7 @@ export const ShortcutConfig: React.FC<ShortcutConfigProps> = ({ onShortcutsChang
     // Ensure we have a base shortcut to work with
     const baseShortcut = shortcuts[editingId] || mergedShortcuts[editingId];
     if (!baseShortcut) {
-      setConflict(t("shortcuts.unableToFindConfig"));
+      setConflict(t("settings.shortcuts.unableToFindConfig"));
       return;
     }
     
@@ -62,7 +62,7 @@ export const ShortcutConfig: React.FC<ShortcutConfigProps> = ({ onShortcutsChang
     
     const isConflict = await shortcutsDb.isShortcutConflict(newShortcut, editingId);
     if (isConflict) {
-      setConflict(t("shortcuts.conflict"));
+      setConflict(t("settings.shortcuts.conflict"));
       return;
     }
     try {
@@ -76,7 +76,7 @@ export const ShortcutConfig: React.FC<ShortcutConfigProps> = ({ onShortcutsChang
       onShortcutsChanged?.();
     } catch (error) {
       console.error('Failed to save shortcut:', error);
-      setConflict(error instanceof Error ? error.message : t("shortcuts.failedToSaveGeneral"));
+      setConflict(error instanceof Error ? error.message : t("settings.shortcuts.failedToSaveGeneral"));
     }
   };
 
@@ -88,13 +88,13 @@ export const ShortcutConfig: React.FC<ShortcutConfigProps> = ({ onShortcutsChang
 
   return (
     <div className={styles.shortcutConfigPanel}>
-      <h4>{t("shortcuts.title")}</h4>
+      <h4>{t("settings.shortcuts.title")}</h4>
       <div className={styles.shortcutConfigList}>
         {Object.keys(mergedShortcuts).length > 0 && Object.values(mergedShortcuts).map((shortcut) => {
           if (!shortcut || !shortcut.id) return null;
           return (
             <div key={shortcut.id} className={styles.shortcutConfigItem}>
-              <span className={styles.shortcutConfigLabel}>{shortcut.description}</span>
+              <span className={styles.shortcutConfigLabel}>{t(shortcut.description)}</span>
               {editingId === shortcut.id ? (
                 <>
                   <input
@@ -103,10 +103,10 @@ export const ShortcutConfig: React.FC<ShortcutConfigProps> = ({ onShortcutsChang
                     className={styles.shortcutConfigInput}
                     value={getDisplayValue()}
                     onKeyDown={handleKeyCapture}
-                    placeholder={t("shortcuts.pressNewKey")}
+                    placeholder={t("settings.shortcuts.pressNewKey")}
                     style={{ width: 120 }}
                   />
-                  <Button size="sm" onClick={handleSave} title={t("shortcuts.saveShortcut")}>
+                  <Button size="sm" onClick={handleSave} title={t("settings.shortcuts.saveShortcut")}>
                     <Save size={16} />
                   </Button>
                   <Button size="sm" onClick={handleCancel} title={t("common.cancel")}>
@@ -117,7 +117,7 @@ export const ShortcutConfig: React.FC<ShortcutConfigProps> = ({ onShortcutsChang
               ) : (
                 <>
                   <span className={styles.shortcutConfigKey}>{formatShortcutKey(shortcut)}</span>
-                  <Button size="sm" onClick={() => handleEdit(shortcut.id)} title={t("shortcuts.editShortcut")}>
+                  <Button size="sm" onClick={() => handleEdit(shortcut.id)} title={t("settings.shortcuts.editShortcut")}>
                     <Pencil size={16} />
                   </Button>
                 </>

@@ -18,8 +18,10 @@ import {
   Disc,
   Star,
 } from "lucide-react";
+import { DraggableItem, DropZone } from "./Draggable";
 import { SongActionsDropdown } from "./SongActionsDropdown";
 import { Checkbox } from "./Checkbox";
+import { useRightClickMenu } from "./DropdownMenu";
 import {
   pickAudioFiles,
   extractAudioMetadata,
@@ -41,14 +43,6 @@ import modalStyles from "./Dialog.module.css";
 import styles from "./MainContent.module.css";
 import PersistentDropdownMenu, { PersistentDropdownMenuRef } from "./PersistentDropdownMenu";
 import { useTranslation } from "react-i18next";
-import {
-  SortableContext,
-  verticalListSortingStrategy,
-} from "@dnd-kit/sortable";
-import {
-  useSortable,
-} from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
 
 interface SortableSongItemProps {
   song: Song;
@@ -69,8 +63,8 @@ interface SortableSongItemProps {
   addToPlaylist: (playlistId: string, songId: string) => void;
   playSong: (song: Song, playlist?: Playlist) => void;
   removeSong: (songId: string) => void;
+  isInPlaylist: boolean; // New prop to determine drag behavior
 }
-
 const SortableSongItem = ({
   song,
   isCurrent,
@@ -90,32 +84,17 @@ const SortableSongItem = ({
   addToPlaylist,
   playSong,
   removeSong,
+  isInPlaylist,
 }: SortableSongItemProps) => {
   const { t } = useTranslation();
+  const { open, setOpen, containerRef } = useRightClickMenu(true);
 
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id: `song-${song.id}` });
-
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    opacity: isDragging ? 0.5 : 1,
-  };
-
-  return (
+  // Use DraggableItem for clean drag functionality, and DropZone if in playlist for reordering
+  const songContent = (
     <div
-      ref={setNodeRef}
-      style={style}
       className={`${styles.songItem} ${isCurrent ? styles.currentSong : ""}`}
       onClick={onClick}
-      {...attributes}
-      {...listeners}
+      ref={containerRef}
     >
       <div className={styles.songInfo}>
         {isSelectActive && (
@@ -139,9 +118,41 @@ const SortableSongItem = ({
         </Button>
         <Button variant="ghost" size="icon-sm" className={`${styles.songActionButton} ${ratings[song.id] === "thumbs-up" ? styles.active : ""}`} onClick={() => onRatingChange("thumbs-up")}><ThumbsUp size={14} /></Button>
         <Button variant="ghost" size="icon-sm" className={`${styles.songActionButton} ${ratings[song.id] === "thumbs-down" ? styles.active : ""}`} onClick={() => onRatingChange("thumbs-down")}><ThumbsDown size={14} /></Button>
-        <SongActionsDropdown song={song} library={library} onCreatePlaylist={createPlaylist} onAddToPlaylist={addToPlaylist} onRemoveSong={removeSong} onPlaySong={playSong} size={14} className={styles.songActionButton} />
+        <SongActionsDropdown 
+          song={song} 
+          library={library} 
+          onCreatePlaylist={createPlaylist} 
+          onAddToPlaylist={addToPlaylist} 
+          onRemoveSong={removeSong} 
+          onPlaySong={playSong} 
+          size={14} 
+          className={styles.songActionButton}
+          open={open}
+          onOpenChange={setOpen}
+        />
       </div>
     </div>
+  );
+
+  return (
+    <DraggableItem
+      id={song.id}
+      type="song"
+      data={song}
+    >
+      {isInPlaylist ? (
+        <DropZone
+          id={song.id}
+          type="song"
+          data={song}
+          className={styles.songDropZone}
+        >
+          {songContent}
+        </DropZone>
+      ) : (
+        songContent
+      )}
+    </DraggableItem>
   );
 };
 
@@ -154,8 +165,6 @@ interface MainContentProps {
 export const MainContent = ({ musicPlayerHook }: MainContentProps) => {
   const { t } = useTranslation();
 
-
-
   const [songSearchQuery, setSongSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState<"name" | "artist" | "album" | "rating" | null>(null);
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
@@ -164,8 +173,7 @@ export const MainContent = ({ musicPlayerHook }: MainContentProps) => {
   >({});
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [songToDelete, setSongToDelete] = useState<Song | null>(null);
-  const [showSongInfo, setShowSongInfo] = useState(false);
-  const [selectedSongInfo] = useState<Song | null>(null);
+
   const [selectedSongs, setSelectedSongs] = useState<string[]>([]);
   const [isSelectSongsActive, setIsSelectSongsActive] = useState(false);
   const [showPlaylistDialog, setShowPlaylistDialog] = useState(false);
@@ -183,7 +191,6 @@ export const MainContent = ({ musicPlayerHook }: MainContentProps) => {
     isFavorited,
     createPlaylist,
     addToPlaylist,
-    reorderPlaylistSongs,
     navigateToArtist,
     navigateToAlbum,
     navigateToSongs,
@@ -285,7 +292,7 @@ export const MainContent = ({ musicPlayerHook }: MainContentProps) => {
     const newRating = currentRating === rating ? "none" : rating;
     setRatings((prev) => ({ ...prev, [songId]: newRating }));
   };
-  
+
   const handleToggleFavorite = (
     e: React.MouseEvent<HTMLButtonElement, MouseEvent>,
     songId: string
@@ -472,17 +479,17 @@ export const MainContent = ({ musicPlayerHook }: MainContentProps) => {
               onChange={(e: any) => handleSongSearch(e.target.value)}
             />
           </div>
-          <Button variant="outline" size="icon-md" className={styles.actionButton} onClick={handleDeleteSong}>
+          <Button variant="outline" size="icon-md" className={styles.actionButton} onClick={handleDeleteSong} aria-label={t("actions.delete")}>
             <Trash2 size={16} />
           </Button>
           <PersistentDropdownMenu
             ref={sortDropdownRef}
             trigger={
-              <Button variant="outline" size="icon-md" className={styles.actionButton}>
+              <Button variant="outline" size="icon-md" className={styles.actionButton} aria-label={t("sort.sortBy")}>
                 <ArrowUpDown size={16} />
               </Button>
             }
-            onClose={() => {}}
+            onClose={() => { }}
           >
             <Button variant="ghost" onClick={() => setSortBy('name')} className="w-full justify-start text-sm">
               <Type size={16} className="mr-2" />
@@ -506,8 +513,11 @@ export const MainContent = ({ musicPlayerHook }: MainContentProps) => {
             </Button>
             <div className="border-t my-1"></div>
             <Button variant="ghost" onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')} className="w-full justify-start text-sm">
-              <ArrowUp size={16} className={sortOrder === 'asc' ? 'visible mr-2' : 'invisible mr-2'} />
-              <ArrowDown size={16} className={sortOrder === 'desc' ? 'visible mr-2' : 'invisible mr-2'} />
+              {sortOrder === 'asc' ? (
+                <ArrowUp size={16} className="mr-2" />
+              ) : (
+                <ArrowDown size={16} className="mr-2" />
+              )}
               {sortOrder === 'asc' ? t('sort.ascending') : t('sort.descending')}
             </Button>
             <div className="border-t my-1"></div>
@@ -518,7 +528,7 @@ export const MainContent = ({ musicPlayerHook }: MainContentProps) => {
           </PersistentDropdownMenu>
           <PersistentDropdownMenu
             trigger={
-              <Button variant="outline" size="icon-md" className={styles.actionButton} onClick={handleSelectSongsToggle}>
+              <Button variant="outline" size="icon-md" className={styles.actionButton} onClick={handleSelectSongsToggle} aria-label={t("actions.selectSongs")}>
                 <ListChecks size={16} />
               </Button>
             }
@@ -537,7 +547,7 @@ export const MainContent = ({ musicPlayerHook }: MainContentProps) => {
               {t("common.delete")}
             </Button>
           </PersistentDropdownMenu>
-          <Button variant="outline" size="icon-md" className={styles.actionButton} onClick={handleAddMusic}>
+          <Button variant="outline" size="icon-md" className={styles.actionButton} onClick={handleAddMusic} aria-label={t("actions.addMusic")}>
             <Plus size={16} />
           </Button>
         </div>
@@ -545,48 +555,47 @@ export const MainContent = ({ musicPlayerHook }: MainContentProps) => {
 
       {/* Song list */}
       <div className={styles.songListWrapper}>
-        <SortableContext items={sortedSongs.map(song => `song-${song.id}`)} strategy={verticalListSortingStrategy}>
-          <div className={styles.songList}>
-            <div className={styles.songListHeader}>
-              <span className={styles.columnHeader}>{t("songInfo.title")}</span>
-              <span className={styles.columnHeader}>{t("common.album")}</span>
-              <span className={styles.columnHeader}>{t("actions.addTo")}</span>
+        <div className={styles.songList}>
+          <div className={styles.songListHeader}>
+            <span className={styles.columnHeader}>{t("songInfo.title")}</span>
+            <span className={styles.columnHeader}>{t("common.album")}</span>
+            <span className={styles.columnHeader}>{t("actions.addTo")}</span>
+          </div>
+          {sortedSongs.map((song: Song) => (
+            <SortableSongItem
+              key={song.id}
+              song={song}
+              isCurrent={playerState.currentSong?.id === song.id}
+              isSelected={selectedSongs.includes(song.id)}
+              onClick={() => handleSongClick(song)}
+              onCheckboxChange={(e) => {
+                e.stopPropagation();
+                setSelectedSongs(prev =>
+                  prev.includes(song.id) ? prev.filter(id => id !== song.id) : [...prev, song.id]
+                );
+              }}
+              isSelectActive={isSelectSongsActive}
+              ratings={ratings}
+              onRatingChange={(rating) => handleRating(song.id, rating)}
+              onFavoriteToggle={(e) => handleToggleFavorite(e, song.id)}
+              isFavorited={isFavorited(song.id)}
+              formatDuration={formatDuration}
+              styles={styles}
+              SongActionsDropdown={SongActionsDropdown}
+              library={library}
+              createPlaylist={createPlaylist}
+              addToPlaylist={addToPlaylist}
+              playSong={playSong}
+              isInPlaylist={!!playerState.currentPlaylist}
+              removeSong={removeSong}
+            />
+          ))}
+          {sortedSongs.length === 0 && (
+            <div className={styles.noResults}>
+              {songSearchQuery ? t("noResults.search") : t("noResults.playlist")}
             </div>
-              {sortedSongs.map((song: Song) => (
-                <SortableSongItem
-                  key={song.id}
-                  song={song}
-                  isCurrent={playerState.currentSong?.id === song.id}
-                  isSelected={selectedSongs.includes(song.id)}
-                  onClick={() => handleSongClick(song)}
-                  onCheckboxChange={(e) => {
-                    e.stopPropagation();
-                    setSelectedSongs(prev =>
-                      prev.includes(song.id) ? prev.filter(id => id !== song.id) : [...prev, song.id]
-                    );
-                  }}
-                  isSelectActive={isSelectSongsActive}
-                  ratings={ratings}
-                  onRatingChange={(rating) => handleRating(song.id, rating)}
-                  onFavoriteToggle={(e) => handleToggleFavorite(e, song.id)}
-                  isFavorited={isFavorited(song.id)}
-                  formatDuration={formatDuration}
-                  styles={styles}
-                  SongActionsDropdown={SongActionsDropdown}
-                  library={library}
-                  createPlaylist={createPlaylist}
-                  addToPlaylist={addToPlaylist}
-                  playSong={playSong}
-                  removeSong={removeSong}
-                />
-              ))}
-              {sortedSongs.length === 0 && (
-                <div className={styles.noResults}>
-                  {songSearchQuery ? t("noResults.search") : t("noResults.playlist")}
-                </div>
-              )}
-            </div>
-          </SortableContext>
+          )}
+        </div>
       </div>
 
       {/* Delete Modal */}
@@ -603,25 +612,7 @@ export const MainContent = ({ musicPlayerHook }: MainContentProps) => {
         </DialogContent>
       </Dialog>
 
-      {/* Song Info Modal */}
-      <Dialog open={showSongInfo} onOpenChange={setShowSongInfo}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{t("songInfo.songInfoTitle")}</DialogTitle>
-          </DialogHeader>
-          {selectedSongInfo && (
-            <div style={{ display: "flex", flexDirection: "column", gap: "var(--spacing-3)" }}>
-              <div><strong>{t("songInfo.title")}:</strong> {selectedSongInfo.title}</div>
-              <div><strong>{t("common.artist")}:</strong> {selectedSongInfo.artist}</div>
-              <div><strong>{t("common.album")}:</strong> {selectedSongInfo.album}</div>
-              <div><strong>{t("common.duration")}:</strong> {formatDuration(selectedSongInfo.duration)}</div>
-            </div>
-          )}
-          <DialogFooter>
-            <Button onClick={() => setShowSongInfo(false)}>{t("common.close")}</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+
 
       {/* Playlist Dialog */}
       <Dialog open={showPlaylistDialog} onOpenChange={setShowPlaylistDialog}>

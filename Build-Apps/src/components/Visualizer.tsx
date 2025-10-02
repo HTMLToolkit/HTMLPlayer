@@ -28,16 +28,29 @@ export const Visualizer = ({
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animationFrameId = useRef<number | null>(null);
   const [availableVisualizers, setAvailableVisualizers] = useState<string[]>([]);
+  const [loadedVisualizerNames, setLoadedVisualizerNames] = useState<Map<string, string>>(new Map());
   const [selectedVisualizerKey, setSelectedVisualizerKey] = useState<string>("");
   const [selectedVisualizer, setSelectedVisualizer] = useState<VisualizerType | null>(null);
   const [visualizerSettings, setVisualizerSettings] = useState<Record<string, any>>({});
   const [showSettings, setShowSettings] = useState(false);
   const [isLoadingVisualizer, setIsLoadingVisualizer] = useState(false);
 
-  // Initialize available visualizers
+  // Initialize available visualizers and load their names
   useEffect(() => {
     const visualizers = getAvailableVisualizers();
     setAvailableVisualizers(visualizers);
+    
+    // Load all visualizer names for the dropdown
+    Promise.all(
+      visualizers.map(async (key) => {
+        const visualizer = await getVisualizer(key);
+        return { key, name: visualizer?.name || key };
+      })
+    ).then((results) => {
+      const namesMap = new Map(results.map(({ key, name }) => [key, name]));
+      setLoadedVisualizerNames(namesMap);
+    });
+    
     if (visualizers.length > 0 && !selectedVisualizerKey) {
       setSelectedVisualizerKey(visualizers[0]);
     }
@@ -136,8 +149,8 @@ export const Visualizer = ({
               <SlidersHorizontal size={16} />
               <span>
                 {isLoadingVisualizer 
-                  ? t("loading") 
-                  : selectedVisualizer?.name || t("select_visualizer")
+                  ? t("common.loading") 
+                  : selectedVisualizer?.name || t("visualizer.selectVisualizer")
                 }
               </span>
             </Button>
@@ -149,7 +162,7 @@ export const Visualizer = ({
             >
               {availableVisualizers.map((key) => (
                 <DropdownMenuRadioItem key={key} value={key}>
-                  {key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
+                  {loadedVisualizerNames.get(key) || key}
                 </DropdownMenuRadioItem>
               ))}
             </DropdownMenuRadioGroup>

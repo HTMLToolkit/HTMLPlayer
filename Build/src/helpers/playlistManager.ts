@@ -1,4 +1,5 @@
 import { toast } from "sonner";
+import i18n from "i18next";
 
 export const createPlaylistManager = (
   setLibrary: (updater: (prev: MusicLibrary) => MusicLibrary) => void,
@@ -422,14 +423,13 @@ export const createPlaylistManager = (
       URL.revokeObjectURL(url);
 
       toast.success(
-        `Exported playlist "${playlist.name}" as ${format.toUpperCase()}`
+        i18n.t("playlist.exportedAs", { name: playlist.name, format: format.toUpperCase() })
       );
     } catch (error) {
       console.error("Export failed:", error);
       toast.error(
-        `Failed to export playlist: ${
-          error instanceof Error ? error.message : "Unknown error"
-        }`
+        i18n.t("playlist.exportFailed") + " " +
+        (error instanceof Error ? error.message : i18n.t("common.unknownError"))
       );
     }
   };
@@ -448,7 +448,7 @@ export const createPlaylistManager = (
             const playlistData = JSON.parse(content);
 
             if (!playlistData.name || !Array.isArray(playlistData.songs)) {
-              throw new Error("Invalid playlist format");
+              throw new Error(i18n.t("playlist.invalidFormat"));
             }
 
             // Create new playlist with imported metadata (songs will need to be matched/re-added)
@@ -462,10 +462,10 @@ export const createPlaylistManager = (
             createPlaylist(newPlaylist.name, newPlaylist.songs);
 
             toast.success(
-              `Imported playlist "${playlistData.name}" with ${playlistData.songs.length} song references`
+              i18n.t("playlist.importedPlaylist", { name: playlistData.name, count: playlistData.songs.length })
             );
             toast.info(
-              "Note: You'll need to add songs to this playlist manually as audio files cannot be imported."
+              i18n.t("playlist.noteManualAdd")
             );
             resolve();
           } else if (
@@ -495,15 +495,15 @@ export const createPlaylistManager = (
             createPlaylist(`${playlistName} (Imported)`, []);
 
             toast.success(
-              `Imported M3U playlist with ${songs.length} song references`
+              i18n.t("playlist.importedM3u", { count: songs.length })
             );
             toast.info(
-              "Note: You'll need to add songs to this playlist manually as audio files cannot be imported."
+              i18n.t("playlist.noteManualAdd")
             );
             resolve();
           } else {
             throw new Error(
-              "Unsupported file format. Please use .json, .m3u, or .m3u8 files."
+              i18n.t("playlist.unsupportedFormat")
             );
           }
         } catch (error) {
@@ -511,15 +511,15 @@ export const createPlaylistManager = (
           const message =
             error instanceof Error
               ? error.message
-              : "Failed to parse playlist file";
-          toast.error(`Import failed: ${message}`);
+              : i18n.t("playlist.failedToParse");
+          toast.error(i18n.t("playlist.importFailedWithMessage", { message }));
           reject(error);
         }
       };
 
       reader.onerror = () => {
-        const error = new Error("Failed to read file");
-        toast.error("Failed to read file");
+        const error = new Error(i18n.t("playlist.failedToReadFile"));
+        toast.error(i18n.t("playlist.failedToReadFile"));
         reject(error);
       };
 
