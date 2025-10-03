@@ -4,20 +4,6 @@
 
 - [ ] combine buttons and options that do similar things
 
-- [ ] long text can break the UI (+ also cause scrolling horizontally) but I can reuse the scroll thing from song titles (maybe modularize that into a new component: ScrollText.tsx?)
-
-- [ ] Synced lyrics using id3v2 embedded lyrics (music-metadata has tons of stuff for this)
-
-- [ ] slow down/speed up tracks without changing pitch (DJ style 😎)
-  - [PitchShift](https://tonejs.github.io/docs/15.1.22/classes/PitchShift.html)
-
-- [X] Check out what music-metadata can do, and maybe implement those things
-  - [ ] Encoding & Format Details (for song info modal): get bitrate, duration, codec, sample rate, channels, and bit depth for each track
-  - [ ] MusicBrainz Tags + ReplayGain using `music-metadata`: read MusicBrainz identifiers and volume normalization metadata
-  - [ ] Gapless Playback Info: use pre/post-silence info for seamless playback between tracks
-  - [ ] Custom Metadata Parsing (AKA ACAPlayer (lol aka aca)): access nonstandard or raw tags embedded in audio files
-  - [ ] ReplayGain / Loudness Info: normalize or adjust playback volume based on track metadata
-
 - [ ] 🔼 I'll need to add some sort of quick guide and help menu or something to HTMLPlayer.
 
 - [ ] 🔼 custom theme builder with custom picture backgrounds
@@ -63,6 +49,11 @@
       ```
 
 ## Future (probably)
+
+- [ ] Check out what music-metadata can do, and maybe implement those things
+  - [ ] Custom Metadata Parsing (AKA ACAPlayer (lol aka aca)): access nonstandard or raw tags embedded in audio files
+  - [ ] ReplayGain / Loudness Info: normalize or adjust playback volume based on track metadata
+  - [ ] MusicBrainz Tags + ReplayGain using `music-metadata`: read MusicBrainz identifiers and volume normalization metadata
 
 - [ ] Now Playing Screen (fullscreen, minimal UI)
 
@@ -124,6 +115,19 @@
 
 ## Done
 
+- [X] long text can break the UI (+ also cause scrolling horizontally) but I can reuse the scroll thing from song titles (maybe modularize that into a new component: ScrollText.tsx?)
+
+- [X] Check out what music-metadata can do, and maybe implement those things
+  - [X] Encoding & Format Details (for song info modal): get bitrate, duration, codec, sample rate, channels, and bit depth for each track
+  - [X] Gapless Playback Info: use pre/post-silence info for seamless playback between tracks
+
+- [X] Synced lyrics using id3v2 embedded lyrics (music-metadata has tons of stuff for this)
+  - add support for SYLT and USLT and LRC
+
+- [X] slow down/speed up tracks without changing pitch (DJ style 😎)
+  - ~~[PitchShift](https://tonejs.github.io/docs/15.1.22/classes/PitchShift.html)~~
+    - used custom approach instead
+
 - [X] add Update HTMLPlayer button in settings.tsx that clears page cache (but not local storage or indexeddb) and clears i18n cache
 
 - [X] replace white screen on load with cool "Loading HTMLPlayer..." thing
@@ -180,7 +184,7 @@
 
 - [X] use fontsource rather than network loading
 
-- [X] Pitch/Tempo Control
+- [X] Tempo Control
 
 - [X] make PWA top bar dynamic
   - <https://css-tricks.com/meta-theme-color-and-trickery>

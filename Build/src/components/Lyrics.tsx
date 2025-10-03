@@ -15,6 +15,19 @@ interface LyricsProps {
   title: string;
   visible: boolean;
   onClose?: () => void;
+  embeddedLyrics?: EmbeddedLyrics[];
+  currentTime?: number;
+}
+
+interface EmbeddedLyrics {
+  synced: boolean;
+  language?: string;
+  description?: string;
+  text?: string; // for unsynchronized lyrics
+  lines?: Array<{ // for synchronized lyrics
+    text: string;
+    timestamp: number;
+  }>;
 }
 
 interface LyricsResponse { lyrics: string }
@@ -67,10 +80,13 @@ const cleanMetadata = (artist: string, title: string) => {
   return { artist: cleanedArtist, title: cleanedTitle };
 };
 
-export const Lyrics = ({ artist, title, visible, onClose }: LyricsProps) => {
+export const Lyrics = ({ artist, title, visible, onClose, embeddedLyrics, currentTime = 0 }: LyricsProps) => {
   const { t } = useTranslation();
   const [state, setState] = useState<LyricsState>(INITIAL_STATE);
   const abortControllerRef = useRef<AbortController | null>(null);
+  const [selectedLyrics, setSelectedLyrics] = useState<EmbeddedLyrics | null>(null);
+  const [currentLineIndex, setCurrentLineIndex] = useState<number>(-1);
+  const lyricsRef = useRef<HTMLDivElement | null>(null);
 
   const fetchLyrics = useCallback(async (artist: string, title: string) => {
     if (abortControllerRef.current) abortControllerRef.current.abort();
@@ -131,13 +147,64 @@ export const Lyrics = ({ artist, title, visible, onClose }: LyricsProps) => {
     }
 
     setState({ lyrics: "", loading: false, error: lastError?.message || t("lyrics.failedToLoad") });
-  }, []);
+  }, [t]);
+
+  const showEmbeddedLyrics = !!embeddedLyrics?.length;
 
   useEffect(() => {
-    if (!visible || !artist || !title) return setState(INITIAL_STATE);
+    if (!visible || !artist || !title) {
+      setState(INITIAL_STATE);
+      return;
+    }
+
+    if (showEmbeddedLyrics) {
+      setState({ lyrics: "", loading: false, error: null });
+      return;
+    }
+
     fetchLyrics(artist, title);
     return () => abortControllerRef.current?.abort();
-  }, [artist, title, visible, fetchLyrics]);
+  }, [artist, title, visible, fetchLyrics, showEmbeddedLyrics]);
+
+  useEffect(() => {
+    if (!visible || !showEmbeddedLyrics) {
+      setSelectedLyrics(null);
+      setCurrentLineIndex(-1);
+      return;
+    }
+
+    setSelectedLyrics((previous) => {
+      if (!embeddedLyrics?.length) return null;
+      if (previous && embeddedLyrics.includes(previous)) return previous;
+      return embeddedLyrics[0] ?? null;
+    });
+    setCurrentLineIndex(-1);
+  }, [embeddedLyrics, showEmbeddedLyrics, visible]);
+
+  useEffect(() => {
+    if (!visible) return;
+    if (!selectedLyrics || !selectedLyrics.synced || !selectedLyrics.lines?.length) {
+      if (currentLineIndex !== -1) setCurrentLineIndex(-1);
+      return;
+    }
+
+    const currentTimeMs = currentTime * 1000;
+    const index = selectedLyrics.lines.findIndex((line, lineIndex) => {
+      const nextLine = selectedLyrics.lines?.[lineIndex + 1];
+      return line.timestamp <= currentTimeMs && (!nextLine || nextLine.timestamp > currentTimeMs);
+    });
+
+    if (index !== currentLineIndex) setCurrentLineIndex(index);
+  }, [currentLineIndex, currentTime, selectedLyrics, visible]);
+
+  useEffect(() => {
+    if (!visible) return;
+    if (currentLineIndex < 0) return;
+    const parent = lyricsRef.current;
+    if (!parent) return;
+    const lineElement = parent.children.item(currentLineIndex) as HTMLElement | null;
+    lineElement?.scrollIntoView({ behavior: "smooth", block: "center" });
+  }, [currentLineIndex, visible]);
 
   useEffect(() => {
     if (!visible || !onClose) return;
@@ -151,27 +218,96 @@ export const Lyrics = ({ artist, title, visible, onClose }: LyricsProps) => {
 
   if (!visible) return null;
 
+  const handleEmbeddedSelectChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    if (!embeddedLyrics?.length) return;
+    const index = parseInt(event.target.value, 10);
+    const nextLyrics = embeddedLyrics[index];
+    if (nextLyrics) {
+      setSelectedLyrics(nextLyrics);
+      setCurrentLineIndex(-1);
+    }
+  };
+
+  const formatTimestamp = (timestamp: number) => {
+    const minutes = Math.floor(timestamp / 60000);
+    const seconds = Math.floor((timestamp % 60000) / 1000);
+    const centiseconds = Math.floor((timestamp % 1000) / 10);
+    return `${minutes.toString().padStart(2, "0")}:${seconds
+      .toString()
+      .padStart(2, "0")}.${centiseconds.toString().padStart(2, "0")}`;
+  };
+
   const { lyrics, loading, error } = state;
+  const selectedIndex = selectedLyrics && embeddedLyrics ? embeddedLyrics.indexOf(selectedLyrics) : -1;
 
   return (
     <div className={styles.lyricsOverlay} onClick={handleOverlayClick} role="dialog" aria-modal="true">
       <div className={styles.lyricsContainer}>
         <header className={styles.lyricsHeader}>
-          <h3 className={styles.lyricsTitle}>{title} - {artist}</h3>
+          <div>
+            <h3 className={styles.lyricsTitle}>{title} - {artist}</h3>
+            {showEmbeddedLyrics && <p className={styles.lyricsSubtitle}>{t("lyrics.embeddedLyrics")}</p>}
+          </div>
           {onClose && <button className={styles.lyricsCloseButton} onClick={onClose}>×</button>}
         </header>
 
-        <div className={styles.lyricsContent}>
-          {loading && <div className={styles.loading}>{t("lyrics.loading")}</div>}
-          {error && (
-            <div className={styles.error}>
-              <p>{error}</p>
-              <button onClick={handleRetry} className={styles.retryButton}>{t("lyrics.tryAgain")}</button>
+        {showEmbeddedLyrics ? (
+          <div className={styles.embeddedContent}>
+            {embeddedLyrics && embeddedLyrics.length > 1 && (
+              <div className={styles.lyricsSelector}>
+                <select
+                  value={selectedIndex >= 0 ? selectedIndex : 0}
+                  onChange={handleEmbeddedSelectChange}
+                  className={styles.selector}
+                >
+                  {embeddedLyrics.map((lyricsOption, index) => (
+                    <option key={`${lyricsOption.synced ? "synced" : "unsynced"}-${index}`} value={index}>
+                      {lyricsOption.synced ? t("lyrics.synchronized") : t("lyrics.unsynchronized")}
+                      {lyricsOption.language && ` (${lyricsOption.language})`}
+                      {lyricsOption.description && ` - ${lyricsOption.description}`}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            <div className={styles.embeddedBody}>
+              {selectedLyrics ? (
+                selectedLyrics.synced && selectedLyrics.lines?.length ? (
+                  <div ref={lyricsRef} className={styles.syncedLyrics}>
+                    {selectedLyrics.lines.map((line, index) => (
+                      <div
+                        key={`${line.timestamp}-${index}`}
+                        className={`${styles.lyricsLine}${index === currentLineIndex ? ` ${styles.currentLine}` : ""}`}
+                      >
+                        <span className={styles.timestamp}>{formatTimestamp(line.timestamp)}</span>
+                        <span className={styles.lineText}>{line.text || "\u00a0"}</span>
+                      </div>
+                    ))}
+                  </div>
+                ) : selectedLyrics.text ? (
+                  <pre className={styles.unsyncedLyrics}>{selectedLyrics.text}</pre>
+                ) : (
+                  <div className={styles.noLyrics}>{t("lyrics.noEmbeddedLyrics")}</div>
+                )
+              ) : (
+                <div className={styles.noLyrics}>{t("lyrics.noEmbeddedLyrics")}</div>
+              )}
             </div>
-          )}
-          {!loading && !error && lyrics && <pre className={styles.lyricsText}>{lyrics}</pre>}
-          {!loading && !error && !lyrics && <div className={styles.error}>{t("lyrics.noLyricsAvailable")}</div>}
-        </div>
+          </div>
+        ) : (
+          <div className={styles.lyricsContent}>
+            {loading && <div className={styles.loading}>{t("lyrics.loading")}</div>}
+            {error && (
+              <div className={styles.error}>
+                <p>{error}</p>
+                <button onClick={handleRetry} className={styles.retryButton}>{t("lyrics.tryAgain")}</button>
+              </div>
+            )}
+            {!loading && !error && lyrics && <pre className={styles.lyricsText}>{lyrics}</pre>}
+            {!loading && !error && !lyrics && <div className={styles.error}>{t("lyrics.noLyricsAvailable")}</div>}
+          </div>
+        )}
       </div>
     </div>
   );

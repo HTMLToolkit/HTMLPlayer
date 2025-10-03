@@ -89,35 +89,6 @@
   opacity: 1;
 }
 
-.songTitle.scrollable {
-  display: inline-block;
-  animation: scrollTitle linear infinite;
-  /* Duration set inline */
-  animation-delay: 2s;
-  /* Brief pause before start */
-  will-change: transform;
-  /* Optimize rendering */
-  transform: translateZ(0);
-  /* Force GPU acceleration */
-  white-space: nowrap;
-}
-
-.songTitle.scrollable:hover {
-  animation-play-state: paused;
-}
-
-@keyframes scrollTitle {
-  0% {
-    transform: translateX(0);
-    /* Start at initial position */
-  }
-
-  100% {
-    transform: translateX(var(--scroll-distance));
-    /* Move to end and reset */
-  }
-}
-
 .artistName {
   font-family: var(--font-family-base);
   font-size: 0.875rem;

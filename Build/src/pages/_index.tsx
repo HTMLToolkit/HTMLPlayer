@@ -283,6 +283,7 @@ export default function IndexPage() {
             lastPlayedPlaylistId: undefined,
             language: "English",
             tempo: 1,
+            pitch: 0,
             discordEnabled: false
           }} />
         </div>

@@ -428,6 +428,7 @@
       "sessionRestore": "Restauration de Session",
       "sessionRestoreDesc": "Se souvenir et restaurer la dernière chanson et playlist jouée au démarrage de l'application",
       "tempo": "Tempo",
+      "pitch": "Hauteur",
       "gapless": "Lecture Sans Interruption",
       "gaplessDesc": "Jouer les pistes de manière consécutive sans pauses entre elles."
     },

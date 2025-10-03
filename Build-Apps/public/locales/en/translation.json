@@ -28,7 +28,11 @@
     "failedToLoad": "Failed to load lyrics",
     "loading": "Loading lyrics...",
     "tryAgain": "Try Again",
-    "noLyricsAvailable": "No lyrics available for this song."
+    "noLyricsAvailable": "No lyrics available for this song.",
+    "embeddedLyrics": "Embedded Lyrics",
+    "synchronized": "Synchronized",
+    "unsynchronized": "Unsynchronized",
+    "noEmbeddedLyrics": "No embedded lyrics found"
   },
   "delete": {
     "songTitle": "Delete Song",
@@ -190,7 +194,31 @@
   },
   "songInfo": {
     "title": "Title",
-    "songInfoTitle": "Song Information"
+    "songInfoTitle": "Song Information",
+    "encodingDetails": "Encoding & Format Details",
+    "bitrate": "Bitrate",
+    "codec": "Codec",
+    "sampleRate": "Sample Rate",
+    "channels": "Channels",
+    "bitDepth": "Bit Depth",
+    "container": "Container",
+    "profile": "Codec Profile",
+    "lossless": "Lossless",
+    "gapless": "Gapless Playback",
+    "encoderDelay": "Encoder Delay",
+    "encoderPadding": "Encoder Padding",
+    "notAvailable": "Not available",
+    "kbps": "{{value}} kbps",
+    "khz": "{{value}} kHz",
+    "bitDepthValue": "{{value}}-bit",
+    "channelMono": "Mono",
+    "channelStereo": "Stereo",
+    "channelCount": "{{count}} channels",
+    "samples_one": "{{count}} sample",
+    "samples_other": "{{count}} samples",
+    "ms": "{{value}} ms",
+    "yes": "Yes",
+    "no": "No"
   },
   "actions": {
     "selectAll": "Select All",
@@ -432,6 +460,7 @@
       "sessionRestore": "Session Restore",
       "sessionRestoreDesc": "Remember and restore the last played song and playlist when the app starts",
       "tempo": "Tempo",
+      "pitch": "Pitch",
       "gapless": "Gapless Playback",
       "gaplessDesc": "Play tracks back-to-back without any gaps between them."
     },

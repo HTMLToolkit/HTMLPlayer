@@ -1,12 +1,15 @@
 import { MutableRefObject } from "react";
 import { CrossfadeManager, AudioSource } from "./crossfadeHelper";
+import { calculateGaplessOffsets } from "./gaplessHelper";
 
 export const createCrossfadeManager = (
   audioRef: MutableRefObject<HTMLAudioElement | null>,
   nextAudioRef: MutableRefObject<HTMLAudioElement | null>,
   crossfadeManagerRef: MutableRefObject<CrossfadeManager | null>,
   currentAudioSourceRef: MutableRefObject<AudioSource | null>,
-  nextAudioSourceRef: MutableRefObject<AudioSource | null>
+  nextAudioSourceRef: MutableRefObject<AudioSource | null>,
+  gaplessAdvanceTriggeredRef?: MutableRefObject<boolean>,
+  gaplessStartAppliedRef?: MutableRefObject<boolean>
 ) => {
   const getValidTempo = (tempo: number | undefined) => {
     if (typeof tempo !== "number" || !Number.isFinite(tempo) || tempo <= 0) {
@@ -133,6 +136,15 @@ export const createCrossfadeManager = (
         // Trigger loading
         nextAudioRef.current!.load();
       });
+
+      const offsets = calculateGaplessOffsets(nextSong);
+      if (offsets.start > 0 && offsets.start < nextAudioRef.current.duration) {
+        try {
+          nextAudioRef.current.currentTime = offsets.start;
+        } catch (error) {
+          console.warn("CrossfadeUtils: Failed to apply gapless start offset to next track:", error);
+        }
+      }
 
       // Create and prepare audio source for crossfade manager
       if (
@@ -297,7 +309,9 @@ export const createCrossfadeManager = (
     setPlayerState: (updater: (prev: any) => any) => void,
     settingsRef: MutableRefObject<any>,
     audioContextRef?: MutableRefObject<AudioContext | null>,
-    invalidateNextSongCache?: () => void
+    invalidateNextSongCache?: () => void,
+    gaplessAdvanceTriggeredRefParam?: MutableRefObject<boolean>,
+    gaplessStartAppliedRefParam?: MutableRefObject<boolean>
   ) => {
     console.log("CrossfadeUtils: Starting crossfade transition...");
 
@@ -361,6 +375,29 @@ export const createCrossfadeManager = (
       // Prepare the next audio source
       await prepareNextSongForCrossfadeFunc(nextSong);
 
+      const offsets = calculateGaplessOffsets(nextSong);
+      const rawDuration =
+        nextAudioRef.current && Number.isFinite(nextAudioRef.current.duration)
+          ? nextAudioRef.current.duration
+          : nextSong.duration || 0;
+      const trimmedDuration = rawDuration - offsets.start - offsets.end;
+      const effectiveDuration =
+        Number.isFinite(trimmedDuration) && trimmedDuration > 0.1
+          ? trimmedDuration
+          : rawDuration;
+
+      if (gaplessAdvanceTriggeredRefParam) {
+        gaplessAdvanceTriggeredRefParam.current = false;
+      } else if (gaplessAdvanceTriggeredRef) {
+        gaplessAdvanceTriggeredRef.current = false;
+      }
+
+      if (gaplessStartAppliedRefParam) {
+        gaplessStartAppliedRefParam.current = offsets.start > 0;
+      } else if (gaplessStartAppliedRef) {
+        gaplessStartAppliedRef.current = offsets.start > 0;
+      }
+
       // Ensure audio context is running
       if (audioContextRef?.current?.state === "suspended") {
         console.log("CrossfadeUtils: Resuming audio context");
@@ -391,7 +428,10 @@ export const createCrossfadeManager = (
         ...prev,
         currentSong: nextSong,
         currentTime: 0, // Start from beginning for the new song
-        duration: nextSong.duration || 0,
+        duration:
+          effectiveDuration && effectiveDuration > 0
+            ? effectiveDuration
+            : nextSong.duration || 0,
         isPlaying: true,
       }));
 

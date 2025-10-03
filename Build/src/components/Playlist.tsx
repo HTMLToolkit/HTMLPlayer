@@ -41,6 +41,7 @@ import {
   DropdownMenuSeparator,
   useRightClickMenu,
 } from "./DropdownMenu";
+import { ScrollText } from "./ScrollText";
 
 interface PlaylistProps {
   musicPlayerHook: ReturnType<
@@ -319,7 +320,17 @@ export const PlaylistComponent = ({ musicPlayerHook }: PlaylistProps) => {
                 ) : (
                   getPlaylistIcon(item.name)
                 )}
-                {item.name}
+                <div className={styles.playlistNameWrapper}>
+                  <ScrollText
+                    text={item.name}
+                    textClassName={styles.playlistNameText}
+                    gap={12}
+                    speed={40}
+                    minDuration={6}
+                    pauseOnHover
+                    allowHTML={false}
+                  />
+                </div>
                 <span className={styles.songCount}>{item.songs.length}</span>
               </button>
             </DropZone>
@@ -413,7 +424,17 @@ export const PlaylistComponent = ({ musicPlayerHook }: PlaylistProps) => {
                       className={`${styles.chevron} ${isOpen ? styles.chevronOpen : ''}`}
                     />
                     <List size={16} />
-                    {item.name}
+                    <div className={styles.playlistNameWrapper}>
+                      <ScrollText
+                        text={item.name}
+                        textClassName={styles.playlistNameText}
+                        gap={12}
+                        speed={40}
+                        minDuration={6}
+                        pauseOnHover
+                        allowHTML={false}
+                      />
+                    </div>
                     <span className={styles.songCount}>{item.children.length}</span>
                   </button>
                 </CollapsibleTrigger>

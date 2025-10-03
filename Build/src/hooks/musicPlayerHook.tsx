@@ -12,6 +12,7 @@ import {
 } from "../helpers/shuffleManager";
 import { createCrossfadeManager } from "../helpers/crossfadeUtils";
 import { createAudioProcessor } from "../helpers/audioProcessor";
+import { calculateGaplessOffsets } from "../helpers/gaplessHelper";
 import { createPlaylistManager } from "../helpers/playlistManager";
 import { debounce } from "lodash";
 import { useTranslation } from "react-i18next";
@@ -29,6 +30,8 @@ export const useMusicPlayer = () => {
   const nextAudioSourceRef = useRef<AudioSource | null>(null);
   const preloadTimeoutRef = useRef<number | null>(null);
   const crossfadeTimeoutRef = useRef<number | null>(null);
+  const gaplessAdvanceTriggeredRef = useRef<boolean>(false);
+  const gaplessStartAppliedRef = useRef<boolean>(false);
 
   // Cache the next song decision
   const nextSongCacheRef = useRef<Song | null>(null);
@@ -67,6 +70,7 @@ export const useMusicPlayer = () => {
     lastPlayedPlaylistId: "none",
     language: "English",
     tempo: 1,
+    pitch: 0,
     gaplessPlayback: true,
     smartShuffle: true,
     discordEnabled: false,
@@ -135,7 +139,9 @@ export const useMusicPlayer = () => {
     nextAudioRef,
     crossfadeManagerRef,
     currentAudioSourceRef,
-    nextAudioSourceRef
+    nextAudioSourceRef,
+    gaplessAdvanceTriggeredRef,
+    gaplessStartAppliedRef
   );
   const audioProcessor = createAudioProcessor();
   const playlistManager = createPlaylistManager(
@@ -480,15 +486,21 @@ export const useMusicPlayer = () => {
     }
   }, [playerState.currentSong, playerState.currentPlaylist, isInitialized]);
 
-  // Update tempo when settings change
+  // Update tempo and pitch when settings change (combined playbackRate)
   useEffect(() => {
+    const tempoRate = getValidTempo(settings.tempo);
+    const pitchRate = Math.pow(2, settings.pitch / 12);
+    const combinedRate = tempoRate * pitchRate;
+    
     if (audioRef.current) {
-      audioRef.current.playbackRate = getValidTempo(settings.tempo);
+      audioRef.current.playbackRate = combinedRate;
     }
     if (nextAudioRef.current) {
-      nextAudioRef.current.playbackRate = getValidTempo(settings.tempo);
+      nextAudioRef.current.playbackRate = combinedRate;
     }
-  }, [settings.tempo]);
+  }, [settings.tempo, settings.pitch]);
+
+
 
   // Discord presence update function
   const updateDiscordPresence = useCallback(
@@ -623,9 +635,15 @@ export const useMusicPlayer = () => {
           crossfadeManagerRef.current.cancelCrossfade();
         }
 
+        gaplessAdvanceTriggeredRef.current = false;
+        gaplessStartAppliedRef.current = false;
+
         // Use the cached URL
         audioRef.current.src = cachedSong.url;
-        audioRef.current.playbackRate = getValidTempo(settingsRef.current.tempo);
+        // Apply combined tempo and pitch rate
+        const tempoRate = getValidTempo(settingsRef.current.tempo);
+        const pitchRate = Math.pow(2, settingsRef.current.pitch / 12);
+        audioRef.current.playbackRate = tempoRate * pitchRate;
 
         // Set up crossfade manager if needed
         if (!audioContextRef.current) setupAudioContext();
@@ -689,10 +707,12 @@ export const useMusicPlayer = () => {
     // Initialize primary audio element
     audioRef.current = new Audio();
     audioRef.current.crossOrigin = "anonymous";
+    // Initial playback rate will be set by the tempo/pitch effect
 
     // Initialize secondary audio element for crossfading
     nextAudioRef.current = new Audio();
     nextAudioRef.current.crossOrigin = "anonymous";
+    // Initial playback rate will be set by the tempo/pitch effect
 
     const audio = audioRef.current;
 
@@ -736,7 +756,17 @@ export const useMusicPlayer = () => {
         notCrossfading &&
         currentAudio
       ) {
-        const timeRemaining = currentAudio.duration - currentAudio.currentTime;
+        const offsets = gaplessEnabled
+          ? calculateGaplessOffsets(playerStateRef.current.currentSong)
+          : { start: 0, end: 0 };
+
+        const trimmedDuration = currentAudio.duration - offsets.start - offsets.end;
+        const effectiveDuration = Number.isFinite(trimmedDuration) && trimmedDuration > 0.1
+          ? trimmedDuration
+          : currentAudio.duration;
+        const elapsedInContent = Math.max(0, currentAudio.currentTime - offsets.start);
+        const timeRemaining = Math.max(0, effectiveDuration - elapsedInContent);
+        const hasMeaningfulGaplessOffsets = gaplessEnabled && (offsets.start > 0 || offsets.end > 0);
 
         if (crossfadeEnabled) {
           const crossfadeDuration = settingsRef.current.crossfade;
@@ -754,7 +784,9 @@ export const useMusicPlayer = () => {
             console.log("Triggering crossfade at", timeRemaining.toFixed(1), "seconds remaining");
             startCrossfadeTransition(
               playNextRef,
-              () => nextSongCacheRef.current || getAndCacheNextSong(playerStateRef, settingsRef, playHistoryRef),
+              () =>
+                nextSongCacheRef.current ||
+                getAndCacheNextSong(playerStateRef, settingsRef, playHistoryRef),
               (nextSong: Song) =>
                 prepareNextSongForCrossfade(
                   nextSong,
@@ -768,7 +800,9 @@ export const useMusicPlayer = () => {
               setPlayerState,
               settingsRef,
               audioContextRef,
-              invalidateNextSongCache
+              invalidateNextSongCache,
+              gaplessAdvanceTriggeredRef,
+              gaplessStartAppliedRef
             ).catch((error: any) => {
               console.error("Crossfade transition failed:", error);
             });
@@ -780,6 +814,17 @@ export const useMusicPlayer = () => {
               smartPreloadNextSong();
             }
           }
+
+          if (hasMeaningfulGaplessOffsets && timeRemaining <= 0.05 && !gaplessAdvanceTriggeredRef.current) {
+            gaplessAdvanceTriggeredRef.current = true;
+
+            if (autoPlayNext && playNextRef.current) {
+              playNextRef.current();
+            } else if (!autoPlayNext) {
+              currentAudio.pause();
+              setPlayerState((prev) => ({ ...prev, isPlaying: false }));
+            }
+          }
         }
       }
     };
@@ -788,9 +833,29 @@ export const useMusicPlayer = () => {
       const currentAudio = audioRef.current;
       if (!currentAudio) return;
 
+      let effectiveDuration = currentAudio.duration;
+
+      if (settingsRef.current.gaplessPlayback) {
+        const offsets = calculateGaplessOffsets(playerStateRef.current.currentSong);
+
+        if (!gaplessStartAppliedRef.current && offsets.start > 0 && offsets.start < currentAudio.duration) {
+          try {
+            currentAudio.currentTime = offsets.start;
+            gaplessStartAppliedRef.current = true;
+          } catch (error) {
+            console.warn("Failed to apply gapless start offset:", error);
+          }
+        }
+
+        const trimmedDuration = currentAudio.duration - offsets.start - offsets.end;
+        if (Number.isFinite(trimmedDuration) && trimmedDuration > 0.1) {
+          effectiveDuration = trimmedDuration;
+        }
+      }
+
       setPlayerState((prev) => ({
         ...prev,
-        duration: currentAudio.duration,
+        duration: effectiveDuration,
       }));
     };
 
@@ -849,7 +914,9 @@ export const useMusicPlayer = () => {
               // Start immediate crossfade with proper error handling
               startCrossfadeTransition(
                 playNextRef,
-                () => nextSongCacheRef.current || getAndCacheNextSong(playerStateRef, settingsRef, playHistoryRef),
+                () =>
+                  nextSongCacheRef.current ||
+                  getAndCacheNextSong(playerStateRef, settingsRef, playHistoryRef),
                 (nextSong: Song) =>
                   prepareNextSongForCrossfade(
                     nextSong,
@@ -863,7 +930,9 @@ export const useMusicPlayer = () => {
                 setPlayerState,
                 settingsRef,
                 audioContextRef,
-                invalidateNextSongCache
+                invalidateNextSongCache,
+                gaplessAdvanceTriggeredRef,
+                gaplessStartAppliedRef
               ).catch((error: any) => {
                 console.error("Immediate crossfade failed:", error);
                 // Fallback to regular playNext if crossfade fails

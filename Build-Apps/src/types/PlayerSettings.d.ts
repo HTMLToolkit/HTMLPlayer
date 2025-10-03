@@ -15,6 +15,7 @@ interface PlayerSettings {
   lastPlayedPlaylistId?: string;
   language: string;
   tempo: number;
+  pitch: number; // Pitch shift in semitones (-12 to +12), default: 0
   gaplessPlayback: boolean;
   smartShuffle: boolean;
   discordUserId?: string;

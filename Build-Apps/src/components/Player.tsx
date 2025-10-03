@@ -22,9 +22,9 @@ import { Lyrics } from "./Lyrics";
 import styles from "./Player.module.css";
 import { SongActionsDropdown } from "./SongActionsDropdown";
 import { useTranslation } from "react-i18next";
-import DOMPurify from "dompurify";
 import { toggleMiniplayer, isMiniplayerSupported } from "./Miniplayer";
 import { useAudioSync } from "../hooks/useAudioSync";
+import { ScrollText } from "./ScrollText";
 
 interface PlayerProps {
   musicPlayerHook: ReturnType<
@@ -52,6 +52,7 @@ export const Player = ({ musicPlayerHook, settings }: PlayerProps) => {
     seekTo,
     addToFavorites,
     removeFromFavorites,
+    isFavorited,
     toggleShuffle,
     toggleRepeat,
     createPlaylist,
@@ -198,44 +199,6 @@ export const Player = ({ musicPlayerHook, settings }: PlayerProps) => {
     else addToFavorites(currentSong.id);
   };
 
-  const titleRef = useRef<HTMLDivElement>(null);
-  const [scrollDistance, setScrollDistance] = useState("0px");
-  const [animationDuration, setAnimationDuration] = useState(0);
-
-  useEffect(() => {
-    const updateScroll = () => {
-      if (!titleRef.current || !currentSong) return;
-      const wrapper = titleRef.current.parentElement!;
-      const content = titleRef.current;
-
-      // Sanitize the title
-      const safeTitle = DOMPurify.sanitize(currentSong.title);
-
-      content.innerHTML = safeTitle;
-      const distance = content.scrollWidth - wrapper.clientWidth;
-
-      if (distance > 0) {
-        const gapWidth = 15;
-        const loopDistance = content.scrollWidth + gapWidth;
-        setScrollDistance(`-${loopDistance}px`);
-        setAnimationDuration(Math.max(10, loopDistance / 30));
-        content.classList.remove(styles.scrollable);
-        void content.offsetWidth;
-        content.innerHTML = `${safeTitle} &nbsp;&nbsp;&nbsp; ${safeTitle}`;
-        content.classList.add(styles.scrollable);
-      } else {
-        setScrollDistance("0px");
-        setAnimationDuration(0);
-        content.classList.remove(styles.scrollable);
-        content.innerHTML = safeTitle;
-      }
-    };
-
-    updateScroll();
-    window.addEventListener("resize", updateScroll);
-    return () => window.removeEventListener("resize", updateScroll);
-  }, [currentSong?.title, styles.scrollable]);
-
   const handleVisualizerToggle = () => setShowVisualizer((prev) => !prev);
   const handleLyricsToggle = () => setShowLyrics((prev) => !prev);
 
@@ -297,13 +260,13 @@ export const Player = ({ musicPlayerHook, settings }: PlayerProps) => {
           </div>
           <div className={styles.songInfo}>
             <div className={styles.songTitleWrapper}>
-              <div
-                ref={titleRef}
-                className={`${styles.songTitle} ${scrollDistance !== "0px" ? styles.scrollable : ""}`}
-                style={{ "--scroll-distance": scrollDistance, animationDuration: `${animationDuration}s`, opacity: currentSong?.title ? 1 : 0 } as React.CSSProperties}
-              >
-                {currentSong?.title || t("common.loading")}
-              </div>
+              <ScrollText
+                text={currentSong?.title || t("common.loading")}
+                textClassName={styles.songTitle}
+                textStyle={{ opacity: currentSong?.title ? 1 : 0 }}
+                allowHTML
+                pauseOnHover
+              />
             </div>
             <div className={styles.artistName}>{currentSong.artist}</div>
           </div>
@@ -386,11 +349,29 @@ export const Player = ({ musicPlayerHook, settings }: PlayerProps) => {
             </div>
           </div>
 
-          <SongActionsDropdown song={currentSong} library={library} onCreatePlaylist={createPlaylist} onAddToPlaylist={addToPlaylist} onPlaySong={playSong} onRemoveSong={removeSong} size={16} className={styles.moreButton} />
+          <SongActionsDropdown 
+            song={currentSong} 
+            library={library} 
+            onCreatePlaylist={createPlaylist} 
+            onAddToPlaylist={addToPlaylist} 
+            onAddToFavorites={addToFavorites}
+            isFavorited={isFavorited}
+            onPlaySong={playSong} 
+            onRemoveSong={removeSong} 
+            size={16} 
+            className={styles.moreButton} 
+          />
         </div>
 
         {showLyrics && currentSong && (
-          <Lyrics artist={currentSong.artist} title={currentSong.title} visible={showLyrics} onClose={() => setShowLyrics(false)} />
+          <Lyrics 
+            artist={currentSong.artist} 
+            title={currentSong.title} 
+            visible={showLyrics} 
+            onClose={() => setShowLyrics(false)}
+            embeddedLyrics={currentSong.embeddedLyrics}
+            currentTime={currentTime}
+          />
         )}
       </div >
     </>

@@ -1,27 +1,9 @@
-.lyricsHeader {
-  position: sticky;
-  top: 0; /* needed for sticky to take effect */
-  z-index: 10; /* above the scrollable content */
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: var(--spacing-2) var(--spacing-3);
-  font-size: 0.9rem;
-  font-weight: 600;
-  border-bottom: 1px solid var(--border);
-  color: var(--card-foreground);
-  flex-shrink: 0;
-  background: rgba(var(--card-rgb), 0.92);
-  backdrop-filter: blur(10px);
-}
-
-
 .lyricsOverlay {
   position: absolute;
   bottom: 100%;
   left: 0;
   right: 0;
-  height: 300px; /* keep this */
+  height: 300px;
   background: rgba(var(--card-rgb), 0.92);
   backdrop-filter: blur(10px);
   border: 1px solid var(--border);
@@ -31,18 +13,41 @@
   animation: slideUp var(--animation-duration-normal) ease-out;
   display: flex;
   flex-direction: column;
-  overflow: hidden; /* parent hides extra, only child scrolls */
-  overflow-y: auto; /* Temporary */ 
+  overflow: hidden;
 }
 
-.lyricsContent {
-  flex: 1 1 auto; /* fill remaining space */
-  overflow-y: auto; /* allow scrolling */
+.lyricsContainer {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.lyricsHeader {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--spacing-2);
   padding: var(--spacing-4);
-  font-size: 1rem;
-  white-space: pre-wrap;
-  line-height: 1.5;
-  color: var(--foreground);
+  border-bottom: 1px solid var(--border);
+  background: rgba(var(--card-rgb), 0.92);
+  backdrop-filter: blur(10px);
+}
+
+.lyricsTitle {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--card-foreground);
+}
+
+.lyricsSubtitle {
+  margin: 0;
+  margin-top: 2px;
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
 }
 
 .lyricsCloseButton {
@@ -60,10 +65,111 @@
   color: var(--foreground);
 }
 
-.loading,
+.lyricsContent,
+.embeddedBody {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  padding: var(--spacing-4);
+  color: var(--foreground);
+}
+
+.lyricsContent {
+  font-size: 1rem;
+  white-space: pre-wrap;
+  line-height: 1.5;
+}
+
+.lyricsText,
+.unsyncedLyrics {
+  margin: 0;
+  font-family: inherit;
+  font-size: 1rem;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+
+.embeddedContent {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.lyricsSelector {
+  padding: var(--spacing-3) var(--spacing-4) var(--spacing-1);
+}
+
+.selector {
+  width: 100%;
+  padding: var(--spacing-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: rgba(var(--background-rgb), 0.9);
+  color: var(--foreground);
+  font-size: 0.9rem;
+}
+
+.syncedLyrics {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1);
+}
+
+.lyricsLine {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--spacing-2);
+  padding: var(--spacing-1) var(--spacing-2);
+  border-radius: var(--radius-md);
+  transition: background-color var(--animation-duration-fast);
+}
+
+.currentLine {
+  background: rgba(var(--primary-rgb), 0.12);
+  color: var(--primary-foreground);
+}
+
+.timestamp {
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--muted-foreground);
+}
+
+.lineText {
+  font-size: 0.95rem;
+}
+
+
+.noLyrics {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100%;
+  text-align: center;
+  color: var(--muted-foreground);
+}
+
+.loading {
+  color: var(--muted-foreground);
+}
+
 .error {
   color: var(--error-foreground);
   font-weight: 500;
+}
+
+.retryButton {
+  margin-top: var(--spacing-2);
+  padding: var(--spacing-2) var(--spacing-3);
+  border-radius: var(--radius-md);
+  border: none;
+  background: var(--primary);
+  color: var(--primary-foreground);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.retryButton:hover {
+  filter: brightness(1.1);
 }
 
 @keyframes slideUp {
@@ -80,16 +186,32 @@
 
 @media (max-width: 768px) {
   .lyricsOverlay {
-    height: 200px;
+    height: 220px;
   }
 
-  .lyricsContent {
+  .lyricsContent,
+  .embeddedBody {
     font-size: 0.85rem;
     padding: var(--spacing-3);
   }
 
   .lyricsHeader {
     padding: var(--spacing-1) var(--spacing-2);
-    font-size: 0.8rem;
+  }
+
+  .lyricsTitle {
+    font-size: 0.85rem;
+  }
+
+  .lyricsSubtitle {
+    font-size: 0.7rem;
+  }
+
+  .timestamp {
+    font-size: 0.7rem;
+  }
+
+  .lineText {
+    font-size: 0.85rem;
   }
 }

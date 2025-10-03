@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, Fragment } from "react";
 import {
   Plus,
   Info,
@@ -6,12 +6,10 @@ import {
   User,
   Music,
   MoreHorizontal,
-  PlusCircle,
   Trash2,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "./Button";
-import { Input } from "./Input";
 import {
   Dialog,
   DialogContent,
@@ -28,6 +26,7 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
 } from "./DropdownMenu";
+import { AddToPopover } from "./AddToPopover";
 import { useTranslation } from "react-i18next";
 
 interface SongActionsDropdownProps {
@@ -35,6 +34,8 @@ interface SongActionsDropdownProps {
   library: MusicLibrary;
   onCreatePlaylist: (name: string, songs: Song[]) => Playlist;
   onAddToPlaylist: (playlistId: string, songId: string) => void;
+  onAddToFavorites?: (songId: string) => void;
+  isFavorited?: (songId: string) => boolean;
   onRemoveSong: (songId: string) => void;
   onPlaySong: (song: Song, playlist?: Playlist) => void;
   size?: number;
@@ -48,6 +49,8 @@ export const SongActionsDropdown = ({
   library,
   onCreatePlaylist,
   onAddToPlaylist,
+  onAddToFavorites,
+  isFavorited,
   onRemoveSong,
   size = 16,
   className = "",
@@ -55,58 +58,14 @@ export const SongActionsDropdown = ({
   onOpenChange: externalOnOpenChange,
 }: SongActionsDropdownProps) => {
   const { t } = useTranslation();
-  const [showPlaylistDialog, setShowPlaylistDialog] = useState(false);
+  const [showAddToPopover, setShowAddToPopover] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showInfoDialog, setShowInfoDialog] = useState(false);
-  const [newPlaylistName, setNewPlaylistName] = useState("");
-  const [isCreatingNew, setIsCreatingNew] = useState(false);
 
   // Use external state if provided, otherwise use internal state
   const [internalOpen, setInternalOpen] = useState(false);
   const open = externalOpen !== undefined ? externalOpen : internalOpen;
   const setOpen = externalOnOpenChange || setInternalOpen;
-
-  const getAllPlaylists = (items: (Playlist | PlaylistFolder)[]): Playlist[] => {
-    const result: Playlist[] = [];
-    for (const item of items) {
-      if ('children' in item) {
-        // This is a PlaylistFolder, recurse into children
-        result.push(...getAllPlaylists(item.children));
-      } else if ('songs' in item) {
-        // This is a Playlist
-        result.push(item);
-      }
-      // Skip items that are neither playlists nor folders
-    }
-    return result;
-  };
-
-  const allPlaylists = getAllPlaylists(library.playlists);
-
-  const handleAddToPlaylist = (playlist?: Playlist) => {
-    if (playlist) {
-      const isAlreadyInPlaylist = playlist.songs.some((s) => s.id === song.id);
-      if (isAlreadyInPlaylist) {
-        toast.info(t("songAlreadyInPlaylist", { song: song.title, playlist: playlist.name }));
-      } else {
-        onAddToPlaylist(playlist.id, song.id);
-        toast.success(t("addedToPlaylist", { song: song.title, playlist: playlist.name }));
-      }
-    }
-    setShowPlaylistDialog(false);
-  };
-
-  const handleCreateNewPlaylist = () => {
-    if (!newPlaylistName.trim()) {
-      toast.error(t("playlist.enterPlaylistName"));
-      return;
-    }
-    const newPlaylist = onCreatePlaylist(newPlaylistName, [song]);
-    toast.success(t("createdNewPlaylistAddedSong", { playlist: newPlaylist.name, song: song.title }));
-    setNewPlaylistName("");
-    setIsCreatingNew(false);
-    setShowPlaylistDialog(false);
-  };
 
   const formatTime = (seconds: number) => {
     const roundedSeconds = Math.round(seconds);
@@ -114,6 +73,113 @@ export const SongActionsDropdown = ({
     const secs = roundedSeconds % 60;
     return `${mins}:${secs.toString().padStart(2, "0")}`;
   };
+
+  const formatBitrate = (bitrate?: number) => {
+    if (typeof bitrate !== "number" || !Number.isFinite(bitrate) || bitrate <= 0) return null;
+    const kbps = Math.round(bitrate / 1000);
+    return t("songInfo.kbps", { value: kbps.toLocaleString() });
+  };
+
+  const formatSampleRate = (sampleRate?: number) => {
+    if (typeof sampleRate !== "number" || !Number.isFinite(sampleRate) || sampleRate <= 0) return null;
+    const khzValue = sampleRate / 1000;
+    const formatted = khzValue >= 100
+      ? khzValue.toFixed(0)
+      : khzValue >= 10
+        ? khzValue.toFixed(1)
+        : khzValue.toFixed(2);
+    return t("songInfo.khz", { value: formatted });
+  };
+
+  const formatChannels = (channels?: number) => {
+    if (typeof channels !== "number" || !Number.isFinite(channels) || channels <= 0) return null;
+    if (channels === 1) return t("songInfo.channelMono");
+    if (channels === 2) return t("songInfo.channelStereo");
+    return t("songInfo.channelCount", { count: channels });
+  };
+
+  const formatBitDepth = (bitDepth?: number) => {
+    if (typeof bitDepth !== "number" || !Number.isFinite(bitDepth) || bitDepth <= 0) return null;
+    return t("songInfo.bitDepthValue", { value: bitDepth });
+  };
+
+  const formatCodec = (codec?: string) => {
+    return codec?.trim() || null;
+  };
+
+  const formatLossless = (lossless?: boolean) => {
+    if (typeof lossless !== "boolean") return null;
+    return lossless ? t("songInfo.yes") : t("songInfo.no");
+  };
+
+  const sampleRateForGapless = song.encoding?.sampleRate;
+
+  const formatGaplessSamples = (samples?: number) => {
+    if (typeof samples !== "number" || !Number.isFinite(samples) || samples <= 0) return null;
+    const formattedSamples = t("songInfo.samples", { count: Math.round(samples), defaultValue: `${Math.round(samples).toLocaleString()} samples` });
+    if (typeof sampleRateForGapless === "number" && Number.isFinite(sampleRateForGapless) && sampleRateForGapless > 0) {
+      const milliseconds = (samples / sampleRateForGapless) * 1000;
+      const precision = milliseconds >= 100 ? 0 : milliseconds >= 10 ? 1 : 2;
+      const formattedMs = (Math.round(milliseconds * Math.pow(10, precision)) / Math.pow(10, precision)).toFixed(precision);
+      return `${formattedSamples} (${t("songInfo.ms", { value: formattedMs })})`;
+    }
+    return formattedSamples;
+  };
+
+  const primaryEntries = [
+    { label: t("songInfo.title"), value: song.title },
+    { label: t("common.artist"), value: song.artist },
+    { label: t("common.album"), value: song.album },
+    { label: t("common.duration"), value: formatTime(song.duration) },
+  ];
+
+  const codecValue = formatCodec(song.encoding?.codec) ?? t("songInfo.notAvailable");
+  const bitrateValue = formatBitrate(song.encoding?.bitrate) ?? t("songInfo.notAvailable");
+  const sampleRateValue = formatSampleRate(song.encoding?.sampleRate) ?? t("songInfo.notAvailable");
+  const channelValue = formatChannels(song.encoding?.channels) ?? t("songInfo.notAvailable");
+  const bitDepthValue = formatBitDepth(song.encoding?.bitsPerSample) ?? t("songInfo.notAvailable");
+
+  const encodingEntries = [
+    { label: t("songInfo.codec"), value: codecValue },
+    { label: t("songInfo.bitrate"), value: bitrateValue },
+    { label: t("songInfo.sampleRate"), value: sampleRateValue },
+    { label: t("songInfo.channels"), value: channelValue },
+    { label: t("songInfo.bitDepth"), value: bitDepthValue },
+  ];
+
+  if (song.encoding?.container?.trim()) {
+    encodingEntries.push({ label: t("songInfo.container"), value: song.encoding.container.trim() });
+  }
+  if (song.encoding?.profile?.trim()) {
+    encodingEntries.push({ label: t("songInfo.profile"), value: song.encoding.profile.trim() });
+  }
+  const losslessValue = formatLossless(song.encoding?.lossless);
+  if (losslessValue) {
+    encodingEntries.push({ label: t("songInfo.lossless"), value: losslessValue });
+  }
+
+  const gaplessEntries = [
+    { label: t("songInfo.encoderDelay"), value: formatGaplessSamples(song.gapless?.encoderDelay) },
+    { label: t("songInfo.encoderPadding"), value: formatGaplessSamples(song.gapless?.encoderPadding) },
+  ].filter((entry) => Boolean(entry.value)) as Array<{ label: string; value: string }>;
+
+  const renderDetails = (entries: Array<{ label: string; value: string }>) => (
+    <dl
+      style={{
+        display: "grid",
+        gridTemplateColumns: "minmax(0, 1fr) auto",
+        columnGap: "var(--spacing-6)",
+        rowGap: "var(--spacing-2)",
+      }}
+    >
+      {entries.map(({ label, value }) => (
+        <Fragment key={`${label}-${value}`}>
+          <dt style={{ fontWeight: 600 }}>{label}</dt>
+          <dd style={{ margin: 0, textAlign: "right", color: "var(--muted-foreground)" }}>{value}</dd>
+        </Fragment>
+      ))}
+    </dl>
+  );
 
   const handleShowSongInfo = () => setShowInfoDialog(true);
 
@@ -186,7 +252,7 @@ export const SongActionsDropdown = ({
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" sideOffset={8}>
-        <DropdownMenuItem onClick={() => setShowPlaylistDialog(true)}>
+        <DropdownMenuItem onClick={() => setShowAddToPopover(true)}>
           <Plus size={size} style={{ marginRight: 8 }} />
           {t("playlist.addTo")}
         </DropdownMenuItem>
@@ -218,6 +284,18 @@ export const SongActionsDropdown = ({
         </DropdownMenuItem>
       </DropdownMenuContent>
 
+      {/* Add To Popover */}
+      <AddToPopover
+        songs={[song]}
+        library={library}
+        onCreatePlaylist={onCreatePlaylist}
+        onAddToPlaylist={onAddToPlaylist}
+        onAddToFavorites={onAddToFavorites}
+        isFavorited={isFavorited}
+        open={showAddToPopover}
+        onOpenChange={setShowAddToPopover}
+      />
+
       {/* Delete Confirmation Dialog */}
       <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <DialogContent>
@@ -241,74 +319,6 @@ export const SongActionsDropdown = ({
         </DialogContent>
       </Dialog>
 
-      {/* Playlist Dialog */}
-      <Dialog open={showPlaylistDialog} onOpenChange={setShowPlaylistDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{t("playlist.addTo")}</DialogTitle>
-            <DialogDescription>
-              {t("choosePlaylistOrCreate", { song: song.title })}
-            </DialogDescription>
-          </DialogHeader>
-
-          {isCreatingNew ? (
-            <div className={modalStyles.spaceY4}>
-              <Input
-                placeholder={t("playlist.enterPlaylistName")}
-                value={newPlaylistName}
-                onChange={(e) => setNewPlaylistName(e.target.value)}
-              />
-              <div className={`${modalStyles.flex} ${modalStyles.gap2}`}>
-                <Button
-                  variant="outline"
-                  onClick={() => setIsCreatingNew(false)}
-                >
-                  {t("common.cancel")}
-                </Button>
-                <Button onClick={handleCreateNewPlaylist}>
-                  {t("playlist.createPlaylist")}
-                </Button>
-              </div>
-            </div>
-          ) : (
-            <div className={modalStyles.spaceY4}>
-              {allPlaylists.length > 0 ? (
-                <div className={modalStyles.spaceY2}>
-                  {allPlaylists.map((playlist) => (
-                      <div
-                        key={playlist.id}
-                        className={`${modalStyles.flex} ${modalStyles.gap2}`}
-                      >
-                        <Button
-                          variant="outline"
-                          className={`${modalStyles["w-full"]} ${modalStyles["justify-start"]}`}
-                          onClick={() => handleAddToPlaylist(playlist)}
-                        >
-                          <Music size={16} className="mr-2" />
-                          {playlist.name}
-                        </Button>
-                      </div>
-                    ))}
-                </div>
-              ) : (
-                <p className={modalStyles.muted}>
-                  {t("playlist.noPlaylistsYet")}
-                </p>
-              )}
-
-              <Button
-                variant="outline"
-                className={modalStyles["w-full"]}
-                onClick={() => setIsCreatingNew(true)}
-              >
-                <PlusCircle size={16} className="mr-2" />
-                {t("playlist.createNewPlaylist")}
-              </Button>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
-
       {/* Song Info Dialog */}
       <Dialog open={showInfoDialog} onOpenChange={setShowInfoDialog}>
         <DialogContent>
@@ -329,19 +339,24 @@ export const SongActionsDropdown = ({
                 }}
               />
             )}
-            <div className={modalStyles.spaceY4}>
-              <p>
-                <strong>{t("songInfo.title")}:</strong> {song.title}
-              </p>
-              <p>
-                <strong>{t("common.artist")}:</strong> {song.artist}
-              </p>
-              <p>
-                <strong>{t("common.album")}:</strong> {song.album}
-              </p>
-              <p>
-                <strong>{t("common.duration")}:</strong> {formatTime(song.duration)}
-              </p>
+            <div className={modalStyles.spaceY4} style={{ flex: 1 }}>
+              <div>
+                {renderDetails(primaryEntries)}
+              </div>
+              <div>
+                <h4 style={{ margin: 0, marginBottom: "var(--spacing-2)", fontSize: "0.85rem", textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--muted-foreground)" }}>
+                  {t("songInfo.encodingDetails")}
+                </h4>
+                {renderDetails(encodingEntries)}
+              </div>
+              {gaplessEntries.length > 0 && (
+                <div>
+                  <h4 style={{ margin: 0, marginBottom: "var(--spacing-2)", fontSize: "0.85rem", textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--muted-foreground)" }}>
+                    {t("songInfo.gapless")}
+                  </h4>
+                  {renderDetails(gaplessEntries)}
+                </div>
+              )}
             </div>
           </div>
           <DialogFooter>

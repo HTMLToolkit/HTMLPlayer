@@ -10,6 +10,17 @@ export interface AudioSource {
   id: string;
 }
 
+/**
+ * Validate and clamp pitch value
+ */
+function getValidPitch(pitch: number | undefined): number {
+  if (typeof pitch !== 'number' || !Number.isFinite(pitch)) {
+    return 0; // Default to no pitch shift
+  }
+  // Clamp to -12 to +12 semitones
+  return Math.max(-12, Math.min(12, pitch));
+}
+
 export class CrossfadeManager {
   private audioContext: AudioContext;
   private masterGain: GainNode;
@@ -24,6 +35,9 @@ export class CrossfadeManager {
 
   // Track which audio element is the "active" one for UI updates
   private activeElement: HTMLAudioElement | null = null;
+  
+  // Current pitch setting
+  private currentPitch: number = 0;
 
   constructor(audioContext: AudioContext) {
     this.audioContext = audioContext;
@@ -420,6 +434,20 @@ export class CrossfadeManager {
     if (this.activeElement) {
       this.activeElement.pause();
     }
+  }
+
+  /**
+   * Update pitch for all audio sources
+   */
+  setPitch(pitch: number) {
+    this.currentPitch = getValidPitch(pitch);
+  }
+
+  /**
+   * Get current pitch setting
+   */
+  getPitch(): number {
+    return this.currentPitch;
   }
 
   /**

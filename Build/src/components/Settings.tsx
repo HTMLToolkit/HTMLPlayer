@@ -71,6 +71,7 @@ export const Settings = ({
         colorTheme: defaultThemeName,
         language: "English",
         tempo: 1,
+        pitch: 0,
         discordEnabled: false,
         discordUserId: undefined,
       });
@@ -179,6 +180,35 @@ export const Settings = ({
                   }}
                   min={50}
                   max={150}
+                  step={1}
+                  className={styles.slider}
+                />
+              </div>
+
+              <div className={styles.settingItem}>
+                <div className={styles.settingLabel}>
+                  <label htmlFor="pitch-slider">
+                    {t("settings.playback.pitch")}
+                  </label>
+                  <span className={styles.settingValue}>
+                    {settings.pitch === 0 ? '0' : (settings.pitch > 0 ? `+${settings.pitch}` : settings.pitch)}
+                  </span>
+                </div>
+                <Slider
+                  id="pitch-slider"
+                  value={[settings.pitch]}
+                  onValueChange={(val) => {
+                    let newVal = val[0];
+
+                    // Snap to 0 if within ±0.5 semitones
+                    if (Math.abs(newVal) <= 0.5) {
+                      newVal = 0;
+                    }
+
+                    onSettingsChange({ pitch: newVal });
+                  }}
+                  min={-12}
+                  max={12}
                   step={1}
                   className={styles.slider}
                 />

@@ -23,6 +23,133 @@ export interface AudioMetadata {
   album: string;
   duration: number;
   albumArt?: string;
+  embeddedLyrics?: EmbeddedLyrics[];
+  encoding?: EncodingDetails;
+  gapless?: GaplessInfo;
+  metadataWarnings?: string[];
+}
+
+export interface EncodingDetails {
+  bitrate?: number;
+  codec?: string;
+  sampleRate?: number;
+  channels?: number;
+  bitsPerSample?: number;
+  container?: string;
+  lossless?: boolean;
+  profile?: string;
+}
+
+export interface GaplessInfo {
+  encoderDelay?: number;
+  encoderPadding?: number;
+}
+
+function buildEncodingDetails(format: any): EncodingDetails | undefined {
+  if (!format) return undefined;
+
+  const details: EncodingDetails = {
+    bitrate: typeof format.bitrate === "number" ? format.bitrate : undefined,
+    codec: typeof format.codec === "string" ? format.codec : undefined,
+    sampleRate: typeof format.sampleRate === "number" ? format.sampleRate : undefined,
+    channels: typeof format.numberOfChannels === "number" ? format.numberOfChannels : undefined,
+    bitsPerSample: typeof format.bitsPerSample === "number" ? format.bitsPerSample : undefined,
+    container: typeof format.container === "string" ? format.container : undefined,
+    lossless: typeof format.lossless === "boolean" ? format.lossless : undefined,
+    profile: typeof format.codecProfile === "string" ? format.codecProfile : undefined,
+  };
+
+  return Object.values(details).some((value) => value !== undefined) ? details : undefined;
+}
+
+function normaliseTagValue(value: unknown): string | null {
+  if (typeof value === "string") return value;
+  if (value instanceof Uint8Array) {
+    try {
+      return new TextDecoder("utf-8", { fatal: false }).decode(value);
+    } catch {
+      return null;
+    }
+  }
+  if (Array.isArray(value) && value.length > 0) {
+    return normaliseTagValue(value[0]);
+  }
+  return null;
+}
+
+function parseItunesGapless(value: unknown): GaplessInfo | null {
+  const raw = normaliseTagValue(value);
+  if (!raw) return null;
+  const cleaned = raw.trim();
+  if (!cleaned) return null;
+
+  const hexMatches = cleaned.match(/[0-9A-Fa-f]{8}/g);
+  if (!hexMatches || hexMatches.length < 3) return null;
+
+  const delayHex = hexMatches[1];
+  const paddingHex = hexMatches[2];
+
+  const encoderDelay = Number.parseInt(delayHex, 16);
+  const encoderPadding = Number.parseInt(paddingHex, 16);
+
+  const result: GaplessInfo = {};
+  if (Number.isFinite(encoderDelay) && encoderDelay > 0) {
+    result.encoderDelay = encoderDelay;
+  }
+  if (Number.isFinite(encoderPadding) && encoderPadding > 0) {
+    result.encoderPadding = encoderPadding;
+  }
+
+  return Object.keys(result).length > 0 ? result : null;
+}
+
+function buildGaplessInfo(metadata: any): GaplessInfo | undefined {
+  if (!metadata) return undefined;
+
+  let gapless: GaplessInfo | undefined;
+  const format = metadata.format ?? {};
+
+  const encoderDelay = typeof format.encoderDelay === "number" ? format.encoderDelay : undefined;
+  if (typeof encoderDelay === "number" && Number.isFinite(encoderDelay) && encoderDelay > 0) {
+    gapless = { ...(gapless ?? {}), encoderDelay };
+  }
+
+  const encoderPadding = typeof format.encoderPadding === "number" ? format.encoderPadding : undefined;
+  if (typeof encoderPadding === "number" && Number.isFinite(encoderPadding) && encoderPadding > 0) {
+    gapless = { ...(gapless ?? {}), encoderPadding };
+  }
+
+  for (const tagList of Object.values(metadata?.native ?? {})) {
+    if (!Array.isArray(tagList)) continue;
+    for (const tag of tagList) {
+      const id = typeof tag?.id === "string" ? tag.id.toUpperCase() : "";
+      if (!id) continue;
+
+      if (id === "ITUNSMPB" || id.endsWith(":ITUNSMPB")) {
+        const parsed = parseItunesGapless(tag?.value);
+        if (parsed) gapless = { ...(gapless ?? {}), ...parsed };
+        continue;
+      }
+
+      if (id === "MP4:----:COM.APPLE.ITUNES:ITUNSMPB" || id === "----:COM.APPLE.ITUNES:ITUNSMPB") {
+        const parsed = parseItunesGapless(tag?.value);
+        if (parsed) gapless = { ...(gapless ?? {}), ...parsed };
+      }
+    }
+  }
+
+  return gapless;
+}
+
+export interface EmbeddedLyrics {
+  synced: boolean;
+  language?: string;
+  description?: string;
+  text?: string; // for unsynchronized lyrics
+  lines?: Array<{ // for synchronized lyrics
+    text: string;
+    timestamp: number;
+  }>;
 }
 
 // Track processing state for beforeunload prompt
@@ -208,7 +335,7 @@ export async function extractAudioMetadata(file: File): Promise<AudioMetadata> {
     const result = await withTimeoutAndRetry(
       new Promise<AudioMetadata>((resolve, reject) => {
         worker.onmessage = (event) => {
-          const { metadata, albumArt, error } = event.data;
+          const { metadata, albumArt, warnings, error } = event.data;
           if (error) reject(new Error(error));
           else {
             // Translate placeholder values from worker
@@ -216,8 +343,15 @@ export async function extractAudioMetadata(file: File): Promise<AudioMetadata> {
               ...metadata,
               artist: metadata.artist === "__UNKNOWN_ARTIST__" ? i18n.t("common.unknownArtist") : metadata.artist,
               album: metadata.album === "__UNKNOWN_ALBUM__" ? i18n.t("common.unknownAlbum") : metadata.album,
-              albumArt
+              albumArt,
+              metadataWarnings: Array.isArray(warnings) ? warnings : undefined
             };
+
+            if (Array.isArray(warnings) && warnings.length > 0) {
+              for (const warning of warnings) {
+                console.warn(`Metadata warning for ${file.name}:`, warning);
+              }
+            }
             resolve(translatedMetadata);
           }
         };
@@ -232,7 +366,13 @@ export async function extractAudioMetadata(file: File): Promise<AudioMetadata> {
   } catch (e) {
     console.warn(`Failed to read metadata for ${file.name}:`, e);
     const fileName = file.name.replace(/\.[^/.]+$/, "");
-    let title = fileName, artist = i18n.t("common.unknownArtist"), album = i18n.t("common.unknownAlbum"), duration = 0, albumArt: string | undefined;
+    let title = fileName,
+      artist = i18n.t("common.unknownArtist"),
+      album = i18n.t("common.unknownAlbum"),
+      duration = 0,
+      albumArt: string | undefined,
+      encoding: EncodingDetails | undefined,
+      gapless: GaplessInfo | undefined;
 
     try {
       const metadata = await withTimeoutAndRetry(
@@ -247,6 +387,8 @@ export async function extractAudioMetadata(file: File): Promise<AudioMetadata> {
         if (typeof metadata.common.title === "string") title = metadata.common.title;
         if (typeof metadata.common.album === "string") album = metadata.common.album;
         duration = metadata.format.duration ?? 0;
+        encoding = buildEncodingDetails(metadata.format);
+        gapless = buildGaplessInfo(metadata);
 
         const cover = selectCover(metadata.common.picture);
         if (cover && cover.data.length > 0) {
@@ -269,7 +411,7 @@ export async function extractAudioMetadata(file: File): Promise<AudioMetadata> {
       }
     }
 
-    return { title, artist, album, duration, albumArt };
+    return { title, artist, album, duration, albumArt, encoding, gapless };
   } finally {
     worker.terminate();
     setProcessingState(false);

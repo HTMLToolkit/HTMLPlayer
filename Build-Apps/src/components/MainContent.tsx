@@ -3,20 +3,18 @@ import {
   Search,
   Trash2,
   Plus,
-  ThumbsUp,
-  ThumbsDown,
-  Heart,
-  PlusCircle,
-  Music,
-  ListChecks,
   ArrowUpDown,
-  ArrowUp,
-  ArrowDown,
-  X,
   Type,
   User,
   Disc,
   Star,
+  ArrowUp,
+  ArrowDown,
+  X,
+  ListChecks,
+  Heart,
+  ThumbsUp,
+  ThumbsDown,
 } from "lucide-react";
 import { DraggableItem, DropZone } from "./Draggable";
 import { SongActionsDropdown } from "./SongActionsDropdown";
@@ -39,9 +37,9 @@ import {
   DialogDescription,
   DialogFooter,
 } from "./Dialog";
-import modalStyles from "./Dialog.module.css";
 import styles from "./MainContent.module.css";
 import PersistentDropdownMenu, { PersistentDropdownMenuRef } from "./PersistentDropdownMenu";
+import { AddToPopover } from "./AddToPopover";
 import { useTranslation } from "react-i18next";
 
 interface SortableSongItemProps {
@@ -177,8 +175,6 @@ export const MainContent = ({ musicPlayerHook }: MainContentProps) => {
   const [selectedSongs, setSelectedSongs] = useState<string[]>([]);
   const [isSelectSongsActive, setIsSelectSongsActive] = useState(false);
   const [showPlaylistDialog, setShowPlaylistDialog] = useState(false);
-  const [newPlaylistName, setNewPlaylistName] = useState("");
-  const [isCreatingNew, setIsCreatingNew] = useState(false);
   const sortDropdownRef = React.useRef<PersistentDropdownMenuRef>(null);
 
   const {
@@ -360,6 +356,9 @@ export const MainContent = ({ musicPlayerHook }: MainContentProps) => {
               duration: metadata.duration,
               url: audioUrl,
               albumArt: metadata.albumArt,
+              embeddedLyrics: metadata.embeddedLyrics,
+              encoding: metadata.encoding,
+              gapless: metadata.gapless,
             };
             await addSong(song);
             successCount++;
@@ -396,49 +395,7 @@ export const MainContent = ({ musicPlayerHook }: MainContentProps) => {
     else setSelectedSongs(sortedSongs.map((song) => song.id));
   };
 
-  const getAllPlaylists = (items: (Playlist | PlaylistFolder)[]): Playlist[] => {
-    const result: Playlist[] = [];
-    for (const item of items) {
-      if ('children' in item) {
-        // This is a PlaylistFolder, recurse into children
-        result.push(...getAllPlaylists(item.children));
-      } else if ('songs' in item) {
-        // This is a Playlist
-        result.push(item);
-      }
-      // Skip items that are neither playlists nor folders
-    }
-    return result;
-  };
-
   const handleAddToPlaylist = () => setShowPlaylistDialog(true);
-
-  const handleCreateNewPlaylist = () => {
-    if (!newPlaylistName.trim()) {
-      toast.error(t("playlist.enterName"));
-      return;
-    }
-    const newPlaylist = createPlaylist(
-      newPlaylistName,
-      selectedSongs
-        .map((songId) => library.songs.find((s) => s.id === songId))
-        .filter((song): song is Song => song !== undefined)
-    );
-    toast.success(
-      t("playlist.created", { name: newPlaylist.name, count: selectedSongs.length })
-    );
-    setNewPlaylistName("");
-    setIsCreatingNew(false);
-    setShowPlaylistDialog(false);
-  };
-
-  const handleAddToExistingPlaylist = (playlistId: string) => {
-    selectedSongs.forEach((songId) => addToPlaylist(playlistId, songId));
-    toast.success(
-      t("playlist.addedToExisting", { count: selectedSongs.length })
-    );
-    setShowPlaylistDialog(false);
-  };
 
   const handleDeleteSelectedSongs = () => {
     selectedSongs.forEach((songId) => removeSong(songId));
@@ -612,74 +569,15 @@ export const MainContent = ({ musicPlayerHook }: MainContentProps) => {
         </DialogContent>
       </Dialog>
 
-
-
-      {/* Playlist Dialog */}
-      <Dialog open={showPlaylistDialog} onOpenChange={setShowPlaylistDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{t("playlist.addTo")}</DialogTitle>
-            <DialogDescription>
-              {selectedSongs.length === 1
-                ? t("choosePlaylistOrCreate", { song: library.songs.find(s => s.id === selectedSongs[0])?.title || "Unknown" })
-                : t("choosePlaylistOrCreateMultiple", { count: selectedSongs.length })}
-            </DialogDescription>
-          </DialogHeader>
-
-          {isCreatingNew ? (
-            <div className={modalStyles.spaceY4}>
-              <Input
-                placeholder={t("playlist.enterName")}
-                value={newPlaylistName}
-                onChange={(e: any) => setNewPlaylistName(e.target.value)}
-              />
-              <div className={`${modalStyles.flex} ${modalStyles.gap2}`}>
-                <Button variant="outline" onClick={() => setIsCreatingNew(false)}>
-                  {t("common.cancel")}
-                </Button>
-                <Button onClick={handleCreateNewPlaylist}>
-                  {t("create")}
-                </Button>
-              </div>
-            </div>
-          ) : (
-            <div className={modalStyles.spaceY4}>
-              {getAllPlaylists(library.playlists).filter((p) => p.id !== "all-songs").length > 0 ? (
-                <div className={modalStyles.spaceY2}>
-                  {getAllPlaylists(library.playlists)
-                    .filter((playlist) => playlist.id !== "all-songs")
-                    .map((playlist) => (
-                      <div
-                        key={playlist.id}
-                        className={`${modalStyles.flex} ${modalStyles.gap2}`}
-                      >
-                        <Button
-                          variant="outline"
-                          className={`${modalStyles["w-full"]} ${modalStyles["justify-start"]}`}
-                          onClick={() => handleAddToExistingPlaylist(playlist.id)}
-                        >
-                          <Music size={16} className="mr-2" />
-                          {playlist.name}
-                        </Button>
-                      </div>
-                    ))}
-                </div>
-              ) : (
-                <p className={modalStyles.muted}>{t("playlist.noPlaylists")}</p>
-              )}
-
-              <Button
-                variant="outline"
-                className={modalStyles["w-full"]}
-                onClick={() => setIsCreatingNew(true)}
-              >
-                <PlusCircle size={16} className="mr-2" />
-                {t("playlist.createNewPlaylist")}
-              </Button>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
+      {/* Add To Popover */}
+      <AddToPopover
+        songs={selectedSongs.map((id) => library.songs.find((s) => s.id === id)).filter((s): s is Song => s !== undefined)}
+        library={library}
+        onCreatePlaylist={createPlaylist}
+        onAddToPlaylist={addToPlaylist}
+        open={showPlaylistDialog}
+        onOpenChange={setShowPlaylistDialog}
+      />
     </div>
   );
 };
