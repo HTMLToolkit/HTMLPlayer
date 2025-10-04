@@ -15,7 +15,6 @@
 
 .scrolling {
   animation: scrollText var(--scroll-duration, 15s) linear infinite;
-  gap: var(--scroll-gap, 24px);
 }
 
 .pauseOnHover:hover .scrolling {

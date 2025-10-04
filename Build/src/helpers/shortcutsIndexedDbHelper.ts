@@ -1,3 +1,5 @@
+import i18n from "i18next";
+
 export interface KeyboardShortcut {
   id: string;
   key: string;
@@ -211,7 +213,7 @@ class ShortcutsIndexedDbHelper {
       };
 
       request.onerror = () => {
-        reject(new Error('Failed to save shortcut'));
+        reject(new Error(i18n.t("settings.shortcuts.failedToSaveGeneral")));
       };
     });
   }
@@ -239,7 +241,7 @@ class ShortcutsIndexedDbHelper {
           promises.push(new Promise((resolveShortcut, rejectShortcut) => {
             const addRequest = store.add(shortcut);
             addRequest.onsuccess = () => resolveShortcut();
-            addRequest.onerror = () => rejectShortcut(new Error(`Failed to save shortcut ${shortcut.id}`));
+            addRequest.onerror = () => rejectShortcut(new Error(i18n.t("settings.shortcuts.failedToSave") + ` ${shortcut.id}`));
           }));
         });
 

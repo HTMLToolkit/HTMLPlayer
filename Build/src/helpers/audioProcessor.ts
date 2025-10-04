@@ -1,5 +1,6 @@
 import { toast } from "sonner";
 import { musicIndexedDbHelper } from "./musicIndexedDbHelper";
+import i18n from "i18next";
 
 export const createAudioProcessor = () => {
   
@@ -9,7 +10,7 @@ export const createAudioProcessor = () => {
     let processedCount = 0;
 
     // Show initial toast
-    const toastId = toast.loading(`Processing 0/${totalSongs} songs...`);
+    const toastId = toast.loading(i18n.t("audioProcessor.processingZero", { totalSongs }));
 
     for (const song of songs) {
       if (song.url.startsWith("blob:")) {
@@ -35,20 +36,20 @@ export const createAudioProcessor = () => {
           processedCount++;
           // Update toast with progress
           toast.loading(
-            `Processing ${processedCount}/${totalSongs} songs...`,
+            i18n.t("audioProcessor.processing", { processedCount, totalSongs }),
             {
               id: toastId,
-              description: `Current: ${song.title}`,
+              description: i18n.t("audioProcessor.current", { songTitle: song.title }),
             }
           );
         } catch (error) {
           const err = error as Error;
           console.error(
-            `Failed to process audio for song: ${song.title}`,
+            i18n.t("audioProcessor.failedToProcess", { songTitle: song.title }),
             err
           );
           toast.error(`Failed to process "${song.title}"`, {
-            description: err.message || "Unknown error occurred",
+            description: err.message || i18n.t("common.unknownError"),
           });
           processedSongs.push(song);
         }
@@ -59,7 +60,7 @@ export const createAudioProcessor = () => {
     }
 
     // Show completion toast
-    toast.success(`Processed ${processedCount} songs`, {
+    toast.success(i18n.t("audioProcessor.processed", { processedCount }), {
       id: toastId,
     });
 

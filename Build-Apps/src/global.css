@@ -160,3 +160,11 @@ html {
   margin: 0;
   opacity: 0.9;
 }
+
+/* Mobile-specific CSS variable overrides */
+@media (max-width: 768px) {
+  :root {
+    --sidebar-width: 0px;
+    /* Sidebar is overlay on mobile, doesn't affect layout */
+  }
+}

@@ -16,11 +16,17 @@ const COLORS = {
 
 const args = process.argv.slice(2);
 let ignorePatterns = [];
+let ignoreConsole = false;
+let ignoreThrows = false;
 
 for (let i = 0; i < args.length; i++) {
   if (args[i] === "-I" && args[i + 1]) {
     ignorePatterns.push(new RegExp(args[i + 1]));
     i++;
+  } else if (args[i] === "--ignore-console") {
+    ignoreConsole = true;
+  } else if (args[i] === "--ignore-throws") {
+    ignoreThrows = true;
   }
 }
 
@@ -37,8 +43,56 @@ function scanFile(filePath) {
   const content = fs.readFileSync(filePath, "utf-8");
   const lines = content.split("\n");
 
+  let inConsoleCall = false;
+  let inThrowStatement = false;
+  let parenDepth = 0;
+
   lines.forEach((line, index) => {
     if (/^\s*(import|export)\s/.test(line) || /require\s*\(/.test(line)) return;
+
+    // Track multi-line console calls
+    if (ignoreConsole) {
+      if (!inConsoleCall && /console\.\w+\s*\(/.test(line)) {
+        inConsoleCall = true;
+        parenDepth = 0;
+      }
+      
+      if (inConsoleCall) {
+        // Count parentheses to track when the console call ends
+        for (let char of line) {
+          if (char === '(') parenDepth++;
+          if (char === ')') parenDepth--;
+        }
+        
+        if (parenDepth <= 0) {
+          inConsoleCall = false;
+          return;
+        }
+        return;
+      }
+    }
+
+    // Track multi-line throw statements
+    if (ignoreThrows) {
+      if (!inThrowStatement && /(throw\s+new\s+\w*Error\s*\(|reject\s*\(\s*new\s+\w*Error\s*\()/.test(line)) {
+        inThrowStatement = true;
+        parenDepth = 0;
+      }
+      
+      if (inThrowStatement) {
+        // Count parentheses to track when the throw statement ends
+        for (let char of line) {
+          if (char === '(') parenDepth++;
+          if (char === ')') parenDepth--;
+        }
+        
+        if (parenDepth <= 0) {
+          inThrowStatement = false;
+          return;
+        }
+        return;
+      }
+    }
 
     let match;
     while ((match = textRegex.exec(line)) !== null) {
@@ -47,10 +101,13 @@ function scanFile(filePath) {
       report(filePath, index + 1, text, "string");
     }
 
-    while ((match = jsxTextRegex.exec(line)) !== null) {
-      const text = match[1].trim();
-      if (shouldIgnore(text)) continue;
-      report(filePath, index + 1, text, "jsx");
+    // Skip JSX text extraction for lines that look like TypeScript type annotations
+    if (!/\bas\s+\w+<|Promise<|Array<|Map<|Set</.test(line)) {
+      while ((match = jsxTextRegex.exec(line)) !== null) {
+        const text = match[1].trim();
+        if (shouldIgnore(text)) continue;
+        report(filePath, index + 1, text, "jsx");
+      }
     }
   });
 }

@@ -1,4 +1,4 @@
-import { useState, memo } from "react";
+import { useState, memo, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import {
   Menu,
@@ -28,6 +28,8 @@ interface SidebarProps {
   onShortcutsChanged?: () => void;
   settingsOpen?: boolean;
   onSettingsOpenChange?: (open: boolean) => void;
+  isMobileOpen?: boolean;
+  onMobileOpenChange?: (open: boolean) => void;
 }
 
 const COLLAPSED_WIDTH = "40px";
@@ -39,13 +41,28 @@ export const Sidebar = memo(({
   onShortcutsChanged,
   settingsOpen,
   onSettingsOpenChange,
+  isMobileOpen,
+  onMobileOpenChange,
 }: SidebarProps) => {
   const { t } = useTranslation();
 
   const [showAbout, setShowAbout] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
 
   const { settings, updateSettings } = musicPlayerHook;
+
+  // Detect mobile viewport
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   // Use external settings state if provided, otherwise use internal state
   const isSettingsOpen = settingsOpen !== undefined ? settingsOpen : false;
@@ -60,14 +77,20 @@ export const Sidebar = memo(({
   };
 
   const handleMenuClick = () => {
-    const newCollapsedState = !isCollapsed;
-    setIsCollapsed(newCollapsedState);
-    onCollapseChange?.(newCollapsedState);
+    if (isMobile) {
+      // On mobile, close the sidebar overlay
+      onMobileOpenChange?.(false);
+    } else {
+      // On desktop, toggle collapse
+      const newCollapsedState = !isCollapsed;
+      setIsCollapsed(newCollapsedState);
+      onCollapseChange?.(newCollapsedState);
 
-    document.documentElement.style.setProperty(
-      "--sidebar-width",
-      newCollapsedState ? COLLAPSED_WIDTH : EXPANDED_WIDTH
-    );
+      document.documentElement.style.setProperty(
+        "--sidebar-width",
+        newCollapsedState ? COLLAPSED_WIDTH : EXPANDED_WIDTH
+      );
+    }
   };
 
   const handleSliverClick = () => {
@@ -80,7 +103,14 @@ export const Sidebar = memo(({
     );
   };
 
-  if (isCollapsed) {
+  const handleBackdropClick = () => {
+    if (isMobile) {
+      onMobileOpenChange?.(false);
+    }
+  };
+
+  // On desktop, show collapsed sliver
+  if (isCollapsed && !isMobile) {
     return (
       <div className={styles.sidebarCollapsed} onClick={handleSliverClick}>
         <Button
@@ -97,16 +127,26 @@ export const Sidebar = memo(({
   }
 
   return (
-    <div className={styles.sidebar}>
+    <>
+      {/* Backdrop for mobile overlay */}
+      {isMobile && isMobileOpen && (
+        <div 
+          className={styles.backdrop} 
+          onClick={handleBackdropClick}
+          aria-label={t("closeSidebar")}
+        />
+      )}
+      
+      <div className={`${styles.sidebar} ${isMobile && isMobileOpen ? styles.sidebarMobileOpen : ''} ${isMobile && !isMobileOpen ? styles.sidebarMobileClosed : ''}`}>
       <div className={styles.header}>
         <Button
           variant="ghost"
-          size="icon-sm"
+          size="icon-md"
           className={styles.menuButton}
           onClick={handleMenuClick}
           aria-label={t("menu")}
         >
-          <Menu size={16} />
+          <Menu size={24} />
         </Button>
         <h2 className={styles.title}>{t("playlists")}</h2>
       </div>
@@ -157,6 +197,7 @@ export const Sidebar = memo(({
         </DialogContent>
       </Dialog>
     </div>
+    </>
   );
 }, (prevProps, nextProps) => {
   // Only re-render if the library playlists or songs have actually changed
@@ -165,6 +206,7 @@ export const Sidebar = memo(({
     prevProps.musicPlayerHook.library.songs === nextProps.musicPlayerHook.library.songs &&
     prevProps.musicPlayerHook.library.favorites === nextProps.musicPlayerHook.library.favorites &&
     prevProps.musicPlayerHook.settings === nextProps.musicPlayerHook.settings &&
-    prevProps.settingsOpen === nextProps.settingsOpen
+    prevProps.settingsOpen === nextProps.settingsOpen &&
+    prevProps.isMobileOpen === nextProps.isMobileOpen
   );
 });

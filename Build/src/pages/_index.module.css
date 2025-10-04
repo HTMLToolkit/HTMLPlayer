@@ -49,10 +49,13 @@ body {
 
 @media (max-width: 768px) {
   .container {
-    flex-direction: column;
+    grid-template-columns: 1fr;
+    /* Single column on mobile - sidebar becomes overlay */
   }
 
   .mainSection {
-    height: calc(100vh - 60px);
+    height: 100vh;
+    padding-left: 0;
+    /* No left padding on mobile as sidebar is overlay */
   }
 }

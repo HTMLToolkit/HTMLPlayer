@@ -539,5 +539,8 @@
     "failedToUpdatePresence": "Failed to update Discord presence:",
     "errorUpdatingPresence": "Error updating Discord presence:",
     "errorClearingPresence": "Error clearing Discord presence:"
+  },
+  "accessibility": {
+    "scrollingText": "Scrolling text"
   }
 }

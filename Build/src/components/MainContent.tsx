@@ -15,6 +15,7 @@ import {
   Heart,
   ThumbsUp,
   ThumbsDown,
+  Menu,
 } from "lucide-react";
 import { DraggableItem, DropZone } from "./Draggable";
 import { SongActionsDropdown } from "./SongActionsDropdown";
@@ -106,24 +107,30 @@ const SortableSongItem = ({
         </div>
         <div className={styles.songDetails}>
           <div className={styles.songTitle}>{song.title}</div>
-          <div className={styles.songArtist}>{song.artist} • {formatDuration(song.duration)}</div>
+          <div className={styles.songArtist}>
+            <span className={`${styles.fieldLabel}`}>{t("common.artist")}: </span>{song.artist}<span className={`${styles.fieldLabel} ${styles.desktopOnly}`}> {t("common.duration")}: {formatDuration(song.duration)}</span>
+          </div>
+          <div className={`${styles.albumName} ${styles.mobileOnly}`}>
+            <span className={styles.fieldLabel}>{t("common.album")}: </span>
+            {song.album || t("common.unknownAlbum")}
+          </div>
         </div>
       </div>
-      <div className={styles.albumName}>{song.album || t("common.unknownAlbum")}</div>
+      <div className={`${styles.albumName} ${styles.desktopOnly}`}>{song.album || t("common.unknownAlbum")}</div>
       <div className={styles.songActions}>
-        <Button variant="ghost" size="icon-sm" className={`${styles.songActionButton} ${isFavorited ? styles.favorited : ""}`} onClick={onFavoriteToggle}>
+        <Button variant="ghost" size="icon-sm" className={`${styles.songActionButton} ${isFavorited ? styles.favorited : ""}`} onClick={(e) => { e.stopPropagation(); onFavoriteToggle(e); }}>
           <Heart size={14} fill={isFavorited ? "currentColor" : "none"} />
         </Button>
-        <Button variant="ghost" size="icon-sm" className={`${styles.songActionButton} ${ratings[song.id] === "thumbs-up" ? styles.active : ""}`} onClick={() => onRatingChange("thumbs-up")}><ThumbsUp size={14} /></Button>
-        <Button variant="ghost" size="icon-sm" className={`${styles.songActionButton} ${ratings[song.id] === "thumbs-down" ? styles.active : ""}`} onClick={() => onRatingChange("thumbs-down")}><ThumbsDown size={14} /></Button>
-        <SongActionsDropdown 
-          song={song} 
-          library={library} 
-          onCreatePlaylist={createPlaylist} 
-          onAddToPlaylist={addToPlaylist} 
-          onRemoveSong={removeSong} 
-          onPlaySong={playSong} 
-          size={14} 
+        <Button variant="ghost" size="icon-sm" className={`${styles.songActionButton} ${ratings[song.id] === "thumbs-up" ? styles.active : ""}`} onClick={(e) => { e.stopPropagation(); onRatingChange("thumbs-up"); }}><ThumbsUp size={14} /></Button>
+        <Button variant="ghost" size="icon-sm" className={`${styles.songActionButton} ${ratings[song.id] === "thumbs-down" ? styles.active : ""}`} onClick={(e) => { e.stopPropagation(); onRatingChange("thumbs-down"); }}><ThumbsDown size={14} /></Button>
+        <SongActionsDropdown
+          song={song}
+          library={library}
+          onCreatePlaylist={createPlaylist}
+          onAddToPlaylist={addToPlaylist}
+          onRemoveSong={removeSong}
+          onPlaySong={playSong}
+          size={14}
           className={styles.songActionButton}
           open={open}
           onOpenChange={setOpen}
@@ -158,9 +165,10 @@ interface MainContentProps {
   musicPlayerHook: ReturnType<
     typeof import("../hooks/musicPlayerHook").useMusicPlayer
   >;
+  onMobileMenuClick?: () => void;
 }
 
-export const MainContent = ({ musicPlayerHook }: MainContentProps) => {
+export const MainContent = ({ musicPlayerHook, onMobileMenuClick }: MainContentProps) => {
   const { t } = useTranslation();
 
   const [songSearchQuery, setSongSearchQuery] = useState("");
@@ -408,6 +416,15 @@ export const MainContent = ({ musicPlayerHook }: MainContentProps) => {
       {/* Header */}
       <div className={styles.header}>
         <div className={styles.titleArea}>
+          <Button
+            variant="ghost"
+            size="icon-md"
+            className={styles.mobileMenuButton}
+            onClick={onMobileMenuClick}
+            aria-label={t("menu")}
+          >
+            <Menu size={24} />
+          </Button>
           {playerState.view === "songs" ? (
             <h1 className={styles.title}>HTMLPlayer</h1>
           ) : playerState.view === "artist" ? (
@@ -515,7 +532,7 @@ export const MainContent = ({ musicPlayerHook }: MainContentProps) => {
         <div className={styles.songList}>
           <div className={styles.songListHeader}>
             <span className={styles.columnHeader}>{t("songInfo.title")}</span>
-            <span className={styles.columnHeader}>{t("common.album")}</span>
+            <span className={`${styles.columnHeader} ${styles.desktopOnly}`}>{t("common.album")}</span>
             <span className={styles.columnHeader}>{t("actions.addTo")}</span>
           </div>
           {sortedSongs.map((song: Song) => (

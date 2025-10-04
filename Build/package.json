@@ -11,7 +11,7 @@
     "lint": "eslint 'src/**/*.ts' 'src/**/*.tsx'",
     "eject": "react-scripts eject",
     "count-lines": "cloc . --exclude-dir=node_modules,build,dist --exclude-ext=lock,json",
-    "i18n-check": "node i18n-izer.js"
+    "i18n-check": "node i18n-izer.js --ignore-console"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

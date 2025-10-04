@@ -196,11 +196,11 @@
   }
 
   .lyricsHeader {
-    padding: var(--spacing-1) var(--spacing-2);
+    padding: var(--spacing-3);
   }
 
   .lyricsTitle {
-    font-size: 0.85rem;
+    font-size: 1rem;
   }
 
   .lyricsSubtitle {

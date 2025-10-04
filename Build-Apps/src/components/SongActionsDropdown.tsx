@@ -247,6 +247,7 @@ export const SongActionsDropdown = ({
           size="icon-sm"
           className={className}
           title={t("moreOptions")}
+          onClick={(e) => e.stopPropagation()}
         >
           <MoreHorizontal size={size} />
         </Button>

@@ -22,6 +22,7 @@ export default function IndexPage() {
   const musicPlayerHook = useMusicPlayer();
   const [, setThemeMode] = useState<ThemeMode>("auto");
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
   // Handle all drag operations with our unified system
   const handleDragOperation = (dragItem: DragItem, dropZone: DropZone) => {
@@ -262,9 +263,14 @@ export default function IndexPage() {
           onShortcutsChanged={reloadShortcuts}
           settingsOpen={settingsOpen}
           onSettingsOpenChange={setSettingsOpen}
+          isMobileOpen={isMobileSidebarOpen}
+          onMobileOpenChange={setIsMobileSidebarOpen}
         />
         <div className={styles.mainSection}>
-          <MainContent musicPlayerHook={musicPlayerHook} />
+          <MainContent 
+            musicPlayerHook={musicPlayerHook}
+            onMobileMenuClick={() => setIsMobileSidebarOpen(true)}
+          />
           <Player musicPlayerHook={musicPlayerHook} settings={{
             volume: 0,
             crossfade: 0,

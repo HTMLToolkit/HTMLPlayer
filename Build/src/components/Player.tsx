@@ -274,15 +274,6 @@ export const Player = ({ musicPlayerHook, settings }: PlayerProps) => {
             </div>
             <div className={styles.artistName}>{currentSong.artist}</div>
           </div>
-          <Button
-            variant="ghost"
-            size="icon-sm"
-            className={`${styles.favoriteButton} ${isFavorite ? styles.favorited : ""}`}
-            onClick={handleFavorite}
-            title={isFavorite ? t("player.removeFavorite") : t("player.addFavorite")}
-          >
-            <Heart size={16} />
-          </Button>
         </div>
 
         <div className={styles.controls}>
@@ -314,7 +305,19 @@ export const Player = ({ musicPlayerHook, settings }: PlayerProps) => {
         </div>
 
         <div className={styles.rightSection}>
+          <div className={styles.volumeControls}>
+            <Button variant="ghost" size="icon-sm" className={styles.volumeButton} onClick={handleVolumeToggle} title={volume === 0 ? t("player.unmute") : t("player.mute")}>
+              {getVolumeIcon()}
+            </Button>
+            <div className={`${styles.volumeBar} ${isDraggingVolume ? styles.dragging : ""}`} ref={volumeRef} onClick={handleVolumeClick} onMouseDown={handleVolumeMouseDown} onTouchStart={handleVolumeTouchStart} title={t("player.volume")}>
+              <div className={styles.volumeFill} style={{ width: `${volumePercentage}%` }}></div>
+            </div>
+          </div>
+
           <div className={styles.secondaryControls}>
+            <Button variant="ghost" size="icon-sm" className={`${styles.favoriteButton} ${isFavorite ? styles.favorited : ""}`} onClick={handleFavorite} title={isFavorite ? t("player.removeFavorite") : t("player.addFavorite")}>
+              <Heart size={16} />
+            </Button>
             {!isOnSafari && (
               <Button variant="ghost" size="icon-sm" className={`${styles.secondaryButton} ${showVisualizer ? styles.active : ""}`} onClick={handleVisualizerToggle} title={t("player.visualizer")}>
                 <BarChart3 size={16} />
@@ -346,34 +349,25 @@ export const Player = ({ musicPlayerHook, settings }: PlayerProps) => {
             )}
           </div>
 
-          <div className={styles.volumeControls}>
-            <Button variant="ghost" size="icon-sm" className={styles.volumeButton} onClick={handleVolumeToggle} title={volume === 0 ? t("player.unmute") : t("player.mute")}>
-              {getVolumeIcon()}
-            </Button>
-            <div className={`${styles.volumeBar} ${isDraggingVolume ? styles.dragging : ""}`} ref={volumeRef} onClick={handleVolumeClick} onMouseDown={handleVolumeMouseDown} onTouchStart={handleVolumeTouchStart} title={t("player.volume")}>
-              <div className={styles.volumeFill} style={{ width: `${volumePercentage}%` }}></div>
-            </div>
-          </div>
-
-          <SongActionsDropdown 
-            song={currentSong} 
-            library={library} 
-            onCreatePlaylist={createPlaylist} 
-            onAddToPlaylist={addToPlaylist} 
+          <SongActionsDropdown
+            song={currentSong}
+            library={library}
+            onCreatePlaylist={createPlaylist}
+            onAddToPlaylist={addToPlaylist}
             onAddToFavorites={addToFavorites}
             isFavorited={isFavorited}
-            onPlaySong={playSong} 
-            onRemoveSong={removeSong} 
-            size={16} 
-            className={styles.moreButton} 
+            onPlaySong={playSong}
+            onRemoveSong={removeSong}
+            size={16}
+            className={styles.moreButton}
           />
         </div>
 
         {showLyrics && currentSong && (
-          <Lyrics 
-            artist={currentSong.artist} 
-            title={currentSong.title} 
-            visible={showLyrics} 
+          <Lyrics
+            artist={currentSong.artist}
+            title={currentSong.title}
+            visible={showLyrics}
             onClose={() => setShowLyrics(false)}
             embeddedLyrics={currentSong.embeddedLyrics}
             currentTime={currentTime}

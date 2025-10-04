@@ -506,5 +506,8 @@
     "failedToUpdatePresence": "Échec de mise à jour de la présence Discord :",
     "errorUpdatingPresence": "Erreur lors de la mise à jour de la présence Discord :",
     "errorClearingPresence": "Erreur lors de l'effacement de la présence Discord :"
+  },
+  "accessibility": {
+    "scrollingText": "Texte défilant"
   }
 }

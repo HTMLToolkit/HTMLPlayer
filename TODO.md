@@ -115,6 +115,8 @@
 
 ## Done
 
+- [X] add responsive design for mobile/smaller devices
+
 - [X] long text can break the UI (+ also cause scrolling horizontally) but I can reuse the scroll thing from song titles (maybe modularize that into a new component: ScrollText.tsx?)
 
 - [X] Check out what music-metadata can do, and maybe implement those things

@@ -1,3 +1,5 @@
+import i18n from "i18next";
+
 export interface CrossfadeOptions {
   duration: number;
   curve?: 'linear' | 'exponential' | 'smooth';
@@ -139,7 +141,7 @@ export class CrossfadeManager {
         if (this.nextSource!.element.readyState < 2) {
           await new Promise<void>((loadResolve, loadReject) => {
             const timeout = setTimeout(() => {
-              loadReject(new Error('Next audio failed to load in time'));
+              loadReject(new Error(i18n.t("crossfade.nextAudioFailedToLoadInTime")));
             }, 5000);
 
             const cleanup = () => {
@@ -156,7 +158,7 @@ export class CrossfadeManager {
 
             const onError = () => {
               cleanup();
-              loadReject(new Error('Next audio failed to load'));
+              loadReject(new Error(i18n.t("crossfade.nextAudioFailedToLoad")));
             };
 
             this.nextSource!.element.addEventListener('canplay', onReady);
