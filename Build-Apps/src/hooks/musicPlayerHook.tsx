@@ -349,6 +349,19 @@ export const useMusicPlayer = () => {
           }));
 
           if (persistedSettings) {
+            // On Safari, force disable gapless playback and crossfade
+            // since Web Audio API is not used for background compatibility
+            const isSafari = safariAudioRef.current.isActive();
+            if (isSafari) {
+              persistedSettings.gaplessPlayback = false;
+              persistedSettings.crossfade = 0;
+            }
+            
+            // Ensure pitch has a valid default value to prevent NaN errors
+            if (persistedSettings.pitch === undefined || persistedSettings.pitch === null || isNaN(persistedSettings.pitch)) {
+              persistedSettings.pitch = 0;
+            }
+            
             setSettings(persistedSettings);
             if (persistedSettings.playHistory) {
               playHistoryRef.current = new Map(persistedSettings.playHistory);
@@ -488,6 +501,54 @@ export const useMusicPlayer = () => {
         playNext();
       });
 
+      // Seek handlers for system controls
+      navigator.mediaSession.setActionHandler("seekto", (details) => {
+        if (details.seekTime !== undefined && audioRef.current) {
+          const time = Math.max(0, Math.min(details.seekTime, audioRef.current.duration || 0));
+          audioRef.current.currentTime = time;
+          
+          // Also update Safari audio element if active
+          const isSafari = safariAudioRef.current.isActive();
+          if (isSafari) {
+            safariAudioRef.current.seek(time);
+          }
+          
+          console.log("[Media Session] Seek to:", time);
+        }
+      });
+
+      navigator.mediaSession.setActionHandler("seekforward", (details) => {
+        if (audioRef.current) {
+          const skipTime = details.seekOffset || 10; // Default 10 seconds
+          const newTime = Math.min(audioRef.current.currentTime + skipTime, audioRef.current.duration || 0);
+          audioRef.current.currentTime = newTime;
+          
+          // Also update Safari audio element if active
+          const isSafari = safariAudioRef.current.isActive();
+          if (isSafari) {
+            safariAudioRef.current.seek(newTime);
+          }
+          
+          console.log("[Media Session] Seek forward:", skipTime, "seconds");
+        }
+      });
+
+      navigator.mediaSession.setActionHandler("seekbackward", (details) => {
+        if (audioRef.current) {
+          const skipTime = details.seekOffset || 10; // Default 10 seconds
+          const newTime = Math.max(audioRef.current.currentTime - skipTime, 0);
+          audioRef.current.currentTime = newTime;
+          
+          // Also update Safari audio element if active
+          const isSafari = safariAudioRef.current.isActive();
+          if (isSafari) {
+            safariAudioRef.current.seek(newTime);
+          }
+          
+          console.log("[Media Session] Seek backward:", skipTime, "seconds");
+        }
+      });
+
       // Only set enterpictureinpicture handler if supported
       try {
         navigator.mediaSession.setActionHandler(
@@ -513,6 +574,9 @@ export const useMusicPlayer = () => {
         if ("mediaSession" in navigator) {
           navigator.mediaSession.setActionHandler("previoustrack", null);
           navigator.mediaSession.setActionHandler("nexttrack", null);
+          navigator.mediaSession.setActionHandler("seekto", null);
+          navigator.mediaSession.setActionHandler("seekforward", null);
+          navigator.mediaSession.setActionHandler("seekbackward", null);
           try {
             navigator.mediaSession.setActionHandler(
               "enterpictureinpicture" as any,
@@ -529,7 +593,7 @@ export const useMusicPlayer = () => {
   // Update tempo and pitch when settings change (combined playbackRate)
   useEffect(() => {
     const tempoRate = getValidTempo(settings.tempo);
-    const pitchRate = Math.pow(2, settings.pitch / 12);
+    const pitchRate = Math.pow(2, (settings.pitch ?? 0) / 12);
     const combinedRate = tempoRate * pitchRate;
     
     if (audioRef.current) {
@@ -795,6 +859,19 @@ export const useMusicPlayer = () => {
           currentTime: target.currentTime,
         };
       });
+
+      // Update Media Session position state for system controls
+      if ("mediaSession" in navigator && "setPositionState" in navigator.mediaSession) {
+        try {
+          navigator.mediaSession.setPositionState({
+            duration: target.duration || 0,
+            playbackRate: target.playbackRate || 1,
+            position: target.currentTime || 0,
+          });
+        } catch (error) {
+          // Ignore errors (some browsers may not support all parameters)
+        }
+      }
 
       // Handle crossfade and gapless timing
       const crossfadeEnabled = settingsRef.current.crossfade > 0;

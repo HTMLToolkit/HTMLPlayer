@@ -25,6 +25,7 @@ import { useTranslation } from "react-i18next";
 import { toggleMiniplayer, isMiniplayerSupported } from "./Miniplayer";
 import { useAudioSync } from "../hooks/useAudioSync";
 import { ScrollText } from "./ScrollText";
+import { isSafari } from "../helpers/safariHelper";
 
 interface PlayerProps {
   musicPlayerHook: ReturnType<
@@ -224,6 +225,9 @@ export const Player = ({ musicPlayerHook, settings }: PlayerProps) => {
     if (currentSong && settings?.showLyrics) setShowLyrics(true);
   }, [currentSong, settings?.showLyrics]);
 
+  // Check if running on Safari
+  const isOnSafari = isSafari();
+
   const progressPercentage = currentSong ? (currentTime / currentSong.duration) * 100 : 0;
   const volumePercentage = volume * 100;
 
@@ -311,9 +315,11 @@ export const Player = ({ musicPlayerHook, settings }: PlayerProps) => {
 
         <div className={styles.rightSection}>
           <div className={styles.secondaryControls}>
-            <Button variant="ghost" size="icon-sm" className={`${styles.secondaryButton} ${showVisualizer ? styles.active : ""}`} onClick={handleVisualizerToggle} title={t("player.visualizer")}>
-              <BarChart3 size={16} />
-            </Button>
+            {!isOnSafari && (
+              <Button variant="ghost" size="icon-sm" className={`${styles.secondaryButton} ${showVisualizer ? styles.active : ""}`} onClick={handleVisualizerToggle} title={t("player.visualizer")}>
+                <BarChart3 size={16} />
+              </Button>
+            )}
             <Button variant="ghost" size="icon-sm" className={`${styles.secondaryButton} ${showLyrics ? styles.active : ""}`} onClick={handleLyricsToggle} title={t("player.lyrics")}>
               <Type size={16} />
             </Button>

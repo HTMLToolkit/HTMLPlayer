@@ -26,6 +26,7 @@ import { toast } from "sonner";
 import { useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { languageNames } from "../../public/locales/supportedLanguages";
+import { isSafari } from "../helpers/safariHelper";
 
 export interface SettingsProps {
   className?: string;
@@ -50,6 +51,9 @@ export const Settings = ({
   const previousCrossfadeRef = useRef<number>(settings.crossfadeBeforeGapless ?? settings.crossfade);
 
   const { themes, currentTheme, setTheme } = useThemeLoader();
+
+  // Check if running on Safari
+  const isOnSafari = isSafari();
 
   const handleResetSettings = async () => {
     const defaultThemeName = "Blue";
@@ -191,12 +195,12 @@ export const Settings = ({
                     {t("settings.playback.pitch")}
                   </label>
                   <span className={styles.settingValue}>
-                    {settings.pitch === 0 ? '0' : (settings.pitch > 0 ? `+${settings.pitch}` : settings.pitch)}
+                    {(settings.pitch ?? 0) === 0 ? '0' : ((settings.pitch ?? 0) > 0 ? `+${settings.pitch ?? 0}` : settings.pitch ?? 0)}
                   </span>
                 </div>
                 <Slider
                   id="pitch-slider"
-                  value={[settings.pitch]}
+                  value={[settings.pitch ?? 0]}
                   onValueChange={(val) => {
                     let newVal = val[0];
 
@@ -229,65 +233,69 @@ export const Settings = ({
                 />
               </div>
 
-              <div className={styles.settingItem}>
-                <div className={styles.settingLabel}>
-                  <label htmlFor="crossfade-slider">
-                    {t("settings.audio.crossfade")}
-                    {settings.gaplessPlayback && (
-                      <span className={styles.settingDescription}>
-                        {" "}({t("settings.audio.crossfadeDisabled")})
-                      </span>
-                    )}
-                  </label>
-                  <span className={styles.settingValue}>
-                    {settings.gaplessPlayback ? "0s" : `${settings.crossfade}s`}
-                  </span>
+              {!isOnSafari && (
+                <div className={styles.settingItem}>
+                  <div className={styles.settingLabel}>
+                    <label htmlFor="crossfade-slider">
+                      {t("settings.audio.crossfade")}
+                      {settings.gaplessPlayback && (
+                        <span className={styles.settingDescription}>
+                          {" "}({t("settings.audio.crossfadeDisabled")})
+                        </span>
+                      )}
+                    </label>
+                    <span className={styles.settingValue}>
+                      {settings.gaplessPlayback ? "0s" : `${settings.crossfade}s`}
+                    </span>
+                  </div>
+                  <Slider
+                    id="crossfade-slider"
+                    value={settings.gaplessPlayback ? [0] : [settings.crossfade]}
+                    onValueChange={handleCrossfadeChange}
+                    max={10}
+                    step={1}
+                    className={styles.slider}
+                    disabled={settings.gaplessPlayback}
+                  />
                 </div>
-                <Slider
-                  id="crossfade-slider"
-                  value={settings.gaplessPlayback ? [0] : [settings.crossfade]}
-                  onValueChange={handleCrossfadeChange}
-                  max={10}
-                  step={1}
-                  className={styles.slider}
-                  disabled={settings.gaplessPlayback}
-                />
-              </div>
+              )}
 
-                            <div className={styles.settingItem}>
-                <div className={styles.settingInfo}>
-                  <label htmlFor="gapless-playback">
-                    {t("settings.playback.gapless")}
-                  </label>
-                  <p className={styles.settingDescription}>
-                    {t("settings.playback.gaplessDesc")}
-                  </p>
+              {!isOnSafari && (
+                <div className={styles.settingItem}>
+                  <div className={styles.settingInfo}>
+                    <label htmlFor="gapless-playback">
+                      {t("settings.playback.gapless")}
+                    </label>
+                    <p className={styles.settingDescription}>
+                      {t("settings.playback.gaplessDesc")}
+                    </p>
+                  </div>
+                  <Switch
+                    id="gapless-playback"
+                    checked={settings.gaplessPlayback}
+                    onCheckedChange={(val) => {
+                      if (val) {
+                        // Store current crossfade value before setting to 0
+                        const currentCrossfade = settings.crossfade;
+                        previousCrossfadeRef.current = currentCrossfade;
+                        onSettingsChange({ 
+                          gaplessPlayback: val,
+                          crossfade: 0,
+                          crossfadeBeforeGapless: currentCrossfade
+                        });
+                      } else {
+                        // Restore previous crossfade value when disabling gapless
+                        const restoreValue = settings.crossfadeBeforeGapless ?? previousCrossfadeRef.current;
+                        onSettingsChange({ 
+                          gaplessPlayback: val,
+                          crossfade: restoreValue,
+                          crossfadeBeforeGapless: undefined // Clear the stored value
+                        });
+                      }
+                    }}
+                  />
                 </div>
-                <Switch
-                  id="gapless-playback"
-                  checked={settings.gaplessPlayback}
-                  onCheckedChange={(val) => {
-                    if (val) {
-                      // Store current crossfade value before setting to 0
-                      const currentCrossfade = settings.crossfade;
-                      previousCrossfadeRef.current = currentCrossfade;
-                      onSettingsChange({ 
-                        gaplessPlayback: val,
-                        crossfade: 0,
-                        crossfadeBeforeGapless: currentCrossfade
-                      });
-                    } else {
-                      // Restore previous crossfade value when disabling gapless
-                      const restoreValue = settings.crossfadeBeforeGapless ?? previousCrossfadeRef.current;
-                      onSettingsChange({ 
-                        gaplessPlayback: val,
-                        crossfade: restoreValue,
-                        crossfadeBeforeGapless: undefined // Clear the stored value
-                      });
-                    }
-                  }}
-                />
-              </div>
+              )}
             </section>
 
             {/* Playback Settings */}
