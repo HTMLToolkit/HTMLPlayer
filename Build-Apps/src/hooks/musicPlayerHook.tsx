@@ -207,35 +207,47 @@ export const useMusicPlayer = () => {
 
       audioContextRef.current = context;
 
-      // Safari workaround: Create a silent oscillator to keep AudioContext alive in background
-      // This prevents Safari from suspending the AudioContext when the page is backgrounded
-      if (safariAudioRef.current.isActive()) {
-        try {
-          const oscillator = context.createOscillator();
-          const gainNode = context.createGain();
-          gainNode.gain.value = 0.00001; // Nearly silent but not zero
-          oscillator.connect(gainNode);
-          gainNode.connect(context.destination);
-          oscillator.start();
-          console.log('[Safari] Created silent oscillator to keep AudioContext alive');
-        } catch (error) {
-          console.warn('[Safari] Failed to create silent oscillator:', error);
-        }
-      }
-
       // Setup crossfade manager with the new audio context
       const manager = setupCrossfadeManager(context);
       if (manager) {
         const analyserNode = manager.getAnalyzerNode();
         setPlayerState((prev) => ({ ...prev, analyserNode }));
       }
+      
+      console.log('[Audio Context] Created and initialized');
     }
   }, [setupCrossfadeManager]);
 
   // Keep AudioContext alive for background playback (Safari)
+  // Also implements workaround for Safari iOS suspending audio
   useEffect(() => {
+    const isSafari = safariAudioRef.current.isActive();
+    
     const handleVisibilityChange = () => {
-      if (audioContextRef.current && audioContextRef.current.state === 'suspended') {
+      // Safari iOS workaround: replay audio when going to background
+      // This prevents Safari from suspending the audio
+      if (isSafari && document.hidden && audioRef.current && !audioRef.current.paused) {
+        console.log('[Safari] Replaying audio to prevent suspension in background');
+        
+        // Resume AudioContext if it exists and is suspended
+        if (audioContextRef.current && audioContextRef.current.state === 'suspended') {
+          console.log('[Safari] Resuming AudioContext');
+          audioContextRef.current.resume();
+        }
+        
+        // Replay the audio element
+        const currentTime = audioRef.current.currentTime;
+        audioRef.current.play().catch(err => {
+          console.warn('[Safari] Failed to replay audio:', err);
+        });
+        // Restore the time in case it reset
+        if (audioRef.current.currentTime !== currentTime) {
+          audioRef.current.currentTime = currentTime;
+        }
+      }
+      
+      // For other browsers, just resume AudioContext if suspended
+      if (!isSafari && audioContextRef.current && audioContextRef.current.state === 'suspended') {
         console.log('[Audio Context] Resuming suspended context');
         audioContextRef.current.resume();
       }
@@ -693,7 +705,8 @@ export const useMusicPlayer = () => {
         audioRef.current.playbackRate = tempoRate * pitchRate;
 
         // Set up crossfade manager if needed
-        // Note: Safari now has a silent oscillator to keep AudioContext alive in background
+        // Note: Using Web Audio API on all browsers including Safari
+        // Safari workaround for background playback is handled via replay on visibility change
         if (!audioContextRef.current) setupAudioContext();
         if (audioContextRef.current && !crossfadeManagerRef.current) {
           setupCrossfadeManager(audioContextRef.current);
@@ -1184,7 +1197,7 @@ export const useMusicPlayer = () => {
     setSettings((prev) => ({ ...prev, volume: clamped }));
 
     // Use crossfade manager for volume control if available
-    // The silent oscillator keeps AudioContext alive on Safari, so this works in background
+    // Safari replay workaround handles background playback
     if (crossfadeManagerRef.current) {
       crossfadeManagerRef.current.setMasterVolume(clamped);
     } else if (audioRef.current) {
