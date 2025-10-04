@@ -207,6 +207,22 @@ export const useMusicPlayer = () => {
 
       audioContextRef.current = context;
 
+      // Safari workaround: Create a silent oscillator to keep AudioContext alive in background
+      // This prevents Safari from suspending the AudioContext when the page is backgrounded
+      if (safariAudioRef.current.isActive()) {
+        try {
+          const oscillator = context.createOscillator();
+          const gainNode = context.createGain();
+          gainNode.gain.value = 0.00001; // Nearly silent but not zero
+          oscillator.connect(gainNode);
+          gainNode.connect(context.destination);
+          oscillator.start();
+          console.log('[Safari] Created silent oscillator to keep AudioContext alive');
+        } catch (error) {
+          console.warn('[Safari] Failed to create silent oscillator:', error);
+        }
+      }
+
       // Setup crossfade manager with the new audio context
       const manager = setupCrossfadeManager(context);
       if (manager) {
@@ -215,6 +231,31 @@ export const useMusicPlayer = () => {
       }
     }
   }, [setupCrossfadeManager]);
+
+  // Keep AudioContext alive for background playback (Safari)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (audioContextRef.current && audioContextRef.current.state === 'suspended') {
+        console.log('[Audio Context] Resuming suspended context');
+        audioContextRef.current.resume();
+      }
+    };
+
+    const handleFocus = () => {
+      if (audioContextRef.current && audioContextRef.current.state === 'suspended') {
+        console.log('[Audio Context] Resuming on focus');
+        audioContextRef.current.resume();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('focus', handleFocus);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('focus', handleFocus);
+    };
+  }, []);
 
   // Clear timeouts on unmount
   useEffect(() => {
@@ -651,9 +692,8 @@ export const useMusicPlayer = () => {
         const pitchRate = Math.pow(2, settingsRef.current.pitch / 12);
         audioRef.current.playbackRate = tempoRate * pitchRate;
 
-        // Note: No need to sync Safari audio - on Safari, audioRef.current IS the Safari element
-
         // Set up crossfade manager if needed
+        // Note: Safari now has a silent oscillator to keep AudioContext alive in background
         if (!audioContextRef.current) setupAudioContext();
         if (audioContextRef.current && !crossfadeManagerRef.current) {
           setupCrossfadeManager(audioContextRef.current);
@@ -1143,7 +1183,8 @@ export const useMusicPlayer = () => {
     const clamped = Math.max(0, Math.min(1, volume));
     setSettings((prev) => ({ ...prev, volume: clamped }));
 
-    // Use crossfade manager for volume control if available, otherwise direct control
+    // Use crossfade manager for volume control if available
+    // The silent oscillator keeps AudioContext alive on Safari, so this works in background
     if (crossfadeManagerRef.current) {
       crossfadeManagerRef.current.setMasterVolume(clamped);
     } else if (audioRef.current) {

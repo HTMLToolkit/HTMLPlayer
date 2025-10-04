@@ -59,7 +59,7 @@ export class SafariAudioManager {
     document.body.appendChild(this.audioElement);
 
     console.log(
-      "[Safari Audio] Initialized audio element for background playback"
+      "[Safari Audio] Initialized audio element for background playback with workaround"
     );
   }
 
