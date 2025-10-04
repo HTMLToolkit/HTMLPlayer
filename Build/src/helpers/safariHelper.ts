@@ -18,7 +18,7 @@ export function isSafari(): boolean {
 
 /**
  * Safari Audio Manager
- * Manages a dummy <audio> element that stays in sync with the main audio
+ * Manages a <audio> element that stays in sync with the main audio
  * This allows background playback on Safari
  */
 export class SafariAudioManager {
@@ -42,9 +42,7 @@ export class SafariAudioManager {
     this.audioElement.crossOrigin = "anonymous";
     this.audioElement.preload = "auto";
 
-    // IMPORTANT: Mute the Safari audio element!
-    // It only needs to exist for Safari's background playback tracking,
-    // the actual audio comes from the main Web Audio API
+    // Start muted - will be unmuted if used as primary audio element
     this.audioElement.volume = 0;
     this.audioElement.muted = true;
 
@@ -61,7 +59,7 @@ export class SafariAudioManager {
     document.body.appendChild(this.audioElement);
 
     console.log(
-      "[Safari Audio] Initialized dummy audio element for background playback (muted)"
+      "[Safari Audio] Initialized audio element for background playback"
     );
   }
 
@@ -170,12 +168,15 @@ export class SafariAudioManager {
 
   /**
    * Set the volume
-   * Note: This is a no-op for Safari audio since it should always be muted.
-   * The Safari audio element exists only for background playback tracking.
    */
-  public setVolume(_volume: number): void {
-    // Intentionally do nothing - Safari audio should remain muted
-    // The actual audio volume is controlled by the Web Audio API
+  public setVolume(volume: number): void {
+    if (!this.audioElement) return;
+    
+    try {
+      this.audioElement.volume = Math.max(0, Math.min(1, volume));
+    } catch (error) {
+      console.error('[Safari Audio] Failed to set volume:', error);
+    }
   }
 
   /**

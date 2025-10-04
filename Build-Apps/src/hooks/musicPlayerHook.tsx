@@ -495,18 +495,15 @@ export const useMusicPlayer = () => {
     const tempoRate = getValidTempo(settings.tempo);
     const pitchRate = Math.pow(2, settings.pitch / 12);
     const combinedRate = tempoRate * pitchRate;
-
+    
     if (audioRef.current) {
       audioRef.current.playbackRate = combinedRate;
     }
     if (nextAudioRef.current) {
       nextAudioRef.current.playbackRate = combinedRate;
     }
-
-    // Sync Safari audio playback rate
-    if (safariAudioRef.current.isActive()) {
-      safariAudioRef.current.setPlaybackRate(combinedRate);
-    }
+    
+    // No need to sync - on Safari, audioRef.current IS the Safari element
   }, [settings.tempo, settings.pitch]);
 
 
@@ -619,8 +616,8 @@ export const useMusicPlayer = () => {
           songs: prepareSongsForPlaylist(playlist.songs),
         }
         : playerStateRef.current.currentPlaylist && 'songs' in playerStateRef.current.currentPlaylist
-          ? playerStateRef.current.currentPlaylist
-          : null;
+        ? playerStateRef.current.currentPlaylist
+        : null;
 
       setPlayerState((prev) => ({
         ...prev,
@@ -654,29 +651,7 @@ export const useMusicPlayer = () => {
         const pitchRate = Math.pow(2, settingsRef.current.pitch / 12);
         audioRef.current.playbackRate = tempoRate * pitchRate;
 
-        // Sync Safari audio element
-        // Note: Safari audio element can use the blob URL from cache
-        if (safariAudioRef.current.isActive() && cachedSong.url) {
-          safariAudioRef.current.setSrc(cachedSong.url);
-          safariAudioRef.current.setPlaybackRate(tempoRate * pitchRate);
-          safariAudioRef.current.setVolume(settingsRef.current.volume);
-
-          // Wait a bit for the source to load
-          const safariElement = safariAudioRef.current.getElement();
-          if (safariElement && safariElement.readyState < 2) {
-            await new Promise<void>((resolve) => {
-              const timeout = setTimeout(() => resolve(), 1000); // Max 1 second wait
-              const onReady = () => {
-                clearTimeout(timeout);
-                safariElement?.removeEventListener('loadeddata', onReady);
-                safariElement?.removeEventListener('canplay', onReady);
-                resolve();
-              };
-              safariElement.addEventListener('loadeddata', onReady, { once: true });
-              safariElement.addEventListener('canplay', onReady, { once: true });
-            });
-          }
-        }
+        // Note: No need to sync Safari audio - on Safari, audioRef.current IS the Safari element
 
         // Set up crossfade manager if needed
         if (!audioContextRef.current) setupAudioContext();
@@ -702,12 +677,7 @@ export const useMusicPlayer = () => {
           return;
         }
 
-        // Sync Safari audio playback
-        if (safariAudioRef.current.isActive()) {
-          await safariAudioRef.current.play().catch(err => {
-            console.warn('[Safari Audio] Failed to play in sync:', err);
-          });
-        }
+        // No need to sync - on Safari, audioRef.current IS the Safari element
 
         // Update the cache and invalidate next song cache
         if (playlist) {
@@ -745,8 +715,19 @@ export const useMusicPlayer = () => {
   // Audio event handling setup
   useEffect(() => {
     // Initialize primary audio element
-    audioRef.current = new Audio();
-    audioRef.current.crossOrigin = "anonymous";
+    // On Safari, use the Safari audio element as the primary element (it's in the DOM)
+    // This allows background playback while still using Web Audio API for processing
+    const safariElement = safariAudioRef.current.getElement();
+    if (safariElement) {
+      console.log('[Music Player] Using Safari audio element as primary audio');
+      audioRef.current = safariElement;
+      // Unmute it since it's now the primary audio source
+      safariElement.muted = false;
+      safariElement.volume = settingsRef.current.volume;
+    } else {
+      audioRef.current = new Audio();
+      audioRef.current.crossOrigin = "anonymous";
+    }
     // Initial playback rate will be set by the tempo/pitch effect
 
     // Initialize secondary audio element for crossfading
@@ -1020,11 +1001,8 @@ export const useMusicPlayer = () => {
       audioRef.current.pause();
       setPlayerState((prev) => ({ ...prev, isPlaying: false }));
       updateDiscordPresence(playerState.currentSong, false);
-
-      // Sync Safari audio
-      if (safariAudioRef.current.isActive()) {
-        safariAudioRef.current.pause();
-      }
+      
+      // No need to sync - on Safari, audioRef.current IS the Safari element
     } else {
       // Check if audio source is loaded
       if (
@@ -1043,13 +1021,8 @@ export const useMusicPlayer = () => {
         await audioRef.current.play();
         setPlayerState((prev) => ({ ...prev, isPlaying: true }));
         updateDiscordPresence(playerState.currentSong, true);
-
-        // Sync Safari audio
-        if (safariAudioRef.current.isActive()) {
-          await safariAudioRef.current.play().catch(err => {
-            console.warn('[Safari Audio] Failed to play in togglePlayPause:', err);
-          });
-        }
+        
+        // No need to sync - on Safari, audioRef.current IS the Safari element
       } catch (error) {
         setPlayerState((prev) => ({ ...prev, isPlaying: false }));
       }
@@ -1202,10 +1175,7 @@ export const useMusicPlayer = () => {
       console.log("Seeking to:", time, "from:", beforeSeek, "readyState:", audioRef.current.readyState);
       audioRef.current.currentTime = time;
 
-      // Sync Safari audio seek
-      if (safariAudioRef.current.isActive()) {
-        safariAudioRef.current.seek(time);
-      }
+      // No need to sync - on Safari, audioRef.current IS the Safari element
 
       // Check if seek actually worked
       setTimeout(() => {
