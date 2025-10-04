@@ -1,0 +1,35 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "HTMLPlayer",
+  "version": "2.0.0",
+  "identifier": "com.nellowtcs.htmlplayer",
+  "build": {
+    "beforeDevCommand": "BUILD_TARGET=desktop npm run dev:desktop",
+    "devUrl": "http://localhost:1420",
+    "beforeBuildCommand": "BUILD_TARGET=desktop vite build",
+    "frontendDist": "../dist"
+  },
+  "app": {
+    "windows": [
+      {
+        "title": "HTMLPlayer",
+        "width": 1000,
+        "height": 700
+      }
+    ],
+    "security": {
+      "csp": null
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ]
+  }
+}

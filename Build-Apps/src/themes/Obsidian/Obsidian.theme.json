@@ -1,7 +1,0 @@
-{ 
-    "name": "Obsidian", 
-    "author": "NellowTCS", 
-    "description": "A dark, minimal theme inspired by the Obsidian app.", 
-    "version": "1.0", 
-    "cssFile": "Obsidian.theme.css"
-}
