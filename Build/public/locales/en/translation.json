@@ -18,6 +18,7 @@
   },
   "favorites": {
     "favorites": "Favorites",
+    "addToFavorites": "Add to favorites",
     "added": "Added \"{{title}}\" to favorites",
     "removed": "Removed \"{{title}}\" from favorites"
   },
