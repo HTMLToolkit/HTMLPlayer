@@ -1,7 +1,7 @@
 import * as React from "react";
 import * as SheetPrimitive from "@radix-ui/react-dialog";
-import { X } from "lucide-react";
 import styles from "./Sheet.module.css";
+import { Icon } from "./Icon";
 
 const Sheet = SheetPrimitive.Root;
 
@@ -41,7 +41,12 @@ const SheetContent = React.forwardRef<
     >
       {children}
       <SheetPrimitive.Close className={styles.close}>
-        <X className={styles.closeIcon} />
+        <Icon
+          name="close"
+          className={styles.closeIcon}
+          size="1rem"
+          decorative
+        />
       </SheetPrimitive.Close>
     </SheetPrimitive.Content>
   </SheetPortal>

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, createContext, useContext, useCallback } from 'react';
 import { broadcastThemeCSS } from "../components/Miniplayer";
+import { getAllThemeJsonFiles } from './themeMetadata';
 
 // ----------------------
 // Types
@@ -40,9 +41,8 @@ interface ThemeLoaderProps {
 let globalThemes: ThemeMetadata[] = [];
 
 // ----------------------
-// Import theme JSON, CSS, and images
+// Import theme CSS and images
 // ----------------------
-const themeJsonFiles = import.meta.glob('../themes/**/*.theme.json', { eager: true });
 const themeCssFiles = import.meta.glob('../themes/**/*.theme.css', { query: '?raw', import: 'default', eager: false });
 const themeImageFiles = import.meta.glob('../themes/**/*.{jpg,jpeg,png,gif,webp,svg}', { eager: true });
 
@@ -68,6 +68,12 @@ export const ThemeLoader: React.FC<ThemeLoaderProps> = ({
       return null;
     }
 
+    // Skip icon-only theme files (they only have 'icons' object, no cssFile)
+    if (meta.icons && !meta.cssFile && !meta.name) {
+      // This is an icon-only theme file, not a color theme
+      return null;
+    }
+
     const required = ['name', 'author', 'description', 'version', 'cssFile'];
     for (const field of required) {
       if (!meta[field] || typeof meta[field] !== 'string') {
@@ -90,10 +96,10 @@ export const ThemeLoader: React.FC<ThemeLoaderProps> = ({
 
         const loadedThemes: ThemeMetadata[] = [];
 
-        for (const path in themeJsonFiles) {
-          const module = themeJsonFiles[path] as any;
-          const meta = module?.default ?? module;
+        // Get all theme JSON files using the unified loader
+        const themeJsonMap = await getAllThemeJsonFiles();
 
+        for (const [path, meta] of themeJsonMap.entries()) {
           const validatedTheme = validateThemeMetadata(meta, path);
           if (validatedTheme) {
             // Verify CSS file exists

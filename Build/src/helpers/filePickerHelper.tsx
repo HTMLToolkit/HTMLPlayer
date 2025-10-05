@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../components/
 import ReactDOM from "react-dom/client";
 import { useTranslation } from "react-i18next";
 import i18n from "i18next";
+import { IconRegistryProvider } from "./iconLoader";
 
 export interface AudioFile {
   file: File;
@@ -259,6 +260,7 @@ export function pickAudioFiles(): Promise<AudioFile[]> {
       }, [uppy]);
 
       return (
+           <IconRegistryProvider defaultSetId="lucide">
         <Dialog
           open={open}
           onOpenChange={(newOpen) => {
@@ -287,6 +289,7 @@ export function pickAudioFiles(): Promise<AudioFile[]> {
             </div>
           </DialogContent>
         </Dialog>
+        </IconRegistryProvider>
       );
     };
 

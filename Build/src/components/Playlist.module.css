@@ -10,12 +10,15 @@
 .searchContainer {
   margin-bottom: var(--spacing-4);
   display: flex;
-  flex-direction: column;
-  gap: var(--spacing-3);
+  gap: var(--spacing-2);
+  align-items: center;
+  flex-wrap: wrap;
+  min-width: 0;
 }
 
 .searchWrapper {
   position: relative;
+  flex: 1;
 }
 
 .searchIcon {
@@ -23,7 +26,7 @@
   left: var(--spacing-3);
   top: 50%;
   transform: translateY(-50%);
-  color: var(--foreground-subtle);
+  color: var(--primary-foreground);
   pointer-events: none;
 }
 
@@ -44,7 +47,30 @@
 }
 
 .searchInput::placeholder {
-  color: var(--foreground-muted);
+  color: var(--primary-foreground);
+}
+
+.actionButton {
+  background: var(--surface-transparent-1);
+  border: 1px solid var(--surface-transparent-2);
+  color: var(--primary-foreground);
+  font-weight: 500;
+  transition: all var(--animation-duration-fast) ease;
+}
+
+.actionButton:hover {
+  background: var(--surface-transparent-2);
+  border-color: var(--primary-border-strong);
+  transform: translateY(-1px);
+}
+
+.actionButton:focus-visible {
+  outline: 2px solid var(--themecolor2);
+  outline-offset: 2px;
+}
+
+.actionButton:active {
+  transform: translateY(0);
 }
 
 .playlistList {
@@ -104,7 +130,11 @@
   height: 40px;
   flex-shrink: 0;
   border-radius: var(--radius);
-  background: linear-gradient(135deg, var(--themecolor2) 0%, var(--themecolor4) 100%);
+  background: linear-gradient(
+    135deg,
+    var(--themecolor2) 0%,
+    var(--themecolor4) 100%
+  );
   overflow: hidden;
 }
 
@@ -244,10 +274,12 @@
 .moreButton {
   opacity: 0.6;
   transition: opacity var(--animation-duration-fast) ease;
+  color: var(--primary-foreground);
 }
 
 .moreButton:hover {
   opacity: 1;
+  background: var(--surface-transparent-2);
 }
 
 .deleteMenuItem {

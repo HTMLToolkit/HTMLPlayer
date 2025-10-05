@@ -15,18 +15,18 @@ import {
   CollisionDetection,
 } from '@dnd-kit/core';
 import { sortableKeyboardCoordinates } from '@dnd-kit/sortable';
-import { Music } from 'lucide-react';
+import { Icon } from './Icon';
 import dragStyles from './DragOverlay.module.css';
 import { useTranslation } from 'react-i18next';
 
 // Types for our drag operations
-export type DragItem = {
+export interface DragItem {
   id: string;
   type: 'song' | 'playlist' | 'folder';
   data: any; // The actual song/playlist/folder data
 };
 
-export type DropZone = {
+export interface DropZone {
   id: string;
   type: 'playlist' | 'folder' | 'root' | 'song';
   data: any; // The target playlist/folder/song data
@@ -194,7 +194,7 @@ export const DraggableProvider: React.FC<DraggableProviderProps> = ({
           // Enhanced preview for dragging TO playlists
           return (
             <div className={dragStyles.songPreview}>
-              <Music size={18} color="var(--themecolor2)" />
+              <Icon name="music" size={18} color="var(--themecolor2)" decorative />
               <div>
                 <div className={dragStyles.songTitle}>
                   {activeItem.data?.title || 'Song'}

@@ -468,6 +468,10 @@
     "interface": {
       "title": "Interface Settings",
       "colorTheme": "Color Theme",
+      "iconSet": "Icon Set",
+      "iconSetDesc": "Choose your preferred icon style",
+      "iconSetChanged": "Icon set changed successfully",
+      "iconSetError": "Failed to change icon set",
       "themeMode": "Theme Mode",
       "themeModeDesc": "Choose your preferred theme mode",
       "compact": "Compact Mode",

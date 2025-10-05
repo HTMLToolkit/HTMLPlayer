@@ -2,25 +2,35 @@
 
 ## HTMLPlayer v2
 
-- [ ] combine buttons and options that do similar things
+- [ ] Play more/less often dropdown in SongActionsDropdown
+
+- [ ] Add `Don't show again? [ ]` to all modals
+
+- [ ] Dynamic theming based on album art colors. 
+  - CSS backgrounds can be images, and album art is images
+
+- [ ] Add TS/TSX support to wallpapers for interactivity
+  - eventually using a NPM module or something for API
+  
+- [ ] add htmlplayer to system right click menu
+
+- [ ] Animated album art transitions, like fade/zoom/warp album art between songs.
 
 - [ ] 🔼 I'll need to add some sort of quick guide and help menu or something to HTMLPlayer.
 
 - [ ] 🔼 custom theme builder with custom picture backgrounds
 
-- [ ] 🔼 a Whisper based, fully in browser, Live Lyrics thing
-
 ## Either now or future versions
 
-- [ ] Dynamic theming based on album art colors. 
+- [ ] 🔼 a Whisper based, fully in browser, Live Lyrics thing
 
-- [ ] add htmlplayer to system right click menu
-
-- [ ] Animated album art transitions, like fade/zoom between songs.
+- [ ] theme Sonner toasts
 
 - [ ] Auto-fetch album art from MusicBrainz/Discogs if missing.
+  - https://github.com/Borewit/musicbrainz-api
 
 - [ ] metadata editor that saves to IndexedDB, or downloads file
+  - https://github.com/eidoriantan/mp3tag.js/
 
 - [ ] Add showDirectoryPicker API and ponyfil
     Issue: `showDirectoryPicker` missing but is not supported in all browsers (e.g., Safari).
@@ -105,15 +115,16 @@
 
 - [ ] need good APIs if I want this (not the current visualizer stuff 🫣)
 
-##### Icons
-
-- [x] Design a custom icon abstraction layer inspired by i18n
-  - [x] Must be easily configurable and swappable
-  - [x] Must support icon libraries, images, and local SVGs
-  - [x] Plan a central registry file (`icons.ts`) and a generic `<Icon>` component
-- [ ] Implement the Icon Registry and the `<Icon>` component.
-
 ## Done
+
+- [X] Design a custom icon abstraction layer inspired by i18n
+  - [X] Must be easily configurable and swappable
+  - [X] Must support icon libraries, images, and local SVGs
+  - [X] Plan a theme registry file (`themename.icons.ts`) and a generic `<Icon>` component
+
+- [X] Switch artist and album in SongList
+
+- [X] combine buttons and options that do similar things
 
 - [X] add responsive design for mobile/smaller devices
 

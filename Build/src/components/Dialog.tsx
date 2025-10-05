@@ -1,8 +1,8 @@
 import { forwardRef } from "react";
 import * as ModalPrimitive from "@radix-ui/react-dialog";
-import { X } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import modalStyles from "./Dialog.module.css";
+import { Icon } from "./Icon";
 
 const ModalComponent = ModalPrimitive.Root;
 const ModalActivator = ModalPrimitive.Trigger;
@@ -40,7 +40,12 @@ const ModalContainer = forwardRef<
       >
         {children}
         <ModalPrimitive.Close className={modalStyles.dismissButton}>
-          <X className={modalStyles.dismissIcon} />
+          <Icon
+            name="close"
+            className={modalStyles.dismissIcon}
+            size="1rem"
+            decorative
+          />
           <span className={modalStyles.visuallyHidden}>{t("common.close")}</span>
         </ModalPrimitive.Close>
       </ModalPrimitive.Content>

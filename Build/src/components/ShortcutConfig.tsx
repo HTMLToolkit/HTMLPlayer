@@ -2,9 +2,9 @@ import React, { useEffect, useState } from "react";
 import { shortcutsDb, KeyboardShortcut, formatShortcutKey, parseKeyEvent, DEFAULT_SHORTCUTS } from "../helpers/shortcutsIndexedDbHelper";
 import type { ShortcutConfig as ShortcutConfigType } from "../helpers/shortcutsIndexedDbHelper";
 import { Button } from "./Button";
-import { Pencil, Save, X } from "lucide-react";
 import styles from "./Settings.module.css";
 import { useTranslation } from "react-i18next";
+import { Icon } from "./Icon";
 
 interface ShortcutConfigProps {
   onShortcutsChanged?: () => void;
@@ -107,10 +107,10 @@ export const ShortcutConfig: React.FC<ShortcutConfigProps> = ({ onShortcutsChang
                     style={{ width: 120 }}
                   />
                   <Button size="sm" onClick={handleSave} title={t("settings.shortcuts.saveShortcut")}>
-                    <Save size={16} />
+                    <Icon name="save" size={16} decorative />
                   </Button>
                   <Button size="sm" onClick={handleCancel} title={t("common.cancel")}>
-                    <X size={16} />
+                    <Icon name="close" size={16} decorative />
                   </Button>
                   {conflict && <span className={styles.shortcutConflict}>{conflict}</span>}
                 </>
@@ -118,7 +118,7 @@ export const ShortcutConfig: React.FC<ShortcutConfigProps> = ({ onShortcutsChang
                 <>
                   <span className={styles.shortcutConfigKey}>{formatShortcutKey(shortcut)}</span>
                   <Button size="sm" onClick={() => handleEdit(shortcut.id)} title={t("settings.shortcuts.editShortcut")}>
-                    <Pencil size={16} />
+                    <Icon name="pencil" size={16} decorative />
                   </Button>
                 </>
               )}

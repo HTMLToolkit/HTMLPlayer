@@ -1,21 +1,5 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import { debounce } from "lodash";
-import {
-  SkipBack,
-  Play,
-  Pause,
-  SkipForward,
-  Repeat,
-  Shuffle,
-  Volume2,
-  VolumeX,
-  Volume1,
-  VolumeOff,
-  Heart,
-  BarChart3,
-  Type,
-  PictureInPicture2,
-} from "lucide-react";
 import { Button } from "./Button";
 import { Visualizer } from "./Visualizer";
 import { Lyrics } from "./Lyrics";
@@ -26,6 +10,7 @@ import { toggleMiniplayer, isMiniplayerSupported } from "./Miniplayer";
 import { useAudioSync } from "../hooks/useAudioSync";
 import { ScrollText } from "./ScrollText";
 import { isSafari } from "../helpers/safariHelper";
+import { Icon } from "./Icon";
 
 interface PlayerProps {
   musicPlayerHook: ReturnType<
@@ -204,10 +189,10 @@ export const Player = ({ musicPlayerHook, settings }: PlayerProps) => {
   const handleLyricsToggle = () => setShowLyrics((prev) => !prev);
 
   const getVolumeIcon = () => {
-    if (volume === 0) return <VolumeOff size={16} />;
-    if (volume < 0.3) return <VolumeX size={16} />;
-    if (volume < 0.7) return <Volume1 size={16} />;
-    return <Volume2 size={16} />;
+    if (volume === 0) return <Icon name="volumeOff" size={16} decorative />;
+    if (volume < 0.3) return <Icon name="volumeX" size={16} decorative />;
+    if (volume < 0.7) return <Icon name="volume1" size={16} decorative />;
+    return <Icon name="volume2" size={16} decorative />;
   };
 
   const getRepeatTitle = () => {
@@ -279,19 +264,23 @@ export const Player = ({ musicPlayerHook, settings }: PlayerProps) => {
         <div className={styles.controls}>
           <div className={styles.playbackButtons}>
             <Button variant="ghost" size="icon-sm" className={`${styles.controlButton} ${shuffle ? styles.active : ""}`} onClick={toggleShuffle} title={shuffle ? t("player.shuffleOn") : t("player.shuffleOff")}>
-              <Shuffle size={16} />
+              <Icon name="shuffle" size={16} decorative />
             </Button>
             <Button variant="ghost" size="icon-md" className={styles.controlButton} onClick={debounce(playPrevious, 200)} title={t("player.previous")}>
-              <SkipBack size={18} />
+              <Icon name="skipBack" size={18} decorative />
             </Button>
             <Button variant="primary" size="icon-lg" className={styles.playButton} onClick={debounce(togglePlayPause, 200)} title={isPlaying ? t("player.pause") : t("player.play")}>
-              {isPlaying ? <Pause size={20} /> : <Play size={20} />}
+              {isPlaying ? (
+                <Icon name="pause" size={20} decorative />
+              ) : (
+                <Icon name="play" size={20} decorative />
+              )}
             </Button>
             <Button variant="ghost" size="icon-md" className={styles.controlButton} onClick={debounce(playNext, 200)} title={t("player.next")}>
-              <SkipForward size={18} />
+              <Icon name="skipForward" size={18} decorative />
             </Button>
             <Button variant="ghost" size="icon-sm" className={`${styles.controlButton} ${repeat !== "off" ? styles.active : ""} ${repeat === "one" ? styles.repeatOne : ""}`} onClick={toggleRepeat} title={getRepeatTitle()}>
-              <Repeat size={16} />
+              <Icon name="repeat" size={16} decorative />
             </Button>
           </div>
 
@@ -316,15 +305,15 @@ export const Player = ({ musicPlayerHook, settings }: PlayerProps) => {
 
           <div className={styles.secondaryControls}>
             <Button variant="ghost" size="icon-sm" className={`${styles.favoriteButton} ${isFavorite ? styles.favorited : ""}`} onClick={handleFavorite} title={isFavorite ? t("player.removeFavorite") : t("player.addFavorite")}>
-              <Heart size={16} />
+              <Icon name="heart" size={16} decorative />
             </Button>
             {!isOnSafari && (
               <Button variant="ghost" size="icon-sm" className={`${styles.secondaryButton} ${showVisualizer ? styles.active : ""}`} onClick={handleVisualizerToggle} title={t("player.visualizer")}>
-                <BarChart3 size={16} />
+                <Icon name="barChart3" size={16} decorative />
               </Button>
             )}
             <Button variant="ghost" size="icon-sm" className={`${styles.secondaryButton} ${showLyrics ? styles.active : ""}`} onClick={handleLyricsToggle} title={t("player.lyrics")}>
-              <Type size={16} />
+              <Icon name="type" size={16} decorative />
             </Button>
             {isMiniplayerSupported() && (
               <Button
@@ -344,7 +333,7 @@ export const Player = ({ musicPlayerHook, settings }: PlayerProps) => {
                 }}
                 title="Picture-in-Picture"
               >
-                <PictureInPicture2 size={16} />
+                <Icon name="pictureInPicture2" size={16} decorative />
               </Button>
             )}
           </div>

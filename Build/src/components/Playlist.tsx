@@ -1,18 +1,5 @@
 import { useState, useEffect, JSX, memo, useCallback, useMemo, useRef } from "react";
 import { useTranslation } from "react-i18next";
-import {
-  Heart,
-  List,
-  Music,
-  Plus,
-  MoreHorizontal,
-  Trash2,
-  Edit,
-  Share,
-  Download,
-  Upload,
-  ChevronDown,
-} from "lucide-react";
 import { toast } from "sonner";
 import { DropZone, DraggableItem } from "./Draggable";
 import styles from "./Playlist.module.css";
@@ -42,6 +29,7 @@ import {
   useRightClickMenu,
 } from "./DropdownMenu";
 import { ScrollText } from "./ScrollText";
+import { Icon } from "./Icon";
 
 interface PlaylistProps {
   musicPlayerHook: ReturnType<
@@ -222,9 +210,13 @@ export const PlaylistComponent = ({ musicPlayerHook }: PlaylistProps) => {
   }, [exportPlaylist]);
 
   const getPlaylistIcon = useCallback((playlistName: string) => {
-    if (playlistName.toLowerCase().includes("favorite")) return <Heart size={16} />;
-    if (playlistName.toLowerCase().includes("made")) return <List size={16} />;
-    return <Music size={16} />;
+    if (playlistName.toLowerCase().includes("favorite")) {
+      return <Icon name="heart" size={16} decorative />;
+    }
+    if (playlistName.toLowerCase().includes("made")) {
+      return <Icon name="list" size={16} decorative />;
+    }
+    return <Icon name="music" size={16} decorative />;
   }, []);
 
   const handleImportPlaylist = () => {
@@ -345,37 +337,37 @@ export const PlaylistComponent = ({ musicPlayerHook }: PlaylistProps) => {
               className={styles.moreButton}
               title={t("moreOptions")}
             >
-              <MoreHorizontal size={16} />
+              <Icon name="moreHorizontal" size={16} decorative />
             </Button>
           </DropdownMenuTrigger>
             <DropdownMenuContent align="end" sideOffset={8}>
               <DropdownMenuItem onClick={() => handleRenameItem(item)}>
-                <Edit size={16} style={{ marginRight: 8 }} />
+                <Icon name="edit" size={16} style={{ marginRight: 8 }} decorative />
                 {t("playlist.renamePlaylist")}
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => handleSharePlaylist(item)}>
-                <Share size={16} style={{ marginRight: 8 }} />
+                <Icon name="share" size={16} style={{ marginRight: 8 }} decorative />
                 {t("playlist.sharePlaylist")}
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={() => handleMoveToFolder(item)}>
-                <List size={16} style={{ marginRight: 8 }} />
+                <Icon name="list" size={16} style={{ marginRight: 8 }} decorative />
                 {t("playlist.moveToFolder")}
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => {
                 moveToFolder(item.id, null); // Move to root
                 toast.success(t("playlist.movedToRoot", { item: item.name }));
               }}>
-                <List size={16} style={{ marginRight: 8 }} />
+                <Icon name="list" size={16} style={{ marginRight: 8 }} decorative />
                 {t("playlist.moveToRoot")}
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={() => handleExportPlaylist(item, 'json')}>
-                <Download size={16} style={{ marginRight: 8 }} />
+                <Icon name="download" size={16} style={{ marginRight: 8 }} decorative />
                 {t("playlist.exportJSON")}
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => handleExportPlaylist(item, 'm3u')}>
-                <Download size={16} style={{ marginRight: 8 }} />
+                <Icon name="download" size={16} style={{ marginRight: 8 }} decorative />
                 {t("playlist.exportM3U")}
               </DropdownMenuItem>
               <DropdownMenuSeparator />
@@ -383,7 +375,7 @@ export const PlaylistComponent = ({ musicPlayerHook }: PlaylistProps) => {
                 onClick={() => handleDeletePlaylist(item)}
                 className={styles.deleteMenuItem}
               >
-                <Trash2 size={16} style={{ marginRight: 8 }} />
+                <Icon name="trash2" size={16} style={{ marginRight: 8 }} decorative />
                 {t("playlist.deletePlaylist")}
               </DropdownMenuItem>
             </DropdownMenuContent>
@@ -419,11 +411,13 @@ export const PlaylistComponent = ({ musicPlayerHook }: PlaylistProps) => {
               >
                 <CollapsibleTrigger asChild>
                   <button className={`${styles.playlistItem} ${styles.folderItem}`} style={{ width: '100%' }}>
-                    <ChevronDown
+                    <Icon
+                      name="chevronDown"
                       size={16}
                       className={`${styles.chevron} ${isOpen ? styles.chevronOpen : ''}`}
+                      decorative
                     />
-                    <List size={16} />
+                    <Icon name="list" size={16} decorative />
                     <div className={styles.playlistNameWrapper}>
                       <ScrollText
                         text={item.name}
@@ -450,24 +444,24 @@ export const PlaylistComponent = ({ musicPlayerHook }: PlaylistProps) => {
                 className={styles.moreButton}
                 title={t("moreOptions")}
               >
-                <MoreHorizontal size={16} />
+                <Icon name="moreHorizontal" size={16} decorative />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" sideOffset={8}>
               <DropdownMenuItem onClick={() => handleRenameItem(item)}>
-                <Edit size={16} style={{ marginRight: 8 }} />
+                <Icon name="edit" size={16} style={{ marginRight: 8 }} decorative />
                 {t("playlist.renameFolder")}
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={() => handleMoveToFolder(item)}>
-                <List size={16} style={{ marginRight: 8 }} />
+                <Icon name="list" size={16} style={{ marginRight: 8 }} decorative />
                 {t("playlist.moveToFolder")}
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => {
                 moveToFolder(item.id, null); // Move to root
                 toast.success(t("playlist.movedToRoot", { item: item.name }));
               }}>
-                <List size={16} style={{ marginRight: 8 }} />
+                <Icon name="list" size={16} style={{ marginRight: 8 }} decorative />
                 {t("playlist.moveToRoot")}
               </DropdownMenuItem>
               <DropdownMenuSeparator />
@@ -478,7 +472,7 @@ export const PlaylistComponent = ({ musicPlayerHook }: PlaylistProps) => {
                 }}
                 className={styles.deleteMenuItem}
               >
-                <Trash2 size={16} style={{ marginRight: 8 }} />
+                <Icon name="trash2" size={16} style={{ marginRight: 8 }} decorative />
                 {t("playlist.deleteFolder")}
               </DropdownMenuItem>
             </DropdownMenuContent>
@@ -513,7 +507,7 @@ export const PlaylistComponent = ({ musicPlayerHook }: PlaylistProps) => {
       <div className={styles.searchContainer}>
         <div className={styles.searchWrapper}>
           <div className={styles.searchIcon}>
-            <Music size={16} />
+            <Icon name="music" size={16} decorative />
           </div>
           <input
             type="text"
@@ -523,31 +517,28 @@ export const PlaylistComponent = ({ musicPlayerHook }: PlaylistProps) => {
             onChange={(e: any) => handlePlaylistSearch(e.target.value)}
           />
         </div>
-      </div>
-      <div>
-        <button
-          className={`${styles.playlistItem} ${styles.addPlaylistButton}`}
-          onClick={handleAddPlaylist}
-        >
-          <Plus size={16} />
-          {t("playlist.addPlaylist")}
-        </button>
-        <button
-          className={`${styles.playlistItem} ${styles.addPlaylistButton}`}
-          onClick={() => {
-            setShowCreateFolderDialog(true);
-          }}
-        >
-          <Plus size={16} />
-          {t("playlist.addFolder")}
-        </button>
-        <button
-          className={`${styles.playlistItem} ${styles.addPlaylistButton}`}
-          onClick={handleImportPlaylist}
-        >
-          <Upload size={16} />
-          {t("playlist.importPlaylist")}
-        </button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" size="icon-md" className={styles.actionButton} aria-label={t("playlist.add")}>
+              <Icon name="plus" size={16} decorative />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" sideOffset={8}>
+            <DropdownMenuItem onClick={handleAddPlaylist}>
+              <Icon name="plus" size={16} style={{ marginRight: 8 }} decorative />
+              {t("playlist.addPlaylist")}
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setShowCreateFolderDialog(true)}>
+              <Icon name="plus" size={16} style={{ marginRight: 8 }} decorative />
+              {t("playlist.addFolder")}
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={handleImportPlaylist}>
+              <Icon name="upload" size={16} style={{ marginRight: 8 }} decorative />
+              {t("playlist.importPlaylist")}
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
 
       <div ref={playlistListRef} className={styles.playlistList} style={{ position: 'relative' }}>
@@ -556,7 +547,7 @@ export const PlaylistComponent = ({ musicPlayerHook }: PlaylistProps) => {
           className={`${styles.playlistItem} ${styles.allSongsItem}`}
           onClick={handleAllSongsClick}
         >
-          <Music size={16} />
+          <Icon name="music" size={16} decorative />
           {t("allSongs")}
           <span className={styles.songCount}>{library.songs.length}</span>
         </button>
@@ -572,7 +563,7 @@ export const PlaylistComponent = ({ musicPlayerHook }: PlaylistProps) => {
             })
           }
         >
-          <Heart size={16} />
+          <Icon name="heart" size={16} decorative />
           {t("favorites.favorites")}
           <span className={styles.songCount}>{library.favorites.length}</span>
         </button>

@@ -1,6 +1,6 @@
 import { InputHTMLAttributes, forwardRef } from "react";
 import styles from "./Checkbox.module.css";
-import { Check } from "lucide-react";
+import { Icon } from "./Icon";
 export type CheckboxProps = Omit<InputHTMLAttributes<HTMLInputElement>, "type">;
 
 export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
@@ -13,7 +13,12 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
           ref={ref}
           className={`${styles.checkbox} ${className || ""}`}
         />
-        <Check className={styles.checkmark} aria-hidden="true" />
+        <Icon
+          name="check"
+          className={styles.checkmark}
+          size="1rem"
+          decorative
+        />
       </div>
     );
   }

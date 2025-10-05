@@ -1,11 +1,5 @@
-import { useState, memo, useEffect } from "react";
+import { useState, memo, useEffect, useLayoutEffect } from "react";
 import { useTranslation } from "react-i18next";
-import {
-  Menu,
-  Settings as SettingsIcon,
-  Info,
-  ChevronRight,
-} from "lucide-react";
 import { Button } from "./Button";
 import { Separator } from "./Separator";
 import { Settings as SettingsComponent } from "./Settings";
@@ -19,6 +13,7 @@ import {
 } from "./Dialog";
 import { PlaylistComponent } from "./Playlist";
 import styles from "./Sidebar.module.css";
+import { Icon } from "./Icon";
 
 interface SidebarProps {
   musicPlayerHook: ReturnType<
@@ -64,6 +59,14 @@ export const Sidebar = memo(({
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
+  // Update CSS custom property when collapsed state changes
+  useLayoutEffect(() => {
+    document.documentElement.style.setProperty(
+      "--sidebar-width",
+      isCollapsed ? COLLAPSED_WIDTH : EXPANDED_WIDTH
+    );
+  }, [isCollapsed]);
+
   // Use external settings state if provided, otherwise use internal state
   const isSettingsOpen = settingsOpen !== undefined ? settingsOpen : false;
   const setSettingsOpen = onSettingsOpenChange || (() => {});
@@ -85,22 +88,12 @@ export const Sidebar = memo(({
       const newCollapsedState = !isCollapsed;
       setIsCollapsed(newCollapsedState);
       onCollapseChange?.(newCollapsedState);
-
-      document.documentElement.style.setProperty(
-        "--sidebar-width",
-        newCollapsedState ? COLLAPSED_WIDTH : EXPANDED_WIDTH
-      );
     }
   };
 
   const handleSliverClick = () => {
     setIsCollapsed(false);
     onCollapseChange?.(false);
-
-    document.documentElement.style.setProperty(
-      "--sidebar-width",
-      EXPANDED_WIDTH
-    );
   };
 
   const handleBackdropClick = () => {
@@ -112,7 +105,7 @@ export const Sidebar = memo(({
   // On desktop, show collapsed sliver
   if (isCollapsed && !isMobile) {
     return (
-      <div className={styles.sidebarCollapsed} onClick={handleSliverClick}>
+      <div className={`${styles.sidebar} ${styles.collapsed}`} onClick={handleSliverClick}>
         <Button
           variant="ghost"
           size="icon-sm"
@@ -120,7 +113,7 @@ export const Sidebar = memo(({
           onClick={handleSliverClick}
           aria-label={t("expandSidebar")}
         >
-          <ChevronRight size={16} />
+          <Icon name="chevronRight" size={16} decorative />
         </Button>
       </div>
     );
@@ -146,7 +139,7 @@ export const Sidebar = memo(({
           onClick={handleMenuClick}
           aria-label={t("menu")}
         >
-          <Menu size={24} />
+          <Icon name="menu" size={24} decorative />
         </Button>
         <h2 className={styles.title}>{t("playlists")}</h2>
       </div>
@@ -160,7 +153,7 @@ export const Sidebar = memo(({
           className={styles.footerButton}
           onClick={handleAbout}
         >
-          <Info size={16} />
+          <Icon name="info" size={16} decorative />
           {t("aboutMenu")}
         </Button>
         <Button
@@ -168,7 +161,7 @@ export const Sidebar = memo(({
           className={styles.footerButton}
           onClick={handleSettings}
         >
-          <SettingsIcon size={16} />
+          <Icon name="settings" size={16} decorative />
           {t("settings.title")}
         </Button>
         <SettingsComponent

@@ -1,7 +1,7 @@
 import * as React from "react";
 import * as DropdownMenuPrimitive from "@radix-ui/react-dropdown-menu";
-import { Check, ChevronRight } from "lucide-react";
 import styles from "./DropdownMenu.module.css";
+import { Icon } from "./Icon";
 
 // Hook to add right-click support to DropdownMenu
 export const useRightClickMenu = (enableRightClick: boolean = false) => {
@@ -55,7 +55,12 @@ const DropdownMenuSubTrigger = React.forwardRef<
     {...props}
   >
     {children}
-    <ChevronRight className={styles.subTriggerIcon} />
+    <Icon
+      name="chevronRight"
+      className={styles.subTriggerIcon}
+      size="1rem"
+      decorative
+    />
   </DropdownMenuPrimitive.SubTrigger>
 ));
 DropdownMenuSubTrigger.displayName = "DropdownMenuSubTrigger";
@@ -113,7 +118,7 @@ const DropdownMenuCheckboxItem = React.forwardRef<
   >
     <span className={styles.checkboxIndicator}>
       <DropdownMenuPrimitive.ItemIndicator>
-        <Check />
+        <Icon name="check" size="0.875rem" decorative />
       </DropdownMenuPrimitive.ItemIndicator>
     </span>
     {children}

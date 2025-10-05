@@ -12,28 +12,21 @@
     padding var(--animation-duration-normal) ease-in-out;
 }
 
-.sidebarCollapsed {
+.sidebar.collapsed {
   width: var(--sidebar-collapsed-width);
-  height: 100vh;
-  background: var(--sidebar-bg-transparent);
-  backdrop-filter: blur(10px);
-  border-right: 1px solid var(--surface-transparent-1);
-  border-radius: 0 1.5rem 1.5rem 0;
+  padding: var(--spacing-2);
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: width var(--animation-duration-normal) ease,
-    background-color var(--animation-duration-fast) ease;
-  position: relative;
 }
 
-.sidebarCollapsed:hover {
+.sidebar.collapsed:hover {
   background: var(--sidebar-bg-hover);
 }
 
 .expandButton {
-  color: var(--foreground-strong);
+  color: var(--primary-foreground);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -42,8 +35,8 @@
   transition: color var(--animation-duration-fast) ease;
 }
 
-.sidebarCollapsed:hover .expandButton {
-  color: var(--primary-foreground);
+.sidebar.collapsed:hover .expandButton {
+  background: var(--surface-transparent-2);
 }
 
 .header {
@@ -54,7 +47,11 @@
 }
 
 .menuButton {
-  color: var(--foreground-strong);
+  color: var(--primary-foreground);
+}
+
+.menuButton:hover {
+  background: var(--surface-transparent-2);
 }
 
 .title {
@@ -81,7 +78,7 @@
   left: var(--spacing-3);
   top: 50%;
   transform: translateY(-50%);
-  color: var(--foreground-subtle);
+  color: var(--primary-foreground);
   pointer-events: none;
 }
 
@@ -93,7 +90,7 @@
 }
 
 .searchInput::placeholder {
-  color: var(--foreground-subtle);
+  color: var(--primary-foreground);
 }
 
 .playlistList {
@@ -156,7 +153,7 @@
 .noResults {
   padding: var(--spacing-3);
   text-align: center;
-  color: var(--foreground-subtle);
+  color: var(--primary-foreground);
   font-size: 0.875rem;
 }
 
@@ -169,7 +166,7 @@
 
 .footerButton {
   justify-content: flex-start;
-  color: var(--foreground-strong);
+  color: var(--primary-foreground);
   height: auto;
   padding: var(--spacing-2) var(--spacing-3);
 }

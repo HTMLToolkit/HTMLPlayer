@@ -1,13 +1,4 @@
 import { useState, Fragment } from "react";
-import {
-  Plus,
-  Info,
-  Share,
-  User,
-  Music,
-  MoreHorizontal,
-  Trash2,
-} from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "./Button";
 import {
@@ -28,6 +19,7 @@ import {
 } from "./DropdownMenu";
 import { AddToPopover } from "./AddToPopover";
 import { useTranslation } from "react-i18next";
+import { Icon } from "./Icon";
 
 interface SongActionsDropdownProps {
   song: Song;
@@ -249,30 +241,30 @@ export const SongActionsDropdown = ({
           title={t("moreOptions")}
           onClick={(e) => e.stopPropagation()}
         >
-          <MoreHorizontal size={size} />
+          <Icon name="moreHorizontal" size={size} decorative />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" sideOffset={8}>
         <DropdownMenuItem onClick={() => setShowAddToPopover(true)}>
-          <Plus size={size} style={{ marginRight: 8 }} />
+          <Icon name="plus" size={size} style={{ marginRight: 8 }} decorative />
           {t("playlist.addTo")}
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={handleShowSongInfo}>
-          <Info size={size} style={{ marginRight: 8 }} />
+          <Icon name="info" size={size} style={{ marginRight: 8 }} decorative />
           {t("songInfo.songInfoTitle")}
         </DropdownMenuItem>
         <DropdownMenuItem onClick={handleShare}>
-          <Share size={size} style={{ marginRight: 8 }} />
+          <Icon name="share" size={size} style={{ marginRight: 8 }} decorative />
           {t("share")}
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={handleGoToArtist}>
-          <User size={size} style={{ marginRight: 8 }} />
+          <Icon name="user" size={size} style={{ marginRight: 8 }} decorative />
           {t("goToArtist")}
         </DropdownMenuItem>
         <DropdownMenuItem onClick={handleGoToAlbum}>
-          <Music size={size} style={{ marginRight: 8 }} />
+          <Icon name="music" size={size} style={{ marginRight: 8 }} decorative />
           {t("goToAlbum")}
         </DropdownMenuItem>
         <DropdownMenuSeparator />
@@ -280,7 +272,7 @@ export const SongActionsDropdown = ({
           onClick={handleDeleteSong}
           className={modalStyles.delete}
         >
-          <Trash2 size={size} style={{ marginRight: 8 }} />
+          <Icon name="trash2" size={size} style={{ marginRight: 8 }} decorative />
           {t("deleteFromLibrary")}
         </DropdownMenuItem>
       </DropdownMenuContent>

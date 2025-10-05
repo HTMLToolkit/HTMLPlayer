@@ -1,5 +1,4 @@
 import { useTranslation } from "react-i18next";
-import { Sun, Moon, SunMoon } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -7,6 +6,7 @@ import {
   DropdownMenuTrigger,
 } from "./DropdownMenu";
 import { Button } from "./Button";
+import { Icon } from "./Icon";
 import {
   ThemeMode,
   switchToDarkMode,
@@ -46,13 +46,13 @@ export const ThemeModeSwitch = ({
   const getThemeIcon = () => {
     switch (value) {
       case "light":
-        return <Sun className={styles.icon} />;
+        return <Icon name="sun" className={styles.icon} decorative />;
       case "dark":
-        return <Moon className={styles.icon} />;
+        return <Icon name="moon" className={styles.icon} decorative />;
       case "auto":
-        return <SunMoon className={styles.icon} />;
+        return <Icon name="sunMoon" className={styles.icon} decorative />;
       default:
-        return <Sun className={styles.icon} />;
+        return <Icon name="sun" className={styles.icon} decorative />;
     }
   };
 
@@ -74,7 +74,12 @@ export const ThemeModeSwitch = ({
             className={value === "light" ? styles.activeItem : ""}
             onClick={() => applyThemeMode("light")}
           >
-            <Sun size={16} className={styles.menuIcon} />
+            <Icon
+              name="sun"
+              size={16}
+              className={styles.menuIcon}
+              decorative
+            />
             {t("themeLight")}
             {value === "light" && <span className={styles.checkmark}>✓</span>}
           </DropdownMenuItem>
@@ -82,7 +87,12 @@ export const ThemeModeSwitch = ({
             className={value === "dark" ? styles.activeItem : ""}
             onClick={() => applyThemeMode("dark")}
           >
-            <Moon size={16} className={styles.menuIcon} />
+            <Icon
+              name="moon"
+              size={16}
+              className={styles.menuIcon}
+              decorative
+            />
             {t("themeDark")}
             {value === "dark" && <span className={styles.checkmark}>✓</span>}
           </DropdownMenuItem>
@@ -90,7 +100,12 @@ export const ThemeModeSwitch = ({
             className={value === "auto" ? styles.activeItem : ""}
             onClick={() => applyThemeMode("auto")}
           >
-            <SunMoon size={16} className={styles.menuIcon} />
+            <Icon
+              name="sunMoon"
+              size={16}
+              className={styles.menuIcon}
+              decorative
+            />
             {t("themeAuto")}
             {value === "auto" && <span className={styles.checkmark}>✓</span>}
           </DropdownMenuItem>

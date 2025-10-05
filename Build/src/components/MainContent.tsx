@@ -1,22 +1,4 @@
 import React, { useState } from "react";
-import {
-  Search,
-  Trash2,
-  Plus,
-  ArrowUpDown,
-  Type,
-  User,
-  Disc,
-  Star,
-  ArrowUp,
-  ArrowDown,
-  X,
-  ListChecks,
-  Heart,
-  ThumbsUp,
-  ThumbsDown,
-  Menu,
-} from "lucide-react";
 import { DraggableItem, DropZone } from "./Draggable";
 import { SongActionsDropdown } from "./SongActionsDropdown";
 import { Checkbox } from "./Checkbox";
@@ -42,6 +24,7 @@ import styles from "./MainContent.module.css";
 import PersistentDropdownMenu, { PersistentDropdownMenuRef } from "./PersistentDropdownMenu";
 import { AddToPopover } from "./AddToPopover";
 import { useTranslation } from "react-i18next";
+import { Icon } from "./Icon";
 
 interface SortableSongItemProps {
   song: Song;
@@ -108,21 +91,46 @@ const SortableSongItem = ({
         <div className={styles.songDetails}>
           <div className={styles.songTitle}>{song.title}</div>
           <div className={styles.songArtist}>
-            <span className={`${styles.fieldLabel}`}>{t("common.artist")}: </span>{song.artist}<span className={`${styles.fieldLabel} ${styles.desktopOnly}`}> {t("common.duration")}: {formatDuration(song.duration)}</span>
+            <span className={`${styles.fieldLabel}`}>{t("common.album")}: </span>{song.album || t("common.unknownAlbum")}<span className={`${styles.fieldLabel} ${styles.desktopOnly}`}> {t("common.duration")}: {formatDuration(song.duration)}</span>
           </div>
           <div className={`${styles.albumName} ${styles.mobileOnly}`}>
-            <span className={styles.fieldLabel}>{t("common.album")}: </span>
-            {song.album || t("common.unknownAlbum")}
+            <span className={styles.fieldLabel}>{t("common.artist")}: </span>
+            {song.artist}
           </div>
         </div>
       </div>
-      <div className={`${styles.albumName} ${styles.desktopOnly}`}>{song.album || t("common.unknownAlbum")}</div>
+      <div className={`${styles.albumName} ${styles.desktopOnly}`}>{song.artist}</div>
       <div className={styles.songActions}>
         <Button variant="ghost" size="icon-sm" className={`${styles.songActionButton} ${isFavorited ? styles.favorited : ""}`} onClick={(e) => { e.stopPropagation(); onFavoriteToggle(e); }}>
-          <Heart size={14} fill={isFavorited ? "currentColor" : "none"} />
+          <Icon
+            name="heart"
+            size={14}
+            fill={isFavorited ? "currentColor" : "none"}
+            decorative
+          />
         </Button>
-        <Button variant="ghost" size="icon-sm" className={`${styles.songActionButton} ${ratings[song.id] === "thumbs-up" ? styles.active : ""}`} onClick={(e) => { e.stopPropagation(); onRatingChange("thumbs-up"); }}><ThumbsUp size={14} /></Button>
-        <Button variant="ghost" size="icon-sm" className={`${styles.songActionButton} ${ratings[song.id] === "thumbs-down" ? styles.active : ""}`} onClick={(e) => { e.stopPropagation(); onRatingChange("thumbs-down"); }}><ThumbsDown size={14} /></Button>
+        <Button
+          variant="ghost"
+          size="icon-sm"
+          className={`${styles.songActionButton} ${ratings[song.id] === "thumbs-up" ? styles.active : ""}`}
+          onClick={(e) => {
+            e.stopPropagation();
+            onRatingChange("thumbs-up");
+          }}
+        >
+          <Icon name="thumbsUp" size={14} decorative />
+        </Button>
+        <Button
+          variant="ghost"
+          size="icon-sm"
+          className={`${styles.songActionButton} ${ratings[song.id] === "thumbs-down" ? styles.active : ""}`}
+          onClick={(e) => {
+            e.stopPropagation();
+            onRatingChange("thumbs-down");
+          }}
+        >
+          <Icon name="thumbsDown" size={14} decorative />
+        </Button>
         <SongActionsDropdown
           song={song}
           library={library}
@@ -342,7 +350,7 @@ export const MainContent = ({ musicPlayerHook, onMobileMenuClick }: MainContentP
       const audioFiles = await pickAudioFiles();
       if (audioFiles.length === 0) return;
 
-      const BATCH_SIZE = 7;
+      const BATCH_SIZE = 20;
       let successCount = 0;
       let errorCount = 0;
       let currentBatch = 1;
@@ -369,6 +377,12 @@ export const MainContent = ({ musicPlayerHook, onMobileMenuClick }: MainContentP
               gapless: metadata.gapless,
             };
             await addSong(song);
+            
+            // Revoke blob URL and clear file reference to free memory
+            URL.revokeObjectURL(audioUrl);
+            // Clear the file reference to help garbage collection
+            audioFile.file = null as any;
+            
             successCount++;
           } catch {
             errorCount++;
@@ -423,7 +437,7 @@ export const MainContent = ({ musicPlayerHook, onMobileMenuClick }: MainContentP
             onClick={onMobileMenuClick}
             aria-label={t("menu")}
           >
-            <Menu size={24} />
+            <Icon name="menu" size={24} decorative />
           </Button>
           {playerState.view === "songs" ? (
             <h1 className={styles.title}>HTMLPlayer</h1>
@@ -445,7 +459,12 @@ export const MainContent = ({ musicPlayerHook, onMobileMenuClick }: MainContentP
         </div>
         <div className={styles.actions}>
           <div className={styles.searchWrapper}>
-            <Search className={styles.searchIcon} size={16} />
+            <Icon
+              name="search"
+              className={styles.searchIcon}
+              size={16}
+              decorative
+            />
             <Input
               placeholder={t("search.placeholder")}
               className={styles.searchInput}
@@ -454,75 +473,75 @@ export const MainContent = ({ musicPlayerHook, onMobileMenuClick }: MainContentP
             />
           </div>
           <Button variant="outline" size="icon-md" className={styles.actionButton} onClick={handleDeleteSong} aria-label={t("actions.delete")}>
-            <Trash2 size={16} />
+            <Icon name="trash2" size={16} decorative />
           </Button>
           <PersistentDropdownMenu
             ref={sortDropdownRef}
             trigger={
               <Button variant="outline" size="icon-md" className={styles.actionButton} aria-label={t("sort.sortBy")}>
-                <ArrowUpDown size={16} />
+                <Icon name="arrowUpDown" size={16} decorative />
               </Button>
             }
             onClose={() => { }}
           >
             <Button variant="ghost" onClick={() => setSortBy('name')} className="w-full justify-start text-sm">
-              <Type size={16} className="mr-2" />
+              <Icon name="type" size={16} className="mr-2" decorative />
               {t("sort.name")}
               {sortBy === 'name' && <span className="ml-auto">•</span>}
             </Button>
             <Button variant="ghost" onClick={() => setSortBy('artist')} className="w-full justify-start text-sm">
-              <User size={16} className="mr-2" />
+              <Icon name="user" size={16} className="mr-2" decorative />
               {t("sort.artist")}
               {sortBy === 'artist' && <span className="ml-auto">•</span>}
             </Button>
             <Button variant="ghost" onClick={() => setSortBy('album')} className="w-full justify-start text-sm">
-              <Disc size={16} className="mr-2" />
+              <Icon name="disc" size={16} className="mr-2" decorative />
               {t("sort.album")}
               {sortBy === 'album' && <span className="ml-auto">•</span>}
             </Button>
             <Button variant="ghost" onClick={() => setSortBy('rating')} className="w-full justify-start text-sm">
-              <Star size={16} className="mr-2" />
+              <Icon name="star" size={16} className="mr-2" decorative />
               {t("sort.rating")}
               {sortBy === 'rating' && <span className="ml-auto">•</span>}
             </Button>
             <div className="border-t my-1"></div>
             <Button variant="ghost" onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')} className="w-full justify-start text-sm">
               {sortOrder === 'asc' ? (
-                <ArrowUp size={16} className="mr-2" />
+                <Icon name="arrowUp" size={16} className="mr-2" decorative />
               ) : (
-                <ArrowDown size={16} className="mr-2" />
+                <Icon name="arrowDown" size={16} className="mr-2" decorative />
               )}
               {sortOrder === 'asc' ? t('sort.ascending') : t('sort.descending')}
             </Button>
             <div className="border-t my-1"></div>
             <Button variant="ghost" onClick={() => { setSortBy(null); sortDropdownRef.current?.close(); }} className="w-full justify-start text-sm">
-              <X size={16} className="mr-2" />
+              <Icon name="close" size={16} className="mr-2" decorative />
               {t('sort.clear')}
             </Button>
           </PersistentDropdownMenu>
           <PersistentDropdownMenu
             trigger={
               <Button variant="outline" size="icon-md" className={styles.actionButton} onClick={handleSelectSongsToggle} aria-label={t("actions.selectSongs")}>
-                <ListChecks size={16} />
+                <Icon name="listChecks" size={16} decorative />
               </Button>
             }
             onClose={() => handleSelectSongsToggle()}
           >
             <Button variant="ghost" onClick={handleSelectAll}>
-              <ListChecks size={16} style={{ marginRight: 8 }} />
+              <Icon name="listChecks" size={16} style={{ marginRight: 8 }} decorative />
               {selectedSongs.length === sortedSongs.length ? t("actions.deselectAll") : t("actions.selectAll")}
             </Button>
             <Button variant="ghost" onClick={handleAddToPlaylist}>
-              <Plus size={16} style={{ marginRight: 8 }} />
+              <Icon name="plus" size={16} style={{ marginRight: 8 }} decorative />
               {t("playlist.addTo")}
             </Button>
             <Button variant="ghost" onClick={handleDeleteSelectedSongs}>
-              <Trash2 size={16} style={{ marginRight: 8 }} />
+              <Icon name="trash2" size={16} style={{ marginRight: 8 }} decorative />
               {t("common.delete")}
             </Button>
           </PersistentDropdownMenu>
           <Button variant="outline" size="icon-md" className={styles.actionButton} onClick={handleAddMusic} aria-label={t("actions.addMusic")}>
-            <Plus size={16} />
+            <Icon name="plus" size={16} decorative />
           </Button>
         </div>
       </div>
@@ -532,7 +551,7 @@ export const MainContent = ({ musicPlayerHook, onMobileMenuClick }: MainContentP
         <div className={styles.songList}>
           <div className={styles.songListHeader}>
             <span className={styles.columnHeader}>{t("songInfo.title")}</span>
-            <span className={`${styles.columnHeader} ${styles.desktopOnly}`}>{t("common.album")}</span>
+            <span className={`${styles.columnHeader} ${styles.desktopOnly}`}>{t("common.artist")}</span>
             <span className={styles.columnHeader}>{t("actions.addTo")}</span>
           </div>
           {sortedSongs.map((song: Song) => (

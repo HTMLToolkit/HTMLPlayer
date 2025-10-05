@@ -18,7 +18,7 @@
   box-sizing: border-box;
   z-index: 50;
   margin-left: 15px;
-  transition: ease-in-out var(--animation-duration-normal);
+  transition: ease-in-out var(--animation-duration-fast);
   outline: 2px solid var(--themecolor2-transparent);
 }
 
@@ -84,7 +84,7 @@
   font-family: var(--font-family-base);
   font-size: 1.125rem;
   color: var(--primary-foreground);
-  transition: opacity 0.3s ease, transform 0.3s ease;
+  transition: opacity var(--animation-duration-fast) ease, transform var(--animation-duration-fast) ease;
   opacity: 1;
 }
 
@@ -370,7 +370,7 @@
   border-radius: 0 0 var(--radius-lg) var(--radius-lg);
   z-index: 9999;
   animation: slideDown var(--animation-duration-normal) ease-out;
-  transition: width var(--animation-duration-normal) ease-in-out;
+  transition: width var(--animation-duration-fast) ease-in-out;
 }
 
 .visualizer {
@@ -438,7 +438,7 @@
     font-size: 1.25rem;
     /* Much larger on mobile */
     color: var(--primary-foreground);
-    transition: opacity 0.3s ease, transform 0.3s ease;
+    transition: opacity var(--animation-duration-fast) ease, transform var(--animation-duration-fast) ease;
     opacity: 1;
   }
 

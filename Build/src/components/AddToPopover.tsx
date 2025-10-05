@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { Music, Heart, Search, PlusCircle } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "./Button";
 import { Input } from "./Input";
@@ -12,6 +11,7 @@ import {
 } from "./Dialog";
 import modalStyles from "./Dialog.module.css";
 import { useTranslation } from "react-i18next";
+import { Icon } from "./Icon";
 
 interface AddToPopoverProps {
   songs: Song[]; // Support single or multiple songs
@@ -201,7 +201,7 @@ export const AddToPopover = ({
                   className={`${modalStyles["w-full"]} ${modalStyles["justify-start"]}`}
                   onClick={handleAddToFavorites}
                 >
-                  <Heart size={16} className="mr-2" />
+                  <Icon name="heart" size={16} className="mr-2" decorative />
                   {t("favorites.addToFavorites")}
                 </Button>
                 <Button
@@ -209,7 +209,7 @@ export const AddToPopover = ({
                   className={`${modalStyles["w-full"]} ${modalStyles["justify-start"]}`}
                   onClick={() => setIsCreatingNew(true)}
                 >
-                  <PlusCircle size={16} className="mr-2" />
+                  <Icon name="plusCircle" size={16} className="mr-2" decorative />
                   {t("playlist.createNewPlaylist")}
                 </Button>
               </div>
@@ -221,7 +221,7 @@ export const AddToPopover = ({
                 className={`${modalStyles["w-full"]} ${modalStyles["justify-start"]}`}
                 onClick={() => setIsCreatingNew(true)}
               >
-                <PlusCircle size={16} className="mr-2" />
+                <Icon name="plusCircle" size={16} className="mr-2" decorative />
                 {t("playlist.createNewPlaylist")}
               </Button>
             )}
@@ -235,7 +235,8 @@ export const AddToPopover = ({
             {allPlaylists.length > 0 && (
               <>
                 <div style={{ position: "relative" }}>
-                  <Search
+                  <Icon
+                    name="search"
                     size={16}
                     style={{
                       position: "absolute",
@@ -245,6 +246,7 @@ export const AddToPopover = ({
                       color: "var(--muted-foreground)",
                       pointerEvents: "none",
                     }}
+                    decorative
                   />
                   <Input
                     placeholder={t("playlist.searchPlaylists")}
@@ -270,7 +272,7 @@ export const AddToPopover = ({
                         className={`${modalStyles["w-full"]} ${modalStyles["justify-start"]}`}
                         onClick={() => handleAddToPlaylist(playlist)}
                       >
-                        <Music size={16} className="mr-2" />
+                        <Icon name="music" size={16} className="mr-2" decorative />
                         {playlist.name}
                       </Button>
                     ))

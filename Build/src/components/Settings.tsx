@@ -19,14 +19,15 @@ import {
 } from "./Select";
 import { ThemeModeSwitch } from "./ThemeModeSwitch";
 import { ShortcutConfig } from "./ShortcutConfig";
-import { Volume2, Music, Palette, RotateCcw, Keyboard, MessageCircle, Trash2 } from "lucide-react";
 import styles from "./Settings.module.css";
 import { useThemeLoader } from "../helpers/themeLoader";
+import { useIconRegistry } from "../helpers/iconLoader";
 import { toast } from "sonner";
 import { useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { languageNames } from "../../public/locales/supportedLanguages";
 import { isSafari } from "../helpers/safariHelper";
+import { Icon } from "./Icon";
 
 export interface SettingsProps {
   className?: string;
@@ -51,6 +52,7 @@ export const Settings = ({
   const previousCrossfadeRef = useRef<number>(settings.crossfadeBeforeGapless ?? settings.crossfade);
 
   const { themes, currentTheme, setTheme } = useThemeLoader();
+  const { iconSets, currentSet, setIconSet } = useIconRegistry();
 
   // Check if running on Safari
   const isOnSafari = isSafari();
@@ -154,7 +156,12 @@ export const Settings = ({
             {/* Audio Settings */}
             <section className={styles.section}>
               <div className={styles.sectionHeader}>
-                <Volume2 className={styles.sectionIcon} />
+                <Icon
+                  name="volume2"
+                  className={styles.sectionIcon}
+                  size="1.25rem"
+                  decorative
+                />
                 <h3 className={styles.sectionTitle}>
                   {t("settings.audio.title")}
                 </h3>
@@ -301,7 +308,12 @@ export const Settings = ({
             {/* Playback Settings */}
             <section className={styles.section}>
               <div className={styles.sectionHeader}>
-                <Music className={styles.sectionIcon} />
+                <Icon
+                  name="music"
+                  className={styles.sectionIcon}
+                  size="1.25rem"
+                  decorative
+                />
                 <h3 className={styles.sectionTitle}>
                   {t("settings.playback.title")}
                 </h3>
@@ -410,7 +422,12 @@ export const Settings = ({
             {/* Interface Settings */}
             <section className={styles.section}>
               <div className={styles.sectionHeader}>
-                <Palette className={styles.sectionIcon} />
+                <Icon
+                  name="palette"
+                  className={styles.sectionIcon}
+                  size="1.25rem"
+                  decorative
+                />
                 <h3 className={styles.sectionTitle}>
                   {t("settings.interface.title")}
                 </h3>
@@ -440,6 +457,39 @@ export const Settings = ({
                     {themes.map((theme) => (
                       <SelectItem key={theme.name} value={theme.name}>
                         {theme.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className={styles.settingItem}>
+                <div className={styles.settingLabel}>
+                  <label htmlFor="icon-set">
+                    {t("settings.interface.iconSet")}
+                  </label>
+                  <p className={styles.settingDescription}>
+                    {t("settings.interface.iconSetDesc")}
+                  </p>
+                </div>
+                <Select
+                  value={currentSet?.id || "blue"}
+                  onValueChange={(val) => {
+                    try {
+                      setIconSet(val);
+                      toast.success(t("settings.interface.iconSetChanged"));
+                    } catch {
+                      toast.error(t("settings.interface.iconSetError"));
+                    }
+                  }}
+                >
+                  <SelectTrigger id="icon-set">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {iconSets.map((iconSet) => (
+                      <SelectItem key={iconSet.id} value={iconSet.id}>
+                        {iconSet.label}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -558,7 +608,7 @@ export const Settings = ({
                   onClick={handleClearCache}
                   size="sm"
                 >
-                  <Trash2 size={16} />
+                  <Icon name="trash2" size={16} decorative />
                   {t("settings.interface.clearCacheButton")}
                 </Button>
               </div>
@@ -567,7 +617,12 @@ export const Settings = ({
             {/* Keyboard Shortcuts */}
             <section className={styles.section}>
               <div className={styles.sectionHeader}>
-                <Keyboard className={styles.sectionIcon} />
+                <Icon
+                  name="keyboard"
+                  className={styles.sectionIcon}
+                  size="1.25rem"
+                  decorative
+                />
                 <h3 className={styles.sectionTitle}>
                   {t("settings.shortcuts.title")}
                 </h3>
@@ -593,7 +648,12 @@ export const Settings = ({
             {/* Integrations */}
             <section className={styles.section}>
               <div className={styles.sectionHeader}>
-                <MessageCircle className={styles.sectionIcon} />
+                <Icon
+                  name="messageCircle"
+                  className={styles.sectionIcon}
+                  size="1.25rem"
+                  decorative
+                />
                 <h3 className={styles.sectionTitle}>
                   Integrations
                 </h3>
@@ -699,7 +759,7 @@ export const Settings = ({
               onClick={handleResetSettings}
               className={styles.resetButton}
             >
-              <RotateCcw size={16} />
+              <Icon name="rotateCcw" size={16} decorative />
               {t("settings.reset")}
             </Button>
           </SheetFooter>

@@ -1,10 +1,11 @@
 import { createRoot } from "react-dom/client";
 import { useTranslation } from "react-i18next";
 import { Button } from "./Button";
-import { Play, Pause, SkipBack, SkipForward } from "lucide-react";
+import { Icon } from "./Icon";
 import { getCurrentThemeCSS } from "../helpers/themeMode";
 import styles from "./Miniplayer.module.css";
 import { useAudioStore } from "../contexts/audioStore";
+import { IconRegistryProvider } from "../helpers/iconLoader";
 
 interface MiniplayerControls {
   togglePlayPause: () => void;
@@ -35,12 +36,12 @@ function copyAllStyles(pipWindow: Window) {
   document.querySelectorAll('style').forEach((style) => {
     const newStyle = pipWindow.document.createElement('style');
     newStyle.textContent = style.textContent;
-    
+
     // Copy any attributes that might be important
     Array.from(style.attributes).forEach(attr => {
       newStyle.setAttribute(attr.name, attr.value);
     });
-    
+
     pipWindow.document.head.appendChild(newStyle);
   });
 
@@ -64,7 +65,7 @@ function copyAllStyles(pipWindow: Window) {
   } catch (e) {
     console.warn('Could not copy some stylesheets:', e);
   }
-  
+
   console.log(`Copied ${copiedRulesCount} CSS rules to PiP window`);
 }
 
@@ -112,7 +113,7 @@ export const toggleMiniplayer = async (controls: MiniplayerControls) => {
 
     // Copy all styles
     copyAllStyles(newPipWindow);
-    
+
     // Wait for theme application to complete
     await new Promise(resolve => setTimeout(resolve, 300));
 
@@ -137,14 +138,14 @@ export const toggleMiniplayer = async (controls: MiniplayerControls) => {
         '--secondary', '--secondary-foreground', '--menu-background',
         '--spacing-1', '--spacing-2', '--spacing-3', '--spacing-4', '--radius', '--radius-lg'
       ];
-      
+
       themeVars.forEach(varName => {
         const value = rootStyle.getPropertyValue(varName).trim();
         if (value) {
           fallbackVariables.push(`${varName}: ${value};`);
         }
       });
-      
+
       if (fallbackVariables.length > 0) {
         const fallbackStyle = newPipWindow.document.createElement("style");
         fallbackStyle.textContent = `:root {\n  ${fallbackVariables.join('\n  ')}\n}`;
@@ -172,25 +173,25 @@ export const toggleMiniplayer = async (controls: MiniplayerControls) => {
 
     // Create a new BroadcastChannel specifically for the PiP window
     const pipThemeChannel = new BroadcastChannel("theme-updates");
-    
+
     // Listen for theme updates in the PiP window
     pipThemeChannel.onmessage = (event) => {
       if (event.data.type === "theme-css") {
         console.log("PiP window received theme update");
-        
+
         // Apply dark mode class based on broadcast data
         if (event.data.darkMode) {
           newPipWindow.document.documentElement.classList.add('dark');
         } else {
           newPipWindow.document.documentElement.classList.remove('dark');
         }
-        
+
         // Remove any existing theme styles
         const existingThemeStyles = newPipWindow.document.querySelectorAll(
           'style[data-theme-variables], style[data-fallback-theme-variables], style[id^="theme-stylesheet"]'
         );
         existingThemeStyles.forEach(style => style.remove());
-        
+
         // Apply new theme CSS
         const styleElement = newPipWindow.document.createElement("style");
         styleElement.textContent = event.data.css;
@@ -199,7 +200,7 @@ export const toggleMiniplayer = async (controls: MiniplayerControls) => {
           styleElement.setAttribute('data-fallback-theme-variables', 'true');
         }
         newPipWindow.document.head.appendChild(styleElement);
-        
+
         // Force reflow to apply styles immediately
         newPipWindow.document.body.offsetHeight;
       }
@@ -240,33 +241,41 @@ const MiniplayerContent: React.FC = () => {
   }
 
   return (
-    <div className={styles.miniplayer}>
-      <img
-        src={currentSong.albumArt || ""}
-        alt={t("player.albumArt")}
-        className={styles.albumArt}
-      />
-      <div className={styles.songInfo}>
-        <div className={styles.songTitle}>{currentSong.title}</div>
-        <div className={styles.artist}>{currentSong.artist}</div>
+    <IconRegistryProvider defaultSetId="lucide">
+      <div className={styles.miniplayer}>
+        {currentSong.albumArt && (
+          <img
+            src={currentSong.albumArt}
+            alt={t("player.albumArt")}
+            className={styles.albumArt}
+          />
+        )}
+        <div className={styles.songInfo}>
+          <div className={styles.songTitle}>{currentSong.title}</div>
+          <div className={styles.artist}>{currentSong.artist}</div>
+        </div>
+        <div className={styles.controls}>
+          <Button id="prevBtn" title={t("player.previousTrack")} onClick={handlePrevious}>
+            <Icon name="skipBack" size={18} decorative />
+          </Button>
+          <Button
+            id="playBtn"
+            className={styles.playBtn}
+            title={isPlaying ? "Pause" : "Play"}
+            onClick={handlePlayPause}
+          >
+            {isPlaying ? (
+              <Icon name="pause" size={20} decorative />
+            ) : (
+              <Icon name="play" size={20} decorative />
+            )}
+          </Button>
+          <Button id="nextBtn" title={t("player.nextTrack")} onClick={handleNext}>
+            <Icon name="skipForward" size={18} decorative />
+          </Button>
+        </div>
       </div>
-      <div className={styles.controls}>
-        <Button id="prevBtn" title={t("player.previousTrack")} onClick={handlePrevious}>
-          <SkipBack />
-        </Button>
-        <Button
-          id="playBtn"
-          className={styles.playBtn}
-          title={isPlaying ? "Pause" : "Play"}
-          onClick={handlePlayPause}
-        >
-          {isPlaying ? <Pause /> : <Play />}
-        </Button>
-        <Button id="nextBtn" title={t("player.nextTrack")} onClick={handleNext}>
-          <SkipForward />
-        </Button>
-      </div>
-    </div>
+    </IconRegistryProvider>
   );
 };
 
@@ -322,10 +331,10 @@ const themeChannel = new BroadcastChannel("theme-updates");
 export function broadcastThemeCSS() {
   const themeCSS = getCurrentThemeCSS();
   const isDarkMode = document.documentElement.classList.contains('dark');
-  
+
   if (themeCSS && themeCSS.trim() !== ':root {\n  \n}') {
-    themeChannel.postMessage({ 
-      type: "theme-css", 
+    themeChannel.postMessage({
+      type: "theme-css",
       css: themeCSS,
       darkMode: isDarkMode,
       timestamp: Date.now()
@@ -343,18 +352,18 @@ export function broadcastThemeCSS() {
       '--secondary', '--secondary-foreground', '--menu-background',
       '--spacing-1', '--spacing-2', '--spacing-3', '--spacing-4', '--radius', '--radius-lg'
     ];
-    
+
     themeVars.forEach(varName => {
       const value = rootStyle.getPropertyValue(varName).trim();
       if (value) {
         fallbackVariables.push(`${varName}: ${value};`);
       }
     });
-    
+
     if (fallbackVariables.length > 0) {
       const fallbackCSS = `:root {\n  ${fallbackVariables.join('\n  ')}\n}`;
-      themeChannel.postMessage({ 
-        type: "theme-css", 
+      themeChannel.postMessage({
+        type: "theme-css",
         css: fallbackCSS,
         darkMode: isDarkMode,
         timestamp: Date.now(),

@@ -4,6 +4,7 @@ import IndexPage from "./_index";
 import "../global.css";
 import { Toaster } from "sonner";
 import { ThemeLoader } from "../helpers/themeLoader";
+import { IconRegistryProvider } from "../helpers/iconLoader";
 import { I18nextProvider } from 'react-i18next';
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
@@ -45,10 +46,12 @@ const hideLoadingScreen = () => {
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <I18nextProvider i18n={i18n}>
-      <ThemeLoader defaultTheme="Blue">
-        <Toaster />
-        <IndexPage />
-      </ThemeLoader>
+      <IconRegistryProvider defaultSetId="lucide">
+        <ThemeLoader defaultTheme="Blue">
+          <Toaster />
+          <IndexPage />
+        </ThemeLoader>
+      </IconRegistryProvider>
     </I18nextProvider>
   </React.StrictMode>
 );

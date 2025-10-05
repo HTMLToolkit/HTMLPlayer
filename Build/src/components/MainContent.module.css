@@ -104,16 +104,16 @@
 }
 
 .actionButton {
-  background: var(--primary-transparent);
-  border: 1px solid var(--primary-border-strong);
+  background: var(--surface-transparent-1);
+  border: 1px solid var(--surface-transparent-2);
   color: var(--primary-foreground);
   font-weight: 500;
   transition: all var(--animation-duration-fast) ease;
 }
 
 .actionButton:hover {
-  background: var(--primary-transparent-5);
-  border-color: var(--primary-border-stronger);
+  background: var(--surface-transparent-2);
+  border-color: var(--primary-border-strong);
   transform: translateY(-1px);
 }
 

@@ -1,8 +1,8 @@
 import { useRef, useEffect, useState, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { getVisualizer, getAvailableVisualizers, VisualizerType } from "../helpers/visualizerLoader";
-import { Settings, SlidersHorizontal } from "lucide-react";
 import { Button } from "./Button";
+import { Icon } from "./Icon";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -146,7 +146,7 @@ export const Visualizer = ({
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" className={styles.dropdownTrigger} disabled={isLoadingVisualizer}>
-              <SlidersHorizontal size={16} />
+              <Icon name="visualizerControls" size={16} decorative inline />
               <span>
                 {isLoadingVisualizer 
                   ? t("common.loading") 
@@ -174,7 +174,7 @@ export const Visualizer = ({
             size="icon"
             onClick={() => setShowSettings(!showSettings)}
           >
-            <Settings size={16} />
+            <Icon name="settings" size={16} decorative inline />
           </Button>
         )}
       </div>
