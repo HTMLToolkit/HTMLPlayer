@@ -419,14 +419,19 @@ export const MainContent = ({ musicPlayerHook, onMobileMenuClick }: MainContentP
   useEffect(() => {
     // Only run on /upload route
     if (window.location.pathname !== "/upload") return;
-    // Try to get files from form POST
+    // Try to get files and share params from form POST
     (async () => {
       try {
-        // Use FormData API to get files
         const form = document.querySelector("form");
         let files = [];
+        let title = "";
+        let text = "";
+        let url = "";
         if (form) {
           const formData = new FormData(form);
+          title = (formData.get("title") as string) || "";
+          text = (formData.get("text") as string) || "";
+          url = (formData.get("url") as string) || "";
           for (const entry of formData.entries()) {
             const value = entry[1];
             if (value instanceof File && value.type.startsWith("audio/")) {
@@ -441,9 +446,18 @@ export const MainContent = ({ musicPlayerHook, onMobileMenuClick }: MainContentP
               if (params.files && params.files.length > 0) {
                 files = params.files.filter((f: File) => f.type.startsWith("audio/"));
               }
+              // extract title/text/url from params if available
+              if (params.title) title = params.title;
+              if (params.text) text = params.text;
+              if (params.url) url = params.url;
             });
           }
         }
+        // Idk what to use title/text/url for, so just toast them
+        // if (title || text || url) {
+        //   toast.info(`${title} ${text} ${url}`.trim());
+        // }
+        
         if (files.length > 0) {
           await importAudioFiles(files);
           toast.success(t("filePicker.successImport", { count: files.length }));
