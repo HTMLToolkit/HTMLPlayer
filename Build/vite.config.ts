@@ -47,37 +47,37 @@ if (isWeb) {
         },
         screenshots: [
           {
-            src: '/public/screenshots/MainUI.png',
+            src: '/screenshots/MainUI.png',
             sizes: '1500x720',
             type: 'image/png',
             label: 'Main Player UI'
           },
           {
-            src: '/public/screenshots/CustomizedUI.png',
+            src: '/screenshots/CustomizedUI.png',
             sizes: '1500x720',
             type: 'image/png',
             label: 'Customized with the Nebula theme and Phosphor icons'
           },
           {
-            src: '/public/screenshots/LyricsandVisualizer.png',
+            src: '/screenshots/LyricsandVisualizer.png',
             sizes: '1500x740',
             type: 'image/png',
             label: 'Lyrics and Visualizer View'
           },
           {
-            src: '/public/screenshots/MainUI-Mobile.png',
+            src: '/screenshots/MainUI-Mobile.png',
             sizes: '500x740',
             type: 'image/png',
             label: 'Main Player UI on Mobile'
           },
           {
-            src: '/public/screenshots/CustomizedUI-Mobile.png',
+            src: '/screenshots/CustomizedUI-Mobile.png',
             sizes: '500x740',
             type: 'image/png',
             label: 'Customized with the Nebula theme and Phosphor icons on Mobile'
           },
           {
-            src: '/public/screenshots/LyricsandVisualizer-Mobile.png',
+            src: '/screenshots/LyricsandVisualizer-Mobile.png',
             sizes: '500x740',
             type: 'image/png',
             label: 'Lyrics and Visualizer View on Mobile'
