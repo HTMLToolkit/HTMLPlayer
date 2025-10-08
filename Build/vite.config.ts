@@ -45,6 +45,29 @@ if (isWeb) {
             ]
           }
         },
+        file_handlers: [
+          {
+            action: '/upload',
+            accept: {
+              'audio/mpeg': ['.mp3'],
+              'audio/wav': ['.wav'],
+              'audio/flac': ['.flac'],
+              'audio/mp4': ['.m4a'],
+              'audio/aiff': ['.aif', '.aiff'],
+              'audio/ogg': ['.ogg'],
+              'audio/opus': ['.opus']
+            },
+            // @ts-ignore
+            icons: [
+              {
+                src: 'public/icon-1024.png',
+                sizes: '1024x1024',
+                type: 'image/png'
+              }
+            ],
+            launch_type: 'single-client'
+          }
+        ],
         screenshots: [
           {
             src: './screenshots/MainUI.png',
