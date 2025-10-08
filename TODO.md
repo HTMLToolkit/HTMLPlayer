@@ -4,16 +4,12 @@
 
 - [ ] Play more/less often dropdown in SongActionsDropdown
 
-- [ ] Add `Don't show again? [ ]` to all modals
-
-- [ ] Dynamic theming based on album art colors. 
+- [ ] Dynamic theming based on album art colors.
   - CSS backgrounds can be images, and album art is images
 
 - [ ] Add TS/TSX support to wallpapers for interactivity
   - eventually using a NPM module or something for API
   
-- [ ] add htmlplayer to system right click menu
-
 - [ ] Animated album art transitions, like fade/zoom/warp album art between songs.
 
 - [ ] 🔼 I'll need to add some sort of quick guide and help menu or something to HTMLPlayer.
@@ -27,10 +23,10 @@
 - [ ] theme Sonner toasts
 
 - [ ] Auto-fetch album art from MusicBrainz/Discogs if missing.
-  - https://github.com/Borewit/musicbrainz-api
+  - <https://github.com/Borewit/musicbrainz-api>
 
 - [ ] metadata editor that saves to IndexedDB, or downloads file
-  - https://github.com/eidoriantan/mp3tag.js/
+  - <https://github.com/eidoriantan/mp3tag.js/>
 
 - [ ] Add showDirectoryPicker API and ponyfil
     Issue: `showDirectoryPicker` missing but is not supported in all browsers (e.g., Safari).
@@ -117,6 +113,16 @@
 
 ## Done
 
+- [X] Add more things to PWA manifest
+
+- [X] Fix loading screen
+
+- [X] Fix Icon Themes causing lag
+
+- [X] Add `Don't show again? [ ]` to all modals
+
+- [X] add htmlplayer to system right click menu
+
 - [X] Design a custom icon abstraction layer inspired by i18n
   - [X] Must be easily configurable and swappable
   - [X] Must support icon libraries, images, and local SVGs
@@ -147,7 +153,7 @@
 
 - [X] Make all 3-dot menus also open on right click
 
-- [X] drag songs to playlists to move to playlist 
+- [X] drag songs to playlists to move to playlist
 
 - [X] Sort Tracks with drag-and-drop reordering
     Issue: Tracks cannot be sorted (e.g., by name, rating).
@@ -157,7 +163,7 @@
 
 - [X] make miniplayer `enterpictureinpicture` trigger be conditional so that init doesn't fail on Safari or other browsers that don't support that API
 
-- [X] add eslint 
+- [X] add eslint
 
 - [X] replace artist column with album as artist already is there below song
 

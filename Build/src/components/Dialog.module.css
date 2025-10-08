@@ -135,6 +135,26 @@
     border-width: 0;
   }
 
+  .dontShowAgain {
+    margin-top: var(--spacing-4);
+    padding-top: var(--spacing-4);
+    border-top: 1px solid var(--border);
+  }
+
+  .checkboxLabel {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-2);
+    font-size: 0.875rem;
+    color: var(--muted-foreground);
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .checkboxText {
+    flex: 1;
+  }
+
   @keyframes backdropFadeIn {
     0% {
       opacity: 0;

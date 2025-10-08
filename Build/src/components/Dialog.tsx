@@ -1,8 +1,9 @@
-import { forwardRef } from "react";
+import { forwardRef, useState } from "react";
 import * as ModalPrimitive from "@radix-ui/react-dialog";
 import { useTranslation } from "react-i18next";
 import modalStyles from "./Dialog.module.css";
 import { Icon } from "./Icon";
+import { Checkbox } from "./Checkbox";
 
 const ModalComponent = ModalPrimitive.Root;
 const ModalActivator = ModalPrimitive.Trigger;
@@ -26,19 +27,54 @@ ModalBackdrop.displayName = ModalPrimitive.Overlay.displayName;
 
 const ModalContainer = forwardRef<
   React.ElementRef<typeof ModalPrimitive.Content>,
-  React.ComponentPropsWithoutRef<typeof ModalPrimitive.Content>
+  React.ComponentPropsWithoutRef<typeof ModalPrimitive.Content> & {
+    dontShowAgainKey?: string;
+  }
 >((props, forwardedRef) => {
-  const { className, children, ...restProps } = props;
+  const { className, children, dontShowAgainKey, ...restProps } = props;
   const { t } = useTranslation();
+  const [dontShowAgain, setDontShowAgain] = useState(false);
+
+  // Reset checkbox when dialog is opened
+  // ModalPrimitive.Content receives 'open' prop via ModalPrimitive.Root context
+  // Use effect to reset when dialog opens
+  // We can use ModalPrimitive.Content's 'onOpenAutoFocus' event as a reliable trigger
+  const handleOpenAutoFocus = () => {
+    setDontShowAgain(false);
+  };
+
   return (
     <ModalRenderer>
       <ModalBackdrop />
       <ModalPrimitive.Content
         ref={forwardedRef}
         className={[modalStyles.modal, className].filter(Boolean).join(" ")}
+        onOpenAutoFocus={handleOpenAutoFocus}
         {...restProps}
       >
         {children}
+        {dontShowAgainKey && (
+          <div className={modalStyles.dontShowAgain}>
+            <label className={modalStyles.checkboxLabel}>
+              <Checkbox
+                checked={dontShowAgain}
+                onChange={(e) => {
+                  const checked = e.target.checked;
+                  setDontShowAgain(checked);
+                  if (checked && dontShowAgainKey) {
+                    // Import here to avoid circular dependency
+                    import("../helpers/musicIndexedDbHelper").then(({ musicIndexedDbHelper }) => {
+                      musicIndexedDbHelper.setDialogPreference(dontShowAgainKey, true);
+                    });
+                  }
+                }}
+              />
+              <span className={modalStyles.checkboxText}>
+                {t("common.dontShowAgain", "Don't show again")}
+              </span>
+            </label>
+          </div>
+        )}
         <ModalPrimitive.Close className={modalStyles.dismissButton}>
           <Icon
             name="close"

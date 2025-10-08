@@ -14,7 +14,9 @@
     "unknownArtist": "Artiste Inconnu",
     "unknownAlbum": "Album Inconnu",
     "unknownTitle": "Titre Inconnu",
-    "unknownError": "Une erreur inconnue s'est produite"
+    "unknownError": "Une erreur inconnue s'est produite",
+    "dontShowAgain": "Ne plus afficher",
+    "reset": "Réinitialiser"
   },
   "favorites": {
     "favorites": "Favoris",
@@ -411,6 +413,11 @@
     "themeError": "Erreur de chargement du thème !",
     "cacheClearedSuccess": "Cache de page et fichiers de langue effacés avec succès",
     "cacheClearedError": "Échec de l'effacement du cache",
+    "resetDialogsSuccess": "Tous les dialogues réinitialisés avec succès",
+    "resetDialogsDescription": "Rétablir tous les dialogues \"Ne plus afficher\"",
+    "resetDialogs": "Réinitialiser les dialogues",
+    "resetDialogsTitle": "Réinitialiser les Confirmations de Dialogue ?",
+    "resetDialogsButton": "Réinitialiser",
     "audio": {
       "title": "Paramètres Audio",
       "crossfade": "Fondu enchaîné",

@@ -8,6 +8,7 @@
 
 ---
 
+<!-- markdownlint-disable MD033 -->
 <a href="https://htmltoolkit.github.io/HTMLPlayer">
   <picture>
     <source srcset="https://chromeos.dev/badges/en/dark.svg" media="(prefers-color-scheme: dark)">

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { DraggableItem, DropZone } from "./Draggable";
 import { SongActionsDropdown } from "./SongActionsDropdown";
 import { Checkbox } from "./Checkbox";
@@ -25,6 +25,7 @@ import PersistentDropdownMenu, { PersistentDropdownMenuRef } from "./PersistentD
 import { AddToPopover } from "./AddToPopover";
 import { useTranslation } from "react-i18next";
 import { Icon } from "./Icon";
+import { musicIndexedDbHelper } from "../helpers/musicIndexedDbHelper";
 
 interface SortableSongItemProps {
   song: Song;
@@ -321,11 +322,23 @@ export const MainContent = ({ musicPlayerHook, onMobileMenuClick }: MainContentP
     }
   };
 
-  const handleDeleteSong = () => {
+  const handleDeleteSong = async () => {
     if (filteredSongs.length === 0) {
       toast.error(t("delete.noSongs"));
       return;
     }
+
+    // Check if user has chosen not to show delete confirmation
+    const shouldShow = await musicIndexedDbHelper.shouldShowDialog("delete-song-confirmation");
+    if (!shouldShow) {
+      // Delete directly without showing dialog
+      const songToDelete = filteredSongs[0];
+      removeSong(songToDelete.id);
+      toast.success(t("deletedFromLibrary", { song: songToDelete.title }));
+      return;
+    }
+
+    // Show confirmation dialog
     setSongToDelete(filteredSongs[0]);
     setShowDeleteConfirm(true);
   };
@@ -344,62 +357,104 @@ export const MainContent = ({ musicPlayerHook, onMobileMenuClick }: MainContentP
     setSongToDelete(null);
   };
 
+  // Helper to import audio files (used for both manual and share target)
+  const importAudioFiles = async (audioFiles: Array<{ file: File } | File>) => {
+    if (!audioFiles || audioFiles.length === 0) return;
+    const BATCH_SIZE = 20;
+    let successCount = 0;
+    let errorCount = 0;
+    let currentBatch = 1;
+    const totalBatches = Math.ceil(audioFiles.length / BATCH_SIZE);
+    for (let i = 0; i < audioFiles.length; i += BATCH_SIZE) {
+      const batch = audioFiles.slice(i, i + BATCH_SIZE);
+      toast.loading(t("batch.processing", { currentBatch, totalBatches }));
+  const batchPromises = batch.map(async (audioFile: { file: File } | File) => {
+        try {
+          const file: File = (audioFile as any).file || (audioFile as File);
+          const metadata = await extractAudioMetadata(file);
+          const audioUrl = createAudioUrl(file);
+          const song: Song = {
+            id: generateUniqueId(),
+            title: metadata.title,
+            artist: metadata.artist,
+            album: metadata.album || t("songInfo.album", { title: t("common.unknownAlbum") }),
+            duration: metadata.duration,
+            url: audioUrl,
+            albumArt: metadata.albumArt,
+            embeddedLyrics: metadata.embeddedLyrics,
+            encoding: metadata.encoding,
+            gapless: metadata.gapless,
+          };
+          await addSong(song);
+          URL.revokeObjectURL(audioUrl);
+          if (typeof audioFile === 'object' && 'file' in audioFile) {
+            (audioFile as { file: File }).file = null as any;
+          }
+          successCount++;
+        } catch {
+          errorCount++;
+        }
+      });
+      await Promise.all(batchPromises);
+      currentBatch++;
+    }
+    toast.dismiss();
+    if (successCount > 0) toast.success(t("filePicker.successImport", { count: successCount }));
+    if (errorCount > 0) toast.error(t("filePicker.failedImport", { count: errorCount }));
+  };
+
+  // Manual add music (Uppy)
   const handleAddMusic = async () => {
     try {
       toast.info(t("filePicker.selectFiles"));
       const audioFiles = await pickAudioFiles();
-      if (audioFiles.length === 0) return;
-
-      const BATCH_SIZE = 20;
-      let successCount = 0;
-      let errorCount = 0;
-      let currentBatch = 1;
-      const totalBatches = Math.ceil(audioFiles.length / BATCH_SIZE);
-
-      for (let i = 0; i < audioFiles.length; i += BATCH_SIZE) {
-        const batch = audioFiles.slice(i, i + BATCH_SIZE);
-        toast.loading(t("batch.processing", { currentBatch, totalBatches }));
-
-        const batchPromises = batch.map(async (audioFile) => {
-          try {
-            const metadata = await extractAudioMetadata(audioFile.file);
-            const audioUrl = createAudioUrl(audioFile.file);
-            const song: Song = {
-              id: generateUniqueId(),
-              title: metadata.title,
-              artist: metadata.artist,
-              album: metadata.album || t("songInfo.album", { title: t("common.unknownAlbum") }),
-              duration: metadata.duration,
-              url: audioUrl,
-              albumArt: metadata.albumArt,
-              embeddedLyrics: metadata.embeddedLyrics,
-              encoding: metadata.encoding,
-              gapless: metadata.gapless,
-            };
-            await addSong(song);
-            
-            // Revoke blob URL and clear file reference to free memory
-            URL.revokeObjectURL(audioUrl);
-            // Clear the file reference to help garbage collection
-            audioFile.file = null as any;
-            
-            successCount++;
-          } catch {
-            errorCount++;
-          }
-        });
-        await Promise.all(batchPromises);
-        currentBatch++;
-      }
-
-      toast.dismiss();
-      if (successCount > 0) toast.success(t("filePicker.successImport", { count: successCount }));
-      if (errorCount > 0) toast.error(t("filePicker.failedImport", { count: errorCount }));
+      await importAudioFiles(audioFiles);
     } catch {
       toast.dismiss();
       toast.error(t("filePicker.failedOpen"));
     }
   };
+
+  // PWA Web Share Target: handle /upload route
+  useEffect(() => {
+    // Only run on /upload route
+    if (window.location.pathname !== "/upload") return;
+    // Try to get files from form POST
+    (async () => {
+      try {
+        // Use FormData API to get files
+        const form = document.querySelector("form");
+        let files = [];
+        if (form) {
+          const formData = new FormData(form);
+          for (const entry of formData.entries()) {
+            const value = entry[1];
+            if (value instanceof File && value.type.startsWith("audio/")) {
+              files.push(value);
+            }
+          }
+        } else if (window.navigator?.canShare && window.navigator.canShare({ files: [] })) {
+          // Fallback: try window.launchQueue (for some browsers)
+          const win = window as any;
+          if (win.launchQueue && typeof win.launchQueue.setConsumer === "function") {
+            win.launchQueue.setConsumer((params: any) => {
+              if (params.files && params.files.length > 0) {
+                files = params.files.filter((f: File) => f.type.startsWith("audio/"));
+              }
+            });
+          }
+        }
+        if (files.length > 0) {
+          await importAudioFiles(files);
+          toast.success(t("filePicker.successImport", { count: files.length }));
+        } else {
+          toast.error(t("filePicker.failedImport", { count: 0 }));
+        }
+      } catch (e) {
+        toast.error(t("filePicker.failedImport", { count: 0 }));
+      }
+    })();
+  }, []);
 
   const formatDuration = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -593,7 +648,7 @@ export const MainContent = ({ musicPlayerHook, onMobileMenuClick }: MainContentP
 
       {/* Delete Modal */}
       <Dialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
-        <DialogContent>
+        <DialogContent dontShowAgainKey="delete-song-confirmation">
           <DialogHeader>
             <DialogTitle>{t("delete.songTitle")}</DialogTitle>
             <DialogDescription>{t("delete.confirm", { title: songToDelete?.title })}</DialogDescription>

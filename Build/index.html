@@ -10,14 +10,7 @@
   <!-- Load user's saved theme and dark mode preference ASAP -->
   <script>
     (function() {
-      // Check if we need to load a different theme
-      const savedTheme = localStorage.getItem('selected-color-theme');
-      if (savedTheme && savedTheme !== 'Blue') {
-        const themeLink = document.getElementById('theme-link');
-        themeLink.href = `./src/themes/${savedTheme}/${savedTheme}.theme.css`;
-      }
-      
-      // Apply dark mode immediately if needed
+      // Apply dark mode immediately if needed (before theme switching)
       const savedMode = localStorage.getItem('themeMode') || 'auto';
       if (savedMode === 'dark') {
         document.documentElement.classList.add('dark');
@@ -38,11 +31,41 @@
     <div class="loadingContent">
       <div class="loadingSpinner"></div>
       <h1 class="loadingTitle">HTMLPlayer</h1>
-      <p class="loadingText">Loading...</p>
+      <p class="loadingText" id="loading-text">Loading the loading message...</p>
+
     </div>
   </div>
 
   <div id="root"></div>
+
+  <!-- Load fun loading messages -->
+  <script>
+    (function() {
+      // Detect user's language (first two letters)
+      const userLang = (navigator.language || 'en').substring(0, 2);
+      
+      // Map supported languages
+      const supportedLangs = { 'en': 'en', 'fr': 'fr' };
+      const lang = supportedLangs[userLang] || 'en';
+      
+      // Load the appropriate language file
+      fetch(`./locales/${lang}/loading-messages-${lang}.json`)
+        .then(response => response.json())
+        .then(messages => {
+          // Pick a random message
+          const randomMessage = messages[Math.floor(Math.random() * messages.length)];
+          // Update the loading text
+          const loadingText = document.getElementById('loading-text');
+          if (loadingText) {
+            loadingText.textContent = randomMessage;
+          }
+        })
+        .catch(() => {
+          // Fallback to English if loading fails
+          console.warn('Failed to load loading messages, using fallback');
+        });
+    })();
+  </script>
 
   <!-- Eruda dev console -->
   <script src="https://cdn.jsdelivr.net/npm/eruda" integrity="sha384-F7xQBvh3l6dG/mMD6QPIeVmXtzWT4Ce3ZDu8ysPuzMWMx9bFOIMGnRPUhLuQipss" crossorigin="anonymous"></script>

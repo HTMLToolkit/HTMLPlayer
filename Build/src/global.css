@@ -94,21 +94,14 @@ html {
   justify-content: center;
   background: var(--themegradient);
   z-index: var(--z-critical);
-  animation: fadeOut 0.8s ease-out forwards;
-  animation-delay: 0.2s;
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 0.5s ease-out, visibility 0.5s ease-out;
 }
 
-@keyframes fadeOut {
-  0% {
-    opacity: 1;
-  }
-  70% {
-    opacity: 1;
-  }
-  100% {
-    opacity: 0;
-    visibility: hidden;
-  }
+.loadingScreen.fade-out {
+  opacity: 0;
+  visibility: hidden;
 }
 
 .loadingContent {
@@ -116,18 +109,6 @@ html {
   flex-direction: column;
   align-items: center;
   gap: var(--spacing-4);
-  animation: slideUp 0.6s ease-out;
-}
-
-@keyframes slideUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
 }
 
 .loadingSpinner {
@@ -158,7 +139,6 @@ html {
   font-size: 1rem;
   color: var(--foreground-muted);
   margin: 0;
-  opacity: 0.9;
 }
 
 /* Mobile-specific CSS variable overrides */

@@ -19,12 +19,67 @@ if (isWeb) {
       registerType: 'autoUpdate',
       includeAssets: ['robots.txt'],
       manifest: {
+        id: 'htmlplayer',
         name: 'HTMLPlayerBeta',
         short_name: 'HTMLPlayerBeta',
-        start_url: './',  // <- relative start URL
+        description: 'A modern music player interface with playlists, song management, visualizers, and offline support.',
+        categories: ['music', 'audio', 'entertainment', 'tools'],
+        start_url: './',
         display: 'standalone',
         theme_color: '#00bfff',
         background_color: '#00bfff',
+        orientation: 'any',
+        share_target: {
+          action: '/upload',
+          method: 'POST',
+          enctype: 'multipart/form-data',
+          params: {
+            files: [
+              {
+                name: 'audio',
+                accept: ['audio/*']
+              }
+            ]
+          }
+        },
+        screenshots: [
+          {
+            src: 'public/screenshots/MainUI.png',
+            sizes: '1500x720',
+            type: 'image/png',
+            label: 'Main Player UI'
+          },
+          {
+            src: 'public/screenshots/CustomizedUI.png',
+            sizes: '1500x720',
+            type: 'image/png',
+            label: 'Customized with the Nebula theme and Phosphor icons'
+          },
+          {
+            src: 'public/screenshots/LyricsandVisualizer.png',
+            sizes: '1500x740',
+            type: 'image/png',
+            label: 'Lyrics and Visualizer View'
+          },
+          {
+            src: 'public/screenshots/MainUI-Mobile.png',
+            sizes: '500x740',
+            type: 'image/png',
+            label: 'Main Player UI on Mobile'
+          },
+          {
+            src: 'public/screenshots/CustomizedUI-Mobile.png',
+            sizes: '500x740',
+            type: 'image/png',
+            label: 'Customized with the Nebula theme and Phosphor icons on Mobile'
+          },
+          {
+            src: 'public/screenshots/LyricsandVisualizer-Mobile.png',
+            sizes: '500x740',
+            type: 'image/png',
+            label: 'Lyrics and Visualizer View on Mobile'
+          }
+        ]
       },
       pwaAssets: {
         image: 'public/icon-1024.png',
@@ -34,12 +89,12 @@ if (isWeb) {
       workbox: {
         runtimeCaching: [
           {
-            urlPattern: /.*\.(js|css|ts|tsx|html)$/, // remove leading slash
+            urlPattern: /.*\.(js|css|ts|tsx|html)$/,
             handler: 'NetworkFirst',
             options: { cacheName: 'app-shell' },
           },
           {
-            urlPattern: /.*\.(png|ico|json)$/, // remove leading slash
+            urlPattern: /.*\.(png|ico|json)$/,
             handler: 'CacheFirst',
             options: { cacheName: 'assets' },
           },

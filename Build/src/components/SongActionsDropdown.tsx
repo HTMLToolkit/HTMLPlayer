@@ -223,7 +223,20 @@ export const SongActionsDropdown = ({
     );
   };
 
-  const handleDeleteSong = () => setShowDeleteDialog(true);
+  const handleDeleteSong = async () => {
+    // Check if user has chosen not to show delete confirmation
+    const { musicIndexedDbHelper } = await import("../helpers/musicIndexedDbHelper");
+    const shouldShow = await musicIndexedDbHelper.shouldShowDialog("delete-song-confirmation");
+    if (!shouldShow) {
+      // Delete directly without showing dialog
+      onRemoveSong(song.id);
+      toast.success(t("deletedFromLibrary", { song: song.title }));
+      return;
+    }
+
+    // Show confirmation dialog
+    setShowDeleteDialog(true);
+  };
 
   const handleConfirmDelete = () => {
     onRemoveSong(song.id);
@@ -291,7 +304,7 @@ export const SongActionsDropdown = ({
 
       {/* Delete Confirmation Dialog */}
       <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-        <DialogContent>
+        <DialogContent dontShowAgainKey="delete-song-confirmation">
           <DialogHeader>
             <DialogTitle>{t("deleteSong")}</DialogTitle>
             <DialogDescription>

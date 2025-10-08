@@ -14,7 +14,9 @@
     "unknownArtist": "Unknown Artist",
     "unknownAlbum": "Unknown Album",
     "unknownTitle": "Unknown Title",
-    "unknownError": "Unknown error occurred"
+    "unknownError": "Unknown error occurred",
+    "dontShowAgain": "Don't show again",
+    "reset": "Reset"
   },
   "favorites": {
     "favorites": "Favorites",
@@ -444,6 +446,11 @@
     "themeError": "Theme load error!",
     "cacheClearedSuccess": "Page cache and language files cleared successfully",
     "cacheClearedError": "Failed to clear cache",
+    "resetDialogsSuccess": "All dialogs reset successfully",
+    "resetDialogsDescription": "Restore all \"Don't show again\" dialogs",
+    "resetDialogs": "Reset Dialogs",
+    "resetDialogsTitle": "Reset Dialog Confirmations?",
+    "resetDialogsButton": "Reset",
     "audio": {
       "title": "Audio Settings",
       "crossfade": "Crossfade",

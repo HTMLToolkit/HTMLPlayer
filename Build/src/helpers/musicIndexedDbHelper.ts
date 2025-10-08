@@ -330,4 +330,76 @@ export const musicIndexedDbHelper = {
       throw error;
     }
   },
+
+  async shouldShowDialog(dialogKey: string): Promise<boolean> {
+    try {
+      const db = await openDatabase();
+      const transaction = db.transaction([STORES.SETTINGS], "readonly");
+      const store = transaction.objectStore(STORES.SETTINGS);
+
+      const result = await new Promise<any>((resolve, reject) => {
+        const request = store.get(`dialog-${dialogKey}`);
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+      });
+
+      db.close();
+      // Return true if no preference is set (show by default), false if user chose not to show
+      return result?.data?.dontShowAgain !== true;
+    } catch (error) {
+      console.error(`Failed to check dialog preference for ${dialogKey}:`, error);
+      return true; // Default to showing the dialog if there's an error
+    }
+  },
+
+  async setDialogPreference(dialogKey: string, dontShowAgain: boolean): Promise<void> {
+    try {
+      const db = await openDatabase();
+      const transaction = db.transaction([STORES.SETTINGS], "readwrite");
+      const store = transaction.objectStore(STORES.SETTINGS);
+
+      await new Promise<void>((resolve, reject) => {
+        const request = store.put({
+          id: `dialog-${dialogKey}`,
+          data: { dontShowAgain, timestamp: Date.now() }
+        });
+        request.onsuccess = () => resolve();
+        request.onerror = () => reject(request.error);
+      });
+
+      db.close();
+      console.log(`Saved dialog preference for ${dialogKey}: dontShowAgain=${dontShowAgain}`);
+    } catch (error) {
+      console.error(`Failed to save dialog preference for ${dialogKey}:`, error);
+      throw error;
+    }
+  },
 };
+
+export async function resetAllDialogPreferences(): Promise<void> {
+  try {
+    const db = await openDatabase();
+    const transaction = db.transaction([STORES.SETTINGS], "readwrite");
+    const store = transaction.objectStore(STORES.SETTINGS);
+    // Get all keys
+    const keys = await new Promise<string[]>((resolve, reject) => {
+      const request = store.getAllKeys();
+      request.onsuccess = () => resolve(request.result as string[]);
+      request.onerror = () => reject(request.error);
+    });
+    // Delete all dialog-* keys
+    await Promise.all(
+      keys.filter((key) => key.startsWith("dialog-")).map((key) => {
+        return new Promise<void>((resolve, reject) => {
+          const req = store.delete(key);
+          req.onsuccess = () => resolve();
+          req.onerror = () => reject(req.error);
+        });
+      })
+    );
+    db.close();
+  } catch (error) {
+    console.error("Failed to reset dialog preferences:", error);
+    throw error;
+  }
+}

@@ -167,7 +167,18 @@ export const PlaylistComponent = ({ musicPlayerHook }: PlaylistProps) => {
     setNewPlaylistName("");
   };
 
-  const handleDeletePlaylist = (playlist: Playlist) => {
+  const handleDeletePlaylist = async (playlist: Playlist) => {
+    // Check if user has chosen not to show delete confirmation
+    const { musicIndexedDbHelper } = await import("../helpers/musicIndexedDbHelper");
+    const shouldShow = await musicIndexedDbHelper.shouldShowDialog("delete-playlist-confirmation");
+    if (!shouldShow) {
+      // Delete directly without showing dialog
+      removePlaylist(playlist.id);
+      toast.success(t("playlist.playlistDeleted", { name: playlist.name }));
+      return;
+    }
+
+    // Show confirmation dialog
     setPlaylistToDelete(playlist);
     setIsDeleteDialogOpen(true);
   };
@@ -466,7 +477,18 @@ export const PlaylistComponent = ({ musicPlayerHook }: PlaylistProps) => {
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
-                onClick={() => {
+                onClick={async () => {
+                  // Check if user has chosen not to show delete confirmation
+                  const { musicIndexedDbHelper } = await import("../helpers/musicIndexedDbHelper");
+                  const shouldShow = await musicIndexedDbHelper.shouldShowDialog("delete-playlist-confirmation");
+                  if (!shouldShow) {
+                    // Delete directly without showing dialog
+                    removePlaylist(item.id);
+                    toast.success(t("playlist.folderDeleted", { name: item.name }));
+                    return;
+                  }
+
+                  // Show confirmation dialog
                   setPlaylistToDelete(item);
                   setIsDeleteDialogOpen(true);
                 }}
@@ -681,7 +703,7 @@ export const PlaylistComponent = ({ musicPlayerHook }: PlaylistProps) => {
 
       {/* Delete Confirmation */}
       <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <DialogContent>
+        <DialogContent dontShowAgainKey="delete-playlist-confirmation">
           <DialogHeader>
             <DialogTitle>{playlistToDelete && 'songs' in playlistToDelete ? t("playlist.deletePlaylist") : t("playlist.deleteFolder")}</DialogTitle>
             <DialogDescription>

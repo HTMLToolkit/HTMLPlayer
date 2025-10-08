@@ -16,7 +16,7 @@ import {
 } from '@dnd-kit/core';
 import { sortableKeyboardCoordinates } from '@dnd-kit/sortable';
 import { Icon } from './Icon';
-import dragStyles from './DragOverlay.module.css';
+import dragStyles from './Draggable.module.css';
 import { useTranslation } from 'react-i18next';
 
 // Types for our drag operations

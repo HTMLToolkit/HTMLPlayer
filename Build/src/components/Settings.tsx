@@ -23,11 +23,14 @@ import styles from "./Settings.module.css";
 import { useThemeLoader } from "../helpers/themeLoader";
 import { useIconRegistry } from "../helpers/iconLoader";
 import { toast } from "sonner";
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { languageNames } from "../../public/locales/supportedLanguages";
 import { isSafari } from "../helpers/safariHelper";
 import { Icon } from "./Icon";
+
+import { resetAllDialogPreferences } from "../helpers/musicIndexedDbHelper";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "./Dialog";
 
 export interface SettingsProps {
   className?: string;
@@ -47,6 +50,13 @@ export const Settings = ({
   onShortcutsChanged,
 }: SettingsProps) => {
   const { t, i18n } = useTranslation();
+
+  // State for dialog reset button
+  const [dialogResetOpen, setDialogResetOpen] = useState(false);
+  const [dialogResetLoading, setDialogResetLoading] = useState(false);
+
+
+  const handleDialogResetClose = () => setDialogResetOpen(false);
 
   // Use the persisted crossfadeBeforeGapless value, fallback to current crossfade
   const previousCrossfadeRef = useRef<number>(settings.crossfadeBeforeGapless ?? settings.crossfade);
@@ -612,6 +622,53 @@ export const Settings = ({
                   {t("settings.interface.clearCacheButton")}
                 </Button>
               </div>
+                <div className={styles.settingItem}>
+                  <div className={styles.settingInfo}>
+                    <label>{t("settings.resetDialogs")}</label>
+                    <p className={styles.settingDescription}>
+                      {t("settings.resetDialogsDescription")}
+                    </p>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setDialogResetOpen(true)}
+                  >
+                    <Icon name="rotateCcw" size={16} decorative />
+                    {t("settings.resetDialogsButton")}
+                  </Button>
+                  <Dialog open={dialogResetOpen} onOpenChange={setDialogResetOpen}>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>{t("settings.resetDialogsTitle")}</DialogTitle>
+                        <DialogDescription>{t("settings.resetDialogsDescription")}</DialogDescription>
+                      </DialogHeader>
+                      <DialogFooter>
+                        <Button variant="outline" onClick={handleDialogResetClose} disabled={dialogResetLoading}>
+                          {t("common.cancel")}
+                        </Button>
+                        <Button
+                          onClick={async () => {
+                            setDialogResetLoading(true);
+                            try {
+                              await resetAllDialogPreferences();
+                              toast.success(t("settings.resetDialogsSuccess"));
+                              setDialogResetOpen(false);
+                            } catch (e: any) {
+                              toast.error(e?.message || t("settings.resetError"));
+                            } finally {
+                              setDialogResetLoading(false);
+                            }
+                          }}
+                          disabled={dialogResetLoading}
+                          variant="destructive"
+                        >
+                          {dialogResetLoading ? t("common.loading") : t("common.reset")}
+                        </Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
+                </div>
             </section>
 
             {/* Keyboard Shortcuts */}

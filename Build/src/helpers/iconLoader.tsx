@@ -41,6 +41,7 @@ interface IconRegistryValue {
   iconSetMap: Map<string, IconRegistrySet>;
   currentSet: IconRegistrySet | null;
   isLoading: boolean;
+  iconsReady: boolean;
   error: string | null;
   setIconSet: (idOrName: string) => void;
   getIconDefinition: (name: string, options?: IconLookupOptions) => IconDefinition | undefined;
@@ -63,7 +64,48 @@ const builtinLibraryLoaders: Record<string, () => Promise<Record<string, any>>> 
 const IconRegistryContext = createContext<IconRegistryValue | null>(null);
 
 const LOCAL_STORAGE_KEY = "selected-icon-set";
-const libraryModuleCache = new Map<string, Record<string, any>>();
+// LRU cache implementation for icons
+class LRUCache<K, V> {
+  private maxSize: number;
+  private cache: Map<K, V>;
+
+  constructor(maxSize: number) {
+    this.maxSize = maxSize;
+    this.cache = new Map();
+  }
+
+  get(key: K): V | undefined {
+    if (!this.cache.has(key)) return undefined;
+    const value = this.cache.get(key)!;
+    // Move to end (most recently used)
+    this.cache.delete(key);
+    this.cache.set(key, value);
+    return value;
+  }
+
+  set(key: K, value: V): void {
+    if (this.cache.has(key)) {
+      this.cache.delete(key);
+    }
+    this.cache.set(key, value);
+    if (this.cache.size > this.maxSize) {
+      // Remove least recently used
+      const lruKeyIter = this.cache.keys().next();
+      if (!lruKeyIter.done) {
+        const lruKey = lruKeyIter.value as K;
+        this.cache.delete(lruKey);
+      }
+    }
+  }
+
+  clear(): void {
+    this.cache.clear();
+  }
+}
+
+const ICON_CACHE_SIZE = 128; // TODO: Tune
+const resolvedIconCache = new LRUCache<string, ResolvedIcon>(ICON_CACHE_SIZE);
+const libraryModuleCache = new LRUCache<string, Record<string, any>>(8); // Limit loaded libraries
 
 function deriveSetIdentity(path: string, metadata?: IconSetMetadata, themeJson?: any): {
   id: string;
@@ -96,8 +138,9 @@ async function resolveLibraryModule(
   sourceSet?: IconRegistrySet
 ): Promise<Record<string, any> | null> {
   const cacheKey = `${sourceSet ? sourceSet.id : GLOBAL_LIBRARY_NAMESPACE}::${library}`;
-  if (libraryModuleCache.has(cacheKey)) {
-    return libraryModuleCache.get(cacheKey)!;
+  const cachedModule = libraryModuleCache.get(cacheKey);
+  if (cachedModule) {
+    return cachedModule;
   }
 
   const loaderCandidate = sourceSet?.libraries?.[library] ?? builtinLibraryLoaders[library];
@@ -212,57 +255,57 @@ export const IconRegistryProvider: React.FC<IconRegistryProviderProps> = ({
   const [currentSet, setCurrentSet] = useState<IconRegistrySet | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [iconsReady, setIconsReady] = useState<boolean>(false);
 
   useEffect(() => {
     let cancelled = false;
 
-    const loadSets = async () => {
+    // Only load metadata for all sets, not the full icon maps
+    const loadSetMetadatas = async () => {
       try {
         setIsLoading(true);
+        setIconsReady(false);
         setError(null);
 
         const entries: IconRegistrySet[] = [];
 
         for (const [path, loader] of Object.entries(iconModuleLoaders)) {
           try {
-            const module = (await loader()) as IconSetModule;
-            if (!module || typeof module !== "object" || !module.default) {
-              console.warn(`Icon module at ${path} does not export a default icon map.`);
-              continue;
-            }
-
-            // Load theme JSON for metadata
+            // Only load module metadata, not icon map, until selected
             const themeJson = await loadThemeJsonFromSourcePath(path);
-            const identity = deriveSetIdentity(path, module.metadata, themeJson);
-            
-            // Build full metadata from JSON and TS sources
+            let moduleMeta: any = {};
+            try {
+              // Try to load just the metadata export
+              const mod = await loader();
+              moduleMeta = (mod as any)?.metadata || {};
+            } catch {}
+            const identity = deriveSetIdentity(path, moduleMeta, themeJson);
             const iconMeta = themeJson?.icons || {};
             const fullMetadata: IconSetMetadata & { id: string; label: string; themeName: string } = {
               id: identity.id,
               label: identity.label,
               themeName: identity.themeName,
-              description: iconMeta.description ?? module.metadata?.description,
-              version: iconMeta.version ?? module.metadata?.version,
+              description: iconMeta.description ?? moduleMeta?.description,
+              version: iconMeta.version ?? moduleMeta?.version,
               theme: identity.themeName,
-              inheritsFrom: iconMeta.inheritsFrom ?? module.metadata?.inheritsFrom,
-              author: iconMeta.author ?? module.metadata?.author ?? themeJson?.author,
-              tags: iconMeta.tags ?? module.metadata?.tags,
+              inheritsFrom: iconMeta.inheritsFrom ?? moduleMeta?.inheritsFrom,
+              author: iconMeta.author ?? moduleMeta?.author ?? themeJson?.author,
+              tags: iconMeta.tags ?? moduleMeta?.tags,
             };
-            
+            // Only set icons to empty object until loaded
             const registrySet: IconRegistrySet = {
               id: identity.id,
               label: identity.label,
               themeName: identity.themeName,
               metadata: fullMetadata,
-              icons: module.default,
+              icons: {},
               path,
-              libraries: module.libraries,
-              libraryConfig: module.libraryConfig,
+              libraries: undefined,
+              libraryConfig: undefined,
             };
-
             entries.push(registrySet);
           } catch (err) {
-            console.error(`Failed to load icon registry module at ${path}`, err);
+            console.error(`Failed to load icon registry module metadata at ${path}`, err);
           }
         }
 
@@ -288,10 +331,32 @@ export const IconRegistryProvider: React.FC<IconRegistryProviderProps> = ({
             entries[0] ??
             null;
 
-          setCurrentSet(fallbackSet);
-
-          if (fallbackSet && rememberSelection && typeof window !== "undefined") {
-            localStorage.setItem(LOCAL_STORAGE_KEY, fallbackSet.id);
+          // Only load icons for the current set, not all sets
+          if (fallbackSet) {
+            // Load icons for fallbackSet only
+            const loader = iconModuleLoaders[fallbackSet.path];
+            if (loader) {
+              loader().then((module: any) => {
+                const loadedSet = {
+                  ...fallbackSet,
+                  icons: module.default,
+                  libraries: module.libraries,
+                  libraryConfig: module.libraryConfig,
+                };
+                setIconSets((sets) => sets.map((s) => (s.id === loadedSet.id ? loadedSet : s)));
+                setCurrentSet(loadedSet);
+                setIconsReady(true);
+                if (rememberSelection && typeof window !== "undefined") {
+                  localStorage.setItem(LOCAL_STORAGE_KEY, loadedSet.id);
+                }
+              });
+            } else {
+              setCurrentSet(fallbackSet);
+              setIconsReady(true);
+              if (rememberSelection && typeof window !== "undefined") {
+                localStorage.setItem(LOCAL_STORAGE_KEY, fallbackSet.id);
+              }
+            }
           }
         }
       } catch (err) {
@@ -307,7 +372,7 @@ export const IconRegistryProvider: React.FC<IconRegistryProviderProps> = ({
       }
     };
 
-    loadSets();
+    loadSetMetadatas();
 
     return () => {
       cancelled = true;
@@ -327,15 +392,47 @@ export const IconRegistryProvider: React.FC<IconRegistryProviderProps> = ({
   notifyChange.current = onSetChange;
 
   const setIconSet = useCallback(
-    (idOrName: string) => {
+    async (idOrName: string) => {
       const normalized = idOrName.toLowerCase();
-      const next = iconSetMap.get(normalized) ?? iconSets.find((set) => set.id === normalized || set.themeName.toLowerCase() === normalized);
+      let next = iconSetMap.get(normalized) ?? iconSets.find((set) => set.id === normalized || set.themeName.toLowerCase() === normalized);
       if (!next) {
         console.warn(`Icon set "${idOrName}" not found`);
         return;
       }
 
+      setIconsReady(false);
+
+      // If icons not loaded, load them now
+      if (!next.icons || Object.keys(next.icons).length === 0) {
+        try {
+          const loader = iconModuleLoaders[next.path];
+          if (loader) {
+            const module = (await loader()) as IconSetModule;
+            next = {
+              ...next,
+              icons: module.default,
+              libraries: module.libraries,
+              libraryConfig: module.libraryConfig,
+            };
+            // Update iconSets and iconSetMap
+            if (next) {
+              setIconSets((sets) => {
+                return sets.map((s) => {
+                  if (s.id === next!.id) {
+                    return next!;
+                  }
+                  return s;
+                });
+              });
+            }
+          }
+        } catch (err) {
+          console.error(`Failed to load icon set "${next.label}"`, err);
+        }
+      }
+
       setCurrentSet(next);
+      setIconsReady(true);
       if (typeof window !== "undefined" && rememberSelection) {
         localStorage.setItem(LOCAL_STORAGE_KEY, next.id);
       }
@@ -404,12 +501,31 @@ export const IconRegistryProvider: React.FC<IconRegistryProviderProps> = ({
     [findIconEntry]
   );
 
-  const resolvedIconCache = useRef(new Map<string, ResolvedIcon>());
 
   const loadIcon = useCallback(
     async (name: string, options?: IconLookupOptions): Promise<ResolvedIcon | null> => {
       if (!name) {
         return null;
+      }
+
+      // Ensure currentSet icons are loaded
+      if (currentSet && (!currentSet.icons || Object.keys(currentSet.icons).length === 0)) {
+        setIconsReady(false);
+        try {
+          const loader = iconModuleLoaders[currentSet.path];
+          if (loader) {
+            const module = (await loader()) as IconSetModule;
+            setIconSets((sets) => sets.map((s) => (s.id === currentSet.id ? {
+              ...s,
+              icons: module.default,
+              libraries: module.libraries,
+              libraryConfig: module.libraryConfig,
+            } : s)));
+          }
+        } catch (err) {
+          console.error(`Failed to load icon set "${currentSet.label}"`, err);
+        }
+        setIconsReady(true);
       }
 
       const entry = findIconEntry(name, options);
@@ -426,8 +542,9 @@ export const IconRegistryProvider: React.FC<IconRegistryProviderProps> = ({
       }
       const cacheKey = cacheKeyParts.join("::");
 
-      if (resolvedIconCache.current.has(cacheKey)) {
-        return resolvedIconCache.current.get(cacheKey)!;
+      const cached = resolvedIconCache.get(cacheKey);
+      if (cached) {
+        return cached;
       }
 
       const { definition, set } = entry;
@@ -459,7 +576,7 @@ export const IconRegistryProvider: React.FC<IconRegistryProviderProps> = ({
             title: definition.title,
           };
 
-          resolvedIconCache.current.set(cacheKey, resolved);
+          resolvedIconCache.set(cacheKey, resolved);
           return resolved;
         }
         case "component": {
@@ -469,7 +586,7 @@ export const IconRegistryProvider: React.FC<IconRegistryProviderProps> = ({
             defaultProps: definition.props,
             title: definition.title,
           };
-          resolvedIconCache.current.set(cacheKey, resolved);
+          resolvedIconCache.set(cacheKey, resolved);
           return resolved;
         }
         case "image": {
@@ -479,7 +596,7 @@ export const IconRegistryProvider: React.FC<IconRegistryProviderProps> = ({
             alt: definition.alt,
             title: definition.title,
           };
-          resolvedIconCache.current.set(cacheKey, resolved);
+          resolvedIconCache.set(cacheKey, resolved);
           return resolved;
         }
         case "svg-inline": {
@@ -490,7 +607,7 @@ export const IconRegistryProvider: React.FC<IconRegistryProviderProps> = ({
             alt: definition.alt,
             title: definition.title,
           };
-          resolvedIconCache.current.set(cacheKey, resolved);
+          resolvedIconCache.set(cacheKey, resolved);
           return resolved;
         }
         default: {
@@ -499,7 +616,7 @@ export const IconRegistryProvider: React.FC<IconRegistryProviderProps> = ({
         }
       }
     },
-    [findIconEntry]
+    [findIconEntry, currentSet, setIconSets]
   );
 
   const contextValue = useMemo<IconRegistryValue>(
@@ -508,12 +625,13 @@ export const IconRegistryProvider: React.FC<IconRegistryProviderProps> = ({
       iconSetMap,
       currentSet,
       isLoading,
+      iconsReady,
       error,
       setIconSet,
       getIconDefinition,
       loadIcon,
     }),
-    [currentSet, error, getIconDefinition, iconSetMap, iconSets, isLoading, loadIcon, setIconSet]
+    [currentSet, error, getIconDefinition, iconSetMap, iconSets, isLoading, iconsReady, loadIcon, setIconSet]
   );
 
   useEffect(() => {
