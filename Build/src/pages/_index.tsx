@@ -15,9 +15,6 @@ import styles from "./_index.module.css";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { DraggableProvider, DragItem, DropZone } from "../components/Draggable";
-import { useShareTargetHandler } from "./ShareTargetHandler";
-import { importAudioFiles } from "../helpers/importAudioFiles";
-
 
 export default function IndexPage() {
   const { t } = useTranslation();
@@ -25,9 +22,6 @@ export default function IndexPage() {
   const [, setThemeMode] = useState<ThemeMode>("auto");
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
-
-  // Activate Web Share Target handler
-  useShareTargetHandler((files) => importAudioFiles(files, musicPlayerHook.addSong, t));
 
   // Handle all drag operations with our unified system
   const handleDragOperation = (dragItem: DragItem, dropZone: DropZone) => {

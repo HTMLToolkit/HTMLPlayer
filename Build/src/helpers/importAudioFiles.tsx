@@ -1,6 +1,5 @@
 import { toast } from "sonner";
 import { extractAudioMetadata, createAudioUrl, generateUniqueId } from "./filePickerHelper";
-import { useTranslation } from "react-i18next";
 
 export async function importAudioFiles(audioFiles: Array<{ file: File } | File>, addSong: (song: Song) => Promise<void>, t: any) {
   if (!audioFiles || audioFiles.length === 0) return;

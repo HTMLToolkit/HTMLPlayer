@@ -47,7 +47,7 @@ if (isWeb) {
         },
         file_handlers: [
           {
-            action: '/upload',
+            action: '/file-handling',
             accept: {
               'audio/mpeg': ['.mp3'],
               'audio/wav': ['.wav'],
