@@ -74,8 +74,7 @@ This is an HTML5 audio player that supports playlists, ID3 tag parsing for album
 
 | Mobile                                         | Mobile (with Custom Theme)                      | Mobile (Lyrics and Visualizer)                  | Mobile (Settings)                                     |
 |------------------------------------------------|------------------------------------------------|------------------------------------------------|------------------------------------------------------|
-| <img width="621" height="927" alt="Screenshot 2025-10-09 1 35 40 PM" src="https://github.com/user-attachments/assets/77e77be4-189a-41b3-88bf-ff4d70c2f466" /> | <img width="621" height="927" alt="Screenshot 2025-10-09 1 35 53 PM" src="https://github.com/user-attachments/assets/c5504243-8994-49b8-9246-807e6b8b78b9" /> | <img width="621" height="927" alt="Screenshot 2025-10-09 1 36 04 PM" src="https://github.com/user-attachments/assets/43dbe04c-0db8-49ec-b1ab-7caaf7258cdc" /> | <img width="623" height="927" alt="image" src="https://github.com/user-attachments/assets/26975e12-22a1-4e5a-93f8-31a4d8c806bd" />
- |
+| <img width="621" height="927" alt="Screenshot 2025-10-09 1 35 40 PM" src="https://github.com/user-attachments/assets/77e77be4-189a-41b3-88bf-ff4d70c2f466" /> | <img width="621" height="927" alt="Screenshot 2025-10-09 1 35 53 PM" src="https://github.com/user-attachments/assets/c5504243-8994-49b8-9246-807e6b8b78b9" /> | <img width="621" height="927" alt="Screenshot 2025-10-09 1 36 04 PM" src="https://github.com/user-attachments/assets/43dbe04c-0db8-49ec-b1ab-7caaf7258cdc" /> | <img width="623" height="927" alt="image" src="https://github.com/user-attachments/assets/26975e12-22a1-4e5a-93f8-31a4d8c806bd" /> |
 
 ## Contributing
 
