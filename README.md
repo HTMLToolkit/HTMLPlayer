@@ -65,11 +65,17 @@ This is an HTML5 audio player that supports playlists, ID3 tag parsing for album
 - **Volume Control**: Adjust the volume with the slider.
 - **Seek Track**: Click and drag the progress bar to seek through the track.
 
-## Screenshots
+## Gallery
 
-<!-- markdownlint-disable MD033 -->
-<img width="1238" alt="Screenshot 2025-04-19 at 12 06 27 PM" src="https://github.com/user-attachments/assets/98e91ec0-3ce4-4613-8d6d-593d66412bd0" />
-<img width="279" alt="Screenshot 2025-04-19 at 12 06 54 PM" src="https://github.com/user-attachments/assets/f363fadd-4055-463d-a855-04901539ba70" />
+| Desktop                                        | Desktop (with Custom Theme)                     | Desktop (Lyrics and Visualizer)                 | Desktop (Settings)                                   |
+|------------------------------------------------|------------------------------------------------|------------------------------------------------|------------------------------------------------------|
+| <img width="1858" height="927" alt="Screenshot 2025-10-09 1 35 11 PM" src="https://github.com/user-attachments/assets/fbea828f-8a9a-4065-90dd-54f327cbb95d" /> | <img width="1858" height="927" alt="Screenshot 2025-10-09 1 35 01 PM" src="https://github.com/user-attachments/assets/3772db50-28a3-41a8-b9ef-a93368f63af4" /> | <img width="1858" height="920" alt="Screenshot 2025-10-09 1 36 29 PM" src="https://github.com/user-attachments/assets/1b3360a3-8339-443f-85d2-38a0856928af" /> | <img width="1858" height="920" alt="image" src="https://github.com/user-attachments/assets/c68be0af-aa12-4737-b217-f8dbb29246d6" />
+ |
+
+| Mobile                                         | Mobile (with Custom Theme)                      | Mobile (Lyrics and Visualizer)                  | Mobile (Settings)                                     |
+|------------------------------------------------|------------------------------------------------|------------------------------------------------|------------------------------------------------------|
+| <img width="621" height="927" alt="Screenshot 2025-10-09 1 35 40 PM" src="https://github.com/user-attachments/assets/77e77be4-189a-41b3-88bf-ff4d70c2f466" /> | <img width="621" height="927" alt="Screenshot 2025-10-09 1 35 53 PM" src="https://github.com/user-attachments/assets/c5504243-8994-49b8-9246-807e6b8b78b9" /> | <img width="621" height="927" alt="Screenshot 2025-10-09 1 36 04 PM" src="https://github.com/user-attachments/assets/43dbe04c-0db8-49ec-b1ab-7caaf7258cdc" /> | <img width="623" height="927" alt="image" src="https://github.com/user-attachments/assets/26975e12-22a1-4e5a-93f8-31a4d8c806bd" />
+ |
 
 ## Contributing
 
