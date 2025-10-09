@@ -8,6 +8,10 @@
 
 ---
 
+![Alt](https://repobeats.axiom.co/api/embed/29883a69034cdc74979defb46de1f9a1de895288.svg "Repobeats analytics image")
+
+---
+
 <!-- markdownlint-disable MD033 -->
 <a href="https://htmltoolkit.github.io/HTMLPlayer">
   <picture>
