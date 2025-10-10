@@ -241,7 +241,7 @@ export const Lyrics = ({ artist, title, visible, onClose, embeddedLyrics, curren
   const selectedIndex = selectedLyrics && embeddedLyrics ? embeddedLyrics.indexOf(selectedLyrics) : -1;
 
   return (
-    <div className={styles.lyricsOverlay} onClick={handleOverlayClick} role="dialog" aria-modal="true">
+    <div className={styles.lyricsOverlay} onClick={handleOverlayClick} role="dialog" aria-modal="true" data-tour="lyrics">
       <div className={styles.lyricsContainer}>
         <header className={styles.lyricsHeader}>
           <div>

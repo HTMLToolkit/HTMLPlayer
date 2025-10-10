@@ -47,7 +47,6 @@ const LayeredRippleVoronoi: VisualizerType = {
 
     for (let i = 0; i < bufferLength; i += 4) {
       const value = freqDataArray[i];
-      const angle = (i * 2 * Math.PI) / bufferLength;
       const radius = (value / 256) * Math.min(centerX, centerY) * radiusScale;
 
       ctx.beginPath();

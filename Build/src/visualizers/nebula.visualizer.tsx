@@ -25,6 +25,7 @@ const nebulaSpectrogram: VisualizerType = {
     ctx.fillStyle = backgroundColor;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
+    //@ts-ignore
     const gradient = ctx.createRadialGradient(
       canvas.width / 2,
       canvas.height / 2,

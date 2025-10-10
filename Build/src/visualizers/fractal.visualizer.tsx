@@ -7,7 +7,7 @@ const fractalSpectrogram: VisualizerType = {
     analyser,
     canvas,
     ctx,
-    bufferLength,
+    _bufferLength,
     freqDataArray,
     dataType,
     settings = {}

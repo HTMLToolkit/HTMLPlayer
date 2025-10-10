@@ -12,9 +12,9 @@
   
 - [ ] Animated album art transitions, like fade/zoom/warp album art between songs.
 
-- [ ] 🔼 I'll need to add some sort of quick guide and help menu or something to HTMLPlayer.
+- [ ] 🔼 I'll need to add some sort of quick guide and help menu or something to HTMLPlayer. (extensive and interactive ig)
 
-- [ ] 🔼 custom theme builder with custom picture backgrounds
+- [ ] 🔼 custom theme builder with options for custom picture backgrounds
 
 ## Either now or future versions
 
@@ -112,6 +112,8 @@
 - [ ] need good APIs if I want this (not the current visualizer stuff 🫣)
 
 ## Done
+
+- [X] Fix file_handler
 
 - [X] Add more things to PWA manifest
 

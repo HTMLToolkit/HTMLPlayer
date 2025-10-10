@@ -60,6 +60,14 @@
     "fallbackMetadataParsing": "Fallback metadata parsing for {{fileName}}",
     "failedToReadAlbumArt": "Failed to read album art"
   },
+  "shareTarget": {
+    "filesReceived": "Received {{count}} file(s) via share",
+    "searchQuery": "Searching for: {{query}}"
+  },
+  "fileHandler": {
+    "filesReceived": "Received {{count}} file(s) via file handler",
+    "filesSkipped": "Skipped {{count}} invalid file(s)"
+  },
   "indexeddb": {
     "failedToOpen": "Failed to open IndexedDB:",
     "saved": "Saved {{key}} to IndexedDB",
@@ -553,5 +561,8 @@
   },
   "accessibility": {
     "scrollingText": "Scrolling text"
+  },
+  "help": {
+    "startTour": "Help"
   }
 }

@@ -5,9 +5,6 @@ import { Checkbox } from "./Checkbox";
 import { useRightClickMenu } from "./DropdownMenu";
 import {
   pickAudioFiles,
-  extractAudioMetadata,
-  createAudioUrl,
-  generateUniqueId,
 } from "../helpers/filePickerHelper";
 import { toast } from "sonner";
 import { Button } from "./Button";
@@ -444,6 +441,7 @@ export const MainContent = ({ musicPlayerHook, onMobileMenuClick }: MainContentP
               className={styles.searchInput}
               value={songSearchQuery}
               onChange={(e: any) => handleSongSearch(e.target.value)}
+              data-tour="search"
             />
           </div>
           <Button variant="outline" size="icon-md" className={styles.actionButton} onClick={handleDeleteSong} aria-label={t("actions.delete")}>
@@ -514,7 +512,7 @@ export const MainContent = ({ musicPlayerHook, onMobileMenuClick }: MainContentP
               {t("common.delete")}
             </Button>
           </PersistentDropdownMenu>
-          <Button variant="outline" size="icon-md" className={styles.actionButton} onClick={handleAddMusic} aria-label={t("actions.addMusic")}>
+          <Button variant="outline" size="icon-md" className={styles.actionButton} onClick={handleAddMusic} aria-label={t("actions.addMusic")} data-tour="upload-music">
             <Icon name="plus" size={16} decorative />
           </Button>
         </div>

@@ -30,7 +30,6 @@ const spectrumRipple: VisualizerType = {
 
     for (let i = 0; i < bufferLength; i += rippleStep) {
       const value = freqDataArray[i];
-      const angle = (i * 2 * Math.PI) / bufferLength;
       const radius = (value / 256) * Math.min(centerX, centerY);
 
       ctx.beginPath();

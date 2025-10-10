@@ -29,25 +29,25 @@ if (isWeb) {
         theme_color: '#00bfff',
         background_color: '#00bfff',
         orientation: 'any',
-        share_target: {
-          action: '/upload',
-          method: 'POST',
-          enctype: 'multipart/form-data',
-          params: {
-            title: 'title',
-            text: 'text',
-            url: 'url',
-            files: [
-              {
-                name: 'audio',
-                accept: ['audio/*']
-              }
-            ]
-          }
-        },
+        // share_target: {
+        //   action: '/',
+        //   method: 'POST',
+        //   enctype: 'multipart/form-data',
+        //   params: {
+        //     title: 'title',
+        //     text: 'text',
+        //     url: 'url',
+        //     files: [
+        //       {
+        //         name: 'audio',
+        //         accept: ['audio/*']
+        //       }
+        //     ]
+        //   }
+        // },
         file_handlers: [
           {
-            action: '/file-handling',
+            action: '/',
             accept: {
               'audio/mpeg': ['.mp3'],
               'audio/wav': ['.wav'],

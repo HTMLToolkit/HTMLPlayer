@@ -541,7 +541,7 @@ export const PlaylistComponent = ({ musicPlayerHook }: PlaylistProps) => {
         </div>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="icon-md" className={styles.actionButton} aria-label={t("playlist.add")}>
+            <Button variant="outline" size="icon-md" className={styles.actionButton} aria-label={t("playlist.addTo")}>
               <Icon name="plus" size={16} decorative />
             </Button>
           </DropdownMenuTrigger>
@@ -563,7 +563,7 @@ export const PlaylistComponent = ({ musicPlayerHook }: PlaylistProps) => {
         </DropdownMenu>
       </div>
 
-      <div ref={playlistListRef} className={styles.playlistList} style={{ position: 'relative' }}>
+      <div ref={playlistListRef} className={styles.playlistList} style={{ position: 'relative' }} data-tour="playlists">
         {/* All Songs */}
         <button
           className={`${styles.playlistItem} ${styles.allSongsItem}`}

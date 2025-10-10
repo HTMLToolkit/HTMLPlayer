@@ -13,7 +13,6 @@ const neuralSpectrogram: VisualizerType = {
     settings = {}
   ) {
     const {
-      nodeColor = "rgba(0, 255, 255, {alpha})",
       lineColor = "rgba(0, 255, 255, {alpha})",
       backgroundColor = "rgb(20, 20, 20)",
       connectionDistance = 100,

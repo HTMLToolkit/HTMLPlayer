@@ -55,6 +55,14 @@
     "fallbackMetadataParsing": "Analyse de métadonnées de secours pour {{fileName}}",
     "failedToReadAlbumArt": "Échec de lecture de la pochette d'album"
   },
+  "shareTarget": {
+    "filesReceived": "Fichiers reçus : {{count}} via partage",
+    "searchQuery": "Recherche en cours : {{query}}"
+  },
+  "fileHandler": {
+    "filesReceived": "Fichiers reçus : {{count}} via gestionnaire de fichiers",
+    "filesSkipped": "Fichiers ignorés : {{count}} invalides"
+  },
   "indexeddb": {
     "failedToOpen": "Échec d'ouverture d'IndexedDB :",
     "saved": "{{key}} sauvegardé dans IndexedDB",

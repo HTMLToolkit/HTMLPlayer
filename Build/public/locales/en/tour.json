@@ -1,0 +1,37 @@
+[
+  {
+    "key": "upload-music",
+    "title": "Upload Your Music",
+    "content": "Click here to add your music files. HTMLPlayer supports various audio formats and can extract metadata automatically.",
+    "extraContent": "Click the \"Add Music\" button to upload your music files and get started!",
+    "position": "bottom"
+  },
+  {
+    "key": "player-controls",
+    "title": "Player Controls",
+    "content": "Control playback with these buttons. Adjust volume, tempo, pitch, and enable features like crossfade and gapless playback.",
+    "extraContent": "Try playing, pausing, and adjusting the volume!",
+    "position": "top"
+  },
+  {
+    "key": "settings",
+    "title": "Settings",
+    "content": "Customize HTMLPlayer to your liking. Change themes, adjust audio settings, and configure keyboard shortcuts.",
+    "extraContent": "Click here to open the settings panel and explore the options!",
+    "position": "right"
+  },
+  {
+    "key": "visualizer-button",
+    "title": "Visualizers",
+    "content": "Enjoy animated visualizers that react to your music. Choose from various themes and customize the experience.",
+    "extraContent": "Click this button to toggle the visualizer on and off!",
+    "position": "top"
+  },
+  {
+    "key": "lyrics-button",
+    "title": "Lyrics Support",
+    "content": "View synchronized lyrics embedded in your audio files. HTMLPlayer supports multiple lyric formats.",
+    "extraContent": "Click here to show or hide the lyrics panel!",
+    "position": "left"
+  }
+]

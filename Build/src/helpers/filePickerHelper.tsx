@@ -4,12 +4,21 @@ import Uppy from "@uppy/core";
 import { Dashboard } from "@uppy/react";
 import '@uppy/core/css/style.min.css';
 import '@uppy/dashboard/css/style.min.css';
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../components/Dialog";
 import ReactDOM from "react-dom/client";
 import { useTranslation } from "react-i18next";
 import i18n from "i18next";
 import { IconRegistryProvider } from "./iconLoader";
+
+// Extend Window interface for File Handling API
+declare global {
+  interface Window {
+    launchQueue?: {
+      setConsumer: (consumer: (launchParams: { files: FileSystemFileHandle[] | File[] }) => void) => void;
+    };
+  }
+}
 
 export interface AudioFile {
   file: File;
@@ -430,4 +439,212 @@ export function createAudioUrl(file: File): string {
 
 export function generateUniqueId(): string {
   return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+}
+
+// ---------------------
+// File Handling API support for PWAs
+// ---------------------
+export interface FileHandlerResult {
+  files: File[];
+  successCount: number;
+  errorCount: number;
+}
+
+export function setupFileHandler(onFilesReceived: (result: FileHandlerResult) => void): () => void {
+  if (!('launchQueue' in window) || !window.launchQueue || typeof window.launchQueue.setConsumer !== 'function') {
+    console.warn('File Handling API not supported in this browser');
+    return () => {}; // Return empty cleanup function
+  }
+
+  const consumer = async (launchParams: any) => {
+    if (!launchParams.files || launchParams.files.length === 0) {
+      console.log('No files provided by File Handling or Share Target API');
+      return;
+    }
+
+    const files: File[] = [];
+    let successCount = 0;
+    let errorCount = 0;
+
+    for (const fileHandle of launchParams.files) {
+      try {
+        let file: File;
+        if (fileHandle.getFile) {
+          file = await fileHandle.getFile();
+        } else {
+          file = fileHandle;
+        }
+
+        const fileId = `${file.name}-${file.size}-${file.lastModified}`;
+
+        // Check sessionStorage for processed files
+        const processedFiles = JSON.parse(sessionStorage.getItem('processedFiles') || '[]');
+        if (processedFiles.includes(fileId)) {
+          console.log('Skipping duplicate file:', file.name);
+          continue;
+        }
+
+        const processed = processFiles([file]);
+        if (processed.length > 0) {
+          files.push(file);
+          processedFiles.push(fileId);
+          sessionStorage.setItem('processedFiles', JSON.stringify(processedFiles));
+          successCount++;
+        } else {
+          errorCount++;
+        }
+      } catch (error) {
+        console.error('Error processing file handle:', error);
+        errorCount++;
+      }
+    }
+
+    if (files.length > 0) {
+      onFilesReceived({ files, successCount, errorCount });
+    }
+  };
+
+  window.launchQueue.setConsumer(consumer);
+
+  return () => {
+    if ('launchQueue' in window && window.launchQueue && typeof window.launchQueue.setConsumer === 'function') {
+      try {
+        window.launchQueue.setConsumer(() => {});
+      } catch (e) {
+        console.warn('Could not clear file handler consumer:', e);
+      }
+    }
+  };
+}
+
+// ---------------------
+// Share Target API support for PWAs
+// ---------------------
+export interface ShareTargetResult {
+  files: File[];
+  title?: string;
+  text?: string;
+  url?: string;
+}
+
+export function handleShareTarget(): ShareTargetResult | null {
+  // Share targets can send data via URL parameters or launch queue
+  if (typeof window === 'undefined') {
+    return null;
+  }
+
+  // Check URL parameters for share data
+  const urlParams = new URLSearchParams(window.location.search);
+  const title = urlParams.get('title') || undefined;
+  const text = urlParams.get('text') || undefined;
+  const url = urlParams.get('url') || undefined;
+
+  // For now, return basic share info
+  // Files would typically come through launch queue for file shares
+  return title || text || url ? {
+    files: [],
+    title,
+    text,
+    url
+  } : null;
+}
+
+// Hook to handle share targets and file shares
+export function useShareTarget(onFilesReceived: (result: ShareTargetResult) => void) {
+  const hasProcessedRef = useRef(false);
+
+  useEffect(() => {
+    // Only process share target data once per page load
+    if (hasProcessedRef.current) return;
+
+    const shareResult = handleShareTarget();
+    if (shareResult) {
+      hasProcessedRef.current = true;
+      onFilesReceived(shareResult);
+
+      // Clear share target parameters from URL after processing
+      const url = new URL(window.location.href);
+      const paramsToRemove = ['title', 'text', 'url'];
+      paramsToRemove.forEach(param => url.searchParams.delete(param));
+
+      // Update URL without triggering a page reload
+      window.history.replaceState({}, '', url.toString());
+    }
+  }, [onFilesReceived]);
+}
+export function useFileHandler(addSong: (song: Song) => Promise<void>, t: any) {
+  const [isSupported, setIsSupported] = useState(false);
+  const processedFilesRef = useRef(new Set<string>());
+  const hasProcessedFilesRef = useRef(false);
+
+  useEffect(() => {
+    const supported = 'launchQueue' in window && typeof window.launchQueue?.setConsumer === 'function';
+    setIsSupported(supported);
+
+    if (!supported) return;
+
+    const cleanup = setupFileHandler(async (result) => {
+      // Prevent processing if we've already handled files on this page load
+      if (hasProcessedFilesRef.current) return;
+
+      if (result.files.length > 0) {
+        hasProcessedFilesRef.current = true;
+        toast.success(t("fileHandler.filesReceived", { count: result.successCount }));
+        await importAudioFiles(result.files, addSong, t);
+        // Clear processed files after successful import to allow re-importing the same files
+        processedFilesRef.current.clear();
+      }
+      if (result.errorCount > 0) {
+        toast.error(t("fileHandler.filesSkipped", { count: result.errorCount }));
+      }
+    });
+
+    return cleanup;
+  }, [addSong, t]);
+
+  return { isSupported };
+}
+export async function importAudioFiles(audioFiles: Array<{ file: File } | File>, addSong: (song: Song) => Promise<void>, t: any) {
+  if (!audioFiles || audioFiles.length === 0) return;
+  const BATCH_SIZE = 20;
+  let successCount = 0;
+  let errorCount = 0;
+  let currentBatch = 1;
+  const totalBatches = Math.ceil(audioFiles.length / BATCH_SIZE);
+  for (let i = 0; i < audioFiles.length; i += BATCH_SIZE) {
+    const batch = audioFiles.slice(i, i + BATCH_SIZE);
+    toast.loading(t("batch.processing", { currentBatch, totalBatches }));
+    const batchPromises = batch.map(async (audioFile: { file: File } | File) => {
+      try {
+        const file: File = (audioFile as any).file || (audioFile as File);
+        const metadata = await extractAudioMetadata(file);
+        const audioUrl = createAudioUrl(file);
+        const song: Song = {
+          id: generateUniqueId(),
+          title: metadata.title,
+          artist: metadata.artist,
+          album: metadata.album || t("songInfo.album", { title: t("common.unknownAlbum") }),
+          duration: metadata.duration,
+          url: audioUrl,
+          albumArt: metadata.albumArt,
+          embeddedLyrics: metadata.embeddedLyrics,
+          encoding: metadata.encoding,
+          gapless: metadata.gapless,
+        };
+        await addSong(song);
+        URL.revokeObjectURL(audioUrl);
+        if (typeof audioFile === 'object' && 'file' in audioFile) {
+          (audioFile as { file: File }).file = null as any;
+        }
+        successCount++;
+      } catch {
+        errorCount++;
+      }
+    });
+    await Promise.all(batchPromises);
+    currentBatch++;
+  }
+  toast.dismiss();
+  if (successCount > 0) toast.success(t("filePicker.successImport", { count: successCount }));
+  if (errorCount > 0) toast.error(t("filePicker.failedImport", { count: errorCount }));
 }

@@ -15,6 +15,8 @@ import styles from "./_index.module.css";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { DraggableProvider, DragItem, DropZone } from "../components/Draggable";
+import { useFileHandler, useShareTarget, importAudioFiles } from "../helpers/filePickerHelper";
+import { HelpGuideProvider } from "../components/HelpGuide";
 
 export default function IndexPage() {
   const { t } = useTranslation();
@@ -22,6 +24,35 @@ export default function IndexPage() {
   const [, setThemeMode] = useState<ThemeMode>("auto");
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+
+  // Initialize file handler for PWA file opening
+  // @ts-ignore
+  const { isSupported: fileHandlerSupported } = useFileHandler(musicPlayerHook.addSong, t);
+
+  // Initialize share target handler
+  useShareTarget((result) => {
+    if (result.files.length > 0) {
+      toast.success(t("shareTarget.filesReceived", { count: result.files.length }));
+      importAudioFiles(result.files, musicPlayerHook.addSong, t);
+    }
+    if (result.title || result.text || result.url) {
+      const sharedContent = result.title || result.text || result.url;
+      if (sharedContent) {
+        // Treat shared text as a search query
+        musicPlayerHook.setSearchQuery(sharedContent);
+        toast.info(t("shareTarget.searchQuery", { query: sharedContent }));
+
+        // Focus search input after a short delay to ensure UI is ready
+        setTimeout(() => {
+          const searchInput = document.querySelector('input[type="search"], input[placeholder*="search" i]') as HTMLInputElement;
+          if (searchInput) {
+            searchInput.focus();
+            searchInput.select();
+          }
+        }, 500);
+      }
+    }
+  });
 
   // Handle all drag operations with our unified system
   const handleDragOperation = (dragItem: DragItem, dropZone: DropZone) => {
@@ -255,44 +286,46 @@ export default function IndexPage() {
   }, []);
 
   return (
-    <DraggableProvider onDragOperation={handleDragOperation}>
-      <div className={styles.container}>
-        <Sidebar
-          musicPlayerHook={musicPlayerHook}
-          onShortcutsChanged={reloadShortcuts}
-          settingsOpen={settingsOpen}
-          onSettingsOpenChange={setSettingsOpen}
-          isMobileOpen={isMobileSidebarOpen}
-          onMobileOpenChange={setIsMobileSidebarOpen}
-        />
-        <div className={styles.mainSection}>
-          <MainContent 
+    <HelpGuideProvider>
+      <DraggableProvider onDragOperation={handleDragOperation}>
+        <div className={styles.container}>
+          <Sidebar
             musicPlayerHook={musicPlayerHook}
-            onMobileMenuClick={() => setIsMobileSidebarOpen(true)}
+            onShortcutsChanged={reloadShortcuts}
+            settingsOpen={settingsOpen}
+            onSettingsOpenChange={setSettingsOpen}
+            isMobileOpen={isMobileSidebarOpen}
+            onMobileOpenChange={setIsMobileSidebarOpen}
           />
-          <Player musicPlayerHook={musicPlayerHook} settings={{
-            volume: 0,
-            crossfade: 0,
-            defaultShuffle: false,
-            defaultRepeat: "off",
-            themeMode: "light",
-            colorTheme: "",
-            autoPlayNext: false,
-            compactMode: false,
-            showAlbumArt: false,
-            showLyrics: false,
-            sessionRestore: true,
-            gaplessPlayback: true,
-            smartShuffle: true,
-            lastPlayedSongId: undefined,
-            lastPlayedPlaylistId: undefined,
-            language: "English",
-            tempo: 1,
-            pitch: 0,
-            discordEnabled: false
-          }} />
+          <div className={styles.mainSection}>
+            <MainContent 
+              musicPlayerHook={musicPlayerHook}
+              onMobileMenuClick={() => setIsMobileSidebarOpen(true)}
+            />
+            <Player musicPlayerHook={musicPlayerHook} settings={{
+              volume: 0,
+              crossfade: 0,
+              defaultShuffle: false,
+              defaultRepeat: "off",
+              themeMode: "light",
+              colorTheme: "",
+              autoPlayNext: false,
+              compactMode: false,
+              showAlbumArt: false,
+              showLyrics: false,
+              sessionRestore: true,
+              gaplessPlayback: true,
+              smartShuffle: true,
+              lastPlayedSongId: undefined,
+              lastPlayedPlaylistId: undefined,
+              language: "English",
+              tempo: 1,
+              pitch: 0,
+              discordEnabled: false
+            }} />
+          </div>
         </div>
-      </div>
-    </DraggableProvider>
+      </DraggableProvider>
+    </HelpGuideProvider>
   );
 }

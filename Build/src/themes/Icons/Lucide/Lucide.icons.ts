@@ -51,6 +51,7 @@ import {
   Keyboard,
   MessageCircle,
   SlidersHorizontal,
+  CircleQuestionMark,
 } from "lucide-react";
 import type {
   IconDefinition,
@@ -114,6 +115,7 @@ export const libraries: IconLibraryMap = {
     Keyboard,
     MessageCircle,
     SlidersHorizontal,
+    CircleQuestionMark
   },
 };
 
@@ -204,6 +206,7 @@ const icons: IconDefinitionMap = {
   keyboard: lucideIcon("Keyboard"),
   messageCircle: lucideIcon("MessageCircle"),
   visualizerControls: lucideIcon("SlidersHorizontal"),
+  circleQuestionMark: lucideIcon("CircleQuestionMark"),
   themeBadge: {
     type: "image",
     src: "/icon-1024.png",

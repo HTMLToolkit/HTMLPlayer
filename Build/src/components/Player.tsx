@@ -231,7 +231,7 @@ export const Player = ({ musicPlayerHook, settings }: PlayerProps) => {
   return (
     <>
       {showVisualizer && (
-        <div className={styles.visualizerOverlay}>
+        <div className={styles.visualizerOverlay} data-tour="visualizer">
           <Visualizer analyserNode={analyserNode} isPlaying={isPlaying} className={styles.visualizer} />
         </div>
       )}
@@ -261,7 +261,7 @@ export const Player = ({ musicPlayerHook, settings }: PlayerProps) => {
           </div>
         </div>
 
-        <div className={styles.controls}>
+        <div className={styles.controls} data-tour="player-controls">
           <div className={styles.playbackButtons}>
             <Button variant="ghost" size="icon-sm" className={`${styles.controlButton} ${shuffle ? styles.active : ""}`} onClick={toggleShuffle} title={shuffle ? t("player.shuffleOn") : t("player.shuffleOff")}>
               <Icon name="shuffle" size={16} decorative />
@@ -308,11 +308,11 @@ export const Player = ({ musicPlayerHook, settings }: PlayerProps) => {
               <Icon name="heart" size={16} decorative />
             </Button>
             {!isOnSafari && (
-              <Button variant="ghost" size="icon-sm" className={`${styles.secondaryButton} ${showVisualizer ? styles.active : ""}`} onClick={handleVisualizerToggle} title={t("player.visualizer")}>
+              <Button variant="ghost" size="icon-sm" className={`${styles.secondaryButton} ${showVisualizer ? styles.active : ""}`} onClick={handleVisualizerToggle} title={t("player.visualizer")} data-tour="visualizer-button">
                 <Icon name="barChart3" size={16} decorative />
               </Button>
             )}
-            <Button variant="ghost" size="icon-sm" className={`${styles.secondaryButton} ${showLyrics ? styles.active : ""}`} onClick={handleLyricsToggle} title={t("player.lyrics")}>
+            <Button variant="ghost" size="icon-sm" className={`${styles.secondaryButton} ${showLyrics ? styles.active : ""}`} onClick={handleLyricsToggle} title={t("player.lyrics")} data-tour="lyrics-button">
               <Icon name="type" size={16} decorative />
             </Button>
             {isMiniplayerSupported() && (

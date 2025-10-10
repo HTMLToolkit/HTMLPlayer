@@ -14,6 +14,7 @@ import {
 import { PlaylistComponent } from "./Playlist";
 import styles from "./Sidebar.module.css";
 import { Icon } from "./Icon";
+import { HelpGuideButton } from "./HelpGuide";
 
 interface SidebarProps {
   musicPlayerHook: ReturnType<
@@ -130,7 +131,7 @@ export const Sidebar = memo(({
         />
       )}
       
-      <div className={`${styles.sidebar} ${isMobile && isMobileOpen ? styles.sidebarMobileOpen : ''} ${isMobile && !isMobileOpen ? styles.sidebarMobileClosed : ''}`}>
+      <div className={`${styles.sidebar} ${isMobile && isMobileOpen ? styles.sidebarMobileOpen : ''} ${isMobile && !isMobileOpen ? styles.sidebarMobileClosed : ''}`} data-tour="sidebar">
       <div className={styles.header}>
         <Button
           variant="ghost"
@@ -156,10 +157,12 @@ export const Sidebar = memo(({
           <Icon name="info" size={16} decorative />
           {t("aboutMenu")}
         </Button>
+        <HelpGuideButton />
         <Button
           variant="ghost"
           className={styles.footerButton}
           onClick={handleSettings}
+          data-tour="settings"
         >
           <Icon name="settings" size={16} decorative />
           {t("settings.title")}

@@ -26,7 +26,6 @@ const voltaicArcs: VisualizerType = {
     ctx.fillStyle = backgroundColor;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    const centerY = canvas.height / 2;
     const sliceWidth = canvas.width / bufferLength;
     let x = 0;
 
