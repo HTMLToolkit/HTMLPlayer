@@ -30,6 +30,7 @@ import {
 } from "./DropdownMenu";
 import { ScrollText } from "./ScrollText";
 import { Icon } from "./Icon";
+import { musicIndexedDbHelper } from "../helpers/musicIndexedDbHelper";
 
 interface PlaylistProps {
   musicPlayerHook: ReturnType<
@@ -169,7 +170,6 @@ export const PlaylistComponent = ({ musicPlayerHook }: PlaylistProps) => {
 
   const handleDeletePlaylist = async (playlist: Playlist) => {
     // Check if user has chosen not to show delete confirmation
-    const { musicIndexedDbHelper } = await import("../helpers/musicIndexedDbHelper");
     const shouldShow = await musicIndexedDbHelper.shouldShowDialog("delete-playlist-confirmation");
     if (!shouldShow) {
       // Delete directly without showing dialog
@@ -479,7 +479,6 @@ export const PlaylistComponent = ({ musicPlayerHook }: PlaylistProps) => {
               <DropdownMenuItem
                 onClick={async () => {
                   // Check if user has chosen not to show delete confirmation
-                  const { musicIndexedDbHelper } = await import("../helpers/musicIndexedDbHelper");
                   const shouldShow = await musicIndexedDbHelper.shouldShowDialog("delete-playlist-confirmation");
                   if (!shouldShow) {
                     // Delete directly without showing dialog

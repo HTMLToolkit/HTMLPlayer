@@ -376,6 +376,8 @@ export const musicIndexedDbHelper = {
   },
 };
 
+export default musicIndexedDbHelper;
+
 export async function resetAllDialogPreferences(): Promise<void> {
   try {
     const db = await openDatabase();

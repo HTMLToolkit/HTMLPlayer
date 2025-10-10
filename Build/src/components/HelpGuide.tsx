@@ -25,7 +25,7 @@ export const HelpGuideProvider = ({ children }: HelpGuideProps) => {
     const loadTourConfig = async () => {
       try {
         const lang = (i18n.language?.split('-')[0]) || "en";
-        const response = await fetch(`/locales/${lang}/tour.json`);
+        const response = await fetch(`/beta/HTMLPlayerBeta/locales/${lang}/tour.json`);
         const config = await response.json();
         setTourStepsConfig(config);
       } catch (error) {
