@@ -18,6 +18,8 @@
 
 ## Either now or future versions
 
+- [ ] Add subsonic API support
+
 - [ ] 🔼 a Whisper based, fully in browser, Live Lyrics thing
 
 - [ ] theme Sonner toasts
