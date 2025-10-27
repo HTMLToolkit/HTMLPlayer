@@ -2,6 +2,18 @@
 
 ## HTMLPlayer v2
 
+- [ ] a queue
+  - like a line of records behind album art
+  - smooth animation
+
+- [ ] making a homepage of sorts instead of directly songlist, so that it doesn't feel like you can't remove songs from all songs (even though like the name suggests, its *all* songs, and so you can't)
+
+- [ ] make default visualizer Ocean Wave
+
+- [ ] Make settings UI much better and not just a list of *every single* settings option
+
+- [ ] https://docs.ksoft.si/api/lyrics-api
+
 - [ ] Play more/less often dropdown in SongActionsDropdown
 
 - [ ] Dynamic theming based on album art colors.
