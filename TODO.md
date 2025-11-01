@@ -6,6 +6,25 @@
   - Start with built-in wallpapers using TS/TSX components, loaded via a wallpaper loader (similar to themeLoader)
   - Use sandboxed iframe with postMessage for API access to HTMLPlayer internals (playback state, settings, etc.)
   - Eventually have an NPM module (@htmlplayer/api) for external wallpaper development, allowing user-created interactive wallpapers
+- [ ] a queue
+  - like a line of records behind album art
+  - smooth animation
+
+- [ ] making a homepage of sorts instead of directly songlist, so that it doesn't feel like you can't remove songs from all songs (even though like the name suggests, its *all* songs, and so you can't)
+
+- [ ] make default visualizer Ocean Wave
+
+- [ ] Make settings UI much better and not just a list of *every single* settings option
+
+- [ ] Use the KSoft Lyrics API ([https://docs.ksoft.si/api/lyrics-api](https://docs.ksoft.si/api/lyrics-api))
+
+- [ ] Play more/less often dropdown in SongActionsDropdown
+
+- [ ] Dynamic theming based on album art colors.
+  - CSS backgrounds can be images, and album art is images
+
+- [ ] Add TS/TSX support to wallpapers for interactivity
+  - eventually using a NPM module or something for API
   
 - [ ] Dynamic theming based on album art.
   - CSS backgrounds can be images, and album art is images
@@ -16,7 +35,19 @@
 
 ## Either now or future versions
 
-- [X] Play more/less often dropdown in SongActionsDropdown
+- [ ] Play more/less often dropdown in SongActionsDropdown
+
+- [ ] Add subsonic API support
+
+- [ ] 🔼 a Whisper based, fully in browser, Live Lyrics thing
+
+- [ ] theme Sonner toasts
+
+- [ ] Auto-fetch album art from MusicBrainz/Discogs if missing.
+  - <https://github.com/Borewit/musicbrainz-api>
+
+- [ ] metadata editor that saves to IndexedDB, or downloads file
+  - <https://github.com/eidoriantan/mp3tag.js/>
 
 - [ ] Add showDirectoryPicker API and ponyfil
     Issue: `showDirectoryPicker` missing but is not supported in all browsers (e.g., Safari).
