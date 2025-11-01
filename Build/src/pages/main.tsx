@@ -5,6 +5,7 @@ import "../global.css";
 import { Toaster } from "sonner";
 import { ThemeLoader } from "../helpers/themeLoader";
 import { IconRegistryProvider } from "../helpers/iconLoader";
+import { WallpaperLoader } from "../helpers/wallpaperLoader";
 import { I18nextProvider } from 'react-i18next';
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
@@ -77,10 +78,12 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
     <I18nextProvider i18n={i18n}>
       <IconRegistryProvider defaultSetId="lucide">
         <ThemeLoader defaultTheme="Blue">
-          <LoadingGate>
-            <Toaster />
-            <IndexPage />
-          </LoadingGate>
+          <WallpaperLoader defaultWallpaper="None">
+            <LoadingGate>
+              <Toaster />
+              <IndexPage />
+            </LoadingGate>
+          </WallpaperLoader>
         </ThemeLoader>
       </IconRegistryProvider>
     </I18nextProvider>

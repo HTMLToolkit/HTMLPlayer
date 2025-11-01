@@ -12,11 +12,11 @@
   --menu-background: hsla(210, 60%, 70%, 0.35);
 
   /* Foreground */
-  --foreground: hsl(210, 20%, 20%);
-  --foreground-strong: hsla(0, 0%, 100%, 0.8);
-  --foreground-stronger: hsla(0, 0%, 100%, 0.9);
-  --foreground-muted: hsla(0, 0%, 100%, 0.8);
-  --foreground-subtle: hsla(0, 0%, 100%, 0.6);
+  --foreground: hsl(210, 50%, 20%);
+  --foreground-strong: hsl(210, 60%, 15%);
+  --foreground-stronger: hsl(210, 70%, 10%);
+  --foreground-muted: hsl(210, 40%, 40%);
+  --foreground-subtle: hsl(210, 30%, 60%);
 
   /* Background */
   --background: hsl(190, 50%, 95%);
@@ -30,7 +30,7 @@
 
   /* Primary */
   --primary: hsl(195, 85%, 85%);
-  --primary-foreground: hsl(0, 0%, 100%);
+  --primary-foreground: hsl(210, 60%, 15%);
   /* Primary Transparent */
   --primary-transparent: hsla(195, 85%, 85%, 0.25);
   --primary-transparent-1: hsla(195, 85%, 85%, 0.1);

@@ -198,13 +198,7 @@ const icons: IconDefinitionMap = {
   rotateCcw: phosphorIcon("PiArrowCounterClockwise"),
   keyboard: phosphorIcon("PiKeyboard"),
   messageCircle: phosphorIcon("PiChatCircle"),
-  visualizerControls: phosphorIcon("PiSliders"),
-  themeBadge: {
-    type: "image",
-    src: "/icon-1024.png",
-    alt: "HTMLPlayer badge",
-    title: "HTMLPlayer badge",
-  },
+  visualizerControls: phosphorIcon("PiSliders")
 };
 
 export default icons;

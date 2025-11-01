@@ -74,6 +74,12 @@ export const ThemeLoader: React.FC<ThemeLoaderProps> = ({
       return null;
     }
 
+    // Skip wallpaper theme files (they only have 'wallpaper' object, no cssFile)
+    if (meta.wallpaper && !meta.cssFile && !meta.name) {
+      // This is a wallpaper theme file, not a color theme
+      return null;
+    }
+
     const required = ['name', 'author', 'description', 'version', 'cssFile'];
     for (const field of required) {
       if (!meta[field] || typeof meta[field] !== 'string') {

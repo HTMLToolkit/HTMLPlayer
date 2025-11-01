@@ -450,6 +450,10 @@
     "interface": {
       "title": "Paramètres d'Interface",
       "colorTheme": "Thème de Couleur",
+      "wallpaper": "Fond d'Écran",
+      "wallpaperDesc": "Choisissez votre fond d'écran préféré",
+      "wallpaperChanged": "Fond d'écran changé avec succès",
+      "wallpaperError": "Échec du changement de fond d'écran",
       "themeMode": "Mode de Thème",
       "themeModeDesc": "Choisissez votre mode de thème préféré",
       "compact": "Mode Compact",
@@ -524,5 +528,11 @@
   },
   "accessibility": {
     "scrollingText": "Texte défilant"
+  },
+  "icon": {
+    "nameNotProvided": "Nom d'icône non fourni",
+    "failedToLoad": "Échec du chargement de l'icône",
+    "notFound": "Icône introuvable",
+    "unsupportedType": "Type d'icône non pris en charge"
   }
 }

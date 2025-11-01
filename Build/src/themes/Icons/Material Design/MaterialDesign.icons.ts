@@ -194,13 +194,7 @@ const icons: IconDefinitionMap = {
   rotateCcw: materialIcon("MdRotateLeft"),
   keyboard: materialIcon("MdKeyboard"),
   messageCircle: materialIcon("MdChatBubbleOutline"),
-  visualizerControls: materialIcon("MdTune"),
-  themeBadge: {
-    type: "image",
-    src: "/icon-1024.png",
-    alt: "HTMLPlayer badge",
-    title: "HTMLPlayer badge",
-  },
+  visualizerControls: materialIcon("MdTune")
 };
 
 export default icons;

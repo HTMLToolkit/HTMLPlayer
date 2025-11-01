@@ -206,13 +206,7 @@ const icons: IconDefinitionMap = {
   keyboard: lucideIcon("Keyboard"),
   messageCircle: lucideIcon("MessageCircle"),
   visualizerControls: lucideIcon("SlidersHorizontal"),
-  circleQuestionMark: lucideIcon("CircleQuestionMark"),
-  themeBadge: {
-    type: "image",
-    src: "/icon-1024.png",
-    alt: "HTMLPlayer badge",
-    title: "HTMLPlayer badge",
-  }
+  circleQuestionMark: lucideIcon("CircleQuestionMark")
 };
 
 export default icons;

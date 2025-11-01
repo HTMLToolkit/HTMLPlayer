@@ -197,13 +197,7 @@ const icons: IconDefinitionMap = {
   rotateCcw: bootstrapIcon("BsArrowCounterclockwise"),
   keyboard: bootstrapIcon("BsKeyboard"),
   messageCircle: bootstrapIcon("BsChat"),
-  visualizerControls: bootstrapIcon("BsSliders"),
-  themeBadge: {
-    type: "image",
-    src: "/icon-1024.png",
-    alt: "HTMLPlayer badge",
-    title: "HTMLPlayer badge",
-  },
+  visualizerControls: bootstrapIcon("BsSliders")
 };
 
 export default icons;

@@ -200,13 +200,7 @@ const icons: IconDefinitionMap = {
   rotateCcw: remixIcon("RiArrowGoBackFill"),
   keyboard: remixIcon("RiKeyboardBoxFill"),
   messageCircle: remixIcon("RiMessage3Fill"),
-  visualizerControls: remixIcon("RiSlideshowFill"),
-  themeBadge: {
-    type: "image",
-    src: "/icon-1024.png",
-    alt: "HTMLPlayer badge",
-    title: "HTMLPlayer badge",
-  },
+  visualizerControls: remixIcon("RiSlideshowFill")
 };
 
 export default icons;

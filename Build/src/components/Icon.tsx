@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useIconRegistry } from "../helpers/iconLoader";
 import type { IconLookupOptions, ResolvedIcon } from "../types/icons";
 
@@ -63,6 +64,7 @@ export const Icon: React.FC<IconProps> = ({
   onFocus,
   onBlur,
 }) => {
+  const { t } = useTranslation();
   const { loadIcon } = useIconRegistry();
   const [resolvedIcon, setResolvedIcon] = useState<ResolvedIcon | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -83,7 +85,7 @@ export const Icon: React.FC<IconProps> = ({
       if (!name) {
         setResolvedIcon(null);
         setIsLoading(false);
-        setError("Icon name not provided");
+        setError(t('icon.nameNotProvided'));
         return;
       }
 
@@ -112,7 +114,7 @@ export const Icon: React.FC<IconProps> = ({
         setResolvedIcon(icon);
       } catch (err) {
         if (cancelled) return;
-        const message = err instanceof Error ? err.message : "Failed to load icon";
+        const message = err instanceof Error ? err.message : t('icon.failedToLoad');
         setError(message);
         setResolvedIcon(null);
       } finally {
@@ -150,7 +152,7 @@ export const Icon: React.FC<IconProps> = ({
   }
 
   if (error || !resolvedIcon) {
-    return renderFallback(fallback, { isLoading: false, error: error ?? "Icon not found" });
+    return renderFallback(fallback, { isLoading: false, error: error ?? t('icon.notFound') });
   }
 
   switch (resolvedIcon.type) {
@@ -237,7 +239,7 @@ export const Icon: React.FC<IconProps> = ({
       );
     }
     default:
-      return renderFallback(fallback, { isLoading: false, error: "Unsupported icon type" });
+      return renderFallback(fallback, { isLoading: false, error: t('icon.unsupportedType') });
   }
 };
 

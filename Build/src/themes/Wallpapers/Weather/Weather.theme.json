@@ -1,0 +1,10 @@
+{
+  "wallpaper": {
+    "id": "weather",
+    "label": "Weather POC",
+    "author": "HTMLPlayer",
+    "description": "A proof-of-concept wallpaper that simulates weather visuals",
+    "version": "1.0.0",
+    "componentFile": "Weather.wallpaper.tsx"
+  }
+}

@@ -16,7 +16,7 @@
   --foreground-strong: hsla(0, 0%, 100%, 0.85);
   --foreground-stronger: hsla(0, 0%, 100%, 0.95);
   --foreground-muted: hsla(0, 0%, 70%, 0.7);
-  --foreground-subtle: hsla(0, 0%, 70%, 0.5);
+  --foreground-subtle: hsla(0, 0%, 80%, 0.7);
 
   /* Background */
   --background: hsl(260, 15%, 12%);
@@ -106,7 +106,7 @@
   --themegradient: linear-gradient(135deg, #1b1b2a, #252535);
   --themecolor: hsl(260, 25%, 30%);
   --themecolor2: hsl(260, 25%, 40%);
-  --themecolor3: hsl(260, 20%, 25%);
+  --themecolor3: hsla(260, 20%, 25%, 0.5);
   --themecolor4: hsl(260, 20%, 18%);
   --themecolor1-transparent: hsla(260, 25%, 30%, 0.5);
   --themecolor2-transparent: hsla(260, 25%, 40%, 0.5);
@@ -118,7 +118,7 @@
   --foreground-strong: hsla(0, 0%, 100%, 0.85);
   --foreground-stronger: hsla(0, 0%, 100%, 0.95);
   --foreground-muted: hsla(0, 0%, 70%, 0.7);
-  --foreground-subtle: hsla(0, 0%, 70%, 0.5);
+  --foreground-subtle: hsla(0, 0%, 80%, 0.7);
 
   /* Background */
   --background: hsl(260, 20%, 10%);
@@ -185,7 +185,7 @@
   --error-foreground: hsl(0, 0%, 100%);
 
   /* Miscellaneous */
-  --certain-icons: hsl(260, 25%, 35%);
+    --certain-icons: hsl(260, 50%, 60%);
   --albumart-gradient: linear-gradient(135deg, #1b1b2a 0%, #252535 100%);
 
   /* Shadows */

@@ -361,6 +361,10 @@ export async function extractAudioMetadata(file: File): Promise<AudioMetadata> {
 
             if (Array.isArray(warnings) && warnings.length > 0) {
               for (const warning of warnings) {
+                // Suppress repetitive ID3v2.3 warnings that spam the console
+                if (warning.includes("Invalid ID3v2.3 frame-header-ID") || warning.includes("id3v2.3 header has empty tag type")) {
+                  continue;
+                }
                 console.warn(`Metadata warning for ${file.name}:`, warning);
               }
             }
@@ -606,7 +610,8 @@ export function useFileHandler(addSong: (song: Song) => Promise<void>, t: any) {
 }
 export async function importAudioFiles(audioFiles: Array<{ file: File } | File>, addSong: (song: Song) => Promise<void>, t: any) {
   if (!audioFiles || audioFiles.length === 0) return;
-  const BATCH_SIZE = 20;
+  const BATCH_SIZE = 10; // Reduced batch size
+  const CONCURRENT_LIMIT = 3; // Process only 3 files concurrently per batch
   let successCount = 0;
   let errorCount = 0;
   let currentBatch = 1;
@@ -614,34 +619,43 @@ export async function importAudioFiles(audioFiles: Array<{ file: File } | File>,
   for (let i = 0; i < audioFiles.length; i += BATCH_SIZE) {
     const batch = audioFiles.slice(i, i + BATCH_SIZE);
     toast.loading(t("batch.processing", { currentBatch, totalBatches }));
-    const batchPromises = batch.map(async (audioFile: { file: File } | File) => {
-      try {
-        const file: File = (audioFile as any).file || (audioFile as File);
-        const metadata = await extractAudioMetadata(file);
-        const audioUrl = createAudioUrl(file);
-        const song: Song = {
-          id: generateUniqueId(),
-          title: metadata.title,
-          artist: metadata.artist,
-          album: metadata.album || t("songInfo.album", { title: t("common.unknownAlbum") }),
-          duration: metadata.duration,
-          url: audioUrl,
-          albumArt: metadata.albumArt,
-          embeddedLyrics: metadata.embeddedLyrics,
-          encoding: metadata.encoding,
-          gapless: metadata.gapless,
-        };
-        await addSong(song);
-        URL.revokeObjectURL(audioUrl);
-        if (typeof audioFile === 'object' && 'file' in audioFile) {
-          (audioFile as { file: File }).file = null as any;
+    
+    // Process batch with concurrency limit
+    for (let j = 0; j < batch.length; j += CONCURRENT_LIMIT) {
+      const concurrentBatch = batch.slice(j, j + CONCURRENT_LIMIT);
+      const batchPromises = concurrentBatch.map(async (audioFile: { file: File } | File) => {
+        try {
+          const file: File = (audioFile as any).file || (audioFile as File);
+          const metadata = await extractAudioMetadata(file);
+          const audioUrl = createAudioUrl(file);
+          const song: Song = {
+            id: generateUniqueId(),
+            title: metadata.title,
+            artist: metadata.artist,
+            album: metadata.album || t("songInfo.album", { title: t("common.unknownAlbum") }),
+            duration: metadata.duration,
+            url: audioUrl,
+            albumArt: metadata.albumArt,
+            embeddedLyrics: metadata.embeddedLyrics,
+            encoding: metadata.encoding,
+            gapless: metadata.gapless,
+          };
+          await addSong(song);
+          URL.revokeObjectURL(audioUrl); // Revoke immediately after adding
+          if (typeof audioFile === 'object' && 'file' in audioFile) {
+            (audioFile as { file: File }).file = null as any; // Clear reference
+          }
+          successCount++;
+        } catch {
+          errorCount++;
         }
-        successCount++;
-      } catch {
-        errorCount++;
-      }
-    });
-    await Promise.all(batchPromises);
+      });
+      await Promise.all(batchPromises);
+      
+      // Small delay between concurrent batches to reduce load
+      await new Promise(resolve => setTimeout(resolve, 100));
+    }
+    
     currentBatch++;
   }
   toast.dismiss();

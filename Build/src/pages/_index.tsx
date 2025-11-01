@@ -17,6 +17,7 @@ import { toast } from "sonner";
 import { DraggableProvider, DragItem, DropZone } from "../components/Draggable";
 import { useFileHandler, useShareTarget, importAudioFiles } from "../helpers/filePickerHelper";
 import { HelpGuideProvider } from "../components/HelpGuide";
+import WallpaperRenderer from "../components/Wallpaper";
 
 export default function IndexPage() {
   const { t } = useTranslation();
@@ -288,6 +289,10 @@ export default function IndexPage() {
   return (
     <HelpGuideProvider>
       <DraggableProvider onDragOperation={handleDragOperation}>
+        <WallpaperRenderer 
+          currentSong={musicPlayerHook.playerState.currentSong}
+          playbackState={musicPlayerHook.playerState}
+        />
         <div className={styles.container}>
           <Sidebar
             musicPlayerHook={musicPlayerHook}
@@ -309,6 +314,7 @@ export default function IndexPage() {
               defaultRepeat: "off",
               themeMode: "light",
               colorTheme: "",
+              wallpaper: "None",
               autoPlayNext: false,
               compactMode: false,
               showAlbumArt: false,

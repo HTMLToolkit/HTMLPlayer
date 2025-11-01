@@ -22,6 +22,7 @@ import { ShortcutConfig } from "./ShortcutConfig";
 import styles from "./Settings.module.css";
 import { useThemeLoader } from "../helpers/themeLoader";
 import { useIconRegistry } from "../helpers/iconLoader";
+import { useWallpaperLoader } from "../helpers/wallpaperLoader";
 import { toast } from "sonner";
 import { useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -63,6 +64,7 @@ export const Settings = ({
 
   const { themes, currentTheme, setTheme } = useThemeLoader();
   const { iconSets, currentSet, setIconSet } = useIconRegistry();
+  const { wallpapers, setWallpaper } = useWallpaperLoader();
 
   // Check if running on Safari
   const isOnSafari = isSafari();
@@ -85,6 +87,7 @@ export const Settings = ({
         gaplessPlayback: true,
         smartShuffle: true,
         colorTheme: defaultThemeName,
+        wallpaper: "None",
         language: "English",
         tempo: 1,
         pitch: 0,
@@ -500,6 +503,47 @@ export const Settings = ({
                     {iconSets.map((iconSet) => (
                       <SelectItem key={iconSet.id} value={iconSet.id}>
                         {iconSet.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className={styles.settingItem}>
+                <div className={styles.settingLabel}>
+                  <label htmlFor="wallpaper">
+                    {t("settings.interface.wallpaper")}
+                  </label>
+                  <p className={styles.settingDescription}>
+                    {t("settings.interface.wallpaperDesc")}
+                  </p>
+                </div>
+                <Select
+                  value={settings.wallpaper || "None"}
+                  onValueChange={async (val) => {
+                    try {
+                      if (val === "None") {
+                        await setWallpaper(val);
+                        onSettingsChange({ wallpaper: "None" });
+                      } else {
+                        await setWallpaper(val);
+                        onSettingsChange({ wallpaper: val });
+                      }
+                    } catch {
+                      toast.error(t("settings.interface.wallpaperError"));
+                    }
+                  }}
+                >
+                  <SelectTrigger id="wallpaper">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="None">
+                      {t("settings.interface.wallpaperNone", "None")}
+                    </SelectItem>
+                    {wallpapers?.map((wallpaper) => (
+                      <SelectItem key={wallpaper.name} value={wallpaper.name}>
+                        {wallpaper.name}
                       </SelectItem>
                     ))}
                   </SelectContent>

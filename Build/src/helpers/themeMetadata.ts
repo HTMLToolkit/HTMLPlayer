@@ -47,12 +47,14 @@ export async function loadThemeJson(themePath: string): Promise<any> {
  * @returns The parsed JSON object or null if not found/invalid
  */
 export async function loadThemeJsonFromSourcePath(sourcePath: string): Promise<any> {
-  // Convert icons/theme path to theme.json path
+  // Convert icons/theme/wallpaper path to theme.json path
   // e.g., ../themes/Blue/Blue.icons.ts -> ../themes/Blue/Blue.theme.json
   // e.g., ../themes/Blue/Blue.theme.css -> ../themes/Blue/Blue.theme.json
+  // e.g., ../themes/Wallpapers/Static/Static.wallpaper.tsx -> ../themes/Wallpapers/Static/Static.theme.json
   const themePath = sourcePath
     .replace(/\.icons\.(ts|tsx)$/, '.theme.json')
-    .replace(/\.theme\.(css|scss|sass)$/, '.theme.json');
+    .replace(/\.theme\.(css|scss|sass)$/, '.theme.json')
+    .replace(/\.wallpaper\.(ts|tsx)$/, '.theme.json');
   
   return loadThemeJson(themePath);
 }

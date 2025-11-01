@@ -3,6 +3,7 @@ interface PlayerSettings {
   crossfade: number;
   crossfadeBeforeGapless?: number; // Stores the crossfade value before gapless was enabled
   colorTheme: string;
+  wallpaper: string;
   defaultShuffle: boolean;
   defaultRepeat: "off" | "one" | "all";
   autoPlayNext: boolean;

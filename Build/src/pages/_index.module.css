@@ -18,7 +18,7 @@ body {
   grid-template-columns: auto 1fr;
   min-height: 100vh;
   height: 100vh;
-  background: var(--themegradient);
+  /* background: var(--themegradient); */
   background-attachment: fixed;
   background-size: 100% 100%;
   font-family: var(--font-family-base);
@@ -33,7 +33,7 @@ body {
   left: 0;
   width: 100vw;
   height: 100vh;
-  background: var(--themegradient);
+  /* background: var(--themegradient); */
   z-index: -1;
 }
 

@@ -12,8 +12,8 @@
   --menu-background: hsla(217, 91%, 60%, 0.35);
 
   /* Foreground */
-  --foreground: hsl(220, 15%, 20%);
-  --foreground-strong: hsla(0, 0%, 100%, 0.8);
+  --foreground: hsl(200, 15%, 20%);
+  --foreground-strong: hsl(0, 0%, 100%);
   --foreground-stronger: hsla(0, 0%, 100%, 0.9);
   --foreground-muted: hsla(0, 0%, 100%, 0.8);
   --foreground-subtle: hsla(0, 0%, 100%, 0.6);

@@ -55,12 +55,7 @@ const lucideIcon = (icon: string, title?: string): IconDefinition => ({
 const icons: IconDefinitionMap = {
   play: lucideIcon("Play", "Play"),
   pause: lucideIcon("Pause", "Pause"),
-  menu: lucideIcon("Menu"),
-  themeBadge: {
-    type: "image",
-    src: "/icon-1024.png",
-    alt: "HTMLPlayer badge",
-  },
+  menu: lucideIcon("Menu")
 };
 
 export default icons;
@@ -135,11 +130,11 @@ customIcon: {
 Use image files:
 
 ```typescript
-themeBadge: {
+customImage: {
   type: "image",
-  src: "/icon-1024.png",
-  alt: "HTMLPlayer badge",
-  title: "HTMLPlayer badge"
+  src: "./image.png",
+  alt: "customImage",
+  title: "customImage"
 }
 ```
 

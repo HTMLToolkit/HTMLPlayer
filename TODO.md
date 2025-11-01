@@ -2,15 +2,13 @@
 
 ## HTMLPlayer v2
 
-- [ ] Play more/less often dropdown in SongActionsDropdown
-
-- [ ] Dynamic theming based on album art colors.
-  - CSS backgrounds can be images, and album art is images
-
-- [ ] Add TS/TSX support to wallpapers for interactivity
-  - eventually using a NPM module or something for API
+- [X] Add TS/TSX support and wallpapers for interactivity
+  - Start with built-in wallpapers using TS/TSX components, loaded via a wallpaper loader (similar to themeLoader)
+  - Use sandboxed iframe with postMessage for API access to HTMLPlayer internals (playback state, settings, etc.)
+  - Eventually have an NPM module (@htmlplayer/api) for external wallpaper development, allowing user-created interactive wallpapers
   
-- [ ] Animated album art transitions, like fade/zoom/warp album art between songs.
+- [ ] Dynamic theming based on album art.
+  - CSS backgrounds can be images, and album art is images
 
 - [ ] 🔼 I'll need to add some sort of quick guide and help menu or something to HTMLPlayer. (extensive and interactive ig)
 
@@ -18,15 +16,7 @@
 
 ## Either now or future versions
 
-- [ ] 🔼 a Whisper based, fully in browser, Live Lyrics thing
-
-- [ ] theme Sonner toasts
-
-- [ ] Auto-fetch album art from MusicBrainz/Discogs if missing.
-  - <https://github.com/Borewit/musicbrainz-api>
-
-- [ ] metadata editor that saves to IndexedDB, or downloads file
-  - <https://github.com/eidoriantan/mp3tag.js/>
+- [X] Play more/less often dropdown in SongActionsDropdown
 
 - [ ] Add showDirectoryPicker API and ponyfil
     Issue: `showDirectoryPicker` missing but is not supported in all browsers (e.g., Safari).
@@ -53,6 +43,18 @@
         }
       };
       ```
+
+- [ ] 🔼 a Whisper based, fully in browser, Live Lyrics thing
+
+- [ ] theme Sonner toasts
+
+- [ ] Animated album art transitions, like fade/zoom/warp album art between songs.
+
+- [ ] Auto-fetch album art from MusicBrainz/Discogs if missing.
+  - <https://github.com/Borewit/musicbrainz-api>
+
+- [ ] metadata editor that saves to IndexedDB, or downloads file
+  - <https://github.com/eidoriantan/mp3tag.js/>
 
 ## Future (probably)
 
@@ -112,6 +114,10 @@
 - [ ] need good APIs if I want this (not the current visualizer stuff 🫣)
 
 ## Done
+
+- [X] Speed up and fix song uploading being slow and a RAM hog (lagging)
+
+- [X] fix some themes's visibility issues
 
 - [X] Fix file_handler
 

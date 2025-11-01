@@ -184,13 +184,7 @@ const icons: IconDefinitionMap = {
   rotateCcw: simpleLineIcon("SlReload"),
   keyboard: simpleLineIcon("SlCursorMove"), // No direct keyboard, use cursor
   messageCircle: simpleLineIcon("SlSpeech"),
-  visualizerControls: simpleLineIcon("SlControlPlay"), // No direct, use play
-  themeBadge: {
-    type: "image",
-    src: "/icon-1024.png",
-    alt: "HTMLPlayer badge",
-    title: "HTMLPlayer badge",
-  },
+  visualizerControls: simpleLineIcon("SlControlPlay")
 };
 
 export default icons;

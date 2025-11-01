@@ -198,13 +198,7 @@ const icons: IconDefinitionMap = {
   rotateCcw: tablerIcon("TbRotate"),
   keyboard: tablerIcon("TbKeyboard"),
   messageCircle: tablerIcon("TbMessageCircle"),
-  visualizerControls: tablerIcon("TbWaveSine"),
-  themeBadge: {
-    type: "image",
-    src: "/icon-1024.png",
-    alt: "HTMLPlayer badge",
-    title: "HTMLPlayer badge",
-  },
+  visualizerControls: tablerIcon("TbWaveSine")
 };
 
 export default icons;

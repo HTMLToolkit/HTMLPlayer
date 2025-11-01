@@ -483,6 +483,10 @@
     "interface": {
       "title": "Interface Settings",
       "colorTheme": "Color Theme",
+      "wallpaper": "Wallpaper",
+      "wallpaperDesc": "Choose your preferred background wallpaper",
+      "wallpaperChanged": "Wallpaper changed successfully",
+      "wallpaperError": "Failed to change wallpaper",
       "iconSet": "Icon Set",
       "iconSetDesc": "Choose your preferred icon style",
       "iconSetChanged": "Icon set changed successfully",
@@ -564,5 +568,11 @@
   },
   "help": {
     "startTour": "Help"
+  },
+  "icon": {
+    "nameNotProvided": "Icon name not provided",
+    "failedToLoad": "Failed to load icon",
+    "notFound": "Icon not found",
+    "unsupportedType": "Unsupported icon type"
   }
 }

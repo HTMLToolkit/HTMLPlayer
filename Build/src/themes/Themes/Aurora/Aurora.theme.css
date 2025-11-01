@@ -15,7 +15,7 @@
     --foreground: light-dark(color-mix(in oklab, #1a1a2e 90%, #00ff87 10%), color-mix(in oklab, #f0f8ff 95%, #00ff87 5%));
     --foreground-strong: color-mix(in oklch, #2a2a4e 80%, #ffffff 20%);
     --foreground-stronger: color-mix(in oklch, #3a3a6e 70%, #ffffff 30%);
-    --foreground-muted: color-mix(in oklch, #4a4a8e 60%, #ffffff 40%);
+    --foreground-muted: color-mix(in oklch, #2a2a5e 80%, #ffffff 20%);
     --foreground-subtle: color-mix(in oklch, #6a6aae 40%, #ffffff 60%);
 
     /* Background */

@@ -71,17 +71,17 @@ body {
   font-family: var(--font-family-base);
   margin: 0;
   padding: 0;
-  background: var(--themegradient);
+  /* background: var(--themegradient); */
   overflow: hidden;
 }
 
-html {
-  background: var(---themegradient);
-}
+/* html {
+  background: var(--themegradient);
+} */
 
 #root {
   min-height: 100vh;
-  background: var(--themegradient);
+  /* background: var(--themegradient); */
 }
 
 /* Loading screen is global for now */

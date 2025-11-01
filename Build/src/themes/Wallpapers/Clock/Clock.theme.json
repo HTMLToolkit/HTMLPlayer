@@ -1,0 +1,10 @@
+{
+  "wallpaper": {
+    "id": "clock",
+    "label": "Simple Clock",
+    "author": "HTMLPlayer",
+    "description": "A digital clock wallpaper.",
+    "version": "1.0.0",
+    "componentFile": "Clock.wallpaper.tsx"
+  }
+}

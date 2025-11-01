@@ -19,7 +19,7 @@
 .header {
   position: sticky;
   top: 0;
-  z-index: 10;
+  z-index: var(--z-content-high);
   background: var(--menu-background);
   backdrop-filter: blur(30px);
   padding: var(--spacing-6);

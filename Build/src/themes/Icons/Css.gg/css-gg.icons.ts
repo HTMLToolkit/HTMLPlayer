@@ -195,13 +195,7 @@ const icons: IconDefinitionMap = {
     rotateCcw: cssggIcon("CgRedo"),
     keyboard: cssggIcon("CgKeyboard"),
     messageCircle: cssggIcon("CgComment"),
-    visualizerControls: cssggIcon("CgMusicSpeaker"),
-    themeBadge: {
-        type: "image",
-        src: "/icon-1024.png",
-        alt: "HTMLPlayer badge",
-        title: "HTMLPlayer badge",
-    },
+    visualizerControls: cssggIcon("CgMusicSpeaker")
 };
 
 export default icons;

@@ -13,10 +13,10 @@
 
   /* Foreground */
   --foreground: hsl(20, 20%, 25%);
-  --foreground-strong: hsla(0, 0%, 100%, 0.8);
+  --foreground-strong: hsla(0, 0%, 0%, 0.8);
   --foreground-stronger: hsla(0, 0%, 100%, 0.9);
-  --foreground-muted: hsla(0, 0%, 100%, 0.8);
-  --foreground-subtle: hsla(0, 0%, 100%, 0.6);
+  --foreground-muted: hsla(0, 0%, 0%, 0.8);
+  --foreground-subtle: hsla(0, 0%, 0%, 0.6);
 
   /* Background */
   --background: hsl(20, 30%, 95%);
@@ -30,7 +30,7 @@
 
   /* Primary */
   --primary: hsl(14, 68%, 65%);
-  --primary-foreground: hsl(0, 0%, 100%);
+  --primary-foreground: hsl(0, 0%, 0%);
   /* Primary Transparent */
   --primary-transparent: hsla(14, 68%, 65%, 0.25);
   --primary-transparent-1: hsla(14, 68%, 65%, 0.1);

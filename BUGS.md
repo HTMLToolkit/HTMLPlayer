@@ -1,8 +1,7 @@
 # Bugs
 
 - [ ] Fix share_target
-- [ ] fix some themes's visibility issues
-- [ ] Speed up and fix song uploading being slow and a RAM hog (lagging)
+- [ ] next song, prev song, play/pause have delays for some reason
 - [ ] Fix visualizer overlay covering title, and top actions
 
 - [ ] some missed text that's supposed to be in i18n

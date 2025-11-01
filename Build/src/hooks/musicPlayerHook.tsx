@@ -62,6 +62,7 @@ export const useMusicPlayer = () => {
     volume: 0.75,
     crossfade: 3,
     colorTheme: "Blue",
+    wallpaper: "None",
     defaultShuffle: false,
     defaultRepeat: "off",
     autoPlayNext: true,

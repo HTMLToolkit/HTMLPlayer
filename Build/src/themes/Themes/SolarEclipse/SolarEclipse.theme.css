@@ -13,10 +13,10 @@
 
   /* Foreground */
   --foreground: hsl(45, 25%, 15%);
-  --foreground-strong: hsla(0, 0%, 100%, 0.8);
+  --foreground-strong: hsla(0, 0%, 0%, 0.8);
   --foreground-stronger: hsla(0, 0%, 100%, 0.9);
-  --foreground-muted: hsla(0, 0%, 100%, 0.8);
-  --foreground-subtle: hsla(0, 0%, 100%, 0.6);
+  --foreground-muted: hsla(0, 0%, 0%, 0.8);
+  --foreground-subtle: hsla(0, 0%, 0%, 0.6);
 
   /* Background */
   --background: hsl(45, 15%, 97%);
