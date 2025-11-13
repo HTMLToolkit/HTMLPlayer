@@ -10,7 +10,7 @@ const interferenceSpectrogram: VisualizerType = {
     bufferLength,
     freqDataArray,
     dataType,
-    settings = {}
+    settings = {},
   ) {
     const {
       pointColor = "hsla({hue}, 70%, 50%, {alpha})",

@@ -10,7 +10,7 @@ const voltaicArcs: VisualizerType = {
     bufferLength,
     timeDataArray,
     dataType,
-    settings = {}
+    settings = {},
   ) {
     const {
       lineColor = "rgba(0, {green}, {blue}, 0.8)",

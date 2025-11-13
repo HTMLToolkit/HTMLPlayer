@@ -136,10 +136,7 @@ export const libraryConfig: IconLibraryConfigMap = {
   },
 };
 
-const phosphorIcon = (
-  icon: string,
-  title?: string
-): IconDefinition => ({
+const phosphorIcon = (icon: string, title?: string): IconDefinition => ({
   type: "library",
   library: "phosphor",
   icon,
@@ -198,7 +195,7 @@ const icons: IconDefinitionMap = {
   rotateCcw: phosphorIcon("PiArrowCounterClockwise"),
   keyboard: phosphorIcon("PiKeyboard"),
   messageCircle: phosphorIcon("PiChatCircle"),
-  visualizerControls: phosphorIcon("PiSliders")
+  visualizerControls: phosphorIcon("PiSliders"),
 };
 
 export default icons;

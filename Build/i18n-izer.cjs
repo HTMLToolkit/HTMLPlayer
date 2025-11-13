@@ -56,14 +56,14 @@ function scanFile(filePath) {
         inConsoleCall = true;
         parenDepth = 0;
       }
-      
+
       if (inConsoleCall) {
         // Count parentheses to track when the console call ends
         for (let char of line) {
           if (char === '(') parenDepth++;
           if (char === ')') parenDepth--;
         }
-        
+
         if (parenDepth <= 0) {
           inConsoleCall = false;
           return;
@@ -78,14 +78,14 @@ function scanFile(filePath) {
         inThrowStatement = true;
         parenDepth = 0;
       }
-      
+
       if (inThrowStatement) {
         // Count parentheses to track when the throw statement ends
         for (let char of line) {
           if (char === '(') parenDepth++;
           if (char === ')') parenDepth--;
         }
-        
+
         if (parenDepth <= 0) {
           inThrowStatement = false;
           return;

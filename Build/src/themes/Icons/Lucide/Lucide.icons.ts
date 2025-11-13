@@ -1,58 +1,3 @@
-import {
-  Play,
-  Pause,
-  Menu,
-  Info,
-  Settings,
-  ChevronRight,
-  ChevronDown,
-  ChevronUp,
-  Search,
-  Plus,
-  PlusCircle,
-  Music,
-  Heart,
-  Trash2,
-  ArrowUpDown,
-  Type,
-  User,
-  Disc,
-  Star,
-  ArrowUp,
-  ArrowDown,
-  X,
-  ListChecks,
-  List,
-  ThumbsUp,
-  ThumbsDown,
-  MoreHorizontal,
-  Edit,
-  Share,
-  Download,
-  Upload,
-  SkipBack,
-  SkipForward,
-  Repeat,
-  Shuffle,
-  Volume2,
-  VolumeX,
-  Volume1,
-  VolumeOff,
-  BarChart3,
-  PictureInPicture2,
-  Sun,
-  Moon,
-  SunMoon,
-  Check,
-  Pencil,
-  Save,
-  Palette,
-  RotateCcw,
-  Keyboard,
-  MessageCircle,
-  SlidersHorizontal,
-  CircleQuestionMark,
-} from "lucide-react";
 import type {
   IconDefinition,
   IconDefinitionMap,
@@ -61,63 +6,8 @@ import type {
   IconPropTransformer,
 } from "../../../types/icons";
 
-export const libraries: IconLibraryMap = {
-  lucide: {
-    Play,
-    Pause,
-    Menu,
-    Info,
-    Settings,
-    ChevronRight,
-    ChevronDown,
-    ChevronUp,
-    Search,
-    Plus,
-    PlusCircle,
-    Music,
-    Heart,
-    Trash2,
-    ArrowUpDown,
-    Type,
-    User,
-    Disc,
-    Star,
-    ArrowUp,
-    ArrowDown,
-    X,
-    ListChecks,
-    List,
-    ThumbsUp,
-    ThumbsDown,
-    MoreHorizontal,
-    Edit,
-    Share,
-    Download,
-    Upload,
-    SkipBack,
-    SkipForward,
-    Repeat,
-    Shuffle,
-    Volume2,
-    VolumeX,
-    Volume1,
-    VolumeOff,
-    BarChart3,
-    PictureInPicture2,
-    Sun,
-    Moon,
-    SunMoon,
-    Check,
-    Pencil,
-    Save,
-    Palette,
-    RotateCcw,
-    Keyboard,
-    MessageCircle,
-    SlidersHorizontal,
-    CircleQuestionMark
-  },
-};
+// Dynamic library loader - only imports when actually needed
+export const libraries: IconLibraryMap = {};
 
 // Lucide-react accepts: size, color, strokeWidth, absoluteStrokeWidth, etc.
 const lucidePropTransformer: IconPropTransformer = (props) => {
@@ -131,7 +21,8 @@ const lucidePropTransformer: IconPropTransformer = (props) => {
   // Pass color and stroke props as-is
   if (props.color !== undefined) transformed.color = props.color;
   if (props.stroke !== undefined) transformed.stroke = props.stroke;
-  if (props.strokeWidth !== undefined) transformed.strokeWidth = props.strokeWidth;
+  if (props.strokeWidth !== undefined)
+    transformed.strokeWidth = props.strokeWidth;
   if (props.fill !== undefined) transformed.fill = props.fill;
 
   return transformed;
@@ -143,10 +34,7 @@ export const libraryConfig: IconLibraryConfigMap = {
   },
 };
 
-const lucideIcon = (
-  icon: string,
-  title?: string
-): IconDefinition => ({
+const lucideIcon = (icon: string, title?: string): IconDefinition => ({
   type: "library",
   library: "lucide",
   icon,
@@ -206,7 +94,7 @@ const icons: IconDefinitionMap = {
   keyboard: lucideIcon("Keyboard"),
   messageCircle: lucideIcon("MessageCircle"),
   visualizerControls: lucideIcon("SlidersHorizontal"),
-  circleQuestionMark: lucideIcon("CircleQuestionMark")
+  circleQuestionMark: lucideIcon("CircleQuestionMark"),
 };
 
 export default icons;

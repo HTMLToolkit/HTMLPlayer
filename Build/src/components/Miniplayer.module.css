@@ -92,7 +92,11 @@
 
 /* Play button with gradient styling matching Player */
 .playBtn {
-  background: linear-gradient(90deg, var(--themecolor) 0%, var(--themecolor3) 70%);
+  background: linear-gradient(
+    90deg,
+    var(--themecolor) 0%,
+    var(--themecolor3) 70%
+  );
   color: var(--primary-foreground);
   width: 36px;
   height: 36px;
@@ -100,7 +104,11 @@
 }
 
 .playBtn:hover {
-  background: linear-gradient(135deg, var(--themecolor3) 0%, var(--themecolor) 70%);
+  background: linear-gradient(
+    135deg,
+    var(--themecolor3) 0%,
+    var(--themecolor) 70%
+  );
   box-shadow: 0 6px 16px var(--primary-transparent-2);
   transform: translateY(-1px);
 }
@@ -154,7 +162,11 @@
   height: 100%;
   width: 50%;
   /* Placeholder for dynamic width */
-  background: linear-gradient(135deg, var(--themecolor) 0%, var(--themecolor3) 100%);
+  background: linear-gradient(
+    135deg,
+    var(--themecolor) 0%,
+    var(--themecolor3) 100%
+  );
   border-radius: var(--radius-full);
   transition: width 0.3s ease;
 }

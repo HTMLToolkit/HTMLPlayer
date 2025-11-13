@@ -10,7 +10,7 @@ const dnaSpectrogramV2: VisualizerType = {
     bufferLength,
     freqDataArray,
     dataType,
-    settings = {}
+    settings = {},
   ) {
     const {
       lineColor = "hsla({hue}, 70%, 50%, {alpha})",

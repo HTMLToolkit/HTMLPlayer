@@ -2,7 +2,7 @@
   "wallpaper": {
     "id": "music-viz",
     "label": "Music Visualizer",
-    "author": "HTMLPlayer",
+    "author": "NellowTCS",
     "description": "A simple music visualizer that uses the audio analyser node",
     "version": "1.0.0",
     "componentFile": "MusicViz.wallpaper.tsx"

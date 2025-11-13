@@ -10,7 +10,7 @@ const constellationSpectrogram: VisualizerType = {
     bufferLength,
     freqDataArray,
     dataType,
-    settings = {}
+    settings = {},
   ) {
     const {
       pointColor = "hsla({hue}, 80%, 50%, {alpha})",
@@ -57,7 +57,7 @@ const constellationSpectrogram: VisualizerType = {
             .replace("{hue}", `${(i * 360) / points.length}`)
             .replace(
               "{alpha}",
-              `${0.15 + (p1.amplitude + p2.amplitude) * 0.2}`
+              `${0.15 + (p1.amplitude + p2.amplitude) * 0.2}`,
             );
           ctx.lineWidth = 1;
           ctx.stroke();

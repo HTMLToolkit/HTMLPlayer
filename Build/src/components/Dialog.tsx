@@ -64,7 +64,10 @@ const ModalContainer = forwardRef<
                   setDontShowAgain(checked);
                   if (checked && dontShowAgainKey) {
                     // Import here to avoid circular dependency
-                    musicIndexedDbHelper.setDialogPreference(dontShowAgainKey, true);
+                    musicIndexedDbHelper.setDialogPreference(
+                      dontShowAgainKey,
+                      true,
+                    );
                   }
                 }}
               />
@@ -81,7 +84,9 @@ const ModalContainer = forwardRef<
             size="1rem"
             decorative
           />
-          <span className={modalStyles.visuallyHidden}>{t("common.close")}</span>
+          <span className={modalStyles.visuallyHidden}>
+            {t("common.close")}
+          </span>
         </ModalPrimitive.Close>
       </ModalPrimitive.Content>
     </ModalRenderer>
@@ -93,7 +98,9 @@ const ModalHeaderSection = (props: React.HTMLAttributes<HTMLDivElement>) => {
   const { className, ...restProps } = props;
   return (
     <div
-      className={[modalStyles.headerSection, className].filter(Boolean).join(" ")}
+      className={[modalStyles.headerSection, className]
+        .filter(Boolean)
+        .join(" ")}
       {...restProps}
     />
   );
@@ -104,7 +111,9 @@ const ModalFooterSection = (props: React.HTMLAttributes<HTMLDivElement>) => {
   const { className, ...restProps } = props;
   return (
     <div
-      className={[modalStyles.footerSection, className].filter(Boolean).join(" ")}
+      className={[modalStyles.footerSection, className]
+        .filter(Boolean)
+        .join(" ")}
       {...restProps}
     />
   );
@@ -134,7 +143,9 @@ const ModalSubtext = forwardRef<
   return (
     <ModalPrimitive.Description
       ref={forwardedRef}
-      className={[modalStyles.modalDescription, className].filter(Boolean).join(" ")}
+      className={[modalStyles.modalDescription, className]
+        .filter(Boolean)
+        .join(" ")}
       {...restProps}
     />
   );

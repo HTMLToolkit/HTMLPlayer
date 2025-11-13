@@ -24,14 +24,21 @@ import { useThemeLoader } from "../helpers/themeLoader";
 import { useIconRegistry } from "../helpers/iconLoader";
 import { useWallpaperLoader } from "../helpers/wallpaperLoader";
 import { toast } from "sonner";
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { languageNames } from "../../public/locales/supportedLanguages";
 import { isSafari } from "../helpers/safariHelper";
 import { Icon } from "./Icon";
 
 import { resetAllDialogPreferences } from "../helpers/musicIndexedDbHelper";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "./Dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "./Dialog";
 
 export interface SettingsProps {
   className?: string;
@@ -56,11 +63,12 @@ export const Settings = ({
   const [dialogResetOpen, setDialogResetOpen] = useState(false);
   const [dialogResetLoading, setDialogResetLoading] = useState(false);
 
-
   const handleDialogResetClose = () => setDialogResetOpen(false);
 
   // Use the persisted crossfadeBeforeGapless value, fallback to current crossfade
-  const previousCrossfadeRef = useRef<number>(settings.crossfadeBeforeGapless ?? settings.crossfade);
+  const previousCrossfadeRef = useRef<number>(
+    settings.crossfadeBeforeGapless ?? settings.crossfade,
+  );
 
   const { themes, currentTheme, setTheme } = useThemeLoader();
   const { iconSets, currentSet, setIconSet } = useIconRegistry();
@@ -68,6 +76,13 @@ export const Settings = ({
 
   // Check if running on Safari
   const isOnSafari = isSafari();
+
+  // Initialize Eruda if it was previously enabled
+  useEffect(() => {
+    if (settings.erudaEnabled && !(window as any).eruda) {
+      loadEruda().catch(console.error);
+    }
+  }, [settings.erudaEnabled]);
 
   const handleResetSettings = async () => {
     const defaultThemeName = "Blue";
@@ -84,7 +99,7 @@ export const Settings = ({
         showAlbumArt: true,
         showLyrics: false,
         sessionRestore: true,
-        gaplessPlayback: true,
+        gaplessPlayback: false,
         smartShuffle: true,
         colorTheme: defaultThemeName,
         wallpaper: "None",
@@ -93,6 +108,7 @@ export const Settings = ({
         pitch: 0,
         discordEnabled: false,
         discordUserId: undefined,
+        erudaEnabled: false,
       });
     } catch {
       toast.error(t("settings.resetError"));
@@ -110,9 +126,9 @@ export const Settings = ({
     }
     const newValue = newCrossfade[0];
     previousCrossfadeRef.current = newValue; // Update stored value
-    onSettingsChange({ 
+    onSettingsChange({
       crossfade: newValue,
-      crossfadeBeforeGapless: undefined // Clear stored value when manually changed
+      crossfadeBeforeGapless: undefined, // Clear stored value when manually changed
     });
   };
 
@@ -126,22 +142,26 @@ export const Settings = ({
 
   const handleLanguageChange = (lang: string) => {
     i18n.changeLanguage(lang);
-    toast.success(t("settings.interface.languageSet", { language: languageNames[lang] || lang }));
+    toast.success(
+      t("settings.interface.languageSet", {
+        language: languageNames[lang] || lang,
+      }),
+    );
   };
 
   const handleClearCache = async () => {
     try {
       // Clear all cache storage (service worker caches)
-      if ('caches' in window) {
+      if ("caches" in window) {
         const cacheNames = await caches.keys();
         await Promise.all(
-          cacheNames.map(cacheName => caches.delete(cacheName))
+          cacheNames.map((cacheName) => caches.delete(cacheName)),
         );
       }
 
       // Clear i18n resource cache
       if (i18n.services.resourceStore) {
-        Object.keys(i18n.services.resourceStore.data).forEach(lang => {
+        Object.keys(i18n.services.resourceStore.data).forEach((lang) => {
           i18n.services.resourceStore.data[lang] = {};
         });
       }
@@ -153,6 +173,67 @@ export const Settings = ({
     } catch (error) {
       console.error("Failed to clear cache:", error);
       toast.error(t("settings.cacheClearedError"));
+    }
+  };
+
+  // Dynamic Eruda loading/unloading functions
+  const loadEruda = () => {
+    return new Promise<void>((resolve, reject) => {
+      if ((window as any).eruda) {
+        // Already loaded
+        (window as any).eruda.init();
+        resolve();
+        return;
+      }
+
+      const script = document.createElement("script");
+      script.src = "https://cdn.jsdelivr.net/npm/eruda";
+      script.integrity =
+        "sha384-F7xQBvh3l6dG/mMD6QPIeVmXtzWT4Ce3ZDu8ysPuzMWMx9bFOIMGnRPUhLuQipss";
+      script.crossOrigin = "anonymous";
+      script.onload = () => {
+        try {
+          (window as any).eruda.init();
+          resolve();
+        } catch (error) {
+          reject(error);
+        }
+      };
+      script.onerror = reject;
+      document.head.appendChild(script);
+    });
+  };
+
+  const unloadEruda = () => {
+    if ((window as any).eruda) {
+      try {
+        (window as any).eruda.destroy();
+        // Remove the script element
+        const erudaScript = document.querySelector('script[src*="eruda"]');
+        if (erudaScript) {
+          erudaScript.remove();
+        }
+        // Clean up global reference
+        delete (window as any).eruda;
+      } catch (error) {
+        console.warn("Failed to unload Eruda:", error);
+      }
+    }
+  };
+
+  const handleErudaToggle = async (enabled: boolean) => {
+    try {
+      if (enabled) {
+        await loadEruda();
+        toast.success("Eruda debug console enabled");
+      } else {
+        unloadEruda();
+        toast.success("Eruda debug console disabled");
+      }
+      onSettingsChange({ erudaEnabled: enabled });
+    } catch (error) {
+      console.error("Failed to toggle Eruda:", error);
+      toast.error("Failed to toggle Eruda debug console");
     }
   };
 
@@ -215,7 +296,11 @@ export const Settings = ({
                     {t("settings.playback.pitch")}
                   </label>
                   <span className={styles.settingValue}>
-                    {(settings.pitch ?? 0) === 0 ? '0' : ((settings.pitch ?? 0) > 0 ? `+${settings.pitch ?? 0}` : settings.pitch ?? 0)}
+                    {(settings.pitch ?? 0) === 0
+                      ? "0"
+                      : (settings.pitch ?? 0) > 0
+                        ? `+${settings.pitch ?? 0}`
+                        : (settings.pitch ?? 0)}
                   </span>
                 </div>
                 <Slider
@@ -231,8 +316,8 @@ export const Settings = ({
 
                     onSettingsChange({ pitch: newVal });
                   }}
-                  min={-12}
-                  max={12}
+                  min={-48}
+                  max={48}
                   step={1}
                   className={styles.slider}
                 />
@@ -241,7 +326,9 @@ export const Settings = ({
               <div className={styles.settingItem}>
                 <div className={styles.settingLabel}>
                   <label htmlFor="volume-slider">{t("player.volume")}</label>
-                  <span className={styles.settingValue}>{Math.round(settings.volume * 100)}%</span>
+                  <span className={styles.settingValue}>
+                    {Math.round(settings.volume * 100)}%
+                  </span>
                 </div>
                 <Slider
                   id="volume-slider"
@@ -260,17 +347,22 @@ export const Settings = ({
                       {t("settings.audio.crossfade")}
                       {settings.gaplessPlayback && (
                         <span className={styles.settingDescription}>
-                          {" "}({t("settings.audio.crossfadeDisabled")})
+                          {" "}
+                          ({t("settings.audio.crossfadeDisabled")})
                         </span>
                       )}
                     </label>
                     <span className={styles.settingValue}>
-                      {settings.gaplessPlayback ? "0s" : `${settings.crossfade}s`}
+                      {settings.gaplessPlayback
+                        ? "0s"
+                        : `${settings.crossfade}s`}
                     </span>
                   </div>
                   <Slider
                     id="crossfade-slider"
-                    value={settings.gaplessPlayback ? [0] : [settings.crossfade]}
+                    value={
+                      settings.gaplessPlayback ? [0] : [settings.crossfade]
+                    }
                     onValueChange={handleCrossfadeChange}
                     max={10}
                     step={1}
@@ -298,18 +390,20 @@ export const Settings = ({
                         // Store current crossfade value before setting to 0
                         const currentCrossfade = settings.crossfade;
                         previousCrossfadeRef.current = currentCrossfade;
-                        onSettingsChange({ 
+                        onSettingsChange({
                           gaplessPlayback: val,
                           crossfade: 0,
-                          crossfadeBeforeGapless: currentCrossfade
+                          crossfadeBeforeGapless: currentCrossfade,
                         });
                       } else {
                         // Restore previous crossfade value when disabling gapless
-                        const restoreValue = settings.crossfadeBeforeGapless ?? previousCrossfadeRef.current;
-                        onSettingsChange({ 
+                        const restoreValue =
+                          settings.crossfadeBeforeGapless ??
+                          previousCrossfadeRef.current;
+                        onSettingsChange({
                           gaplessPlayback: val,
                           crossfade: restoreValue,
-                          crossfadeBeforeGapless: undefined // Clear the stored value
+                          crossfadeBeforeGapless: undefined, // Clear the stored value
                         });
                       }
                     }}
@@ -657,62 +751,71 @@ export const Settings = ({
                     {t("settings.interface.clearCacheDesc")}
                   </p>
                 </div>
-                <Button
-                  variant="outline"
-                  onClick={handleClearCache}
-                  size="sm"
-                >
+                <Button variant="outline" onClick={handleClearCache} size="sm">
                   <Icon name="trash2" size={16} decorative />
                   {t("settings.interface.clearCacheButton")}
                 </Button>
               </div>
-                <div className={styles.settingItem}>
-                  <div className={styles.settingInfo}>
-                    <label>{t("settings.resetDialogs")}</label>
-                    <p className={styles.settingDescription}>
-                      {t("settings.resetDialogsDescription")}
-                    </p>
-                  </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setDialogResetOpen(true)}
-                  >
-                    <Icon name="rotateCcw" size={16} decorative />
-                    {t("settings.resetDialogsButton")}
-                  </Button>
-                  <Dialog open={dialogResetOpen} onOpenChange={setDialogResetOpen}>
-                    <DialogContent>
-                      <DialogHeader>
-                        <DialogTitle>{t("settings.resetDialogsTitle")}</DialogTitle>
-                        <DialogDescription>{t("settings.resetDialogsDescription")}</DialogDescription>
-                      </DialogHeader>
-                      <DialogFooter>
-                        <Button variant="outline" onClick={handleDialogResetClose} disabled={dialogResetLoading}>
-                          {t("common.cancel")}
-                        </Button>
-                        <Button
-                          onClick={async () => {
-                            setDialogResetLoading(true);
-                            try {
-                              await resetAllDialogPreferences();
-                              toast.success(t("settings.resetDialogsSuccess"));
-                              setDialogResetOpen(false);
-                            } catch (e: any) {
-                              toast.error(e?.message || t("settings.resetError"));
-                            } finally {
-                              setDialogResetLoading(false);
-                            }
-                          }}
-                          disabled={dialogResetLoading}
-                          variant="destructive"
-                        >
-                          {dialogResetLoading ? t("common.loading") : t("common.reset")}
-                        </Button>
-                      </DialogFooter>
-                    </DialogContent>
-                  </Dialog>
+              <div className={styles.settingItem}>
+                <div className={styles.settingInfo}>
+                  <label>{t("settings.resetDialogs")}</label>
+                  <p className={styles.settingDescription}>
+                    {t("settings.resetDialogsDescription")}
+                  </p>
                 </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setDialogResetOpen(true)}
+                >
+                  <Icon name="rotateCcw" size={16} decorative />
+                  {t("settings.resetDialogsButton")}
+                </Button>
+                <Dialog
+                  open={dialogResetOpen}
+                  onOpenChange={setDialogResetOpen}
+                >
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>
+                        {t("settings.resetDialogsTitle")}
+                      </DialogTitle>
+                      <DialogDescription>
+                        {t("settings.resetDialogsDescription")}
+                      </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter>
+                      <Button
+                        variant="outline"
+                        onClick={handleDialogResetClose}
+                        disabled={dialogResetLoading}
+                      >
+                        {t("common.cancel")}
+                      </Button>
+                      <Button
+                        onClick={async () => {
+                          setDialogResetLoading(true);
+                          try {
+                            await resetAllDialogPreferences();
+                            toast.success(t("settings.resetDialogsSuccess"));
+                            setDialogResetOpen(false);
+                          } catch (e: any) {
+                            toast.error(e?.message || t("settings.resetError"));
+                          } finally {
+                            setDialogResetLoading(false);
+                          }
+                        }}
+                        disabled={dialogResetLoading}
+                        variant="destructive"
+                      >
+                        {dialogResetLoading
+                          ? t("common.loading")
+                          : t("common.reset")}
+                      </Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
+              </div>
             </section>
 
             {/* Keyboard Shortcuts */}
@@ -729,7 +832,7 @@ export const Settings = ({
                 </h3>
               </div>
 
-                            <div className={styles.settingItem}>
+              <div className={styles.settingItem}>
                 <div className={styles.settingLabel}>
                   <label>{t("settings.shortcuts.enabled")}</label>
                   <p className={styles.settingDescription}>
@@ -746,7 +849,7 @@ export const Settings = ({
               <ShortcutConfig onShortcutsChanged={onShortcutsChanged} />
             </section>
 
-            {/* Integrations */}
+            {/* Beta */}
             <section className={styles.section}>
               <div className={styles.sectionHeader}>
                 <Icon
@@ -755,9 +858,7 @@ export const Settings = ({
                   size="1.25rem"
                   decorative
                 />
-                <h3 className={styles.sectionTitle}>
-                  Integrations
-                </h3>
+                <h3 className={styles.sectionTitle}>Beta</h3>
               </div>
 
               <div className={styles.settingItem}>
@@ -766,7 +867,8 @@ export const Settings = ({
                     Enable Discord Integration (Broken Beta)
                   </label>
                   <p className={styles.settingDescription}>
-                    Note: Discord&apos;s RPC API requires special approval. Currently logs track info for testing.
+                    Note: Discord&apos;s RPC API requires special approval.
+                    Currently logs track info for testing.
                   </p>
                 </div>
                 <Switch
@@ -784,10 +886,11 @@ export const Settings = ({
                     <div className={styles.settingInfo}>
                       <label>{t("discord.connection")}</label>
                       <p className={styles.settingDescription}>
-                        {settings.discordUserId 
-                          ? t("discord.connected", { userId: settings.discordUserId })
-                          : t("discord.notConnected")
-                        }
+                        {settings.discordUserId
+                          ? t("discord.connected", {
+                              userId: settings.discordUserId,
+                            })
+                          : t("discord.notConnected")}
                       </p>
                     </div>
                     <Button
@@ -799,36 +902,49 @@ export const Settings = ({
                           toast.success(t("discord.disconnected"));
                         } else {
                           // Redirect to Discord OAuth
-                          const discordOAuthUrl = "https://discord.com/oauth2/authorize?client_id=1419480226970341476&response_type=code&redirect_uri=https%3A%2F%2Fhtmlplayer-backend.onrender.com%2Foauth%2Fcallback&scope=identify%20rpc.activities.write";
-                          window.open(discordOAuthUrl, '_blank');
+                          const discordOAuthUrl =
+                            "https://discord.com/oauth2/authorize?client_id=1419480226970341476&response_type=code&redirect_uri=https%3A%2F%2Fhtmlplayer-backend.onrender.com%2Foauth%2Fcallback&scope=identify%20rpc.activities.write";
+                          window.open(discordOAuthUrl, "_blank");
                           toast.info(t("discord.completeAuth"));
                         }
                       }}
                     >
-                      {settings.discordUserId ? t("discord.disconnect") : t("discord.connect")}
+                      {settings.discordUserId
+                        ? t("discord.disconnect")
+                        : t("discord.connect")}
                     </Button>
                   </div>
 
                   {!settings.discordUserId && (
                     <div className={styles.settingItem}>
                       <div className={styles.settingInfo}>
-                        <label htmlFor="discord-user-id">{t("discord.manualUserId")}</label>
+                        <label htmlFor="discord-user-id">
+                          {t("discord.manualUserId")}
+                        </label>
                         <p className={styles.settingDescription}>
                           {t("discord.manualUserIdDescription")}
                         </p>
                       </div>
-                      <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                      <div
+                        style={{
+                          display: "flex",
+                          gap: "8px",
+                          alignItems: "center",
+                        }}
+                      >
                         <Input
                           id="discord-user-id"
                           type="text"
                           placeholder={t("discord.userId")}
                           onKeyDown={(e) => {
-                            if (e.key === 'Enter') {
+                            if (e.key === "Enter") {
                               const input = e.target as HTMLInputElement;
                               if (input.value.trim()) {
-                                onSettingsChange({ discordUserId: input.value.trim() });
+                                onSettingsChange({
+                                  discordUserId: input.value.trim(),
+                                });
                                 toast.success(t("discord.userIdSaved"));
-                                input.value = '';
+                                input.value = "";
                               }
                             }
                           }}
@@ -836,11 +952,14 @@ export const Settings = ({
                         <Button
                           size="sm"
                           onClick={(e) => {
-                            const input = (e.target as HTMLElement).previousElementSibling as HTMLInputElement;
+                            const input = (e.target as HTMLElement)
+                              .previousElementSibling as HTMLInputElement;
                             if (input && input.value.trim()) {
-                              onSettingsChange({ discordUserId: input.value.trim() });
+                              onSettingsChange({
+                                discordUserId: input.value.trim(),
+                              });
                               toast.success(t("discord.userIdSaved"));
-                              input.value = '';
+                              input.value = "";
                             }
                           }}
                         >
@@ -851,6 +970,23 @@ export const Settings = ({
                   )}
                 </>
               )}
+
+              <div className={styles.settingItem}>
+                <div className={styles.settingInfo}>
+                  <label htmlFor="eruda-enabled">
+                    Enable Eruda Debug Console
+                  </label>
+                  <p className={styles.settingDescription}>
+                    Eruda is a debug console for mobile browsers. Takes effect
+                    immediately.
+                  </p>
+                </div>
+                <Switch
+                  id="eruda-enabled"
+                  checked={settings.erudaEnabled === true}
+                  onCheckedChange={handleErudaToggle}
+                />
+              </div>
             </section>
           </div>
 

@@ -28,7 +28,10 @@ export type IconLibraryConfig = {
   propTransformer?: IconPropTransformer;
 };
 
-export type IconLibraryConfigMap = Record<string, IconLibraryModule | IconLibraryConfig>;
+export type IconLibraryConfigMap = Record<
+  string,
+  IconLibraryModule | IconLibraryConfig
+>;
 
 export type IconDefinition =
   | LibraryIconDefinition

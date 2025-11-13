@@ -10,7 +10,7 @@ const topwaterSpectrogram: VisualizerType = {
     bufferLength,
     freqDataArray,
     dataType,
-    settings = {}
+    settings = {},
   ) {
     const {
       lineColor = "rgba(0, 255, 255, {alpha})",
@@ -60,7 +60,7 @@ const topwaterSpectrogram: VisualizerType = {
           state.config!.sinTable![
             Math.floor(
               ((currentTime * 2 + ring + i / 5) % (Math.PI * 2)) *
-                (180 / Math.PI)
+                (180 / Math.PI),
             ) % 360
           ] * 10;
         const radiusOffset = (frequency / 255) * waveAmplitude + waveOffset;
@@ -92,11 +92,11 @@ const topwaterSpectrogram: VisualizerType = {
         innerRadius,
         centerX,
         centerY,
-        outerRadius
+        outerRadius,
       );
       gradient.addColorStop(
         0,
-        gradientColor.replace("{alpha}", `${alpha * 0.1}`)
+        gradientColor.replace("{alpha}", `${alpha * 0.1}`),
       );
       gradient.addColorStop(1, gradientColor.replace("{alpha}", "0"));
       ctx.fillStyle = gradient;

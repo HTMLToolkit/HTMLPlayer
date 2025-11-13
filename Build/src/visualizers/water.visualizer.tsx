@@ -10,7 +10,7 @@ const waterSpectrogram: VisualizerType = {
     bufferLength,
     freqDataArray,
     dataType,
-    settings = {}
+    settings = {},
   ) {
     const {
       lineColor = "rgba(0, 255, 255, {alpha})",
@@ -70,7 +70,8 @@ const waterSpectrogram: VisualizerType = {
           (freq - 128) * 1.5 * perspective +
           state.config!.sinTable![
             Math.floor(
-              ((currentTime + z / 2 + i / 10) % (Math.PI * 2)) * (180 / Math.PI)
+              ((currentTime + z / 2 + i / 10) % (Math.PI * 2)) *
+                (180 / Math.PI),
             ) % 360
           ] *
             waveAmplitude;
@@ -89,7 +90,7 @@ const waterSpectrogram: VisualizerType = {
 
         ctx.strokeStyle = lineColor.replace(
           "{alpha}",
-          `${current.perspective * 0.8}`
+          `${current.perspective * 0.8}`,
         );
         ctx.lineWidth = current.perspective * 2;
         ctx.moveTo(current.x, current.y);
@@ -100,7 +101,7 @@ const waterSpectrogram: VisualizerType = {
         const previousLayer = points[z - 1];
         ctx.strokeStyle = lineColor.replace(
           "{alpha}",
-          `${currentLayer[0].perspective * 0.4}`
+          `${currentLayer[0].perspective * 0.4}`,
         );
         for (let i = 0; i < connections; i += 2) {
           const current = currentLayer[i];

@@ -10,7 +10,7 @@ const oceanWaves: VisualizerType = {
     bufferLength,
     timeDataArray,
     dataType,
-    settings = {}
+    settings = {},
   ) {
     const {
       lineColor = "rgba(0, 150, 255, 0.8)",

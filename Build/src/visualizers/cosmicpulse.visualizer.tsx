@@ -10,7 +10,7 @@ const cosmicPulse: VisualizerType = {
     bufferLength,
     timeDataArray,
     dataType,
-    settings = {}
+    settings = {},
   ) {
     const {
       pointColor = "hsla({hue}, 80%, 50%, {alpha})",
@@ -50,7 +50,7 @@ const cosmicPulse: VisualizerType = {
       ctx.beginPath();
       ctx.strokeStyle = lineColor.replace(
         "{hue}",
-        `${(i / bufferLength) * 360}`
+        `${(i / bufferLength) * 360}`,
       );
       ctx.moveTo(x1, y1);
       ctx.lineTo(x2, y2);

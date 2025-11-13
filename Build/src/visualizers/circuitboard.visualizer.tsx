@@ -10,7 +10,7 @@ const circuitBoard: VisualizerType = {
     bufferLength,
     freqDataArray,
     dataType,
-    settings = {}
+    settings = {},
   ) {
     const {
       circuitColor = "rgba(0, 255, 0, {alpha})",

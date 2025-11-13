@@ -10,7 +10,7 @@ const LayeredRippleVoronoi: VisualizerType = {
     bufferLength,
     freqDataArray,
     dataType,
-    settings = {}
+    settings = {},
   ) {
     const {
       rippleColor = "hsla({hue}, 70%, 50%, 0.5)",
@@ -53,7 +53,7 @@ const LayeredRippleVoronoi: VisualizerType = {
       ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
       ctx.strokeStyle = rippleColor.replace(
         "{hue}",
-        `${(i * 360) / bufferLength}`
+        `${(i * 360) / bufferLength}`,
       );
       ctx.lineWidth = 2;
       ctx.stroke();
@@ -69,7 +69,7 @@ const LayeredRippleVoronoi: VisualizerType = {
       point.y = centerY + Math.sin(angle) * radius;
       point.color = pointColor.replace(
         "{hue}",
-        `${(point.freqIndex * 360) / bufferLength}`
+        `${(point.freqIndex * 360) / bufferLength}`,
       );
     }
 

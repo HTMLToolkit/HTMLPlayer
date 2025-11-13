@@ -15,99 +15,99 @@ export interface ShortcutConfig {
   [actionId: string]: KeyboardShortcut;
 }
 
-const DB_NAME = 'HTMLPlayerShortcuts';
+const DB_NAME = "HTMLPlayerShortcuts";
 const DB_VERSION = 1;
-const STORE_NAME = 'shortcuts';
+const STORE_NAME = "shortcuts";
 
 // Default keyboard shortcuts configuration
 // Note: description fields contain translation keys, not hardcoded text
 export const DEFAULT_SHORTCUTS: ShortcutConfig = {
   playPause: {
-    id: 'playPause',
-    key: ' ',
-    action: 'playPause',
-    description: 'settings.shortcuts.playPause',
-    category: 'playback'
+    id: "playPause",
+    key: " ",
+    action: "playPause",
+    description: "settings.shortcuts.playPause",
+    category: "playback",
   },
   nextSong: {
-    id: 'nextSong',
-    key: 'ArrowRight',
-    action: 'nextSong',
-    description: 'settings.shortcuts.nextSong',
-    category: 'playback'
+    id: "nextSong",
+    key: "ArrowRight",
+    action: "nextSong",
+    description: "settings.shortcuts.nextSong",
+    category: "playback",
   },
   previousSong: {
-    id: 'previousSong',
-    key: 'ArrowLeft',
-    action: 'previousSong',
-    description: 'settings.shortcuts.previousSong',
-    category: 'playback'
+    id: "previousSong",
+    key: "ArrowLeft",
+    action: "previousSong",
+    description: "settings.shortcuts.previousSong",
+    category: "playback",
   },
   volumeUp: {
-    id: 'volumeUp',
-    key: 'ArrowUp',
-    action: 'volumeUp',
-    description: 'settings.shortcuts.volumeUpAction',
-    category: 'audio'
+    id: "volumeUp",
+    key: "ArrowUp",
+    action: "volumeUp",
+    description: "settings.shortcuts.volumeUpAction",
+    category: "audio",
   },
   volumeDown: {
-    id: 'volumeDown',
-    key: 'ArrowDown',
-    action: 'volumeDown',
-    description: 'settings.shortcuts.volumeDownAction',
-    category: 'audio'
+    id: "volumeDown",
+    key: "ArrowDown",
+    action: "volumeDown",
+    description: "settings.shortcuts.volumeDownAction",
+    category: "audio",
   },
   mute: {
-    id: 'mute',
-    key: 'm',
-    action: 'mute',
-    description: 'settings.shortcuts.mute',
-    category: 'audio'
+    id: "mute",
+    key: "m",
+    action: "mute",
+    description: "settings.shortcuts.mute",
+    category: "audio",
   },
   toggleShuffle: {
-    id: 'toggleShuffle',
-    key: 's',
-    action: 'toggleShuffle',
-    description: 'settings.shortcuts.toggleShuffleAction',
-    category: 'playback'
+    id: "toggleShuffle",
+    key: "s",
+    action: "toggleShuffle",
+    description: "settings.shortcuts.toggleShuffleAction",
+    category: "playback",
   },
   toggleRepeat: {
-    id: 'toggleRepeat',
-    key: 'r',
-    action: 'toggleRepeat',
-    description: 'settings.shortcuts.toggleRepeatAction',
-    category: 'playback'
+    id: "toggleRepeat",
+    key: "r",
+    action: "toggleRepeat",
+    description: "settings.shortcuts.toggleRepeatAction",
+    category: "playback",
   },
   toggleLyrics: {
-    id: 'toggleLyrics',
-    key: 'l',
-    action: 'toggleLyrics',
-    description: 'settings.shortcuts.toggleLyricsAction',
-    category: 'interface'
+    id: "toggleLyrics",
+    key: "l",
+    action: "toggleLyrics",
+    description: "settings.shortcuts.toggleLyricsAction",
+    category: "interface",
   },
   toggleVisualizer: {
-    id: 'toggleVisualizer',
-    key: 'v',
-    action: 'toggleVisualizer',
-    description: 'settings.shortcuts.toggleVisualizerAction',
-    category: 'interface'
+    id: "toggleVisualizer",
+    key: "v",
+    action: "toggleVisualizer",
+    description: "settings.shortcuts.toggleVisualizerAction",
+    category: "interface",
   },
   search: {
-    id: 'search',
-    key: 'f',
+    id: "search",
+    key: "f",
     ctrlKey: true,
-    action: 'search',
-    description: 'settings.shortcuts.openSearch',
-    category: 'navigation'
+    action: "search",
+    description: "settings.shortcuts.openSearch",
+    category: "navigation",
   },
   openSettings: {
-    id: 'openSettings',
-    key: ',',
+    id: "openSettings",
+    key: ",",
     ctrlKey: true,
-    action: 'openSettings',
-    description: 'settings.shortcuts.openSettingsAction',
-    category: 'navigation'
-  }
+    action: "openSettings",
+    description: "settings.shortcuts.openSettingsAction",
+    category: "navigation",
+  },
 };
 
 class ShortcutsIndexedDbHelper {
@@ -118,7 +118,7 @@ class ShortcutsIndexedDbHelper {
       const request = indexedDB.open(DB_NAME, DB_VERSION);
 
       request.onerror = () => {
-        reject(new Error('Failed to open IndexedDB'));
+        reject(new Error("Failed to open IndexedDB"));
       };
 
       request.onsuccess = (event) => {
@@ -128,11 +128,11 @@ class ShortcutsIndexedDbHelper {
 
       request.onupgradeneeded = (event) => {
         const db = (event.target as IDBOpenDBRequest).result;
-        
+
         if (!db.objectStoreNames.contains(STORE_NAME)) {
-          const store = db.createObjectStore(STORE_NAME, { keyPath: 'id' });
-          store.createIndex('action', 'action', { unique: true });
-          store.createIndex('category', 'category', { unique: false });
+          const store = db.createObjectStore(STORE_NAME, { keyPath: "id" });
+          store.createIndex("action", "action", { unique: true });
+          store.createIndex("category", "category", { unique: false });
         }
       };
     });
@@ -146,14 +146,14 @@ class ShortcutsIndexedDbHelper {
 
   async getAllShortcuts(): Promise<ShortcutConfig> {
     await this.ensureDB();
-    
+
     return new Promise((resolve, reject) => {
       if (!this.db) {
-        reject(new Error('Database not initialized'));
+        reject(new Error("Database not initialized"));
         return;
       }
 
-      const transaction = this.db.transaction([STORE_NAME], 'readonly');
+      const transaction = this.db.transaction([STORE_NAME], "readonly");
       const store = transaction.objectStore(STORE_NAME);
       const request = store.getAll();
 
@@ -179,32 +179,32 @@ class ShortcutsIndexedDbHelper {
       };
 
       request.onerror = () => {
-        reject(new Error('Failed to get shortcuts'));
+        reject(new Error("Failed to get shortcuts"));
       };
     });
   }
 
   async saveShortcut(shortcut: KeyboardShortcut): Promise<void> {
     await this.ensureDB();
-    
+
     // Validate that shortcut has required properties
     if (!shortcut.id) {
-      throw new Error('Shortcut must have an id property');
+      throw new Error("Shortcut must have an id property");
     }
     if (!shortcut.key) {
-      throw new Error('Shortcut must have a key property');
+      throw new Error("Shortcut must have a key property");
     }
     if (!shortcut.action) {
-      throw new Error('Shortcut must have an action property');
+      throw new Error("Shortcut must have an action property");
     }
-    
+
     return new Promise((resolve, reject) => {
       if (!this.db) {
-        reject(new Error('Database not initialized'));
+        reject(new Error("Database not initialized"));
         return;
       }
 
-      const transaction = this.db.transaction([STORE_NAME], 'readwrite');
+      const transaction = this.db.transaction([STORE_NAME], "readwrite");
       const store = transaction.objectStore(STORE_NAME);
       const request = store.put(shortcut);
 
@@ -220,29 +220,37 @@ class ShortcutsIndexedDbHelper {
 
   async saveAllShortcuts(shortcuts: ShortcutConfig): Promise<void> {
     await this.ensureDB();
-    
+
     return new Promise((resolve, reject) => {
       if (!this.db) {
-        reject(new Error('Database not initialized'));
+        reject(new Error("Database not initialized"));
         return;
       }
 
-      const transaction = this.db.transaction([STORE_NAME], 'readwrite');
+      const transaction = this.db.transaction([STORE_NAME], "readwrite");
       const store = transaction.objectStore(STORE_NAME);
-      
+
       // Clear existing shortcuts
       const clearRequest = store.clear();
-      
+
       clearRequest.onsuccess = () => {
         // Save all new shortcuts
         const promises: Promise<void>[] = [];
-        
+
         Object.values(shortcuts).forEach((shortcut) => {
-          promises.push(new Promise((resolveShortcut, rejectShortcut) => {
-            const addRequest = store.add(shortcut);
-            addRequest.onsuccess = () => resolveShortcut();
-            addRequest.onerror = () => rejectShortcut(new Error(i18n.t("settings.shortcuts.failedToSave") + ` ${shortcut.id}`));
-          }));
+          promises.push(
+            new Promise((resolveShortcut, rejectShortcut) => {
+              const addRequest = store.add(shortcut);
+              addRequest.onsuccess = () => resolveShortcut();
+              addRequest.onerror = () =>
+                rejectShortcut(
+                  new Error(
+                    i18n.t("settings.shortcuts.failedToSave") +
+                      ` ${shortcut.id}`,
+                  ),
+                );
+            }),
+          );
         });
 
         Promise.all(promises)
@@ -251,7 +259,7 @@ class ShortcutsIndexedDbHelper {
       };
 
       clearRequest.onerror = () => {
-        reject(new Error('Failed to clear existing shortcuts'));
+        reject(new Error("Failed to clear existing shortcuts"));
       };
     });
   }
@@ -262,14 +270,14 @@ class ShortcutsIndexedDbHelper {
 
   async deleteShortcut(shortcutId: string): Promise<void> {
     await this.ensureDB();
-    
+
     return new Promise((resolve, reject) => {
       if (!this.db) {
-        reject(new Error('Database not initialized'));
+        reject(new Error("Database not initialized"));
         return;
       }
 
-      const transaction = this.db.transaction([STORE_NAME], 'readwrite');
+      const transaction = this.db.transaction([STORE_NAME], "readwrite");
       const store = transaction.objectStore(STORE_NAME);
       const request = store.delete(shortcutId);
 
@@ -278,19 +286,22 @@ class ShortcutsIndexedDbHelper {
       };
 
       request.onerror = () => {
-        reject(new Error('Failed to delete shortcut'));
+        reject(new Error("Failed to delete shortcut"));
       };
     });
   }
 
-  async isShortcutConflict(shortcut: KeyboardShortcut, excludeId?: string): Promise<boolean> {
+  async isShortcutConflict(
+    shortcut: KeyboardShortcut,
+    excludeId?: string,
+  ): Promise<boolean> {
     const allShortcuts = await this.getAllShortcuts();
-    
+
     return Object.values(allShortcuts).some((existing) => {
       if (excludeId && existing.id === excludeId) {
         return false;
       }
-      
+
       return (
         existing.key === shortcut.key &&
         (existing.ctrlKey || false) === (shortcut.ctrlKey || false) &&
@@ -307,21 +318,21 @@ export const shortcutsDb = new ShortcutsIndexedDbHelper();
 // Utility functions for formatting shortcuts
 export function formatShortcutKey(shortcut: KeyboardShortcut): string {
   const parts: string[] = [];
-  
-  if (shortcut.ctrlKey) parts.push('Ctrl');
-  if (shortcut.altKey) parts.push('Alt');
-  if (shortcut.shiftKey) parts.push('Shift');
-  
+
+  if (shortcut.ctrlKey) parts.push("Ctrl");
+  if (shortcut.altKey) parts.push("Alt");
+  if (shortcut.shiftKey) parts.push("Shift");
+
   let key = shortcut.key;
-  if (key === ' ') key = 'Space';
-  else if (key === 'ArrowUp') key = '↑';
-  else if (key === 'ArrowDown') key = '↓';
-  else if (key === 'ArrowLeft') key = '←';
-  else if (key === 'ArrowRight') key = '→';
+  if (key === " ") key = "Space";
+  else if (key === "ArrowUp") key = "↑";
+  else if (key === "ArrowDown") key = "↓";
+  else if (key === "ArrowLeft") key = "←";
+  else if (key === "ArrowRight") key = "→";
   else if (key.length === 1) key = key.toUpperCase();
-  
+
   parts.push(key);
-  return parts.join(' + ');
+  return parts.join(" + ");
 }
 
 export function parseKeyEvent(event: KeyboardEvent): Partial<KeyboardShortcut> {
@@ -329,6 +340,6 @@ export function parseKeyEvent(event: KeyboardEvent): Partial<KeyboardShortcut> {
     key: event.key,
     ctrlKey: event.ctrlKey || undefined,
     altKey: event.altKey || undefined,
-    shiftKey: event.shiftKey || undefined
+    shiftKey: event.shiftKey || undefined,
   };
 }

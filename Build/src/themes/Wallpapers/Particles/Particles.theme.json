@@ -1,0 +1,10 @@
+{
+  "wallpaper": {
+    "id": "particles",
+    "label": "Particles",
+    "author": "NellowTCS",
+    "description": "An animated particle system with floating dots and connecting lines.",
+    "version": "1.0.0",
+    "componentFile": "Particles.wallpaper.tsx"
+  }
+}

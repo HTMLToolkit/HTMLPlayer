@@ -6,7 +6,7 @@ interface VisualizerDrawFunction {
     bufferLength: number,
     dataArray: Uint8Array | Float32Array,
     dataType: "time" | "frequency",
-    settings: Record<string, any> | undefined
+    settings: Record<string, any> | undefined,
   ): void;
 }
 
@@ -54,14 +54,16 @@ const visualizerModules = import.meta.glob("../visualizers/*.tsx");
 const loadedVisualizers: Map<string, VisualizerType> = new Map();
 
 // Function to dynamically load a visualizer
-export async function loadVisualizer(key: string): Promise<VisualizerType | null> {
+export async function loadVisualizer(
+  key: string,
+): Promise<VisualizerType | null> {
   if (loadedVisualizers.has(key)) {
     return loadedVisualizers.get(key)!;
   }
 
   const path = `../visualizers/${key}.visualizer.tsx`;
   const moduleLoader = visualizerModules[path];
-  
+
   if (moduleLoader) {
     try {
       const module = await moduleLoader();
@@ -74,15 +76,15 @@ export async function loadVisualizer(key: string): Promise<VisualizerType | null
       console.error(`Failed to load visualizer ${key}:`, error);
     }
   }
-  
+
   return null;
 }
 
 // Function to get available visualizer keys
 export function getAvailableVisualizers(): string[] {
-  return Object.keys(visualizerModules).map(path => 
-    path.split("/").pop()?.replace(".visualizer.tsx", "")
-  ).filter(Boolean) as string[];
+  return Object.keys(visualizerModules)
+    .map((path) => path.split("/").pop()?.replace(".visualizer.tsx", ""))
+    .filter(Boolean) as string[];
 }
 
 export const spectrogramTypes: SpectrogramTypes = {
@@ -90,15 +92,17 @@ export const spectrogramTypes: SpectrogramTypes = {
 };
 
 // Function to get a visualizer (loads it if not already loaded)
-export async function getVisualizer(key: string): Promise<VisualizerType | null> {
+export async function getVisualizer(
+  key: string,
+): Promise<VisualizerType | null> {
   if (spectrogramTypes[key]) {
     return spectrogramTypes[key];
   }
-  
+
   const visualizer = await loadVisualizer(key);
   if (visualizer) {
     spectrogramTypes[key] = visualizer;
   }
-  
+
   return visualizer;
 }

@@ -10,7 +10,7 @@ const weatherSpectrogram: VisualizerType = {
     bufferLength,
     freqDataArray,
     dataType,
-    settings = {}
+    settings = {},
   ) {
     const {
       cloudColor = "rgba(255, 255, 255, {alpha})",
@@ -37,7 +37,7 @@ const weatherSpectrogram: VisualizerType = {
         x + 10,
         height - amplitude * curveScale,
         x + 20,
-        height
+        height,
       );
       ctx.fill();
     }

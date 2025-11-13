@@ -31,7 +31,8 @@
     padding: var(--spacing-2) var(--spacing-3);
     color: var(--popup-foreground);
     outline: none;
-    transition: background-color var(--animation-duration-fast),
+    transition:
+      background-color var(--animation-duration-fast),
       color var(--animation-duration-fast);
   }
 

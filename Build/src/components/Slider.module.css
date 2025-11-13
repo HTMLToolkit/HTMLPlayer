@@ -35,7 +35,8 @@
     border-radius: var(--radius-full);
     border: 2px solid var(--background);
     box-shadow: var(--shadow);
-    transition: transform var(--animation-duration-fast) ease,
+    transition:
+      transform var(--animation-duration-fast) ease,
       box-shadow var(--animation-duration-fast) ease;
   }
 

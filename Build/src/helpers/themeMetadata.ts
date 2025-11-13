@@ -4,7 +4,9 @@
  */
 
 // Import all theme JSON files eagerly
-const themeJsonFiles = import.meta.glob('../themes/**/*.theme.json', { eager: true });
+const themeJsonFiles = import.meta.glob("../themes/**/*.theme.json", {
+  eager: true,
+});
 
 // Cache for parsed theme JSON to avoid re-parsing
 const themeJsonCache = new Map<string, any>();
@@ -16,8 +18,8 @@ const themeJsonCache = new Map<string, any>();
  */
 export async function loadThemeJson(themePath: string): Promise<any> {
   // Normalize the path
-  const normalizedPath = themePath.replace(/\\/g, '/');
-  
+  const normalizedPath = themePath.replace(/\\/g, "/");
+
   // Check cache first
   if (themeJsonCache.has(normalizedPath)) {
     return themeJsonCache.get(normalizedPath);
@@ -25,7 +27,7 @@ export async function loadThemeJson(themePath: string): Promise<any> {
 
   // Try to find the module
   const module = themeJsonFiles[normalizedPath];
-  
+
   if (!module) {
     console.warn(`Theme JSON not found at ${normalizedPath}`);
     return null;
@@ -46,16 +48,18 @@ export async function loadThemeJson(themePath: string): Promise<any> {
  * @param sourcePath - Path to an icon or theme file (e.g., '../themes/Blue/Blue.icons.ts')
  * @returns The parsed JSON object or null if not found/invalid
  */
-export async function loadThemeJsonFromSourcePath(sourcePath: string): Promise<any> {
+export async function loadThemeJsonFromSourcePath(
+  sourcePath: string,
+): Promise<any> {
   // Convert icons/theme/wallpaper path to theme.json path
   // e.g., ../themes/Blue/Blue.icons.ts -> ../themes/Blue/Blue.theme.json
   // e.g., ../themes/Blue/Blue.theme.css -> ../themes/Blue/Blue.theme.json
   // e.g., ../themes/Wallpapers/Static/Static.wallpaper.tsx -> ../themes/Wallpapers/Static/Static.theme.json
   const themePath = sourcePath
-    .replace(/\.icons\.(ts|tsx)$/, '.theme.json')
-    .replace(/\.theme\.(css|scss|sass)$/, '.theme.json')
-    .replace(/\.wallpaper\.(ts|tsx)$/, '.theme.json');
-  
+    .replace(/\.icons\.(ts|tsx)$/, ".theme.json")
+    .replace(/\.theme\.(css|scss|sass)$/, ".theme.json")
+    .replace(/\.wallpaper\.(ts|tsx)$/, ".theme.json");
+
   return loadThemeJson(themePath);
 }
 
@@ -65,7 +69,7 @@ export async function loadThemeJsonFromSourcePath(sourcePath: string): Promise<a
  */
 export async function getAllThemeJsonFiles(): Promise<Map<string, any>> {
   const results = new Map<string, any>();
-  
+
   for (const [path, module] of Object.entries(themeJsonFiles)) {
     try {
       const json = (module as any).default || module;
@@ -74,7 +78,7 @@ export async function getAllThemeJsonFiles(): Promise<Map<string, any>> {
       console.warn(`Failed to parse theme JSON at ${path}`, error);
     }
   }
-  
+
   return results;
 }
 
@@ -83,7 +87,9 @@ export async function getAllThemeJsonFiles(): Promise<Map<string, any>> {
  * @param themeName - The name of the theme to find
  * @returns The parsed JSON object or null if not found
  */
-export async function findThemeJsonByName(themeName: string): Promise<{ path: string; json: any } | null> {
+export async function findThemeJsonByName(
+  themeName: string,
+): Promise<{ path: string; json: any } | null> {
   for (const [path, module] of Object.entries(themeJsonFiles)) {
     try {
       const json = (module as any).default || module;
@@ -94,7 +100,7 @@ export async function findThemeJsonByName(themeName: string): Promise<{ path: st
       console.warn(`Failed to parse theme JSON at ${path}`, error);
     }
   }
-  
+
   return null;
 }
 

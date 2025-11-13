@@ -10,7 +10,7 @@ const matrixRain: VisualizerType = {
     bufferLength,
     timeDataArray,
     dataType,
-    settings = {}
+    settings = {},
   ) {
     const {
       lineColor = "#0f0",

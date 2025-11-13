@@ -1,6 +1,7 @@
 import { MutableRefObject } from "react";
 import { CrossfadeManager, AudioSource } from "./crossfadeHelper";
 import { calculateGaplessOffsets } from "./gaplessHelper";
+import { getValidPlaybackRate } from "./musicPlayerUtils";
 
 export const createCrossfadeManager = (
   audioRef: MutableRefObject<HTMLAudioElement | null>,
@@ -9,7 +10,7 @@ export const createCrossfadeManager = (
   currentAudioSourceRef: MutableRefObject<AudioSource | null>,
   nextAudioSourceRef: MutableRefObject<AudioSource | null>,
   gaplessAdvanceTriggeredRef?: MutableRefObject<boolean>,
-  gaplessStartAppliedRef?: MutableRefObject<boolean>
+  gaplessStartAppliedRef?: MutableRefObject<boolean>,
 ) => {
   const getValidTempo = (tempo: number | undefined) => {
     if (typeof tempo !== "number" || !Number.isFinite(tempo) || tempo <= 0) {
@@ -31,7 +32,7 @@ export const createCrossfadeManager = (
         currentAudioSourceRef.current =
           crossfadeManagerRef.current.createAudioSource(audioRef.current);
         crossfadeManagerRef.current.setCurrentSource(
-          currentAudioSourceRef.current
+          currentAudioSourceRef.current,
         );
       }
 
@@ -39,21 +40,21 @@ export const createCrossfadeManager = (
     } catch (error) {
       console.error(
         "CrossfadeUtils: Failed to setup crossfade manager:",
-        error
+        error,
       );
       return null;
     }
   };
 
   const getNextSongForCrossfade = (
-    getAndCacheNextSong: () => Song | null
+    getAndCacheNextSong: () => Song | null,
   ): Song | null => {
     try {
       return getAndCacheNextSong();
     } catch (error) {
       console.error(
         "CrossfadeUtils: Failed to get next song for crossfade:",
-        error
+        error,
       );
       return null;
     }
@@ -63,17 +64,17 @@ export const createCrossfadeManager = (
     nextSong: Song,
     cacheSong: (song: Song) => Promise<void>,
     getCachedSong: (songId: string) => any,
-    settingsRef: MutableRefObject<any>
+    settingsRef: MutableRefObject<any>,
   ): Promise<void> => {
     if (!nextAudioRef.current || !crossfadeManagerRef.current) {
       throw new Error(
-        "CrossfadeUtils: Missing audio elements for crossfade preparation"
+        "CrossfadeUtils: Missing audio elements for crossfade preparation",
       );
     }
 
     console.log(
       "CrossfadeUtils: Preparing next song for crossfade:",
-      nextSong.title
+      nextSong.title,
     );
 
     try {
@@ -90,8 +91,10 @@ export const createCrossfadeManager = (
       nextAudioRef.current.pause();
       nextAudioRef.current.currentTime = 0;
       nextAudioRef.current.src = cachedSong.url;
-      nextAudioRef.current.playbackRate = getValidTempo(
-        settingsRef.current.tempo
+      // Apply combined tempo and pitch rate, clamped to browser limits
+      nextAudioRef.current.playbackRate = getValidPlaybackRate(
+        settingsRef.current.tempo,
+        settingsRef.current.pitch,
       );
 
       console.log("CrossfadeUtils: Waiting for next audio to be ready");
@@ -142,7 +145,10 @@ export const createCrossfadeManager = (
         try {
           nextAudioRef.current.currentTime = offsets.start;
         } catch (error) {
-          console.warn("CrossfadeUtils: Failed to apply gapless start offset to next track:", error);
+          console.warn(
+            "CrossfadeUtils: Failed to apply gapless start offset to next track:",
+            error,
+          );
         }
       }
 
@@ -157,12 +163,12 @@ export const createCrossfadeManager = (
 
       crossfadeManagerRef.current.prepareNextSource(nextAudioSourceRef.current);
       console.log(
-        "CrossfadeUtils: Next song prepared successfully for crossfade"
+        "CrossfadeUtils: Next song prepared successfully for crossfade",
       );
     } catch (error) {
       console.error(
         "CrossfadeUtils: Failed to prepare next song for crossfade:",
-        error
+        error,
       );
       throw error;
     }
@@ -178,18 +184,18 @@ export const createCrossfadeManager = (
       playHistoryRef: MutableRefObject<
         Map<string, { lastPlayed: number; playCount: number }>
       >,
-      songId: string
+      songId: string,
     ) => void,
     setPlayerState: (updater: (prev: any) => any) => void,
     audioRef: MutableRefObject<HTMLAudioElement | null>,
     nextAudioRef: MutableRefObject<HTMLAudioElement | null>,
     currentAudioSourceRef: MutableRefObject<any>,
     nextAudioSourceRef: MutableRefObject<any>,
-    invalidateNextSongCache?: () => void
+    invalidateNextSongCache?: () => void,
   ) => {
     console.log(
       "CrossfadeUtils: Updating player state after crossfade to:",
-      nextSong.title
+      nextSong.title,
     );
 
     try {
@@ -200,7 +206,7 @@ export const createCrossfadeManager = (
       ) {
         updatePlayHistory(
           playHistoryRef,
-          playerStateRef.current.currentSong.id
+          playerStateRef.current.currentSong.id,
         );
         console.log("CrossfadeUtils: Updated play history for shuffle mode");
       }
@@ -224,7 +230,7 @@ export const createCrossfadeManager = (
           "CrossfadeUtils: Finalizing player state after crossfade:",
           nextSong.title,
           "currentTime:",
-          currentTime
+          currentTime,
         );
         return {
           ...prev,
@@ -236,14 +242,16 @@ export const createCrossfadeManager = (
       // Invalidate next song cache since we changed songs
       if (invalidateNextSongCache) {
         invalidateNextSongCache();
-        console.log("CrossfadeUtils: Invalidated next song cache after crossfade");
+        console.log(
+          "CrossfadeUtils: Invalidated next song cache after crossfade",
+        );
       }
 
       console.log("CrossfadeUtils: Player state updated successfully");
     } catch (error) {
       console.error(
         "CrossfadeUtils: Error updating player state after crossfade:",
-        error
+        error,
       );
     }
   };
@@ -252,11 +260,11 @@ export const createCrossfadeManager = (
     getNextSongForCrossfadeFunc: () => Song | null,
     cacheSong: (song: Song) => Promise<void>,
     getCachedSong: (songId: string) => any,
-    settingsRef: MutableRefObject<any>
+    settingsRef: MutableRefObject<any>,
   ) => {
     if (!nextAudioRef.current || crossfadeManagerRef.current?.isCrossfading()) {
       console.log(
-        "CrossfadeUtils: Skipping preload - no audio element or crossfade in progress"
+        "CrossfadeUtils: Skipping preload - no audio element or crossfade in progress",
       );
       return;
     }
@@ -277,8 +285,10 @@ export const createCrossfadeManager = (
       if (cachedSong) {
         // Pre-set the source but don't play yet
         nextAudioRef.current.src = cachedSong.url;
-        nextAudioRef.current.playbackRate = getValidTempo(
-          settingsRef.current.tempo
+        // Apply combined tempo and pitch rate, clamped to browser limits
+        nextAudioRef.current.playbackRate = getValidPlaybackRate(
+          settingsRef.current.tempo,
+          settingsRef.current.pitch,
         );
 
         // Preload the audio data
@@ -304,14 +314,14 @@ export const createCrossfadeManager = (
       playHistoryRef: MutableRefObject<
         Map<string, { lastPlayed: number; playCount: number }>
       >,
-      songId: string
+      songId: string,
     ) => void,
     setPlayerState: (updater: (prev: any) => any) => void,
     settingsRef: MutableRefObject<any>,
     audioContextRef?: MutableRefObject<AudioContext | null>,
     invalidateNextSongCache?: () => void,
     gaplessAdvanceTriggeredRefParam?: MutableRefObject<boolean>,
-    gaplessStartAppliedRefParam?: MutableRefObject<boolean>
+    gaplessStartAppliedRefParam?: MutableRefObject<boolean>,
   ) => {
     console.log("CrossfadeUtils: Starting crossfade transition...");
 
@@ -350,12 +360,15 @@ export const createCrossfadeManager = (
       currentAudioSourceRef.current =
         crossfadeManagerRef.current!.createAudioSource(audioRef.current);
       crossfadeManagerRef.current!.setCurrentSource(
-        currentAudioSourceRef.current
+        currentAudioSourceRef.current,
       );
     }
 
     // Cancel any existing crossfade
-    if (crossfadeManagerRef.current && crossfadeManagerRef.current.isCrossfading()) {
+    if (
+      crossfadeManagerRef.current &&
+      crossfadeManagerRef.current.isCrossfading()
+    ) {
       console.log("CrossfadeUtils: Cancelling existing crossfade");
       crossfadeManagerRef.current.cancelCrossfade();
     }
@@ -369,7 +382,7 @@ export const createCrossfadeManager = (
 
       console.log(
         "CrossfadeUtils: Preparing next song for crossfade:",
-        nextSong.title
+        nextSong.title,
       );
 
       // Prepare the next audio source
@@ -406,12 +419,17 @@ export const createCrossfadeManager = (
 
       const crossfadeDuration = Math.max(
         0.5,
-        Math.min(10, settingsRef.current.crossfade || 3)
+        Math.min(10, settingsRef.current.crossfade || 3),
       );
 
       // If there's less time remaining than the crossfade duration, shorten the crossfade
-      const timeRemaining = audioRef.current ? audioRef.current.duration - audioRef.current.currentTime : crossfadeDuration;
-      const effectiveCrossfadeDuration = Math.min(crossfadeDuration, Math.max(0.5, timeRemaining));
+      const timeRemaining = audioRef.current
+        ? audioRef.current.duration - audioRef.current.currentTime
+        : crossfadeDuration;
+      const effectiveCrossfadeDuration = Math.min(
+        crossfadeDuration,
+        Math.max(0.5, timeRemaining),
+      );
 
       console.log(
         "CrossfadeUtils: Starting crossfade with effective duration:",
@@ -419,7 +437,7 @@ export const createCrossfadeManager = (
         "(requested:",
         crossfadeDuration,
         "time remaining:",
-        timeRemaining.toFixed(1) + ")"
+        timeRemaining.toFixed(1) + ")",
       );
 
       // Update player state immediately when crossfade starts
@@ -441,7 +459,9 @@ export const createCrossfadeManager = (
         curve: "smooth",
       });
 
-      console.log("CrossfadeUtils: Crossfade completed, finalizing player state");
+      console.log(
+        "CrossfadeUtils: Crossfade completed, finalizing player state",
+      );
 
       // Finalize player state after crossfade completes (swap audio elements)
       updatePlayerStateAfterCrossfade(
@@ -454,11 +474,11 @@ export const createCrossfadeManager = (
         nextAudioRef,
         currentAudioSourceRef,
         nextAudioSourceRef,
-        invalidateNextSongCache
+        invalidateNextSongCache,
       );
 
       console.log(
-        "CrossfadeUtils: Crossfade transition completed successfully"
+        "CrossfadeUtils: Crossfade transition completed successfully",
       );
     } catch (error) {
       console.error("CrossfadeUtils: Crossfade transition failed:", error);

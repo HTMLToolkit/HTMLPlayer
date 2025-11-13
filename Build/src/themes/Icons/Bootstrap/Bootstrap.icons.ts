@@ -137,7 +137,7 @@ export const libraryConfig: IconLibraryConfigMap = {
 
 const bootstrapIcon = (
   icon: keyof typeof libraries.bootstrap,
-  title?: string
+  title?: string,
 ): IconDefinition => ({
   type: "library",
   library: "bootstrap",
@@ -197,7 +197,7 @@ const icons: IconDefinitionMap = {
   rotateCcw: bootstrapIcon("BsArrowCounterclockwise"),
   keyboard: bootstrapIcon("BsKeyboard"),
   messageCircle: bootstrapIcon("BsChat"),
-  visualizerControls: bootstrapIcon("BsSliders")
+  visualizerControls: bootstrapIcon("BsSliders"),
 };
 
 export default icons;

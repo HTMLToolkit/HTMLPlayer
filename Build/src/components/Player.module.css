@@ -84,7 +84,9 @@
   font-family: var(--font-family-base);
   font-size: 1.125rem;
   color: var(--primary-foreground);
-  transition: opacity var(--animation-duration-fast) ease, transform var(--animation-duration-fast) ease;
+  transition:
+    opacity var(--animation-duration-fast) ease,
+    transform var(--animation-duration-fast) ease;
   opacity: 1;
 }
 
@@ -359,10 +361,11 @@
 /* Visualizer Overlay */
 .visualizerOverlay {
   position: fixed;
-  top: 0;
+  top: 80px;
   right: 0;
   width: calc(100vw - var(--sidebar-width));
-  height: 300px;
+  height: calc(100vh - 90px - 180px);
+  max-height: 300px;
   background: black;
   backdrop-filter: blur(10px);
   border: 1px solid var(--primary-border);
@@ -438,7 +441,9 @@
     font-size: 1.25rem;
     /* Much larger on mobile */
     color: var(--primary-foreground);
-    transition: opacity var(--animation-duration-fast) ease, transform var(--animation-duration-fast) ease;
+    transition:
+      opacity var(--animation-duration-fast) ease,
+      transform var(--animation-duration-fast) ease;
     opacity: 1;
   }
 
@@ -567,7 +572,8 @@
   }
 
   .visualizerOverlay {
-    height: 200px;
+    height: calc(100vh - 70px - 160px);
+    max-height: 200px;
     right: 0;
     /* stays pinned to screen edge */
     width: 100vw;

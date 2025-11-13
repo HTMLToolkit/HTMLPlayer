@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect } from "react";
 
 const MusicViz: React.FC<WallpaperProps> = ({ playbackState }) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -7,7 +7,7 @@ const MusicViz: React.FC<WallpaperProps> = ({ playbackState }) => {
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
     const resize = () => {
@@ -16,7 +16,7 @@ const MusicViz: React.FC<WallpaperProps> = ({ playbackState }) => {
     };
 
     resize();
-    window.addEventListener('resize', resize);
+    window.addEventListener("resize", resize);
 
     let analyser = playbackState?.analyserNode || null;
     let dataArray: Uint8Array | null = null;
@@ -29,12 +29,12 @@ const MusicViz: React.FC<WallpaperProps> = ({ playbackState }) => {
       if (!ctx || !canvas) return;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       if (analyser && dataArray) {
-  (analyser as any).getByteFrequencyData(dataArray);
+        (analyser as any).getByteFrequencyData(dataArray);
         const barWidth = canvas.width / dataArray.length;
         for (let i = 0; i < dataArray.length; i++) {
           const v = dataArray[i] / 255;
           const h = v * canvas.height;
-          ctx.fillStyle = `hsl(${i / dataArray.length * 360}, 80%, ${30 + v * 50}%)`;
+          ctx.fillStyle = `hsl(${(i / dataArray.length) * 360}, 80%, ${30 + v * 50}%)`;
           ctx.fillRect(i * barWidth, canvas.height - h, Math.ceil(barWidth), h);
         }
       } else {
@@ -42,7 +42,7 @@ const MusicViz: React.FC<WallpaperProps> = ({ playbackState }) => {
         const t = Date.now() / 300;
         const r = 30 + (playbackState?.isPlaying ? (Math.sin(t) + 1) * 40 : 10);
         ctx.beginPath();
-        ctx.fillStyle = '#6ee7b7';
+        ctx.fillStyle = "#6ee7b7";
         ctx.arc(canvas.width / 2, canvas.height / 2, r, 0, Math.PI * 2);
         ctx.fill();
       }
@@ -54,12 +54,22 @@ const MusicViz: React.FC<WallpaperProps> = ({ playbackState }) => {
 
     return () => {
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
-      window.removeEventListener('resize', resize);
+      window.removeEventListener("resize", resize);
     };
   }, [playbackState]);
 
   return (
-    <canvas ref={canvasRef} style={{ background: 'navy', position: 'fixed', inset: 0, zIndex: -1, width: '100%', height: '100%'}} />
+    <canvas
+      ref={canvasRef}
+      style={{
+        background: "navy",
+        position: "fixed",
+        inset: 0,
+        zIndex: -1,
+        width: "100%",
+        height: "100%",
+      }}
+    />
   );
 };
 

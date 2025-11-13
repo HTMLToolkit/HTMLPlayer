@@ -4,6 +4,6 @@ interface WallpaperProps {
 }
 
 // Allow developers to optionally export more advanced types later
-declare module 'htmlplayer/wallpaper' {
+declare module "htmlplayer/wallpaper" {
   export type { WallpaperProps };
 }

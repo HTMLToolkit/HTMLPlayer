@@ -1,0 +1,10 @@
+{
+  "wallpaper": {
+    "id": "gradient-waves",
+    "label": "Waves",
+    "author": "NellowTCS",
+    "description": "Animated gradient waves with flowing colors and wave overlays.",
+    "version": "1.0.0",
+    "componentFile": "Waves.wallpaper.tsx"
+  }
+}

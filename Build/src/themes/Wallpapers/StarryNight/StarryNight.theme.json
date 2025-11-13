@@ -1,0 +1,10 @@
+{
+  "wallpaper": {
+    "id": "starry-night",
+    "label": "Starry Night",
+    "author": "NellowTCS",
+    "description": "A night sky with twinkling stars and occasional shooting stars.",
+    "version": "1.0.0",
+    "componentFile": "StarryNight.wallpaper.tsx"
+  }
+}

@@ -2,7 +2,7 @@ import i18n from "i18next";
 
 export interface CrossfadeOptions {
   duration: number;
-  curve?: 'linear' | 'exponential' | 'smooth';
+  curve?: "linear" | "exponential" | "smooth";
 }
 
 export interface AudioSource {
@@ -16,11 +16,11 @@ export interface AudioSource {
  * Validate and clamp pitch value
  */
 function getValidPitch(pitch: number | undefined): number {
-  if (typeof pitch !== 'number' || !Number.isFinite(pitch)) {
+  if (typeof pitch !== "number" || !Number.isFinite(pitch)) {
     return 0; // Default to no pitch shift
   }
-  // Clamp to -12 to +12 semitones
-  return Math.max(-12, Math.min(12, pitch));
+  // Clamp to -48 to +48 semitones
+  return Math.max(-48, Math.min(48, pitch));
 }
 
 export class CrossfadeManager {
@@ -37,7 +37,7 @@ export class CrossfadeManager {
 
   // Track which audio element is the "active" one for UI updates
   private activeElement: HTMLAudioElement | null = null;
-  
+
   // Current pitch setting
   private currentPitch: number = 0;
 
@@ -76,7 +76,7 @@ export class CrossfadeManager {
         element: audioElement,
         source,
         gainNode,
-        id: Math.random().toString(36).substr(2, 9)
+        id: Math.random().toString(36).substr(2, 9),
       };
 
       // Store reference to prevent multiple sources for same element
@@ -84,7 +84,7 @@ export class CrossfadeManager {
 
       return audioSource;
     } catch (error) {
-      console.error('Failed to create audio source:', error);
+      console.error("Failed to create audio source:", error);
       throw error;
     }
   }
@@ -98,11 +98,17 @@ export class CrossfadeManager {
       this.activeElement = source.element;
 
       // Set to full volume
-      this.currentSource.gainNode.gain.setValueAtTime(1, this.audioContext.currentTime);
+      this.currentSource.gainNode.gain.setValueAtTime(
+        1,
+        this.audioContext.currentTime,
+      );
 
       // Mute any previous sources
       if (this.nextSource && this.nextSource !== source) {
-        this.nextSource.gainNode.gain.setValueAtTime(0, this.audioContext.currentTime);
+        this.nextSource.gainNode.gain.setValueAtTime(
+          0,
+          this.audioContext.currentTime,
+        );
       }
     }
   }
@@ -113,7 +119,10 @@ export class CrossfadeManager {
   prepareNextSource(source: AudioSource) {
     this.nextSource = source;
     // Start muted
-    this.nextSource.gainNode.gain.setValueAtTime(0, this.audioContext.currentTime);
+    this.nextSource.gainNode.gain.setValueAtTime(
+      0,
+      this.audioContext.currentTime,
+    );
   }
 
   /**
@@ -121,19 +130,19 @@ export class CrossfadeManager {
    */
   async startCrossfade(options: CrossfadeOptions): Promise<void> {
     if (!this.currentSource || !this.nextSource) {
-      throw new Error('Cannot start crossfade - missing audio sources');
+      throw new Error("Cannot start crossfade - missing audio sources");
     }
 
     if (this.crossfadeInProgress) {
-      console.warn('Crossfade already in progress, cancelling previous');
+      console.warn("Crossfade already in progress, cancelling previous");
       this.cancelCrossfade();
     }
 
     this.crossfadeInProgress = true;
-    const { duration, curve = 'smooth' } = options;
+    const { duration, curve = "smooth" } = options;
     const now = this.audioContext.currentTime;
 
-    console.log('Starting crossfade transition...');
+    console.log("Starting crossfade transition...");
 
     this.crossfadePromise = new Promise<void>(async (resolve, reject) => {
       try {
@@ -141,14 +150,19 @@ export class CrossfadeManager {
         if (this.nextSource!.element.readyState < 2) {
           await new Promise<void>((loadResolve, loadReject) => {
             const timeout = setTimeout(() => {
-              loadReject(new Error(i18n.t("crossfade.nextAudioFailedToLoadInTime")));
+              loadReject(
+                new Error(i18n.t("crossfade.nextAudioFailedToLoadInTime")),
+              );
             }, 5000);
 
             const cleanup = () => {
               clearTimeout(timeout);
-              this.nextSource!.element.removeEventListener('canplay', onReady);
-              this.nextSource!.element.removeEventListener('loadeddata', onReady);
-              this.nextSource!.element.removeEventListener('error', onError);
+              this.nextSource!.element.removeEventListener("canplay", onReady);
+              this.nextSource!.element.removeEventListener(
+                "loadeddata",
+                onReady,
+              );
+              this.nextSource!.element.removeEventListener("error", onError);
             };
 
             const onReady = () => {
@@ -161,9 +175,9 @@ export class CrossfadeManager {
               loadReject(new Error(i18n.t("crossfade.nextAudioFailedToLoad")));
             };
 
-            this.nextSource!.element.addEventListener('canplay', onReady);
-            this.nextSource!.element.addEventListener('loadeddata', onReady);
-            this.nextSource!.element.addEventListener('error', onError);
+            this.nextSource!.element.addEventListener("canplay", onReady);
+            this.nextSource!.element.addEventListener("loadeddata", onReady);
+            this.nextSource!.element.addEventListener("error", onError);
           });
         }
 
@@ -179,25 +193,34 @@ export class CrossfadeManager {
         // Listen for current song ending
         const handleCurrentEnded = () => {
           if (this.crossfadeInProgress) {
-            console.log('Current song ended during crossfade');
+            console.log("Current song ended during crossfade");
             this.completeCrossfade();
             resolve();
           }
         };
 
-        this.currentSource!.element.addEventListener('ended', handleCurrentEnded, { once: true });
+        this.currentSource!.element.addEventListener(
+          "ended",
+          handleCurrentEnded,
+          { once: true },
+        );
 
         // Set timeout for crossfade completion
-        this.crossfadeTimeout = window.setTimeout(() => {
-          if (this.crossfadeInProgress) {
-            this.currentSource!.element.removeEventListener('ended', handleCurrentEnded);
-            this.completeCrossfade();
-            resolve();
-          }
-        }, duration * 1000 + 100);
-
+        this.crossfadeTimeout = window.setTimeout(
+          () => {
+            if (this.crossfadeInProgress) {
+              this.currentSource!.element.removeEventListener(
+                "ended",
+                handleCurrentEnded,
+              );
+              this.completeCrossfade();
+              resolve();
+            }
+          },
+          duration * 1000 + 100,
+        );
       } catch (error) {
-        console.error('Crossfade failed:', error);
+        console.error("Crossfade failed:", error);
         this.crossfadeInProgress = false;
         this.clearCrossfadeTimeout();
         reject(error);
@@ -210,7 +233,11 @@ export class CrossfadeManager {
   /**
    * Set up crossfade curves using Web Audio gain automation
    */
-  private setupCrossfadeCurves(duration: number, curve: string, startTime: number) {
+  private setupCrossfadeCurves(
+    duration: number,
+    curve: string,
+    startTime: number,
+  ) {
     if (!this.currentSource || !this.nextSource) return;
 
     const currentGain = this.currentSource.gainNode.gain;
@@ -223,7 +250,7 @@ export class CrossfadeManager {
     const endTime = startTime + duration;
 
     switch (curve) {
-      case 'linear':
+      case "linear":
         // Linear crossfade
         currentGain.setValueAtTime(1, startTime);
         currentGain.linearRampToValueAtTime(0, endTime);
@@ -232,7 +259,7 @@ export class CrossfadeManager {
         nextGain.linearRampToValueAtTime(1, endTime);
         break;
 
-      case 'exponential':
+      case "exponential":
         // Exponential crossfade (more natural for audio)
         currentGain.setValueAtTime(1, startTime);
         currentGain.exponentialRampToValueAtTime(0.001, endTime); // Can't ramp to exactly 0
@@ -241,7 +268,7 @@ export class CrossfadeManager {
         nextGain.exponentialRampToValueAtTime(1, endTime);
         break;
 
-      case 'smooth':
+      case "smooth":
       default:
         // Equal-power crossfade (best for music)
         const steps = 20;
@@ -249,7 +276,7 @@ export class CrossfadeManager {
 
         for (let i = 0; i <= steps; i++) {
           const progress = i / steps;
-          const time = startTime + (i * stepDuration);
+          const time = startTime + i * stepDuration;
 
           // Equal-power curves: sqrt(1-x) and sqrt(x)
           const currentLevel = Math.sqrt(1 - progress);
@@ -274,18 +301,24 @@ export class CrossfadeManager {
     if (!this.crossfadeInProgress) return;
 
     try {
-      console.log('Completing crossfade transition');
+      console.log("Completing crossfade transition");
 
       // Stop the old audio
       if (this.currentSource) {
         this.currentSource.element.pause();
         this.currentSource.element.currentTime = 0;
-        this.currentSource.gainNode.gain.setValueAtTime(0, this.audioContext.currentTime);
+        this.currentSource.gainNode.gain.setValueAtTime(
+          0,
+          this.audioContext.currentTime,
+        );
       }
 
       // Ensure next source is at full volume
       if (this.nextSource) {
-        this.nextSource.gainNode.gain.setValueAtTime(1, this.audioContext.currentTime);
+        this.nextSource.gainNode.gain.setValueAtTime(
+          1,
+          this.audioContext.currentTime,
+        );
       }
 
       // Swap sources
@@ -295,9 +328,8 @@ export class CrossfadeManager {
       this.crossfadeInProgress = false;
       this.crossfadePromise = null;
       this.clearCrossfadeTimeout();
-
     } catch (error) {
-      console.error('Error completing crossfade:', error);
+      console.error("Error completing crossfade:", error);
       this.crossfadeInProgress = false;
     }
   }
@@ -308,7 +340,7 @@ export class CrossfadeManager {
   cancelCrossfade() {
     if (!this.crossfadeInProgress) return;
 
-    console.log('Cancelling crossfade');
+    console.log("Cancelling crossfade");
 
     try {
       const now = this.audioContext.currentTime;
@@ -334,9 +366,8 @@ export class CrossfadeManager {
       this.crossfadeInProgress = false;
       this.crossfadePromise = null;
       this.clearCrossfadeTimeout();
-
     } catch (error) {
-      console.error('Error cancelling crossfade:', error);
+      console.error("Error cancelling crossfade:", error);
     }
   }
 
@@ -456,7 +487,7 @@ export class CrossfadeManager {
    * Clean up resources
    */
   destroy() {
-    console.log('Destroying crossfade manager');
+    console.log("Destroying crossfade manager");
 
     this.cancelCrossfade();
 
@@ -474,9 +505,8 @@ export class CrossfadeManager {
 
       this.analyzerNode.disconnect();
       this.masterGain.disconnect();
-
     } catch (error) {
-      console.error('Error during cleanup:', error);
+      console.error("Error during cleanup:", error);
     }
 
     this.currentSource = null;

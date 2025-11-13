@@ -1,15 +1,15 @@
 /* Win95 */
 :root {
   /* Theme */
-    --themegradient: conic-gradient(
-    from 0deg, 
-    #00a2ff 0deg 88deg, 
-    #4d4d4d 88deg 92deg, 
-    #ff1a1a 92deg 178deg, 
-    #4d4d4d 178deg 182deg, 
-    #00ff00 182deg 268deg, 
-    #4d4d4d 268deg 272deg, 
-    #ffea00 272deg 358deg, 
+  --themegradient: conic-gradient(
+    from 0deg,
+    #00a2ff 0deg 88deg,
+    #4d4d4d 88deg 92deg,
+    #ff1a1a 92deg 178deg,
+    #4d4d4d 178deg 182deg,
+    #00ff00 182deg 268deg,
+    #4d4d4d 268deg 272deg,
+    #ffea00 272deg 358deg,
     #4d4d4d 358deg 360deg
   );
   --themecolor: hsl(200, 100%, 50%);
@@ -96,34 +96,37 @@
   /* Miscellaneous */
   --border: hsl(0, 0%, 80%);
   --certain-icons: var(--themecolor);
-  --albumart-gradient: radial-gradient(circle at center, var(--themecolor2) 0%, var(--themecolor3) 100%);
+  --albumart-gradient: radial-gradient(
+    circle at center,
+    var(--themecolor2) 0%,
+    var(--themecolor3) 100%
+  );
 
   /* Shadows */
-  --shadow: 0 1px 2px hsla(0, 0%, 0%, 0.05),
-    0 3px 6px hsla(0, 0%, 0%, 0.07);
-  --shadow-md: 0 1px 3px hsla(0, 0%, 0%, 0.05),
-    0 10px 15px -5px hsla(0, 0%, 0%, 0.05),
+  --shadow: 0 1px 2px hsla(0, 0%, 0%, 0.05), 0 3px 6px hsla(0, 0%, 0%, 0.07);
+  --shadow-md:
+    0 1px 3px hsla(0, 0%, 0%, 0.05), 0 10px 15px -5px hsla(0, 0%, 0%, 0.05),
     0 20px 25px -5px hsla(0, 0%, 0%, 0.04);
-  --shadow-lg: 0 1px 3px hsla(0, 0%, 0%, 0.05),
-    0 20px 25px -5px hsla(0, 0%, 0%, 0.07),
+  --shadow-lg:
+    0 1px 3px hsla(0, 0%, 0%, 0.05), 0 20px 25px -5px hsla(0, 0%, 0%, 0.07),
     0 30px 40px -5px hsla(0, 0%, 0%, 0.05);
-  --shadow-focus: 0 0 0 2px hsla(200, 100%, 50%, 0.25),
-    0 1px 2px hsla(0, 0%, 0%, 0.05);
+  --shadow-focus:
+    0 0 0 2px hsla(200, 100%, 50%, 0.25), 0 1px 2px hsla(0, 0%, 0%, 0.05);
   /* Animation */
   --themegradient-animation: rotate 20s linear infinite;
 }
 
 .dark {
   /* Theme */
-    --themegradient: conic-gradient(
-    from 0deg, 
-    #0055aa 0deg 88deg, 
-    #000 88deg 92deg, 
-    #aa0000 92deg 178deg, 
-    #000 178deg 182deg, 
-    #00aa00 182deg 268deg, 
-    #000 268deg 272deg, 
-    #ffaa00 272deg 358deg, 
+  --themegradient: conic-gradient(
+    from 0deg,
+    #0055aa 0deg 88deg,
+    #000 88deg 92deg,
+    #aa0000 92deg 178deg,
+    #000 178deg 182deg,
+    #00aa00 182deg 268deg,
+    #000 268deg 272deg,
+    #ffaa00 272deg 358deg,
     #000 358deg 360deg
   );
   --themecolor: hsl(200, 80%, 40%);
@@ -208,20 +211,23 @@
 
   /* Miscellaneous */
   --certain-icons: hsl(200, 80%, 40%);
-  --albumart-gradient: radial-gradient(circle at center, var(--themecolor2) 0%, var(--themecolor3) 100%);
+  --albumart-gradient: radial-gradient(
+    circle at center,
+    var(--themecolor2) 0%,
+    var(--themecolor3) 100%
+  );
 
   /* Shadows */
   --border: hsl(0, 0%, 20%);
-  --shadow: 0 1px 2px hsla(0, 0%, 0%, 0.05),
-    0 3px 6px hsla(0, 0%, 0%, 0.07);
-  --shadow-md: 0 1px 3px hsla(0, 0%, 0%, 0.05),
-    0 10px 15px -5px hsla(0, 0%, 0%, 0.05),
+  --shadow: 0 1px 2px hsla(0, 0%, 0%, 0.05), 0 3px 6px hsla(0, 0%, 0%, 0.07);
+  --shadow-md:
+    0 1px 3px hsla(0, 0%, 0%, 0.05), 0 10px 15px -5px hsla(0, 0%, 0%, 0.05),
     0 20px 25px -5px hsla(0, 0%, 0%, 0.04);
-  --shadow-lg: 0 1px 3px hsla(0, 0%, 0%, 0.05),
-    0 20px 25px -5px hsla(0, 0%, 0%, 0.07),
+  --shadow-lg:
+    0 1px 3px hsla(0, 0%, 0%, 0.05), 0 20px 25px -5px hsla(0, 0%, 0%, 0.07),
     0 30px 40px -5px hsla(0, 0%, 0%, 0.05);
-  --shadow-focus: 0 0 0 2px hsla(200, 80%, 40%, 0.25),
-    0 1px 2px hsla(0, 0%, 0%, 0.05);
+  --shadow-focus:
+    0 0 0 2px hsla(200, 80%, 40%, 0.25), 0 1px 2px hsla(0, 0%, 0%, 0.05);
 
   /* Animation */
   --themegradient-animation: rotate 20s linear infinite;
@@ -229,8 +235,12 @@
 
 /* Rotation Keyframes */
 @keyframes rotate {
-  from { transform: rotate(0deg); }
-  to   { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 body {

@@ -68,31 +68,52 @@ export const SongActionsDropdown = ({
   };
 
   const formatBitrate = (bitrate?: number) => {
-    if (typeof bitrate !== "number" || !Number.isFinite(bitrate) || bitrate <= 0) return null;
+    if (
+      typeof bitrate !== "number" ||
+      !Number.isFinite(bitrate) ||
+      bitrate <= 0
+    )
+      return null;
     const kbps = Math.round(bitrate / 1000);
     return t("songInfo.kbps", { value: kbps.toLocaleString() });
   };
 
   const formatSampleRate = (sampleRate?: number) => {
-    if (typeof sampleRate !== "number" || !Number.isFinite(sampleRate) || sampleRate <= 0) return null;
+    if (
+      typeof sampleRate !== "number" ||
+      !Number.isFinite(sampleRate) ||
+      sampleRate <= 0
+    )
+      return null;
     const khzValue = sampleRate / 1000;
-    const formatted = khzValue >= 100
-      ? khzValue.toFixed(0)
-      : khzValue >= 10
-        ? khzValue.toFixed(1)
-        : khzValue.toFixed(2);
+    const formatted =
+      khzValue >= 100
+        ? khzValue.toFixed(0)
+        : khzValue >= 10
+          ? khzValue.toFixed(1)
+          : khzValue.toFixed(2);
     return t("songInfo.khz", { value: formatted });
   };
 
   const formatChannels = (channels?: number) => {
-    if (typeof channels !== "number" || !Number.isFinite(channels) || channels <= 0) return null;
+    if (
+      typeof channels !== "number" ||
+      !Number.isFinite(channels) ||
+      channels <= 0
+    )
+      return null;
     if (channels === 1) return t("songInfo.channelMono");
     if (channels === 2) return t("songInfo.channelStereo");
     return t("songInfo.channelCount", { count: channels });
   };
 
   const formatBitDepth = (bitDepth?: number) => {
-    if (typeof bitDepth !== "number" || !Number.isFinite(bitDepth) || bitDepth <= 0) return null;
+    if (
+      typeof bitDepth !== "number" ||
+      !Number.isFinite(bitDepth) ||
+      bitDepth <= 0
+    )
+      return null;
     return t("songInfo.bitDepthValue", { value: bitDepth });
   };
 
@@ -108,12 +129,27 @@ export const SongActionsDropdown = ({
   const sampleRateForGapless = song.encoding?.sampleRate;
 
   const formatGaplessSamples = (samples?: number) => {
-    if (typeof samples !== "number" || !Number.isFinite(samples) || samples <= 0) return null;
-    const formattedSamples = t("songInfo.samples", { count: Math.round(samples), defaultValue: `${Math.round(samples).toLocaleString()} samples` });
-    if (typeof sampleRateForGapless === "number" && Number.isFinite(sampleRateForGapless) && sampleRateForGapless > 0) {
+    if (
+      typeof samples !== "number" ||
+      !Number.isFinite(samples) ||
+      samples <= 0
+    )
+      return null;
+    const formattedSamples = t("songInfo.samples", {
+      count: Math.round(samples),
+      defaultValue: `${Math.round(samples).toLocaleString()} samples`,
+    });
+    if (
+      typeof sampleRateForGapless === "number" &&
+      Number.isFinite(sampleRateForGapless) &&
+      sampleRateForGapless > 0
+    ) {
       const milliseconds = (samples / sampleRateForGapless) * 1000;
       const precision = milliseconds >= 100 ? 0 : milliseconds >= 10 ? 1 : 2;
-      const formattedMs = (Math.round(milliseconds * Math.pow(10, precision)) / Math.pow(10, precision)).toFixed(precision);
+      const formattedMs = (
+        Math.round(milliseconds * Math.pow(10, precision)) /
+        Math.pow(10, precision)
+      ).toFixed(precision);
       return `${formattedSamples} (${t("songInfo.ms", { value: formattedMs })})`;
     }
     return formattedSamples;
@@ -126,11 +162,16 @@ export const SongActionsDropdown = ({
     { label: t("common.duration"), value: formatTime(song.duration) },
   ];
 
-  const codecValue = formatCodec(song.encoding?.codec) ?? t("songInfo.notAvailable");
-  const bitrateValue = formatBitrate(song.encoding?.bitrate) ?? t("songInfo.notAvailable");
-  const sampleRateValue = formatSampleRate(song.encoding?.sampleRate) ?? t("songInfo.notAvailable");
-  const channelValue = formatChannels(song.encoding?.channels) ?? t("songInfo.notAvailable");
-  const bitDepthValue = formatBitDepth(song.encoding?.bitsPerSample) ?? t("songInfo.notAvailable");
+  const codecValue =
+    formatCodec(song.encoding?.codec) ?? t("songInfo.notAvailable");
+  const bitrateValue =
+    formatBitrate(song.encoding?.bitrate) ?? t("songInfo.notAvailable");
+  const sampleRateValue =
+    formatSampleRate(song.encoding?.sampleRate) ?? t("songInfo.notAvailable");
+  const channelValue =
+    formatChannels(song.encoding?.channels) ?? t("songInfo.notAvailable");
+  const bitDepthValue =
+    formatBitDepth(song.encoding?.bitsPerSample) ?? t("songInfo.notAvailable");
 
   const encodingEntries = [
     { label: t("songInfo.codec"), value: codecValue },
@@ -141,20 +182,38 @@ export const SongActionsDropdown = ({
   ];
 
   if (song.encoding?.container?.trim()) {
-    encodingEntries.push({ label: t("songInfo.container"), value: song.encoding.container.trim() });
+    encodingEntries.push({
+      label: t("songInfo.container"),
+      value: song.encoding.container.trim(),
+    });
   }
   if (song.encoding?.profile?.trim()) {
-    encodingEntries.push({ label: t("songInfo.profile"), value: song.encoding.profile.trim() });
+    encodingEntries.push({
+      label: t("songInfo.profile"),
+      value: song.encoding.profile.trim(),
+    });
   }
   const losslessValue = formatLossless(song.encoding?.lossless);
   if (losslessValue) {
-    encodingEntries.push({ label: t("songInfo.lossless"), value: losslessValue });
+    encodingEntries.push({
+      label: t("songInfo.lossless"),
+      value: losslessValue,
+    });
   }
 
   const gaplessEntries = [
-    { label: t("songInfo.encoderDelay"), value: formatGaplessSamples(song.gapless?.encoderDelay) },
-    { label: t("songInfo.encoderPadding"), value: formatGaplessSamples(song.gapless?.encoderPadding) },
-  ].filter((entry) => Boolean(entry.value)) as Array<{ label: string; value: string }>;
+    {
+      label: t("songInfo.encoderDelay"),
+      value: formatGaplessSamples(song.gapless?.encoderDelay),
+    },
+    {
+      label: t("songInfo.encoderPadding"),
+      value: formatGaplessSamples(song.gapless?.encoderPadding),
+    },
+  ].filter((entry) => Boolean(entry.value)) as Array<{
+    label: string;
+    value: string;
+  }>;
 
   const renderDetails = (entries: Array<{ label: string; value: string }>) => (
     <dl
@@ -168,7 +227,15 @@ export const SongActionsDropdown = ({
       {entries.map(({ label, value }) => (
         <Fragment key={`${label}-${value}`}>
           <dt style={{ fontWeight: 600 }}>{label}</dt>
-          <dd style={{ margin: 0, textAlign: "right", color: "var(--muted-foreground)" }}>{value}</dd>
+          <dd
+            style={{
+              margin: 0,
+              textAlign: "right",
+              color: "var(--muted-foreground)",
+            }}
+          >
+            {value}
+          </dd>
         </Fragment>
       ))}
     </dl>
@@ -212,7 +279,7 @@ export const SongActionsDropdown = ({
     window.dispatchEvent(
       new CustomEvent("navigate", {
         detail: { view: "artist", value: song.artist },
-      })
+      }),
     );
   };
 
@@ -220,13 +287,15 @@ export const SongActionsDropdown = ({
     window.dispatchEvent(
       new CustomEvent("navigate", {
         detail: { view: "album", value: song.album },
-      })
+      }),
     );
   };
 
   const handleDeleteSong = async () => {
     // Check if user has chosen not to show delete confirmation
-    const shouldShow = await musicIndexedDbHelper.shouldShowDialog("delete-song-confirmation");
+    const shouldShow = await musicIndexedDbHelper.shouldShowDialog(
+      "delete-song-confirmation",
+    );
     if (!shouldShow) {
       // Delete directly without showing dialog
       onRemoveSong(song.id);
@@ -268,7 +337,12 @@ export const SongActionsDropdown = ({
           {t("songInfo.songInfoTitle")}
         </DropdownMenuItem>
         <DropdownMenuItem onClick={handleShare}>
-          <Icon name="share" size={size} style={{ marginRight: 8 }} decorative />
+          <Icon
+            name="share"
+            size={size}
+            style={{ marginRight: 8 }}
+            decorative
+          />
           {t("share")}
         </DropdownMenuItem>
         <DropdownMenuSeparator />
@@ -277,7 +351,12 @@ export const SongActionsDropdown = ({
           {t("goToArtist")}
         </DropdownMenuItem>
         <DropdownMenuItem onClick={handleGoToAlbum}>
-          <Icon name="music" size={size} style={{ marginRight: 8 }} decorative />
+          <Icon
+            name="music"
+            size={size}
+            style={{ marginRight: 8 }}
+            decorative
+          />
           {t("goToAlbum")}
         </DropdownMenuItem>
         <DropdownMenuSeparator />
@@ -285,7 +364,12 @@ export const SongActionsDropdown = ({
           onClick={handleDeleteSong}
           className={modalStyles.delete}
         >
-          <Icon name="trash2" size={size} style={{ marginRight: 8 }} decorative />
+          <Icon
+            name="trash2"
+            size={size}
+            style={{ marginRight: 8 }}
+            decorative
+          />
           {t("deleteFromLibrary")}
         </DropdownMenuItem>
       </DropdownMenuContent>
@@ -330,7 +414,9 @@ export const SongActionsDropdown = ({
         <DialogContent>
           <DialogHeader>
             <DialogTitle>{t("songInformation")}</DialogTitle>
-            <DialogDescription>{t("songInformationDescription")}</DialogDescription>
+            <DialogDescription>
+              {t("songInformationDescription")}
+            </DialogDescription>
           </DialogHeader>
           <div style={{ display: "flex", gap: "var(--spacing-4)" }}>
             {song.albumArt && (
@@ -346,18 +432,34 @@ export const SongActionsDropdown = ({
               />
             )}
             <div className={modalStyles.spaceY4} style={{ flex: 1 }}>
+              <div>{renderDetails(primaryEntries)}</div>
               <div>
-                {renderDetails(primaryEntries)}
-              </div>
-              <div>
-                <h4 style={{ margin: 0, marginBottom: "var(--spacing-2)", fontSize: "0.85rem", textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--muted-foreground)" }}>
+                <h4
+                  style={{
+                    margin: 0,
+                    marginBottom: "var(--spacing-2)",
+                    fontSize: "0.85rem",
+                    textTransform: "uppercase",
+                    letterSpacing: "0.08em",
+                    color: "var(--muted-foreground)",
+                  }}
+                >
                   {t("songInfo.encodingDetails")}
                 </h4>
                 {renderDetails(encodingEntries)}
               </div>
               {gaplessEntries.length > 0 && (
                 <div>
-                  <h4 style={{ margin: 0, marginBottom: "var(--spacing-2)", fontSize: "0.85rem", textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--muted-foreground)" }}>
+                  <h4
+                    style={{
+                      margin: 0,
+                      marginBottom: "var(--spacing-2)",
+                      fontSize: "0.85rem",
+                      textTransform: "uppercase",
+                      letterSpacing: "0.08em",
+                      color: "var(--muted-foreground)",
+                    }}
+                  >
                     {t("songInfo.gapless")}
                   </h4>
                   {renderDetails(gaplessEntries)}
@@ -366,7 +468,9 @@ export const SongActionsDropdown = ({
             </div>
           </div>
           <DialogFooter>
-            <Button onClick={() => setShowInfoDialog(false)}>{t("common.close")}</Button>
+            <Button onClick={() => setShowInfoDialog(false)}>
+              {t("common.close")}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

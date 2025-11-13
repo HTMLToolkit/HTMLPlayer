@@ -6,23 +6,25 @@ export function updateMetaThemeColor(): void {
   // Delay to allow CSS changes to propagate
   requestAnimationFrame(() => {
     const themeColor = getComputedStyle(document.documentElement)
-      .getPropertyValue('--themecolor2')
+      .getPropertyValue("--themecolor2")
       .trim();
 
-    let meta = document.querySelector('meta[name="theme-color"]') as HTMLMetaElement | null;
+    let meta = document.querySelector(
+      'meta[name="theme-color"]',
+    ) as HTMLMetaElement | null;
     if (!meta) {
-      meta = document.createElement('meta');
-      meta.name = 'theme-color';
+      meta = document.createElement("meta");
+      meta.name = "theme-color";
       document.head.appendChild(meta);
     }
     meta.content = themeColor;
-    
+
     // Broadcast theme changes for PiP windows
     setTimeout(() => {
       broadcastThemeCSS();
     }, 100);
   });
-} 
+}
 
 /**
  * Switch to dark mode by adding the "dark" class to document.body.
@@ -33,7 +35,7 @@ export function switchToDarkMode(): void {
     currentMediaQuery.onchange = null;
     currentMediaQuery = null;
   }
-    document.documentElement.classList.add("dark"); 
+  document.documentElement.classList.add("dark");
   updateMetaThemeColor();
 }
 
@@ -52,9 +54,9 @@ export function switchToLightMode(): void {
 
 function updateTheme(darkPreferred: boolean): void {
   if (darkPreferred) {
-  document.documentElement.classList.add("dark"); 
+    document.documentElement.classList.add("dark");
   } else {
-  document.documentElement.classList.remove("dark");
+    document.documentElement.classList.remove("dark");
   }
   updateMetaThemeColor();
 }
@@ -101,9 +103,10 @@ export function getCurrentThemeCSS(): string {
   // Method 1: Use getComputedStyle iteration
   for (let i = 0; i < styles.length; i++) {
     const name = styles[i];
-    if (name.startsWith('--')) {
+    if (name.startsWith("--")) {
       const value = styles.getPropertyValue(name).trim();
-      if (value) { // Only include variables with values
+      if (value) {
+        // Only include variables with values
         cssVariables.push(`${name}: ${value};`);
       }
     }
@@ -111,18 +114,39 @@ export function getCurrentThemeCSS(): string {
 
   // Method 2: Fallback - Check specific theme variables that should exist
   const themeVariables = [
-    '--themecolor', '--themecolor2', '--themecolor3', '--themecolor4',
-    '--themegradient', '--themecolor1-transparent', '--themecolor2-transparent', '--themecolor3-transparent',
-    '--foreground', '--foreground-strong', '--foreground-stronger', '--foreground-muted', '--foreground-subtle',
-    '--background', '--surface', '--surface-foreground', '--surface-transparent-05', '--surface-transparent-1', '--surface-transparent-2',
-    '--primary', '--primary-foreground', '--primary-transparent', '--primary-border', '--primary-border-strong',
-    '--secondary', '--secondary-foreground', '--menu-background'
+    "--themecolor",
+    "--themecolor2",
+    "--themecolor3",
+    "--themecolor4",
+    "--themegradient",
+    "--themecolor1-transparent",
+    "--themecolor2-transparent",
+    "--themecolor3-transparent",
+    "--foreground",
+    "--foreground-strong",
+    "--foreground-stronger",
+    "--foreground-muted",
+    "--foreground-subtle",
+    "--background",
+    "--surface",
+    "--surface-foreground",
+    "--surface-transparent-05",
+    "--surface-transparent-1",
+    "--surface-transparent-2",
+    "--primary",
+    "--primary-foreground",
+    "--primary-transparent",
+    "--primary-border",
+    "--primary-border-strong",
+    "--secondary",
+    "--secondary-foreground",
+    "--menu-background",
   ];
 
   const fallbackVariables: string[] = [];
-  themeVariables.forEach(varName => {
+  themeVariables.forEach((varName) => {
     const value = styles.getPropertyValue(varName).trim();
-    if (value && !cssVariables.some(v => v.startsWith(varName))) {
+    if (value && !cssVariables.some((v) => v.startsWith(varName))) {
       fallbackVariables.push(`${varName}: ${value};`);
     }
   });
@@ -130,17 +154,20 @@ export function getCurrentThemeCSS(): string {
   // Method 3: Check all style sheets for :root rules
   const stylesheetVariables: string[] = [];
   try {
-    Array.from(document.styleSheets).forEach(sheet => {
+    Array.from(document.styleSheets).forEach((sheet) => {
       try {
-        Array.from(sheet.cssRules || []).forEach(rule => {
-          if (rule instanceof CSSStyleRule && rule.selectorText === ':root') {
+        Array.from(sheet.cssRules || []).forEach((rule) => {
+          if (rule instanceof CSSStyleRule && rule.selectorText === ":root") {
             const style = rule.style;
             for (let i = 0; i < style.length; i++) {
               const prop = style[i];
-              if (prop.startsWith('--')) {
+              if (prop.startsWith("--")) {
                 const value = style.getPropertyValue(prop).trim();
-                if (value && !cssVariables.some(v => v.startsWith(prop)) && 
-                    !fallbackVariables.some(v => v.startsWith(prop))) {
+                if (
+                  value &&
+                  !cssVariables.some((v) => v.startsWith(prop)) &&
+                  !fallbackVariables.some((v) => v.startsWith(prop))
+                ) {
                   stylesheetVariables.push(`${prop}: ${value};`);
                 }
               }
@@ -152,12 +179,16 @@ export function getCurrentThemeCSS(): string {
       }
     });
   } catch (e) {
-    console.warn('Could not access stylesheets:', e);
+    console.warn("Could not access stylesheets:", e);
   }
 
-  const allVariables = [...cssVariables, ...fallbackVariables, ...stylesheetVariables];
-  
-  return `:root {\n  ${allVariables.join('\n  ')}\n}`;
+  const allVariables = [
+    ...cssVariables,
+    ...fallbackVariables,
+    ...stylesheetVariables,
+  ];
+
+  return `:root {\n  ${allVariables.join("\n  ")}\n}`;
 }
 
 /**
@@ -169,7 +200,7 @@ export function logAllCSSVariables() {
 
   for (let i = 0; i < styles.length; i++) {
     const name = styles[i];
-    if (name.startsWith('--')) {
+    if (name.startsWith("--")) {
       const value = styles.getPropertyValue(name).trim();
       cssVariables.push(`${name}: ${value}`);
     }

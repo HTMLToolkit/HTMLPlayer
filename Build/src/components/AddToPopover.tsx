@@ -7,7 +7,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogDescription
+  DialogDescription,
 } from "./Dialog";
 import modalStyles from "./Dialog.module.css";
 import { useTranslation } from "react-i18next";
@@ -39,12 +39,14 @@ export const AddToPopover = ({
   const [newPlaylistName, setNewPlaylistName] = useState("");
   const [isCreatingNew, setIsCreatingNew] = useState(false);
 
-  const getAllPlaylists = (items: (Playlist | PlaylistFolder)[]): Playlist[] => {
+  const getAllPlaylists = (
+    items: (Playlist | PlaylistFolder)[],
+  ): Playlist[] => {
     const result: Playlist[] = [];
     for (const item of items) {
-      if ('children' in item) {
+      if ("children" in item) {
         result.push(...getAllPlaylists(item.children));
-      } else if ('songs' in item) {
+      } else if ("songs" in item) {
         result.push(item);
       }
     }
@@ -52,12 +54,12 @@ export const AddToPopover = ({
   };
 
   const allPlaylists = getAllPlaylists(library.playlists).filter(
-    (p) => p.id !== "all-songs"
+    (p) => p.id !== "all-songs",
   );
 
   const filteredPlaylists = searchQuery
     ? allPlaylists.filter((p) =>
-        p.name.toLowerCase().includes(searchQuery.toLowerCase())
+        p.name.toLowerCase().includes(searchQuery.toLowerCase()),
       )
     : allPlaylists;
 
@@ -78,15 +80,21 @@ export const AddToPopover = ({
     if (addedCount > 0) {
       toast.success(
         songs.length === 1
-          ? t("addedToPlaylist", { song: songs[0].title, playlist: playlist.name })
-          : t("playlist.addedToExisting", { count: addedCount })
+          ? t("addedToPlaylist", {
+              song: songs[0].title,
+              playlist: playlist.name,
+            })
+          : t("playlist.addedToExisting", { count: addedCount }),
       );
     }
     if (skippedCount > 0) {
       toast.info(
         songs.length === 1
-          ? t("songAlreadyInPlaylist", { song: songs[0].title, playlist: playlist.name })
-          : t("playlist.someAlreadyInPlaylist", { count: skippedCount })
+          ? t("songAlreadyInPlaylist", {
+              song: songs[0].title,
+              playlist: playlist.name,
+            })
+          : t("playlist.someAlreadyInPlaylist", { count: skippedCount }),
       );
     }
 
@@ -103,8 +111,14 @@ export const AddToPopover = ({
     const newPlaylist = onCreatePlaylist(newPlaylistName, songs);
     toast.success(
       songs.length === 1
-        ? t("createdNewPlaylistAddedSong", { playlist: newPlaylist.name, song: songs[0].title })
-        : t("playlist.created", { name: newPlaylist.name, count: songs.length })
+        ? t("createdNewPlaylistAddedSong", {
+            playlist: newPlaylist.name,
+            song: songs[0].title,
+          })
+        : t("playlist.created", {
+            name: newPlaylist.name,
+            count: songs.length,
+          }),
     );
 
     setNewPlaylistName("");
@@ -134,7 +148,7 @@ export const AddToPopover = ({
       toast.success(
         songs.length === 1
           ? t("favorites.added", { title: songs[0].title })
-          : t("favorites.addedMultiple", { count: addedCount })
+          : t("favorites.addedMultiple", { count: addedCount }),
       );
     }
     if (alreadyFavCount > 0 && songs.length > 1) {
@@ -209,7 +223,12 @@ export const AddToPopover = ({
                   className={`${modalStyles["w-full"]} ${modalStyles["justify-start"]}`}
                   onClick={() => setIsCreatingNew(true)}
                 >
-                  <Icon name="plusCircle" size={16} className="mr-2" decorative />
+                  <Icon
+                    name="plusCircle"
+                    size={16}
+                    className="mr-2"
+                    decorative
+                  />
                   {t("playlist.createNewPlaylist")}
                 </Button>
               </div>
@@ -228,7 +247,12 @@ export const AddToPopover = ({
 
             {/* Separator */}
             {allPlaylists.length > 0 && (
-              <div style={{ borderTop: "1px solid var(--border)", margin: "var(--spacing-2) 0" }} />
+              <div
+                style={{
+                  borderTop: "1px solid var(--border)",
+                  margin: "var(--spacing-2) 0",
+                }}
+              />
             )}
 
             {/* Search and Playlist List */}
@@ -252,7 +276,10 @@ export const AddToPopover = ({
                     placeholder={t("playlist.searchPlaylists")}
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    style={{ paddingLeft: "calc(var(--spacing-3) + 16px + var(--spacing-2))" }}
+                    style={{
+                      paddingLeft:
+                        "calc(var(--spacing-3) + 16px + var(--spacing-2))",
+                    }}
                   />
                 </div>
 
@@ -272,7 +299,12 @@ export const AddToPopover = ({
                         className={`${modalStyles["w-full"]} ${modalStyles["justify-start"]}`}
                         onClick={() => handleAddToPlaylist(playlist)}
                       >
-                        <Icon name="music" size={16} className="mr-2" decorative />
+                        <Icon
+                          name="music"
+                          size={16}
+                          className="mr-2"
+                          decorative
+                        />
                         {playlist.name}
                       </Button>
                     ))
@@ -286,13 +318,10 @@ export const AddToPopover = ({
             )}
 
             {allPlaylists.length === 0 && (
-              <p className={modalStyles.muted}>
-                {t("playlist.noPlaylists")}
-              </p>
+              <p className={modalStyles.muted}>{t("playlist.noPlaylists")}</p>
             )}
           </div>
         )}
-
       </DialogContent>
     </Dialog>
   );

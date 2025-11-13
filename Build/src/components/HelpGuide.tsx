@@ -16,25 +16,30 @@ const TourContext = createContext<{ loaded: boolean }>({ loaded: false });
 export const useTourLoaded = () => useContext(TourContext);
 
 export const HelpGuideProvider = ({ children }: HelpGuideProps) => {
-  
   function useTourStepsConfig() {
     const { i18n } = useTranslation();
     const [tourStepsConfig, setTourStepsConfig] = useState<any[]>([]);
 
-  useEffect(() => {
-    const loadTourConfig = async () => {
-      try {
-        const lang = (i18n.language?.split('-')[0]) || "en";
-        const response = await fetch(`/beta/HTMLPlayerBeta/locales/${lang}/tour.json`);
-        const config = await response.json();
-        setTourStepsConfig(config);
-      } catch (error) {
-        console.error("Failed to load tour configuration:", error);
-        setTourStepsConfig([]);
-      }
-    };
-    loadTourConfig();
-  }, [i18n.language]);    return tourStepsConfig;
+    useEffect(() => {
+      const loadTourConfig = async () => {
+        try {
+          const lang = i18n.language?.split("-")[0] || "en";
+          const response = await fetch(`/locales/${lang}/tour.json`);
+          if (!response.ok) {
+            throw new Error(
+              `HTTP ${response.status}: Failed to fetch tour configuration`,
+            );
+          }
+          const config = await response.json();
+          setTourStepsConfig(config);
+        } catch (error) {
+          console.error("Failed to load tour configuration:", error);
+          setTourStepsConfig([]);
+        }
+      };
+      loadTourConfig();
+    }, [i18n.language]);
+    return tourStepsConfig;
   }
 
   const tourStepsConfig = useTourStepsConfig();
@@ -50,7 +55,7 @@ export const HelpGuideProvider = ({ children }: HelpGuideProps) => {
         </div>
       ),
       position: position as "top" | "bottom" | "left" | "right",
-    })
+    }),
   );
 
   if (!tourStepsConfig.length) {

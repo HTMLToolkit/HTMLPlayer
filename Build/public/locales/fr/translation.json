@@ -30,7 +30,13 @@
     "failedToLoad": "Échec du chargement des paroles",
     "loading": "Chargement des paroles...",
     "tryAgain": "Réessayer",
-    "noLyricsAvailable": "Aucune parole disponible pour cette chanson."
+    "noLyricsAvailable": "Aucune parole disponible pour cette chanson.",
+    "embeddedLyrics": "Paroles Intégrées",
+    "synchronized": "Synchronisées",
+    "unsynchronized": "Non Synchronisées",
+    "noEmbeddedLyrics": "Aucune parole intégrée trouvée",
+    "fetchOnline": "Récupérer en Ligne",
+    "useEmbedded": "Utiliser les Paroles Intégrées"
   },
   "delete": {
     "songTitle": "Supprimer la chanson",
@@ -452,6 +458,7 @@
       "colorTheme": "Thème de Couleur",
       "wallpaper": "Fond d'Écran",
       "wallpaperDesc": "Choisissez votre fond d'écran préféré",
+      "wallpaperNone": "Aucun",
       "wallpaperChanged": "Fond d'écran changé avec succès",
       "wallpaperError": "Échec du changement de fond d'écran",
       "themeMode": "Mode de Thème",

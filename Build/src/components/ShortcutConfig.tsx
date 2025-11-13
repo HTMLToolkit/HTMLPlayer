@@ -1,5 +1,11 @@
 import React, { useEffect, useState } from "react";
-import { shortcutsDb, KeyboardShortcut, formatShortcutKey, parseKeyEvent, DEFAULT_SHORTCUTS } from "../helpers/shortcutsIndexedDbHelper";
+import {
+  shortcutsDb,
+  KeyboardShortcut,
+  formatShortcutKey,
+  parseKeyEvent,
+  DEFAULT_SHORTCUTS,
+} from "../helpers/shortcutsIndexedDbHelper";
 import type { ShortcutConfig as ShortcutConfigType } from "../helpers/shortcutsIndexedDbHelper";
 import { Button } from "./Button";
 import styles from "./Settings.module.css";
@@ -10,10 +16,14 @@ interface ShortcutConfigProps {
   onShortcutsChanged?: () => void;
 }
 
-export const ShortcutConfig: React.FC<ShortcutConfigProps> = ({ onShortcutsChanged }) => {
+export const ShortcutConfig: React.FC<ShortcutConfigProps> = ({
+  onShortcutsChanged,
+}) => {
   const { t } = useTranslation();
   const [shortcuts, setShortcuts] = useState<ShortcutConfigType>({});
-  const [mergedShortcuts, setMergedShortcuts] = useState<ShortcutConfigType>({});
+  const [mergedShortcuts, setMergedShortcuts] = useState<ShortcutConfigType>(
+    {},
+  );
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editValue, setEditValue] = useState<Partial<KeyboardShortcut>>({});
   const [conflict, setConflict] = useState<string | null>(null);
@@ -46,21 +56,24 @@ export const ShortcutConfig: React.FC<ShortcutConfigProps> = ({ onShortcutsChang
 
   const handleSave = async () => {
     if (!editingId || !editValue.key) return;
-    
+
     // Ensure we have a base shortcut to work with
     const baseShortcut = shortcuts[editingId] || mergedShortcuts[editingId];
     if (!baseShortcut) {
       setConflict(t("settings.shortcuts.unableToFindConfig"));
       return;
     }
-    
+
     const newShortcut: KeyboardShortcut = {
       ...baseShortcut,
       ...editValue,
       id: editingId, // Ensure id is always set
     };
-    
-    const isConflict = await shortcutsDb.isShortcutConflict(newShortcut, editingId);
+
+    const isConflict = await shortcutsDb.isShortcutConflict(
+      newShortcut,
+      editingId,
+    );
     if (isConflict) {
       setConflict(t("settings.shortcuts.conflict"));
       return;
@@ -75,8 +88,12 @@ export const ShortcutConfig: React.FC<ShortcutConfigProps> = ({ onShortcutsChang
       setConflict(null);
       onShortcutsChanged?.();
     } catch (error) {
-      console.error('Failed to save shortcut:', error);
-      setConflict(error instanceof Error ? error.message : t("settings.shortcuts.failedToSaveGeneral"));
+      console.error("Failed to save shortcut:", error);
+      setConflict(
+        error instanceof Error
+          ? error.message
+          : t("settings.shortcuts.failedToSaveGeneral"),
+      );
     }
   };
 
@@ -90,41 +107,62 @@ export const ShortcutConfig: React.FC<ShortcutConfigProps> = ({ onShortcutsChang
     <div className={styles.shortcutConfigPanel}>
       <h4>{t("settings.shortcuts.title")}</h4>
       <div className={styles.shortcutConfigList}>
-        {Object.keys(mergedShortcuts).length > 0 && Object.values(mergedShortcuts).map((shortcut) => {
-          if (!shortcut || !shortcut.id) return null;
-          return (
-            <div key={shortcut.id} className={styles.shortcutConfigItem}>
-              <span className={styles.shortcutConfigLabel}>{t(shortcut.description)}</span>
-              {editingId === shortcut.id ? (
-                <>
-                  <input
-                    autoFocus
-                    readOnly
-                    className={styles.shortcutConfigInput}
-                    value={getDisplayValue()}
-                    onKeyDown={handleKeyCapture}
-                    placeholder={t("settings.shortcuts.pressNewKey")}
-                    style={{ width: 120 }}
-                  />
-                  <Button size="sm" onClick={handleSave} title={t("settings.shortcuts.saveShortcut")}>
-                    <Icon name="save" size={16} decorative />
-                  </Button>
-                  <Button size="sm" onClick={handleCancel} title={t("common.cancel")}>
-                    <Icon name="close" size={16} decorative />
-                  </Button>
-                  {conflict && <span className={styles.shortcutConflict}>{conflict}</span>}
-                </>
-              ) : (
-                <>
-                  <span className={styles.shortcutConfigKey}>{formatShortcutKey(shortcut)}</span>
-                  <Button size="sm" onClick={() => handleEdit(shortcut.id)} title={t("settings.shortcuts.editShortcut")}>
-                    <Icon name="pencil" size={16} decorative />
-                  </Button>
-                </>
-              )}
-            </div>
-          );
-        })}
+        {Object.keys(mergedShortcuts).length > 0 &&
+          Object.values(mergedShortcuts).map((shortcut) => {
+            if (!shortcut || !shortcut.id) return null;
+            return (
+              <div key={shortcut.id} className={styles.shortcutConfigItem}>
+                <span className={styles.shortcutConfigLabel}>
+                  {t(shortcut.description)}
+                </span>
+                {editingId === shortcut.id ? (
+                  <>
+                    <input
+                      autoFocus
+                      readOnly
+                      className={styles.shortcutConfigInput}
+                      value={getDisplayValue()}
+                      onKeyDown={handleKeyCapture}
+                      placeholder={t("settings.shortcuts.pressNewKey")}
+                      style={{ width: 120 }}
+                    />
+                    <Button
+                      size="sm"
+                      onClick={handleSave}
+                      title={t("settings.shortcuts.saveShortcut")}
+                    >
+                      <Icon name="save" size={16} decorative />
+                    </Button>
+                    <Button
+                      size="sm"
+                      onClick={handleCancel}
+                      title={t("common.cancel")}
+                    >
+                      <Icon name="close" size={16} decorative />
+                    </Button>
+                    {conflict && (
+                      <span className={styles.shortcutConflict}>
+                        {conflict}
+                      </span>
+                    )}
+                  </>
+                ) : (
+                  <>
+                    <span className={styles.shortcutConfigKey}>
+                      {formatShortcutKey(shortcut)}
+                    </span>
+                    <Button
+                      size="sm"
+                      onClick={() => handleEdit(shortcut.id)}
+                      title={t("settings.shortcuts.editShortcut")}
+                    >
+                      <Icon name="pencil" size={16} decorative />
+                    </Button>
+                  </>
+                )}
+              </div>
+            );
+          })}
       </div>
     </div>
   );

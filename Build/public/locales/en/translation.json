@@ -35,7 +35,9 @@
     "embeddedLyrics": "Embedded Lyrics",
     "synchronized": "Synchronized",
     "unsynchronized": "Unsynchronized",
-    "noEmbeddedLyrics": "No embedded lyrics found"
+    "noEmbeddedLyrics": "No embedded lyrics found",
+    "fetchOnline": "Fetch from Online",
+    "useEmbedded": "Use Embedded Lyrics"
   },
   "delete": {
     "songTitle": "Delete Song",
@@ -485,6 +487,7 @@
       "colorTheme": "Color Theme",
       "wallpaper": "Wallpaper",
       "wallpaperDesc": "Choose your preferred background wallpaper",
+      "wallpaperNone": "None",
       "wallpaperChanged": "Wallpaper changed successfully",
       "wallpaperError": "Failed to change wallpaper",
       "iconSet": "Icon Set",

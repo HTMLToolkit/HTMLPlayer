@@ -10,7 +10,7 @@ const frequencyStars: VisualizerType = {
     bufferLength,
     freqDataArray,
     dataType,
-    settings = {}
+    settings = {},
   ) {
     const {
       starColor = "hsl({hue}, 100%, 80%)",
@@ -34,7 +34,7 @@ const frequencyStars: VisualizerType = {
 
         ctx.fillStyle = starColor.replace(
           "{hue}",
-          `${(i * 360) / bufferLength}`
+          `${(i * 360) / bufferLength}`,
         );
         ctx.beginPath();
         for (let j = 0; j < 5; j++) {

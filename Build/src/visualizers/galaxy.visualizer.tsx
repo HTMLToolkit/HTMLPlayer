@@ -10,7 +10,7 @@ const galaxySpectrogram: VisualizerType = {
     bufferLength,
     freqDataArray,
     dataType,
-    settings = {}
+    settings = {},
   ) {
     const {
       particleColor = "hsla({hue}, {saturation}%, {lightness}%, {alpha})",

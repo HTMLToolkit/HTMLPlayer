@@ -10,7 +10,7 @@ const biologicalCell: VisualizerType = {
     bufferLength,
     freqDataArray,
     dataType,
-    settings = {}
+    settings = {},
   ) {
     const {
       membraneColor = "rgba(255, 255, 255, {alpha})",
@@ -54,7 +54,7 @@ const biologicalCell: VisualizerType = {
       if (i > 0) {
         ctx.strokeStyle = connectionColor.replace(
           "{alpha}",
-          `${amplitude * 0.3}`
+          `${amplitude * 0.3}`,
         );
         ctx.beginPath();
         ctx.moveTo(x, y);

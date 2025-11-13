@@ -10,7 +10,7 @@ const oscilloscope: VisualizerType = {
     bufferLength,
     timeDataArray,
     dataType,
-    settings = {}
+    settings = {},
   ) {
     const {
       lineColor = "rgb(0, 255, 0)",

@@ -10,7 +10,7 @@ const frequencyMesh: VisualizerType = {
     bufferLength,
     freqDataArray,
     dataType,
-    settings = {}
+    settings = {},
   ) {
     const {
       lineColor = "rgba(0, 255, 255, 0.5)",

@@ -10,7 +10,7 @@ const tessellationSpectrogram: VisualizerType = {
     bufferLength,
     freqDataArray,
     dataType,
-    settings = {}
+    settings = {},
   ) {
     const {
       tileColor = "hsla({hue}, 70%, 50%, {alpha})",

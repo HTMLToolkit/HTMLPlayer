@@ -115,12 +115,7 @@ const SelectItem = React.forwardRef<
   >
     <SelectPrimitive.ItemText>{children}</SelectPrimitive.ItemText>
     <SelectPrimitive.ItemIndicator className={styles.selectItemIndicator}>
-      <Icon
-        name="check"
-        className={styles.checkIcon}
-        size="1rem"
-        decorative
-      />
+      <Icon name="check" className={styles.checkIcon} size="1rem" decorative />
     </SelectPrimitive.ItemIndicator>
   </SelectPrimitive.Item>
 ));

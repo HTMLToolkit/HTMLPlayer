@@ -1,5 +1,4 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
-import { debounce } from "lodash";
 import { Button } from "./Button";
 import { Visualizer } from "./Visualizer";
 import { Lyrics } from "./Lyrics";
@@ -89,7 +88,7 @@ export const Player = ({ musicPlayerHook, settings }: PlayerProps) => {
       const newTime = percentage * currentSong.duration;
       seekTo(newTime);
     },
-    [currentSong, seekTo]
+    [currentSong, seekTo],
   );
 
   const updateVolume = useCallback(
@@ -100,7 +99,7 @@ export const Player = ({ musicPlayerHook, settings }: PlayerProps) => {
       const percentage = Math.max(0, Math.min(1, clickX / rect.width));
       setVolume(percentage);
     },
-    [setVolume]
+    [setVolume],
   );
 
   const handleProgressClick = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -162,7 +161,9 @@ export const Player = ({ musicPlayerHook, settings }: PlayerProps) => {
     if (isDraggingProgress || isDraggingVolume) {
       document.addEventListener("mousemove", handleMouseMove);
       document.addEventListener("mouseup", handleMouseUp);
-      document.addEventListener("touchmove", handleTouchMove, { passive: false });
+      document.addEventListener("touchmove", handleTouchMove, {
+        passive: false,
+      });
       document.addEventListener("touchend", handleTouchEnd);
     }
 
@@ -213,7 +214,9 @@ export const Player = ({ musicPlayerHook, settings }: PlayerProps) => {
   // Check if running on Safari
   const isOnSafari = isSafari();
 
-  const progressPercentage = currentSong ? (currentTime / currentSong.duration) * 100 : 0;
+  const progressPercentage = currentSong
+    ? (currentTime / currentSong.duration) * 100
+    : 0;
   const volumePercentage = volume * 100;
 
   if (!currentSong) {
@@ -232,7 +235,11 @@ export const Player = ({ musicPlayerHook, settings }: PlayerProps) => {
     <>
       {showVisualizer && (
         <div className={styles.visualizerOverlay} data-tour="visualizer">
-          <Visualizer analyserNode={analyserNode} isPlaying={isPlaying} className={styles.visualizer} />
+          <Visualizer
+            analyserNode={analyserNode}
+            isPlaying={isPlaying}
+            className={styles.visualizer}
+          />
         </div>
       )}
       <div className={styles.player}>
@@ -243,7 +250,12 @@ export const Player = ({ musicPlayerHook, settings }: PlayerProps) => {
                 src={currentSong.albumArt}
                 alt={t("player.albumArtAlt", { title: currentSong.title })}
                 loading="lazy"
-                style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "inherit" }}
+                style={{
+                  width: "100%",
+                  height: "100%",
+                  objectFit: "cover",
+                  borderRadius: "inherit",
+                }}
               />
             )}
           </div>
@@ -263,56 +275,140 @@ export const Player = ({ musicPlayerHook, settings }: PlayerProps) => {
 
         <div className={styles.controls} data-tour="player-controls">
           <div className={styles.playbackButtons}>
-            <Button variant="ghost" size="icon-sm" className={`${styles.controlButton} ${shuffle ? styles.active : ""}`} onClick={toggleShuffle} title={shuffle ? t("player.shuffleOn") : t("player.shuffleOff")}>
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              className={`${styles.controlButton} ${shuffle ? styles.active : ""}`}
+              onClick={toggleShuffle}
+              title={shuffle ? t("player.shuffleOn") : t("player.shuffleOff")}
+            >
               <Icon name="shuffle" size={16} decorative />
             </Button>
-            <Button variant="ghost" size="icon-md" className={styles.controlButton} onClick={debounce(playPrevious, 200)} title={t("player.previous")}>
+            <Button
+              variant="ghost"
+              size="icon-md"
+              className={styles.controlButton}
+              onClick={playPrevious}
+              title={t("player.previous")}
+            >
               <Icon name="skipBack" size={18} decorative />
             </Button>
-            <Button variant="primary" size="icon-lg" className={styles.playButton} onClick={debounce(togglePlayPause, 200)} title={isPlaying ? t("player.pause") : t("player.play")}>
+            <Button
+              variant="primary"
+              size="icon-lg"
+              className={styles.playButton}
+              onClick={togglePlayPause}
+              title={isPlaying ? t("player.pause") : t("player.play")}
+            >
               {isPlaying ? (
                 <Icon name="pause" size={20} decorative />
               ) : (
                 <Icon name="play" size={20} decorative />
               )}
             </Button>
-            <Button variant="ghost" size="icon-md" className={styles.controlButton} onClick={debounce(playNext, 200)} title={t("player.next")}>
+            <Button
+              variant="ghost"
+              size="icon-md"
+              className={styles.controlButton}
+              onClick={playNext}
+              title={t("player.next")}
+            >
               <Icon name="skipForward" size={18} decorative />
             </Button>
-            <Button variant="ghost" size="icon-sm" className={`${styles.controlButton} ${repeat !== "off" ? styles.active : ""} ${repeat === "one" ? styles.repeatOne : ""}`} onClick={toggleRepeat} title={getRepeatTitle()}>
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              className={`${styles.controlButton} ${repeat !== "off" ? styles.active : ""} ${repeat === "one" ? styles.repeatOne : ""}`}
+              onClick={toggleRepeat}
+              title={getRepeatTitle()}
+            >
               <Icon name="repeat" size={16} decorative />
             </Button>
           </div>
 
           <div className={styles.progressSection}>
-            <span className={styles.timeDisplay}>{formatTime(currentTime)}</span>
-            <div className={`${styles.progressBar} ${isDraggingProgress ? styles.dragging : ""}`} ref={progressRef} onClick={handleProgressClick} onMouseDown={handleProgressMouseDown} onTouchStart={handleProgressTouchStart} title={t("player.seek")}>
-              <div className={styles.progressFill} style={{ width: `${progressPercentage}%` }}></div>
+            <span className={styles.timeDisplay}>
+              {formatTime(currentTime)}
+            </span>
+            <div
+              className={`${styles.progressBar} ${isDraggingProgress ? styles.dragging : ""}`}
+              ref={progressRef}
+              onClick={handleProgressClick}
+              onMouseDown={handleProgressMouseDown}
+              onTouchStart={handleProgressTouchStart}
+              title={t("player.seek")}
+            >
+              <div
+                className={styles.progressFill}
+                style={{ width: `${progressPercentage}%` }}
+              ></div>
             </div>
-            <span className={styles.timeDisplay}>{formatTime(currentSong.duration)}</span>
+            <span className={styles.timeDisplay}>
+              {formatTime(currentSong.duration)}
+            </span>
           </div>
         </div>
 
         <div className={styles.rightSection}>
           <div className={styles.volumeControls}>
-            <Button variant="ghost" size="icon-sm" className={styles.volumeButton} onClick={handleVolumeToggle} title={volume === 0 ? t("player.unmute") : t("player.mute")}>
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              className={styles.volumeButton}
+              onClick={handleVolumeToggle}
+              title={volume === 0 ? t("player.unmute") : t("player.mute")}
+            >
               {getVolumeIcon()}
             </Button>
-            <div className={`${styles.volumeBar} ${isDraggingVolume ? styles.dragging : ""}`} ref={volumeRef} onClick={handleVolumeClick} onMouseDown={handleVolumeMouseDown} onTouchStart={handleVolumeTouchStart} title={t("player.volume")}>
-              <div className={styles.volumeFill} style={{ width: `${volumePercentage}%` }}></div>
+            <div
+              className={`${styles.volumeBar} ${isDraggingVolume ? styles.dragging : ""}`}
+              ref={volumeRef}
+              onClick={handleVolumeClick}
+              onMouseDown={handleVolumeMouseDown}
+              onTouchStart={handleVolumeTouchStart}
+              title={t("player.volume")}
+            >
+              <div
+                className={styles.volumeFill}
+                style={{ width: `${volumePercentage}%` }}
+              ></div>
             </div>
           </div>
 
           <div className={styles.secondaryControls}>
-            <Button variant="ghost" size="icon-sm" className={`${styles.favoriteButton} ${isFavorite ? styles.favorited : ""}`} onClick={handleFavorite} title={isFavorite ? t("player.removeFavorite") : t("player.addFavorite")}>
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              className={`${styles.favoriteButton} ${isFavorite ? styles.favorited : ""}`}
+              onClick={handleFavorite}
+              title={
+                isFavorite
+                  ? t("player.removeFavorite")
+                  : t("player.addFavorite")
+              }
+            >
               <Icon name="heart" size={16} decorative />
             </Button>
             {!isOnSafari && (
-              <Button variant="ghost" size="icon-sm" className={`${styles.secondaryButton} ${showVisualizer ? styles.active : ""}`} onClick={handleVisualizerToggle} title={t("player.visualizer")} data-tour="visualizer-button">
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                className={`${styles.secondaryButton} ${showVisualizer ? styles.active : ""}`}
+                onClick={handleVisualizerToggle}
+                title={t("player.visualizer")}
+                data-tour="visualizer-button"
+              >
                 <Icon name="barChart3" size={16} decorative />
               </Button>
             )}
-            <Button variant="ghost" size="icon-sm" className={`${styles.secondaryButton} ${showLyrics ? styles.active : ""}`} onClick={handleLyricsToggle} title={t("player.lyrics")} data-tour="lyrics-button">
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              className={`${styles.secondaryButton} ${showLyrics ? styles.active : ""}`}
+              onClick={handleLyricsToggle}
+              title={t("player.lyrics")}
+              data-tour="lyrics-button"
+            >
               <Icon name="type" size={16} decorative />
             </Button>
             {isMiniplayerSupported() && (
@@ -324,11 +420,11 @@ export const Player = ({ musicPlayerHook, settings }: PlayerProps) => {
                   toggleMiniplayer({
                     playerState: {
                       currentSong,
-                      isPlaying
+                      isPlaying,
                     },
                     togglePlayPause,
                     playNext,
-                    playPrevious
+                    playPrevious,
                   });
                 }}
                 title="Picture-in-Picture"
@@ -362,7 +458,7 @@ export const Player = ({ musicPlayerHook, settings }: PlayerProps) => {
             currentTime={currentTime}
           />
         )}
-      </div >
+      </div>
     </>
   );
 };

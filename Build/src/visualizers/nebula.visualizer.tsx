@@ -10,7 +10,7 @@ const nebulaSpectrogram: VisualizerType = {
     bufferLength,
     freqDataArray,
     dataType,
-    settings = {}
+    settings = {},
   ) {
     const {
       nebulaColor = "hsla({hue}, 80%, 50%, {alpha})",
@@ -32,7 +32,7 @@ const nebulaSpectrogram: VisualizerType = {
       0,
       canvas.width / 2,
       canvas.height / 2,
-      canvas.width / 2
+      canvas.width / 2,
     );
 
     for (let i = 0; i < bufferLength; i++) {

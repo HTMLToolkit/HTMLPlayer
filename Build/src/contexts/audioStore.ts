@@ -199,7 +199,7 @@ export const useAudioStore = create<AudioState>()(
         safariAudio.setVolume(volume);
       }
     },
-  }))
+  })),
 );
 
 // Listen for events from other windows/tabs
@@ -221,7 +221,7 @@ audioChannel.onmessage = (event) => {
     `[${currentSource}] Received audio event:`,
     audioEvent.type,
     "from",
-    audioEvent.source
+    audioEvent.source,
   );
 
   // Handle incoming events (update state without broadcasting)
@@ -251,7 +251,7 @@ audioChannel.onmessage = (event) => {
 // Hook for subscribing to specific events
 export const useAudioEvents = (
   eventType: AudioEvent["type"],
-  callback: (event: AudioEvent) => void
+  callback: (event: AudioEvent) => void,
 ) => {
   const lastEvent = useAudioStore((state) => state.lastEvent);
   const lastProcessedEventRef = useRef<number>(0);

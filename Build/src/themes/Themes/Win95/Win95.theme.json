@@ -1,7 +1,7 @@
 {
-    "name": "Win95",
-    "author": "NellowTCS",
-    "description": "A Windows 95–inspired theme with a rotating thingy that looks super cool.",
-    "version": "1.0",
-    "cssFile": "Win95.theme.css"
+  "name": "Win95",
+  "author": "NellowTCS",
+  "description": "A Windows 95–inspired theme with a rotating thingy that looks super cool.",
+  "version": "1.0",
+  "cssFile": "Win95.theme.css"
 }

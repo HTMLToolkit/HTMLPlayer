@@ -122,10 +122,7 @@ export const libraryConfig: IconLibraryConfigMap = {
   },
 };
 
-const simpleLineIcon = (
-  icon: string,
-  title?: string
-): IconDefinition => ({
+const simpleLineIcon = (icon: string, title?: string): IconDefinition => ({
   type: "library",
   library: "simpleline",
   icon,
@@ -184,7 +181,7 @@ const icons: IconDefinitionMap = {
   rotateCcw: simpleLineIcon("SlReload"),
   keyboard: simpleLineIcon("SlCursorMove"), // No direct keyboard, use cursor
   messageCircle: simpleLineIcon("SlSpeech"),
-  visualizerControls: simpleLineIcon("SlControlPlay")
+  visualizerControls: simpleLineIcon("SlControlPlay"),
 };
 
 export default icons;

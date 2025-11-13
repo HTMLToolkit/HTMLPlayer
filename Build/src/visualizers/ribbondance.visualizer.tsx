@@ -10,7 +10,7 @@ const ribbonDance: VisualizerType = {
     bufferLength,
     freqDataArray,
     dataType,
-    settings = {}
+    settings = {},
   ) {
     const {
       ribbonColor = "hsla({hue}, 70%, 50%, 0.6)",

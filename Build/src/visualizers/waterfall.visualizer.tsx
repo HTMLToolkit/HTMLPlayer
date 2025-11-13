@@ -10,7 +10,7 @@ const waterfall: VisualizerType = {
     bufferLength,
     freqDataArray,
     dataType,
-    settings = {}
+    settings = {},
   ) {
     const {
       hueBase = 240, // start with blue
@@ -29,7 +29,7 @@ const waterfall: VisualizerType = {
       0,
       scrollSpeed,
       canvas.width,
-      canvas.height - scrollSpeed
+      canvas.height - scrollSpeed,
     );
     ctx.putImageData(imageData, 0, 0);
 
@@ -47,7 +47,7 @@ const waterfall: VisualizerType = {
         i * barWidth,
         canvas.height - scrollSpeed,
         barWidth,
-        scrollSpeed
+        scrollSpeed,
       );
     }
   },

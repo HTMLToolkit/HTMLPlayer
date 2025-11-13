@@ -9,7 +9,7 @@ export const generatePlaylistImage = async (songs: Song[]): Promise<string> => {
 
   // Get up to 4 unique album arts
   const uniqueAlbumArts = Array.from(
-    new Set(songs.filter((song) => song.albumArt).map((song) => song.albumArt))
+    new Set(songs.filter((song) => song.albumArt).map((song) => song.albumArt)),
   ).slice(0, 4);
 
   // If no album arts, return empty string
@@ -28,7 +28,7 @@ export const generatePlaylistImage = async (songs: Song[]): Promise<string> => {
 
   try {
     const images = await Promise.all(
-      uniqueAlbumArts.map((art) => loadImage(art!))
+      uniqueAlbumArts.map((art) => loadImage(art!)),
     );
 
     // Clear the canvas

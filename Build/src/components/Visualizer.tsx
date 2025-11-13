@@ -1,6 +1,10 @@
 import { useRef, useEffect, useState, useCallback } from "react";
 import { useTranslation } from "react-i18next";
-import { getVisualizer, getAvailableVisualizers, VisualizerType } from "../helpers/visualizerLoader";
+import {
+  getVisualizer,
+  getAvailableVisualizers,
+  VisualizerType,
+} from "../helpers/visualizerLoader";
 import { Button } from "./Button";
 import { Icon } from "./Icon";
 import {
@@ -27,11 +31,19 @@ export const Visualizer = ({
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animationFrameId = useRef<number | null>(null);
-  const [availableVisualizers, setAvailableVisualizers] = useState<string[]>([]);
-  const [loadedVisualizerNames, setLoadedVisualizerNames] = useState<Map<string, string>>(new Map());
-  const [selectedVisualizerKey, setSelectedVisualizerKey] = useState<string>("");
-  const [selectedVisualizer, setSelectedVisualizer] = useState<VisualizerType | null>(null);
-  const [visualizerSettings, setVisualizerSettings] = useState<Record<string, any>>({});
+  const [availableVisualizers, setAvailableVisualizers] = useState<string[]>(
+    [],
+  );
+  const [loadedVisualizerNames, setLoadedVisualizerNames] = useState<
+    Map<string, string>
+  >(new Map());
+  const [selectedVisualizerKey, setSelectedVisualizerKey] =
+    useState<string>("");
+  const [selectedVisualizer, setSelectedVisualizer] =
+    useState<VisualizerType | null>(null);
+  const [visualizerSettings, setVisualizerSettings] = useState<
+    Record<string, any>
+  >({});
   const [showSettings, setShowSettings] = useState(false);
   const [isLoadingVisualizer, setIsLoadingVisualizer] = useState(false);
 
@@ -39,18 +51,18 @@ export const Visualizer = ({
   useEffect(() => {
     const visualizers = getAvailableVisualizers();
     setAvailableVisualizers(visualizers);
-    
+
     // Load all visualizer names for the dropdown
     Promise.all(
       visualizers.map(async (key) => {
         const visualizer = await getVisualizer(key);
         return { key, name: visualizer?.name || key };
-      })
+      }),
     ).then((results) => {
       const namesMap = new Map(results.map(({ key, name }) => [key, name]));
       setLoadedVisualizerNames(namesMap);
     });
-    
+
     if (visualizers.length > 0 && !selectedVisualizerKey) {
       setSelectedVisualizerKey(visualizers[0]);
     }
@@ -59,28 +71,30 @@ export const Visualizer = ({
   // Load selected visualizer
   useEffect(() => {
     if (!selectedVisualizerKey) return;
-    
+
     setIsLoadingVisualizer(true);
-    getVisualizer(selectedVisualizerKey).then((visualizer) => {
-      setSelectedVisualizer(visualizer);
-      setIsLoadingVisualizer(false);
-      
-      // Initialize settings with defaults
-      if (visualizer?.settingsConfig) {
-        setVisualizerSettings(
-          Object.entries(visualizer.settingsConfig).reduce(
-            (acc, [key, config]) => {
-              acc[key] = config.default;
-              return acc;
-            },
-            {} as Record<string, any>
-          )
-        );
-      }
-    }).catch((error) => {
-      console.error('Failed to load visualizer:', error);
-      setIsLoadingVisualizer(false);
-    });
+    getVisualizer(selectedVisualizerKey)
+      .then((visualizer) => {
+        setSelectedVisualizer(visualizer);
+        setIsLoadingVisualizer(false);
+
+        // Initialize settings with defaults
+        if (visualizer?.settingsConfig) {
+          setVisualizerSettings(
+            Object.entries(visualizer.settingsConfig).reduce(
+              (acc, [key, config]) => {
+                acc[key] = config.default;
+                return acc;
+              },
+              {} as Record<string, any>,
+            ),
+          );
+        }
+      })
+      .catch((error) => {
+        console.error("Failed to load visualizer:", error);
+        setIsLoadingVisualizer(false);
+      });
   }, [selectedVisualizerKey]);
 
   const handleSettingChange = (key: string, value: any) => {
@@ -106,7 +120,7 @@ export const Visualizer = ({
       bufferLength,
       dataArray,
       selectedVisualizer.dataType,
-      visualizerSettings
+      visualizerSettings,
     );
 
     animationFrameId.current = requestAnimationFrame(draw);
@@ -116,10 +130,12 @@ export const Visualizer = ({
     if (isPlaying && analyserNode && selectedVisualizer) {
       animationFrameId.current = requestAnimationFrame(draw);
     } else {
-      if (animationFrameId.current) cancelAnimationFrame(animationFrameId.current);
+      if (animationFrameId.current)
+        cancelAnimationFrame(animationFrameId.current);
     }
     return () => {
-      if (animationFrameId.current) cancelAnimationFrame(animationFrameId.current);
+      if (animationFrameId.current)
+        cancelAnimationFrame(animationFrameId.current);
     };
   }, [isPlaying, analyserNode, selectedVisualizer, draw]);
 
@@ -145,13 +161,17 @@ export const Visualizer = ({
       <div className={styles.controls}>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" className={styles.dropdownTrigger} disabled={isLoadingVisualizer}>
+            <Button
+              variant="outline"
+              className={styles.dropdownTrigger}
+              disabled={isLoadingVisualizer}
+            >
               <Icon name="visualizerControls" size={16} decorative inline />
               <span>
-                {isLoadingVisualizer 
-                  ? t("common.loading") 
-                  : selectedVisualizer?.name || t("visualizer.selectVisualizer")
-                }
+                {isLoadingVisualizer
+                  ? t("common.loading")
+                  : selectedVisualizer?.name ||
+                    t("visualizer.selectVisualizer")}
               </span>
             </Button>
           </DropdownMenuTrigger>
@@ -180,11 +200,15 @@ export const Visualizer = ({
       </div>
       {showSettings && selectedVisualizer?.settingsConfig && (
         <div className={styles.settingsPanel}>
-          <h4>{selectedVisualizer.name} {t("settings.title")}</h4>
+          <h4>
+            {selectedVisualizer.name} {t("settings.title")}
+          </h4>
           {Object.entries(selectedVisualizer.settingsConfig).map(
             ([key, config]) => (
               <div key={key} className={styles.setting}>
-                <label htmlFor={key}>{t(`visualizers.${selectedVisualizerKey}.settings.${key}`)}</label>
+                <label htmlFor={key}>
+                  {t(`visualizers.${selectedVisualizerKey}.settings.${key}`)}
+                </label>
                 {config.type === "range" && (
                   <input
                     type="range"
@@ -212,7 +236,7 @@ export const Visualizer = ({
                   />
                 )}
               </div>
-            )
+            ),
           )}
         </div>
       )}

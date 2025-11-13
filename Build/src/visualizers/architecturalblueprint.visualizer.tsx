@@ -10,7 +10,7 @@ const architecturalBlueprint: VisualizerType = {
     bufferLength,
     freqDataArray,
     dataType,
-    settings = {}
+    settings = {},
   ) {
     const {
       lineColor = "rgba(0, 149, 255, {alpha})",
@@ -50,7 +50,7 @@ const architecturalBlueprint: VisualizerType = {
           y + gridSize / 2,
           (gridSize / 4) * amplitude,
           0,
-          Math.PI * 2
+          Math.PI * 2,
         );
         ctx.fill();
         ctx.stroke();

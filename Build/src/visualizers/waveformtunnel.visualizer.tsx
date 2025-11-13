@@ -10,7 +10,7 @@ const waveformTunnel: VisualizerType = {
     bufferLength,
     timeDataArray,
     dataType,
-    settings = {}
+    settings = {},
   ) {
     const {
       lineColor = "hsl({hue}, 100%, 50%)",
@@ -44,7 +44,7 @@ const waveformTunnel: VisualizerType = {
       ctx.closePath();
       ctx.strokeStyle = lineColor.replace(
         "{hue}",
-        `${(radius * 360) / maxRadius}`
+        `${(radius * 360) / maxRadius}`,
       );
       ctx.lineWidth = lineWidth;
       ctx.stroke();

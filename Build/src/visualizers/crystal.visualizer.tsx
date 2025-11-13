@@ -10,7 +10,7 @@ const crystalSpectrogram: VisualizerType = {
     bufferLength,
     freqDataArray,
     dataType,
-    settings = {}
+    settings = {},
   ) {
     const {
       branchColor = "hsla({hue}, 85%, 50%, {alpha})",

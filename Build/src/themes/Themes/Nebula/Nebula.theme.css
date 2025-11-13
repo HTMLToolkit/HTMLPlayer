@@ -85,25 +85,37 @@
 
   /* Miscellaneous */
   --certain-icons: var(--themecolor);
-  --albumart-gradient: linear-gradient(135deg, var(--themecolor) 0%, var(--themecolor2) 50%, var(--themecolor3) 100%);
+  --albumart-gradient: linear-gradient(
+    135deg,
+    var(--themecolor) 0%,
+    var(--themecolor2) 50%,
+    var(--themecolor3) 100%
+  );
 
   /* Shadows */
   --border: hsl(260, 15%, 90%);
-  --shadow: 0 1px 2px hsla(262, 15%, 5%, 0.05),
-    0 3px 6px hsla(262, 15%, 5%, 0.07);
-  --shadow-md: 0 1px 3px hsla(262, 15%, 5%, 0.05),
+  --shadow:
+    0 1px 2px hsla(262, 15%, 5%, 0.05), 0 3px 6px hsla(262, 15%, 5%, 0.07);
+  --shadow-md:
+    0 1px 3px hsla(262, 15%, 5%, 0.05),
     0 10px 15px -5px hsla(262, 15%, 5%, 0.05),
     0 20px 25px -5px hsla(262, 15%, 5%, 0.04);
-  --shadow-lg: 0 1px 3px hsla(262, 15%, 5%, 0.05),
+  --shadow-lg:
+    0 1px 3px hsla(262, 15%, 5%, 0.05),
     0 20px 25px -5px hsla(262, 15%, 5%, 0.07),
     0 30px 40px -5px hsla(262, 15%, 5%, 0.05);
-  --shadow-focus: 0 0 0 2px hsla(262, 83%, 58%, 0.25),
-    0 1px 2px hsla(262, 15%, 5%, 0.05);
+  --shadow-focus:
+    0 0 0 2px hsla(262, 83%, 58%, 0.25), 0 1px 2px hsla(262, 15%, 5%, 0.05);
 }
 
 .dark {
   /* Theme */
-  --themegradient: linear-gradient(135deg, #2e1065 0%, #0c4a6e 50%, #831843 100%);
+  --themegradient: linear-gradient(
+    135deg,
+    #2e1065 0%,
+    #0c4a6e 50%,
+    #831843 100%
+  );
   --themecolor: hsl(262, 83%, 45%);
   --themecolor2: hsl(188, 94%, 30%);
   --themecolor3: hsl(322, 84%, 45%);
@@ -186,18 +198,24 @@
 
   /* Miscellaneous */
   --certain-icons: hsl(262, 83%, 65%);
-  --albumart-gradient: linear-gradient(135deg, #2e1065 0%, #0c4a6e 50%, #831843 100%);
+  --albumart-gradient: linear-gradient(
+    135deg,
+    #2e1065 0%,
+    #0c4a6e 50%,
+    #831843 100%
+  );
 
   /* Shadows */
   --border: hsl(262, 15%, 18%);
-  --shadow: 0 1px 2px hsla(262, 25%, 0%, 0.1),
-    0 3px 6px hsla(262, 25%, 0%, 0.15);
-  --shadow-md: 0 1px 3px hsla(262, 25%, 0%, 0.1),
-    0 10px 15px -5px hsla(262, 25%, 0%, 0.1),
+  --shadow:
+    0 1px 2px hsla(262, 25%, 0%, 0.1), 0 3px 6px hsla(262, 25%, 0%, 0.15);
+  --shadow-md:
+    0 1px 3px hsla(262, 25%, 0%, 0.1), 0 10px 15px -5px hsla(262, 25%, 0%, 0.1),
     0 20px 25px -5px hsla(262, 25%, 0%, 0.08);
-  --shadow-lg: 0 1px 3px hsla(262, 25%, 0%, 0.1),
+  --shadow-lg:
+    0 1px 3px hsla(262, 25%, 0%, 0.1),
     0 20px 25px -5px hsla(262, 25%, 0%, 0.15),
     0 30px 40px -5px hsla(262, 25%, 0%, 0.1);
-  --shadow-focus: 0 0 0 2px hsla(262, 83%, 65%, 0.25),
-    0 1px 2px hsla(262, 25%, 0%, 0.1);
+  --shadow-focus:
+    0 0 0 2px hsla(262, 83%, 65%, 0.25), 0 1px 2px hsla(262, 25%, 0%, 0.1);
 }

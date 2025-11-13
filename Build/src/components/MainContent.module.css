@@ -203,21 +203,21 @@
   .desktopOnly {
     display: none;
   }
-  
+
   .mobileOnly {
     display: block;
   }
-  
+
   .sortControls {
     flex-direction: column;
     align-items: stretch;
     gap: var(--spacing-2);
   }
-  
+
   .sortPresets {
     justify-content: center;
   }
-  
+
   .sortIndicators {
     margin-left: 0;
     justify-content: center;

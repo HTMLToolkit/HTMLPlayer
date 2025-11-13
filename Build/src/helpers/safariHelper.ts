@@ -59,7 +59,7 @@ export class SafariAudioManager {
     document.body.appendChild(this.audioElement);
 
     console.log(
-      "[Safari Audio] Initialized audio element for background playback"
+      "[Safari Audio] Initialized audio element for background playback",
     );
   }
 
@@ -88,7 +88,7 @@ export class SafariAudioManager {
         console.log("[Safari Audio] Set source:", src.substring(0, 50) + "...");
       } else if (src.startsWith("indexeddb://")) {
         console.log(
-          "[Safari Audio] Skipping IndexedDB URL - waiting for blob URL"
+          "[Safari Audio] Skipping IndexedDB URL - waiting for blob URL",
         );
       }
     } catch (error) {
@@ -171,11 +171,11 @@ export class SafariAudioManager {
    */
   public setVolume(volume: number): void {
     if (!this.audioElement) return;
-    
+
     try {
       this.audioElement.volume = Math.max(0, Math.min(1, volume));
     } catch (error) {
-      console.error('[Safari Audio] Failed to set volume:', error);
+      console.error("[Safari Audio] Failed to set volume:", error);
     }
   }
 

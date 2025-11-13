@@ -10,7 +10,7 @@ const pulsingOrbs: VisualizerType = {
     bufferLength,
     freqDataArray,
     dataType,
-    settings = {}
+    settings = {},
   ) {
     const {
       orbColor = "hsl({hue}, 80%, 50%)",

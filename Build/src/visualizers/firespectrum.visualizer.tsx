@@ -10,7 +10,7 @@ const fireSpectrum: VisualizerType = {
     bufferLength,
     timeDataArray,
     dataType,
-    settings = {}
+    settings = {},
   ) {
     const {
       gradientColors = [
@@ -31,7 +31,7 @@ const fireSpectrum: VisualizerType = {
 
     const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
     gradientColors.forEach(({ stop, color }: any) =>
-      gradient.addColorStop(stop, color)
+      gradient.addColorStop(stop, color),
     );
 
     ctx.lineWidth = lineWidth;

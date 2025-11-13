@@ -251,7 +251,7 @@
   background: var(--background);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  font-family: var(--font-mono, 'Consolas', monospace);
+  font-family: var(--font-mono, "Consolas", monospace);
   font-size: 0.75rem;
   font-weight: 600;
   color: var(--foreground);
@@ -304,7 +304,7 @@
   background: var(--background);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  font-family: var(--font-mono, 'Consolas', monospace);
+  font-family: var(--font-mono, "Consolas", monospace);
   font-size: 0.75rem;
   font-weight: 600;
   color: var(--foreground);
@@ -319,7 +319,7 @@
   background: var(--background);
   border: 2px solid var(--primary);
   border-radius: var(--radius);
-  font-family: var(--font-mono, 'Consolas', monospace);
+  font-family: var(--font-mono, "Consolas", monospace);
   font-size: 0.75rem;
   font-weight: 600;
   color: var(--foreground);

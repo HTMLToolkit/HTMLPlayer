@@ -10,7 +10,7 @@ const waveformSpectrum: VisualizerType = {
     bufferLength,
     freqDataArray,
     dataType,
-    settings = {}
+    settings = {},
   ) {
     const {
       lineColor = "rgb(0, 255, 0)",

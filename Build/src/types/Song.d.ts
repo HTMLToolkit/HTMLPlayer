@@ -19,7 +19,8 @@ interface EmbeddedLyrics {
   language?: string;
   description?: string;
   text?: string; // for unsynchronized lyrics
-  lines?: Array<{ // for synchronized lyrics
+  lines?: Array<{
+    // for synchronized lyrics
     text: string;
     timestamp: number;
   }>;

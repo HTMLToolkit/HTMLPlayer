@@ -61,7 +61,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         {children}
       </Component>
     );
-  }
+  },
 );
 
 Button.displayName = "Button";

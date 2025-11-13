@@ -27,13 +27,31 @@
   top: 0;
   z-index: 10;
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
-  gap: var(--spacing-2);
+  gap: var(--spacing-3);
   padding: var(--spacing-4);
   border-bottom: 1px solid var(--border);
   background: rgba(var(--card-rgb), 0.92);
   backdrop-filter: blur(10px);
+}
+
+.lyricsHeaderTitle {
+  flex: 1;
+  min-width: 0;
+}
+
+.lyricsHeaderControls {
+  display: flex;
+  gap: var(--spacing-1);
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.lyricsHeaderButtons {
+  display: flex;
+  gap: var(--spacing-2);
+  align-items: center;
 }
 
 .lyricsTitle {
@@ -63,6 +81,28 @@
 
 .lyricsCloseButton:hover {
   color: var(--foreground);
+}
+
+.activeButton {
+  background-color: rgba(var(--primary-rgb), 0.15);
+  color: var(--primary-foreground);
+}
+
+.activeButton:hover:not(:disabled) {
+  background-color: rgba(var(--primary-rgb), 0.25);
+}
+
+.activeButton:active:not(:disabled) {
+  background-color: rgba(var(--primary-rgb), 0.35);
+}
+
+/* Disabled button styling */
+.lyricsHeaderControls button:disabled,
+.lyricsHeaderControls button[disabled] {
+  opacity: 0.2;
+  color: var(--muted-foreground);
+  cursor: not-allowed;
+  pointer-events: none;
 }
 
 .lyricsContent,
@@ -137,7 +177,6 @@
 .lineText {
   font-size: 0.95rem;
 }
-
 
 .noLyrics {
   display: flex;

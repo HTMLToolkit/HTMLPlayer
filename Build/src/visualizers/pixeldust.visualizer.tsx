@@ -10,7 +10,7 @@ const pixelDust: VisualizerType = {
     bufferLength,
     timeDataArray,
     dataType,
-    settings = {}
+    settings = {},
   ) {
     const {
       pixelColor = "hsl({hue}, 70%, 50%)",

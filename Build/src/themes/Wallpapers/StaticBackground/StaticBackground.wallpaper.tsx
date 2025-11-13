@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 
 // Types for wallpaper props (API exposure)
 export interface WallpaperProps {
@@ -19,32 +19,34 @@ export interface WallpaperProps {
 // Static Background Wallpaper Component
 const StaticBackground: React.FC<WallpaperProps> = ({
   currentSong,
-  playbackState
+  playbackState,
 }) => {
   return (
     <div
       style={{
-        position: 'fixed',
+        position: "fixed",
         top: 0,
         left: 0,
-        width: '100%',
-        height: '100%',
-        background: 'linear-gradient(135deg, #4963d6ff 0%, #4963d6ff 100%)',
+        width: "100%",
+        height: "100%",
+        background: "linear-gradient(135deg, #0caddeff 0%, #09e8adff 100%)",
         zIndex: -1, // Behind everything
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        color: 'white',
-        fontSize: '2rem',
-        textAlign: 'center',
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        color: "white",
+        fontSize: "2rem",
+        textAlign: "center",
         opacity: playbackState?.isPlaying ? 1 : 0.7,
-        transition: 'opacity 0.3s ease'
+        transition: "opacity 0.3s ease",
       }}
     >
       {currentSong ? (
         <div>
           <h1>{currentSong.title}</h1>
-          <p>{currentSong.artist} - {currentSong.album}</p>
+          <p>
+            {currentSong.artist} - {currentSong.album}
+          </p>
         </div>
       ) : (
         <h1>HTMLPlayer</h1>

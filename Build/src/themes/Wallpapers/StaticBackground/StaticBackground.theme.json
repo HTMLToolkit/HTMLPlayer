@@ -2,7 +2,7 @@
   "wallpaper": {
     "id": "static-background",
     "label": "Static Background",
-    "author": "HTMLPlayer",
+    "author": "NellowTCS",
     "description": "A simple static background wallpaper",
     "version": "1.0.0",
     "componentFile": "StaticBackground.wallpaper.tsx"

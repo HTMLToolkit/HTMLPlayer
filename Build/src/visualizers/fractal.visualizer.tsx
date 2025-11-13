@@ -10,7 +10,7 @@ const fractalSpectrogram: VisualizerType = {
     _bufferLength,
     freqDataArray,
     dataType,
-    settings = {}
+    settings = {},
   ) {
     const {
       branchColor = "hsla({hue}, 70%, 50%, {alpha})",
@@ -31,7 +31,7 @@ const fractalSpectrogram: VisualizerType = {
       len: number,
       angle: number,
       depth: number,
-      amplitude: number
+      amplitude: number,
     ) => {
       if (depth === 0) return;
 
@@ -53,7 +53,7 @@ const fractalSpectrogram: VisualizerType = {
         len * 0.7,
         angle + amplitude,
         depth - 1,
-        amplitude
+        amplitude,
       );
       drawBranch(
         endX,
@@ -61,7 +61,7 @@ const fractalSpectrogram: VisualizerType = {
         len * 0.7,
         angle - amplitude,
         depth - 1,
-        amplitude
+        amplitude,
       );
     };
 
@@ -72,7 +72,7 @@ const fractalSpectrogram: VisualizerType = {
       branchLength,
       Math.PI / 2,
       branchDepth,
-      baseAmplitude
+      baseAmplitude,
     );
   },
 };

@@ -10,7 +10,7 @@ const spectrumRipple: VisualizerType = {
     bufferLength,
     freqDataArray,
     dataType,
-    settings = {}
+    settings = {},
   ) {
     const {
       rippleColor = "hsla({hue}, 100%, 50%, 0.5)",
@@ -36,7 +36,7 @@ const spectrumRipple: VisualizerType = {
       ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
       ctx.strokeStyle = rippleColor.replace(
         "{hue}",
-        `${(i * 360) / bufferLength}`
+        `${(i * 360) / bufferLength}`,
       );
       ctx.lineWidth = lineWidth;
       ctx.stroke();

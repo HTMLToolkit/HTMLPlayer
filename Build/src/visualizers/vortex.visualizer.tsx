@@ -10,7 +10,7 @@ const vortexSpectrogram: VisualizerType = {
     bufferLength,
     freqDataArray,
     dataType,
-    settings = {}
+    settings = {},
   ) {
     const {
       pointColor = "hsla({hue}, 90%, {lightness}%, {alpha})",

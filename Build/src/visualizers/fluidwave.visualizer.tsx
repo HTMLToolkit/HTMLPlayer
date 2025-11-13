@@ -10,7 +10,7 @@ const fluidWaveSpectrogram: VisualizerType = {
     bufferLength,
     freqDataArray,
     dataType,
-    settings = {}
+    settings = {},
   ) {
     const {
       waveColor = "hsla({hue}, 70%, 50%, {alpha})",
@@ -51,19 +51,19 @@ const fluidWaveSpectrogram: VisualizerType = {
         0,
         layerOffset - 50,
         0,
-        layerOffset + 50
+        layerOffset + 50,
       );
       gradient.addColorStop(
         0,
-        waveColor.replace("{hue}", `${l * 90}`).replace("{alpha}", "0")
+        waveColor.replace("{hue}", `${l * 90}`).replace("{alpha}", "0"),
       );
       gradient.addColorStop(
         0.5,
-        waveColor.replace("{hue}", `${l * 90}`).replace("{alpha}", "0.3")
+        waveColor.replace("{hue}", `${l * 90}`).replace("{alpha}", "0.3"),
       );
       gradient.addColorStop(
         1,
-        waveColor.replace("{hue}", `${l * 90}`).replace("{alpha}", "0")
+        waveColor.replace("{hue}", `${l * 90}`).replace("{alpha}", "0"),
       );
 
       ctx.strokeStyle = gradient;

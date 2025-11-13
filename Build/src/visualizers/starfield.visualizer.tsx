@@ -10,7 +10,7 @@ const starField: VisualizerType = {
     bufferLength,
     timeDataArray,
     dataType,
-    settings = {}
+    settings = {},
   ) {
     const {
       lineColor = "rgba(255, 255, 255, 0.8)",

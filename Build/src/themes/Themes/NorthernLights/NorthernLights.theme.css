@@ -85,25 +85,39 @@
 
   /* Miscellaneous */
   --certain-icons: var(--themecolor2);
-  --albumart-gradient: linear-gradient(135deg, var(--themecolor) 0%, var(--themecolor2) 33%, var(--themecolor3) 66%, var(--themecolor4) 100%);
+  --albumart-gradient: linear-gradient(
+    135deg,
+    var(--themecolor) 0%,
+    var(--themecolor2) 33%,
+    var(--themecolor3) 66%,
+    var(--themecolor4) 100%
+  );
 
   /* Shadows */
   --border: hsl(215, 20%, 90%);
-  --shadow: 0 1px 2px hsla(217, 15%, 5%, 0.05),
-    0 3px 6px hsla(217, 15%, 5%, 0.07);
-  --shadow-md: 0 1px 3px hsla(217, 15%, 5%, 0.05),
+  --shadow:
+    0 1px 2px hsla(217, 15%, 5%, 0.05), 0 3px 6px hsla(217, 15%, 5%, 0.07);
+  --shadow-md:
+    0 1px 3px hsla(217, 15%, 5%, 0.05),
     0 10px 15px -5px hsla(217, 15%, 5%, 0.05),
     0 20px 25px -5px hsla(217, 15%, 5%, 0.04);
-  --shadow-lg: 0 1px 3px hsla(217, 15%, 5%, 0.05),
+  --shadow-lg:
+    0 1px 3px hsla(217, 15%, 5%, 0.05),
     0 20px 25px -5px hsla(217, 15%, 5%, 0.07),
     0 30px 40px -5px hsla(217, 15%, 5%, 0.05);
-  --shadow-focus: 0 0 0 2px hsla(217, 91%, 60%, 0.25),
-    0 1px 2px hsla(217, 15%, 5%, 0.05);
+  --shadow-focus:
+    0 0 0 2px hsla(217, 91%, 60%, 0.25), 0 1px 2px hsla(217, 15%, 5%, 0.05);
 }
 
 .dark {
   /* Theme */
-  --themegradient: linear-gradient(135deg, #064e3b 0%, #1e3a8a 33%, #581c87 66%, #be185d 100%);
+  --themegradient: linear-gradient(
+    135deg,
+    #064e3b 0%,
+    #1e3a8a 33%,
+    #581c87 66%,
+    #be185d 100%
+  );
   --themecolor: hsl(158, 64%, 35%);
   --themecolor2: hsl(217, 91%, 45%);
   --themecolor3: hsl(262, 83%, 45%);
@@ -186,18 +200,25 @@
 
   /* Miscellaneous */
   --certain-icons: hsl(217, 91%, 65%);
-  --albumart-gradient: linear-gradient(135deg, #064e3b 0%, #1e3a8a 33%, #581c87 66%, #be185d 100%);
+  --albumart-gradient: linear-gradient(
+    135deg,
+    #064e3b 0%,
+    #1e3a8a 33%,
+    #581c87 66%,
+    #be185d 100%
+  );
 
   /* Shadows */
   --border: hsl(220, 20%, 16%);
-  --shadow: 0 1px 2px hsla(220, 30%, 0%, 0.1),
-    0 3px 6px hsla(220, 30%, 0%, 0.15);
-  --shadow-md: 0 1px 3px hsla(220, 30%, 0%, 0.1),
-    0 10px 15px -5px hsla(220, 30%, 0%, 0.1),
+  --shadow:
+    0 1px 2px hsla(220, 30%, 0%, 0.1), 0 3px 6px hsla(220, 30%, 0%, 0.15);
+  --shadow-md:
+    0 1px 3px hsla(220, 30%, 0%, 0.1), 0 10px 15px -5px hsla(220, 30%, 0%, 0.1),
     0 20px 25px -5px hsla(220, 30%, 0%, 0.08);
-  --shadow-lg: 0 1px 3px hsla(220, 30%, 0%, 0.1),
+  --shadow-lg:
+    0 1px 3px hsla(220, 30%, 0%, 0.1),
     0 20px 25px -5px hsla(220, 30%, 0%, 0.15),
     0 30px 40px -5px hsla(220, 30%, 0%, 0.1);
-  --shadow-focus: 0 0 0 2px hsla(217, 91%, 65%, 0.25),
-    0 1px 2px hsla(220, 30%, 0%, 0.1);
+  --shadow-focus:
+    0 0 0 2px hsla(217, 91%, 65%, 0.25), 0 1px 2px hsla(220, 30%, 0%, 0.1);
 }

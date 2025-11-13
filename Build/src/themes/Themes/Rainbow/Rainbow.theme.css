@@ -1,7 +1,21 @@
 /* Rainbow */
 :root {
   /* Theme */
-  --themegradient: linear-gradient(135deg, #ff0000, #ff8000, #ffff00, #80ff00, #00ff00, #00ff80, #00ffff, #0080ff, #0000ff, #8000ff, #ff00ff, #ff0080);
+  --themegradient: linear-gradient(
+    135deg,
+    #ff0000,
+    #ff8000,
+    #ffff00,
+    #80ff00,
+    #00ff00,
+    #00ff80,
+    #00ffff,
+    #0080ff,
+    #0000ff,
+    #8000ff,
+    #ff00ff,
+    #ff0080
+  );
   --themecolor: hsl(0, 100%, 50%);
   --themecolor2: hsl(120, 100%, 50%);
   --themecolor3: hsl(240, 100%, 50%);
@@ -85,25 +99,50 @@
 
   /* Miscellaneous */
   --certain-icons: var(--themecolor3);
-  --albumart-gradient: linear-gradient(135deg, hsl(0, 100%, 50%) 0%, hsl(60, 100%, 50%) 16.66%, hsl(120, 100%, 50%) 33.33%, hsl(180, 100%, 50%) 50%, hsl(240, 100%, 50%) 66.66%, hsl(300, 100%, 50%) 83.33%, hsl(0, 100%, 50%) 100%);
+  --albumart-gradient: linear-gradient(
+    135deg,
+    hsl(0, 100%, 50%) 0%,
+    hsl(60, 100%, 50%) 16.66%,
+    hsl(120, 100%, 50%) 33.33%,
+    hsl(180, 100%, 50%) 50%,
+    hsl(240, 100%, 50%) 66.66%,
+    hsl(300, 100%, 50%) 83.33%,
+    hsl(0, 100%, 50%) 100%
+  );
 
   /* Shadows */
   --border: hsl(300, 15%, 88%);
-  --shadow: 0 1px 2px hsla(240, 100%, 50%, 0.05),
-    0 3px 6px hsla(0, 100%, 50%, 0.07);
-  --shadow-md: 0 1px 3px hsla(240, 100%, 50%, 0.05),
+  --shadow:
+    0 1px 2px hsla(240, 100%, 50%, 0.05), 0 3px 6px hsla(0, 100%, 50%, 0.07);
+  --shadow-md:
+    0 1px 3px hsla(240, 100%, 50%, 0.05),
     0 10px 15px -5px hsla(120, 100%, 50%, 0.05),
     0 20px 25px -5px hsla(300, 100%, 50%, 0.04);
-  --shadow-lg: 0 1px 3px hsla(240, 100%, 50%, 0.05),
+  --shadow-lg:
+    0 1px 3px hsla(240, 100%, 50%, 0.05),
     0 20px 25px -5px hsla(120, 100%, 50%, 0.07),
     0 30px 40px -5px hsla(0, 100%, 50%, 0.05);
-  --shadow-focus: 0 0 0 2px hsla(240, 100%, 50%, 0.3),
-    0 1px 2px hsla(300, 100%, 50%, 0.1);
+  --shadow-focus:
+    0 0 0 2px hsla(240, 100%, 50%, 0.3), 0 1px 2px hsla(300, 100%, 50%, 0.1);
 }
 
 .dark {
   /* Theme */
-  --themegradient: linear-gradient(135deg, #330000, #331a00, #333300, #1a3300, #003300, #00331a, #003333, #001a33, #000033, #1a0033, #330033, #33001a);
+  --themegradient: linear-gradient(
+    135deg,
+    #330000,
+    #331a00,
+    #333300,
+    #1a3300,
+    #003300,
+    #00331a,
+    #003333,
+    #001a33,
+    #000033,
+    #1a0033,
+    #330033,
+    #33001a
+  );
   --themecolor: hsl(0, 100%, 65%);
   --themecolor2: hsl(120, 100%, 65%);
   --themecolor3: hsl(240, 100%, 70%);
@@ -186,18 +225,29 @@
 
   /* Miscellaneous */
   --certain-icons: hsl(240, 100%, 70%);
-  --albumart-gradient: linear-gradient(135deg, hsl(0, 100%, 60%) 0%, hsl(60, 100%, 60%) 16.66%, hsl(120, 100%, 60%) 33.33%, hsl(180, 100%, 60%) 50%, hsl(240, 100%, 70%) 66.66%, hsl(300, 100%, 60%) 83.33%, hsl(0, 100%, 60%) 100%);
+  --albumart-gradient: linear-gradient(
+    135deg,
+    hsl(0, 100%, 60%) 0%,
+    hsl(60, 100%, 60%) 16.66%,
+    hsl(120, 100%, 60%) 33.33%,
+    hsl(180, 100%, 60%) 50%,
+    hsl(240, 100%, 70%) 66.66%,
+    hsl(300, 100%, 60%) 83.33%,
+    hsl(0, 100%, 60%) 100%
+  );
 
   /* Shadows */
   --border: hsl(260, 15%, 18%);
-  --shadow: 0 1px 2px hsla(240, 100%, 70%, 0.1),
-    0 3px 6px hsla(0, 100%, 70%, 0.15);
-  --shadow-md: 0 1px 3px hsla(240, 100%, 70%, 0.1),
+  --shadow:
+    0 1px 2px hsla(240, 100%, 70%, 0.1), 0 3px 6px hsla(0, 100%, 70%, 0.15);
+  --shadow-md:
+    0 1px 3px hsla(240, 100%, 70%, 0.1),
     0 10px 15px -5px hsla(120, 100%, 60%, 0.1),
     0 20px 25px -5px hsla(300, 100%, 60%, 0.08);
-  --shadow-lg: 0 1px 3px hsla(240, 100%, 70%, 0.1),
+  --shadow-lg:
+    0 1px 3px hsla(240, 100%, 70%, 0.1),
     0 20px 25px -5px hsla(120, 100%, 60%, 0.15),
     0 30px 40px -5px hsla(0, 100%, 60%, 0.1);
-  --shadow-focus: 0 0 0 2px hsla(240, 100%, 70%, 0.4),
-    0 1px 2px hsla(300, 100%, 60%, 0.2);
+  --shadow-focus:
+    0 0 0 2px hsla(240, 100%, 70%, 0.4), 0 1px 2px hsla(300, 100%, 60%, 0.2);
 }

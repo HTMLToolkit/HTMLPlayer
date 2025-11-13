@@ -10,7 +10,7 @@ const spiralSpectrogram: VisualizerType = {
     bufferLength,
     freqDataArray,
     dataType,
-    settings = {}
+    settings = {},
   ) {
     const {
       pointColor = "hsl({hue}, 100%, 50%)",

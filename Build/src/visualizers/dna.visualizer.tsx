@@ -10,7 +10,7 @@ const dnaSpectrogram: VisualizerType = {
     bufferLength,
     freqDataArray,
     dataType,
-    settings = {}
+    settings = {},
   ) {
     const {
       strandColor = "hsla({hue}, 70%, 50%, 0.8)",
@@ -60,7 +60,7 @@ const dnaSpectrogram: VisualizerType = {
 
           ctx.fillStyle = barColor.replace(
             "{hue}",
-            `${(freqIndex * 360) / bufferLength}`
+            `${(freqIndex * 360) / bufferLength}`,
           );
           ctx.fillRect(x, y, 2, y2 - y);
         }

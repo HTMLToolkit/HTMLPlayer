@@ -10,7 +10,7 @@ const abstractArt: VisualizerType = {
     bufferLength,
     freqDataArray,
     dataType,
-    settings = {}
+    settings = {},
   ) {
     const {
       shapeColor = "hsla({hue}, 90%, 50%, {alpha})",
@@ -39,7 +39,7 @@ const abstractArt: VisualizerType = {
         (1 - amplitude) * canvas.width * curveScale,
         (1 - amplitude) * canvas.height * curveScale,
         Math.random() * canvas.width,
-        Math.random() * canvas.height
+        Math.random() * canvas.height,
       );
       ctx.fill();
     }

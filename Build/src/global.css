@@ -1,7 +1,7 @@
-@import '@fontsource/inter';
-@import '@fontsource/poppins';
-@import '@fontsource/jetbrains-mono';
-@import '@fontsource/caveat';
+@import "@fontsource/inter";
+@import "@fontsource/poppins";
+@import "@fontsource/jetbrains-mono";
+@import "@fontsource/caveat";
 
 /* This root block is kept separate as these values do not change between light and dark mode */
 /* prettier-ignore */
@@ -96,7 +96,9 @@ body {
   z-index: var(--z-critical);
   opacity: 1;
   visibility: visible;
-  transition: opacity 0.5s ease-out, visibility 0.5s ease-out;
+  transition:
+    opacity 0.5s ease-out,
+    visibility 0.5s ease-out;
 }
 
 .loadingScreen.fade-out {

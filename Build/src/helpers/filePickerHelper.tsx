@@ -1,11 +1,16 @@
 import { toast } from "sonner";
 import { parseBlob, selectCover } from "music-metadata";
 import Uppy from "@uppy/core";
-import { Dashboard } from "@uppy/react";
-import '@uppy/core/css/style.min.css';
-import '@uppy/dashboard/css/style.min.css';
+import Dashboard from "@uppy/react/dashboard";
+import "@uppy/core/css/style.min.css";
+import "@uppy/dashboard/css/style.min.css";
 import { useState, useEffect, useRef } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../components/Dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "../components/Dialog";
 import ReactDOM from "react-dom/client";
 import { useTranslation } from "react-i18next";
 import i18n from "i18next";
@@ -15,7 +20,11 @@ import { IconRegistryProvider } from "./iconLoader";
 declare global {
   interface Window {
     launchQueue?: {
-      setConsumer: (consumer: (launchParams: { files: FileSystemFileHandle[] | File[] }) => void) => void;
+      setConsumer: (
+        consumer: (launchParams: {
+          files: FileSystemFileHandle[] | File[];
+        }) => void,
+      ) => void;
     };
   }
 }
@@ -61,15 +70,27 @@ function buildEncodingDetails(format: any): EncodingDetails | undefined {
   const details: EncodingDetails = {
     bitrate: typeof format.bitrate === "number" ? format.bitrate : undefined,
     codec: typeof format.codec === "string" ? format.codec : undefined,
-    sampleRate: typeof format.sampleRate === "number" ? format.sampleRate : undefined,
-    channels: typeof format.numberOfChannels === "number" ? format.numberOfChannels : undefined,
-    bitsPerSample: typeof format.bitsPerSample === "number" ? format.bitsPerSample : undefined,
-    container: typeof format.container === "string" ? format.container : undefined,
-    lossless: typeof format.lossless === "boolean" ? format.lossless : undefined,
-    profile: typeof format.codecProfile === "string" ? format.codecProfile : undefined,
+    sampleRate:
+      typeof format.sampleRate === "number" ? format.sampleRate : undefined,
+    channels:
+      typeof format.numberOfChannels === "number"
+        ? format.numberOfChannels
+        : undefined,
+    bitsPerSample:
+      typeof format.bitsPerSample === "number"
+        ? format.bitsPerSample
+        : undefined,
+    container:
+      typeof format.container === "string" ? format.container : undefined,
+    lossless:
+      typeof format.lossless === "boolean" ? format.lossless : undefined,
+    profile:
+      typeof format.codecProfile === "string" ? format.codecProfile : undefined,
   };
 
-  return Object.values(details).some((value) => value !== undefined) ? details : undefined;
+  return Object.values(details).some((value) => value !== undefined)
+    ? details
+    : undefined;
 }
 
 function normaliseTagValue(value: unknown): string | null {
@@ -119,13 +140,25 @@ function buildGaplessInfo(metadata: any): GaplessInfo | undefined {
   let gapless: GaplessInfo | undefined;
   const format = metadata.format ?? {};
 
-  const encoderDelay = typeof format.encoderDelay === "number" ? format.encoderDelay : undefined;
-  if (typeof encoderDelay === "number" && Number.isFinite(encoderDelay) && encoderDelay > 0) {
+  const encoderDelay =
+    typeof format.encoderDelay === "number" ? format.encoderDelay : undefined;
+  if (
+    typeof encoderDelay === "number" &&
+    Number.isFinite(encoderDelay) &&
+    encoderDelay > 0
+  ) {
     gapless = { ...(gapless ?? {}), encoderDelay };
   }
 
-  const encoderPadding = typeof format.encoderPadding === "number" ? format.encoderPadding : undefined;
-  if (typeof encoderPadding === "number" && Number.isFinite(encoderPadding) && encoderPadding > 0) {
+  const encoderPadding =
+    typeof format.encoderPadding === "number"
+      ? format.encoderPadding
+      : undefined;
+  if (
+    typeof encoderPadding === "number" &&
+    Number.isFinite(encoderPadding) &&
+    encoderPadding > 0
+  ) {
     gapless = { ...(gapless ?? {}), encoderPadding };
   }
 
@@ -141,7 +174,10 @@ function buildGaplessInfo(metadata: any): GaplessInfo | undefined {
         continue;
       }
 
-      if (id === "MP4:----:COM.APPLE.ITUNES:ITUNSMPB" || id === "----:COM.APPLE.ITUNES:ITUNSMPB") {
+      if (
+        id === "MP4:----:COM.APPLE.ITUNES:ITUNSMPB" ||
+        id === "----:COM.APPLE.ITUNES:ITUNSMPB"
+      ) {
         const parsed = parseItunesGapless(tag?.value);
         if (parsed) gapless = { ...(gapless ?? {}), ...parsed };
       }
@@ -156,7 +192,8 @@ export interface EmbeddedLyrics {
   language?: string;
   description?: string;
   text?: string; // for unsynchronized lyrics
-  lines?: Array<{ // for synchronized lyrics
+  lines?: Array<{
+    // for synchronized lyrics
     text: string;
     timestamp: number;
   }>;
@@ -168,7 +205,7 @@ let isProcessing = false;
 const handleBeforeUnload = (event: BeforeUnloadEvent) => {
   if (isProcessing) {
     event.preventDefault();
-    event.returnValue = '';
+    event.returnValue = "";
   }
 };
 
@@ -176,9 +213,9 @@ const handleBeforeUnload = (event: BeforeUnloadEvent) => {
 export function setProcessingState(processing: boolean) {
   isProcessing = processing;
   if (processing) {
-    window.addEventListener('beforeunload', handleBeforeUnload);
+    window.addEventListener("beforeunload", handleBeforeUnload);
   } else {
-    window.removeEventListener('beforeunload', handleBeforeUnload);
+    window.removeEventListener("beforeunload", handleBeforeUnload);
   }
 }
 
@@ -187,13 +224,16 @@ async function withTimeoutAndRetry<T>(
   promise: Promise<T>,
   timeoutMs: number,
   retries: number,
-  errorMessage: string
+  errorMessage: string,
 ): Promise<T> {
   let lastError: Error | null = null;
   for (let attempt = 1; attempt <= retries; attempt++) {
     try {
       const timeoutPromise = new Promise<T>((_, reject) => {
-        setTimeout(() => reject(new Error(`Timeout: ${errorMessage}`)), timeoutMs);
+        setTimeout(
+          () => reject(new Error(`Timeout: ${errorMessage}`)),
+          timeoutMs,
+        );
       });
       return await Promise.race([promise, timeoutPromise]);
     } catch (e) {
@@ -212,30 +252,43 @@ export function pickAudioFiles(): Promise<AudioFile[]> {
   return new Promise((resolve) => {
     const ReactUppyWrapper = () => {
       const { t } = useTranslation();
-      const [uppy] = useState(() =>
-        new Uppy({
-          autoProceed: false,
-          restrictions: {
-            maxNumberOfFiles: null,
-            allowedFileTypes: [
-              ".mp3", ".wav", ".m4a", ".flac", ".aif", ".aiff", ".ogg", "audio/*",
-            ],
-          },
-        })
+      const [uppy] = useState(
+        () =>
+          new Uppy({
+            autoProceed: false,
+            restrictions: {
+              maxNumberOfFiles: null,
+              allowedFileTypes: [
+                ".mp3",
+                ".wav",
+                ".m4a",
+                ".flac",
+                ".aif",
+                ".aiff",
+                ".ogg",
+                "audio/*",
+              ],
+            },
+          }),
       );
 
       const [open, setOpen] = useState(true); // modal open state
       const [theme, setTheme] = useState<"light" | "dark">(
-        document.documentElement.classList.contains("dark") ? "dark" : "light"
+        document.documentElement.classList.contains("dark") ? "dark" : "light",
       );
 
       // Watch for theme changes
       useEffect(() => {
         const observer = new MutationObserver(() => {
-          const mode = document.documentElement.classList.contains("dark") ? "dark" : "light";
+          const mode = document.documentElement.classList.contains("dark")
+            ? "dark"
+            : "light";
           setTheme(mode);
         });
-        observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
+        observer.observe(document.documentElement, {
+          attributes: true,
+          attributeFilter: ["class"],
+        });
 
         return () => observer.disconnect();
       }, []);
@@ -269,35 +322,35 @@ export function pickAudioFiles(): Promise<AudioFile[]> {
       }, [uppy]);
 
       return (
-           <IconRegistryProvider defaultSetId="lucide">
-        <Dialog
-          open={open}
-          onOpenChange={(newOpen) => {
-            setOpen(newOpen);
-            if (!newOpen) {
-              uppy.cancelAll();
-              resolve([]); // resolves with [] if nothing selected
-            }
-          }}
-        >
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>{t("filePicker.selectAudioFiles")}</DialogTitle>
-            </DialogHeader>
+        <IconRegistryProvider defaultSetId="lucide">
+          <Dialog
+            open={open}
+            onOpenChange={(newOpen) => {
+              setOpen(newOpen);
+              if (!newOpen) {
+                uppy.cancelAll();
+                resolve([]); // resolves with [] if nothing selected
+              }
+            }}
+          >
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>{t("filePicker.selectAudioFiles")}</DialogTitle>
+              </DialogHeader>
 
-            {/* Force remount on theme change */}
-            <div key={theme} data-uppy-theme={theme}>
-              <Dashboard
-                uppy={uppy}
-                proudlyDisplayPoweredByUppy={true}
-                hideUploadButton={false}
-                hideCancelButton={true}
-                hideProgressDetails={false}
-                note={t("filePicker.onlyAudioFiles")}
-              />
-            </div>
-          </DialogContent>
-        </Dialog>
+              {/* Force remount on theme change */}
+              <div key={theme} data-uppy-theme={theme}>
+                <Dashboard
+                  uppy={uppy}
+                  proudlyDisplayPoweredByUppy={true}
+                  hideUploadButton={false}
+                  hideCancelButton={true}
+                  hideProgressDetails={false}
+                  note={t("filePicker.onlyAudioFiles")}
+                />
+              </div>
+            </DialogContent>
+          </Dialog>
         </IconRegistryProvider>
       );
     };
@@ -310,8 +363,6 @@ export function pickAudioFiles(): Promise<AudioFile[]> {
   });
 }
 
-
-
 // ---------------------
 // Helper to filter valid audio files
 // ---------------------
@@ -322,13 +373,18 @@ function processFiles(files: File[]): AudioFile[] {
 
   for (const file of files) {
     const ext = file.name.split(".").pop()?.toLowerCase();
-    if (!file.type.startsWith("audio/") && !(ext && allowedExtensions.includes(ext))) {
+    if (
+      !file.type.startsWith("audio/") &&
+      !(ext && allowedExtensions.includes(ext))
+    ) {
       toast.error(`Skipping non-audio file: ${file.name}`);
       continue;
     }
     const canPlay = audioTest.canPlayType(file.type);
     if (canPlay !== "probably" && canPlay !== "maybe") {
-      toast.error(`Skipping unsupported audio format by browser: ${file.name} (${file.type})`);
+      toast.error(
+        `Skipping unsupported audio format by browser: ${file.name} (${file.type})`,
+      );
       continue;
     }
     valid.push({ file, name: file.name, size: file.size, type: file.type });
@@ -341,7 +397,10 @@ function processFiles(files: File[]): AudioFile[] {
 // ---------------------
 export async function extractAudioMetadata(file: File): Promise<AudioMetadata> {
   setProcessingState(true);
-  const worker = new Worker(new URL('../workers/metadataWorker.ts', import.meta.url), { type: 'module' });
+  const worker = new Worker(
+    new URL("../workers/metadataWorker.ts", import.meta.url),
+    { type: "module" },
+  );
 
   try {
     const result = await withTimeoutAndRetry(
@@ -353,16 +412,25 @@ export async function extractAudioMetadata(file: File): Promise<AudioMetadata> {
             // Translate placeholder values from worker
             const translatedMetadata = {
               ...metadata,
-              artist: metadata.artist === "__UNKNOWN_ARTIST__" ? i18n.t("common.unknownArtist") : metadata.artist,
-              album: metadata.album === "__UNKNOWN_ALBUM__" ? i18n.t("common.unknownAlbum") : metadata.album,
+              artist:
+                metadata.artist === "__UNKNOWN_ARTIST__"
+                  ? i18n.t("common.unknownArtist")
+                  : metadata.artist,
+              album:
+                metadata.album === "__UNKNOWN_ALBUM__"
+                  ? i18n.t("common.unknownAlbum")
+                  : metadata.album,
               albumArt,
-              metadataWarnings: Array.isArray(warnings) ? warnings : undefined
+              metadataWarnings: Array.isArray(warnings) ? warnings : undefined,
             };
 
             if (Array.isArray(warnings) && warnings.length > 0) {
               for (const warning of warnings) {
                 // Suppress repetitive ID3v2.3 warnings that spam the console
-                if (warning.includes("Invalid ID3v2.3 frame-header-ID") || warning.includes("id3v2.3 header has empty tag type")) {
+                if (
+                  warning.includes("Invalid ID3v2.3 frame-header-ID") ||
+                  warning.includes("id3v2.3 header has empty tag type")
+                ) {
                   continue;
                 }
                 console.warn(`Metadata warning for ${file.name}:`, warning);
@@ -371,12 +439,13 @@ export async function extractAudioMetadata(file: File): Promise<AudioMetadata> {
             resolve(translatedMetadata);
           }
         };
-        worker.onerror = (error) => reject(new Error('Worker error: ' + error.message));
+        worker.onerror = (error) =>
+          reject(new Error("Worker error: " + error.message));
         worker.postMessage({ file, fileName: file.name });
       }),
       15000,
       3,
-      `Metadata extraction for ${file.name}`
+      `Metadata extraction for ${file.name}`,
     );
     return result;
   } catch (e) {
@@ -395,24 +464,30 @@ export async function extractAudioMetadata(file: File): Promise<AudioMetadata> {
         parseBlob(file, { skipCovers: false, duration: true }),
         15000,
         3,
-        `Fallback metadata parsing for ${file.name}`
+        `Fallback metadata parsing for ${file.name}`,
       );
 
       if (metadata.common) {
-        if (typeof metadata.common.artist === "string") artist = metadata.common.artist;
-        if (typeof metadata.common.title === "string") title = metadata.common.title;
-        if (typeof metadata.common.album === "string") album = metadata.common.album;
+        if (typeof metadata.common.artist === "string")
+          artist = metadata.common.artist;
+        if (typeof metadata.common.title === "string")
+          title = metadata.common.title;
+        if (typeof metadata.common.album === "string")
+          album = metadata.common.album;
         duration = metadata.format.duration ?? 0;
         encoding = buildEncodingDetails(metadata.format);
         gapless = buildGaplessInfo(metadata);
 
         const cover = selectCover(metadata.common.picture);
         if (cover && cover.data.length > 0) {
-          const blob = new Blob([new Uint8Array(cover.data)], { type: cover.format });
+          const blob = new Blob([new Uint8Array(cover.data)], {
+            type: cover.format,
+          });
           albumArt = await new Promise<string>((resolve, reject) => {
             const reader = new FileReader();
             reader.onloadend = () => resolve(reader.result as string);
-            reader.onerror = () => reject(new Error('Failed to read album art'));
+            reader.onerror = () =>
+              reject(new Error("Failed to read album art"));
             reader.readAsDataURL(blob);
           });
         }
@@ -454,15 +529,21 @@ export interface FileHandlerResult {
   errorCount: number;
 }
 
-export function setupFileHandler(onFilesReceived: (result: FileHandlerResult) => void): () => void {
-  if (!('launchQueue' in window) || !window.launchQueue || typeof window.launchQueue.setConsumer !== 'function') {
-    console.warn('File Handling API not supported in this browser');
+export function setupFileHandler(
+  onFilesReceived: (result: FileHandlerResult) => void,
+): () => void {
+  if (
+    !("launchQueue" in window) ||
+    !window.launchQueue ||
+    typeof window.launchQueue.setConsumer !== "function"
+  ) {
+    console.warn("File Handling API not supported in this browser");
     return () => {}; // Return empty cleanup function
   }
 
   const consumer = async (launchParams: any) => {
     if (!launchParams.files || launchParams.files.length === 0) {
-      console.log('No files provided by File Handling or Share Target API');
+      console.log("No files provided by File Handling or Share Target API");
       return;
     }
 
@@ -482,9 +563,11 @@ export function setupFileHandler(onFilesReceived: (result: FileHandlerResult) =>
         const fileId = `${file.name}-${file.size}-${file.lastModified}`;
 
         // Check sessionStorage for processed files
-        const processedFiles = JSON.parse(sessionStorage.getItem('processedFiles') || '[]');
+        const processedFiles = JSON.parse(
+          sessionStorage.getItem("processedFiles") || "[]",
+        );
         if (processedFiles.includes(fileId)) {
-          console.log('Skipping duplicate file:', file.name);
+          console.log("Skipping duplicate file:", file.name);
           continue;
         }
 
@@ -492,13 +575,16 @@ export function setupFileHandler(onFilesReceived: (result: FileHandlerResult) =>
         if (processed.length > 0) {
           files.push(file);
           processedFiles.push(fileId);
-          sessionStorage.setItem('processedFiles', JSON.stringify(processedFiles));
+          sessionStorage.setItem(
+            "processedFiles",
+            JSON.stringify(processedFiles),
+          );
           successCount++;
         } else {
           errorCount++;
         }
       } catch (error) {
-        console.error('Error processing file handle:', error);
+        console.error("Error processing file handle:", error);
         errorCount++;
       }
     }
@@ -511,11 +597,15 @@ export function setupFileHandler(onFilesReceived: (result: FileHandlerResult) =>
   window.launchQueue.setConsumer(consumer);
 
   return () => {
-    if ('launchQueue' in window && window.launchQueue && typeof window.launchQueue.setConsumer === 'function') {
+    if (
+      "launchQueue" in window &&
+      window.launchQueue &&
+      typeof window.launchQueue.setConsumer === "function"
+    ) {
       try {
         window.launchQueue.setConsumer(() => {});
       } catch (e) {
-        console.warn('Could not clear file handler consumer:', e);
+        console.warn("Could not clear file handler consumer:", e);
       }
     }
   };
@@ -533,28 +623,32 @@ export interface ShareTargetResult {
 
 export function handleShareTarget(): ShareTargetResult | null {
   // Share targets can send data via URL parameters or launch queue
-  if (typeof window === 'undefined') {
+  if (typeof window === "undefined") {
     return null;
   }
 
   // Check URL parameters for share data
   const urlParams = new URLSearchParams(window.location.search);
-  const title = urlParams.get('title') || undefined;
-  const text = urlParams.get('text') || undefined;
-  const url = urlParams.get('url') || undefined;
+  const title = urlParams.get("title") || undefined;
+  const text = urlParams.get("text") || undefined;
+  const url = urlParams.get("url") || undefined;
 
   // For now, return basic share info
   // Files would typically come through launch queue for file shares
-  return title || text || url ? {
-    files: [],
-    title,
-    text,
-    url
-  } : null;
+  return title || text || url
+    ? {
+        files: [],
+        title,
+        text,
+        url,
+      }
+    : null;
 }
 
 // Hook to handle share targets and file shares
-export function useShareTarget(onFilesReceived: (result: ShareTargetResult) => void) {
+export function useShareTarget(
+  onFilesReceived: (result: ShareTargetResult) => void,
+) {
   const hasProcessedRef = useRef(false);
 
   useEffect(() => {
@@ -568,21 +662,28 @@ export function useShareTarget(onFilesReceived: (result: ShareTargetResult) => v
 
       // Clear share target parameters from URL after processing
       const url = new URL(window.location.href);
-      const paramsToRemove = ['title', 'text', 'url'];
-      paramsToRemove.forEach(param => url.searchParams.delete(param));
+      const paramsToRemove = ["title", "text", "url"];
+      paramsToRemove.forEach((param) => url.searchParams.delete(param));
 
       // Update URL without triggering a page reload
-      window.history.replaceState({}, '', url.toString());
+      window.history.replaceState({}, "", url.toString());
     }
   }, [onFilesReceived]);
 }
-export function useFileHandler(addSong: (song: Song) => Promise<void>, t: any) {
+export function useFileHandler(
+  addSong: (song: Song) => Promise<void>,
+  t: any,
+  isInitialized?: boolean,
+) {
   const [isSupported, setIsSupported] = useState(false);
   const processedFilesRef = useRef(new Set<string>());
   const hasProcessedFilesRef = useRef(false);
+  const pendingFilesRef = useRef<File[]>([]);
 
   useEffect(() => {
-    const supported = 'launchQueue' in window && typeof window.launchQueue?.setConsumer === 'function';
+    const supported =
+      "launchQueue" in window &&
+      typeof window.launchQueue?.setConsumer === "function";
     setIsSupported(supported);
 
     if (!supported) return;
@@ -592,26 +693,67 @@ export function useFileHandler(addSong: (song: Song) => Promise<void>, t: any) {
       if (hasProcessedFilesRef.current) return;
 
       if (result.files.length > 0) {
+        // If library is not initialized yet, queue the files
+        if (isInitialized === false) {
+          console.log(
+            "Library not initialized, queuing files for later processing",
+          );
+          pendingFilesRef.current.push(...result.files);
+          return;
+        }
+
         hasProcessedFilesRef.current = true;
-        toast.success(t("fileHandler.filesReceived", { count: result.successCount }));
+        toast.success(
+          t("fileHandler.filesReceived", { count: result.successCount }),
+        );
         await importAudioFiles(result.files, addSong, t);
         // Clear processed files after successful import to allow re-importing the same files
         processedFilesRef.current.clear();
       }
       if (result.errorCount > 0) {
-        toast.error(t("fileHandler.filesSkipped", { count: result.errorCount }));
+        toast.error(
+          t("fileHandler.filesSkipped", { count: result.errorCount }),
+        );
       }
     });
 
     return cleanup;
-  }, [addSong, t]);
+  }, [addSong, t, isInitialized]);
+
+  // Process queued files when library becomes initialized
+  useEffect(() => {
+    if (isInitialized && pendingFilesRef.current.length > 0) {
+      console.log("Library initialized, processing queued files");
+      const filesToProcess = [...pendingFilesRef.current];
+      pendingFilesRef.current = [];
+
+      // Process the queued files
+      importAudioFiles(filesToProcess, addSong, t)
+        .then(() => {
+          hasProcessedFilesRef.current = true;
+          processedFilesRef.current.clear();
+          toast.success(
+            t("fileHandler.filesReceived", { count: filesToProcess.length }),
+          );
+        })
+        .catch((error) => {
+          console.error("Failed to process queued files:", error);
+          toast.error(
+            t("filePicker.failedImport", { count: filesToProcess.length }),
+          );
+        });
+    }
+  }, [isInitialized, addSong, t]);
 
   return { isSupported };
 }
-export async function importAudioFiles(audioFiles: Array<{ file: File } | File>, addSong: (song: Song) => Promise<void>, t: any) {
+export async function importAudioFiles(
+  audioFiles: Array<{ file: File } | File>,
+  addSong: (song: Song) => Promise<void>,
+  t: any,
+) {
   if (!audioFiles || audioFiles.length === 0) return;
   const BATCH_SIZE = 10; // Reduced batch size
-  const CONCURRENT_LIMIT = 3; // Process only 3 files concurrently per batch
   let successCount = 0;
   let errorCount = 0;
   let currentBatch = 1;
@@ -619,46 +761,43 @@ export async function importAudioFiles(audioFiles: Array<{ file: File } | File>,
   for (let i = 0; i < audioFiles.length; i += BATCH_SIZE) {
     const batch = audioFiles.slice(i, i + BATCH_SIZE);
     toast.loading(t("batch.processing", { currentBatch, totalBatches }));
-    
-    // Process batch with concurrency limit
-    for (let j = 0; j < batch.length; j += CONCURRENT_LIMIT) {
-      const concurrentBatch = batch.slice(j, j + CONCURRENT_LIMIT);
-      const batchPromises = concurrentBatch.map(async (audioFile: { file: File } | File) => {
-        try {
-          const file: File = (audioFile as any).file || (audioFile as File);
-          const metadata = await extractAudioMetadata(file);
-          const audioUrl = createAudioUrl(file);
-          const song: Song = {
-            id: generateUniqueId(),
-            title: metadata.title,
-            artist: metadata.artist,
-            album: metadata.album || t("songInfo.album", { title: t("common.unknownAlbum") }),
-            duration: metadata.duration,
-            url: audioUrl,
-            albumArt: metadata.albumArt,
-            embeddedLyrics: metadata.embeddedLyrics,
-            encoding: metadata.encoding,
-            gapless: metadata.gapless,
-          };
-          await addSong(song);
-          URL.revokeObjectURL(audioUrl); // Revoke immediately after adding
-          if (typeof audioFile === 'object' && 'file' in audioFile) {
-            (audioFile as { file: File }).file = null as any; // Clear reference
-          }
-          successCount++;
-        } catch {
-          errorCount++;
+
+    // Process batch sequentially to minimize memory usage
+    for (const audioFile of batch) {
+      try {
+        const file: File = (audioFile as any).file || (audioFile as File);
+        const metadata = await extractAudioMetadata(file);
+        const audioUrl = createAudioUrl(file);
+        const song: Song = {
+          id: generateUniqueId(),
+          title: metadata.title,
+          artist: metadata.artist,
+          album:
+            metadata.album ||
+            t("songInfo.album", { title: t("common.unknownAlbum") }),
+          duration: metadata.duration,
+          url: audioUrl,
+          albumArt: metadata.albumArt,
+          embeddedLyrics: metadata.embeddedLyrics,
+          encoding: metadata.encoding,
+          gapless: metadata.gapless,
+        };
+        await addSong(song);
+        URL.revokeObjectURL(audioUrl); // Revoke immediately after adding
+        if (typeof audioFile === "object" && "file" in audioFile) {
+          (audioFile as { file: File }).file = null as any; // Clear reference
         }
-      });
-      await Promise.all(batchPromises);
-      
-      // Small delay between concurrent batches to reduce load
-      await new Promise(resolve => setTimeout(resolve, 100));
+        successCount++;
+      } catch {
+        errorCount++;
+      }
     }
-    
+
     currentBatch++;
   }
   toast.dismiss();
-  if (successCount > 0) toast.success(t("filePicker.successImport", { count: successCount }));
-  if (errorCount > 0) toast.error(t("filePicker.failedImport", { count: errorCount }));
+  if (successCount > 0)
+    toast.success(t("filePicker.successImport", { count: successCount }));
+  if (errorCount > 0)
+    toast.error(t("filePicker.failedImport", { count: errorCount }));
 }

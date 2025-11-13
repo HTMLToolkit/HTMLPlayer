@@ -10,7 +10,7 @@ const geometricPulse: VisualizerType = {
     bufferLength,
     timeDataArray,
     dataType,
-    settings = {}
+    settings = {},
   ) {
     const {
       shapeColor = "hsla({hue}, 80%, 50%, {alpha})",

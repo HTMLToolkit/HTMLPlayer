@@ -136,10 +136,7 @@ export const libraryConfig: IconLibraryConfigMap = {
   },
 };
 
-const tablerIcon = (
-  icon: string,
-  title?: string
-): IconDefinition => ({
+const tablerIcon = (icon: string, title?: string): IconDefinition => ({
   type: "library",
   library: "tabler",
   icon,
@@ -198,7 +195,7 @@ const icons: IconDefinitionMap = {
   rotateCcw: tablerIcon("TbRotate"),
   keyboard: tablerIcon("TbKeyboard"),
   messageCircle: tablerIcon("TbMessageCircle"),
-  visualizerControls: tablerIcon("TbWaveSine")
+  visualizerControls: tablerIcon("TbWaveSine"),
 };
 
 export default icons;

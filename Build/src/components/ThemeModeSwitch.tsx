@@ -74,12 +74,7 @@ export const ThemeModeSwitch = ({
             className={value === "light" ? styles.activeItem : ""}
             onClick={() => applyThemeMode("light")}
           >
-            <Icon
-              name="sun"
-              size={16}
-              className={styles.menuIcon}
-              decorative
-            />
+            <Icon name="sun" size={16} className={styles.menuIcon} decorative />
             {t("themeLight")}
             {value === "light" && <span className={styles.checkmark}>✓</span>}
           </DropdownMenuItem>

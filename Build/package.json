@@ -16,6 +16,7 @@
     "test": "react-scripts test",
     "lint": "eslint 'src/**/*.ts' 'src/**/*.tsx'",
     "eject": "react-scripts eject",
+    "make-pretty": "prettier --write 'src/**/*.{ts,tsx,js,jsx,json,css,scss,md,html,cjs}'",
     "count-lines": "cloc . --exclude-dir=node_modules,build,dist --exclude-ext=lock,json",
     "i18n-check": "node i18n-izer.cjs --ignore-console"
   },
@@ -75,6 +76,7 @@
     "cloc": "^2.11.0",
     "eslint": "^9.36.0",
     "eslint-plugin-react": "^7.37.5",
+    "prettier": "^3.6.2",
     "vite": "^7.1.7",
     "vite-plugin-pwa": "^1.0.3"
   },

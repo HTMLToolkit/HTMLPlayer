@@ -8,7 +8,9 @@ interface IconFallbackState {
   error: string | null;
 }
 
-export type IconFallback = React.ReactNode | ((state: IconFallbackState) => React.ReactNode);
+export type IconFallback =
+  | React.ReactNode
+  | ((state: IconFallbackState) => React.ReactNode);
 
 export interface IconProps {
   name: string;
@@ -34,7 +36,10 @@ export interface IconProps {
   onBlur?: React.FocusEventHandler<any>;
 }
 
-const renderFallback = (fallback: IconFallback | undefined, state: IconFallbackState) => {
+const renderFallback = (
+  fallback: IconFallback | undefined,
+  state: IconFallbackState,
+) => {
   if (typeof fallback === "function") {
     return fallback(state);
   }
@@ -85,7 +90,7 @@ export const Icon: React.FC<IconProps> = ({
       if (!name) {
         setResolvedIcon(null);
         setIsLoading(false);
-        setError(t('icon.nameNotProvided'));
+        setError(t("icon.nameNotProvided"));
         return;
       }
 
@@ -95,7 +100,9 @@ export const Icon: React.FC<IconProps> = ({
 
         const options: IconLookupOptions | undefined = (() => {
           const hasSet = Boolean(setId);
-          const hasFallbacks = Boolean(fallbackOrder && fallbackOrder.length > 0);
+          const hasFallbacks = Boolean(
+            fallbackOrder && fallbackOrder.length > 0,
+          );
           if (!hasSet && !hasFallbacks) {
             return undefined;
           }
@@ -114,7 +121,8 @@ export const Icon: React.FC<IconProps> = ({
         setResolvedIcon(icon);
       } catch (err) {
         if (cancelled) return;
-        const message = err instanceof Error ? err.message : t('icon.failedToLoad');
+        const message =
+          err instanceof Error ? err.message : t("icon.failedToLoad");
         setError(message);
         setResolvedIcon(null);
       } finally {
@@ -152,66 +160,73 @@ export const Icon: React.FC<IconProps> = ({
   }
 
   if (error || !resolvedIcon) {
-    return renderFallback(fallback, { isLoading: false, error: error ?? t('icon.notFound') });
+    return renderFallback(fallback, {
+      isLoading: false,
+      error: error ?? t("icon.notFound"),
+    });
   }
 
   switch (resolvedIcon.type) {
     case "component": {
-          const { Component, defaultProps, propTransformer } = resolvedIcon;
+      const { Component, defaultProps, propTransformer } = resolvedIcon;
 
-          // Apply prop transformer if available
-          const transformedProps = propTransformer
-            ? propTransformer({
-                size,
-                color,
-                stroke,
-                strokeWidth,
-                fill,
-                className,
-                style,
-              })
-            : {};
-
-          // Build props object with proper typing
-          const componentProps: Record<string, any> = {
+      // Apply prop transformer if available
+      const transformedProps = propTransformer
+        ? propTransformer({
+            size,
+            color,
+            stroke,
+            strokeWidth,
+            fill,
             className,
-            style: {
-              display: inline ? "inline-flex" : "inline-flex",
-              verticalAlign: inline ? "middle" : "middle",
-              // Only apply dimensionStyle if no prop transformer (library doesn't handle sizing)
-              ...(propTransformer ? {} : dimensionStyle),
-              ...style,
-            },
-            ...ariaProps,
-            ...(defaultProps as Record<string, unknown>),
-            ...transformedProps, // Apply transformed props
-          };
+            style,
+          })
+        : {};
 
-          // Add optional props only if defined and not already handled by transformer
-          if (!propTransformer) {
-            if (size !== undefined) componentProps.size = size;
-            if (color !== undefined) componentProps.color = color;
-            if (stroke !== undefined) componentProps.stroke = stroke;
-            if (strokeWidth !== undefined) componentProps.strokeWidth = strokeWidth;
-            if (fill !== undefined) componentProps.fill = fill;
-          }
-          
-          // Always add event handlers
-          if (onClick) componentProps.onClick = onClick;
-          if (onMouseEnter) componentProps.onMouseEnter = onMouseEnter;
-          if (onMouseLeave) componentProps.onMouseLeave = onMouseLeave;
-          if (onFocus) componentProps.onFocus = onFocus;
-          if (onBlur) componentProps.onBlur = onBlur;
+      // Build props object with proper typing
+      const componentProps: Record<string, any> = {
+        className,
+        style: {
+          display: inline ? "inline-flex" : "inline-flex",
+          verticalAlign: inline ? "middle" : "middle",
+          // Only apply dimensionStyle if no prop transformer (library doesn't handle sizing)
+          ...(propTransformer ? {} : dimensionStyle),
+          ...style,
+        },
+        ...ariaProps,
+        ...(defaultProps as Record<string, unknown>),
+        ...transformedProps, // Apply transformed props
+      };
 
-          return <Component {...componentProps} />;
+      // Add optional props only if defined and not already handled by transformer
+      if (!propTransformer) {
+        if (size !== undefined) componentProps.size = size;
+        if (color !== undefined) componentProps.color = color;
+        if (stroke !== undefined) componentProps.stroke = stroke;
+        if (strokeWidth !== undefined) componentProps.strokeWidth = strokeWidth;
+        if (fill !== undefined) componentProps.fill = fill;
+      }
+
+      // Always add event handlers
+      if (onClick) componentProps.onClick = onClick;
+      if (onMouseEnter) componentProps.onMouseEnter = onMouseEnter;
+      if (onMouseLeave) componentProps.onMouseLeave = onMouseLeave;
+      if (onFocus) componentProps.onFocus = onFocus;
+      if (onBlur) componentProps.onBlur = onBlur;
+
+      return <Component {...componentProps} />;
     }
     case "image": {
       return (
         <img
           className={className}
-          style={{ display: inline ? "inline-block" : "block", ...dimensionStyle, ...style }}
+          style={{
+            display: inline ? "inline-block" : "block",
+            ...dimensionStyle,
+            ...style,
+          }}
           src={resolvedIcon.src}
-          alt={decorative ? "" : alt ?? resolvedIcon.alt ?? name}
+          alt={decorative ? "" : (alt ?? resolvedIcon.alt ?? name)}
           title={title ?? resolvedIcon.title ?? undefined}
           onClick={onClick}
           onMouseEnter={onMouseEnter}
@@ -226,7 +241,11 @@ export const Icon: React.FC<IconProps> = ({
       return (
         <span
           className={className}
-          style={{ display: inline ? "inline-block" : "block", ...dimensionStyle, ...style }}
+          style={{
+            display: inline ? "inline-block" : "block",
+            ...dimensionStyle,
+            ...style,
+          }}
           onClick={onClick}
           onMouseEnter={onMouseEnter}
           onMouseLeave={onMouseLeave}
@@ -239,7 +258,10 @@ export const Icon: React.FC<IconProps> = ({
       );
     }
     default:
-      return renderFallback(fallback, { isLoading: false, error: t('icon.unsupportedType') });
+      return renderFallback(fallback, {
+        isLoading: false,
+        error: t("icon.unsupportedType"),
+      });
   }
 };
 

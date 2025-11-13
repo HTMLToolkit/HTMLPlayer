@@ -138,10 +138,7 @@ export const libraryConfig: IconLibraryConfigMap = {
   },
 };
 
-const remixIcon = (
-  icon: string,
-  title?: string
-): IconDefinition => ({
+const remixIcon = (icon: string, title?: string): IconDefinition => ({
   type: "library",
   library: "remix",
   icon,
@@ -200,7 +197,7 @@ const icons: IconDefinitionMap = {
   rotateCcw: remixIcon("RiArrowGoBackFill"),
   keyboard: remixIcon("RiKeyboardBoxFill"),
   messageCircle: remixIcon("RiMessage3Fill"),
-  visualizerControls: remixIcon("RiSlideshowFill")
+  visualizerControls: remixIcon("RiSlideshowFill"),
 };
 
 export default icons;

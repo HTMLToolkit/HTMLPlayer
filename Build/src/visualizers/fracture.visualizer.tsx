@@ -10,7 +10,7 @@ const fractureSpectrogram: VisualizerType = {
     bufferLength,
     freqDataArray,
     dataType,
-    settings = {}
+    settings = {},
   ) {
     const {
       segmentColor = "hsla({hue}, {saturation}%, 50%, {alpha})",
@@ -47,7 +47,7 @@ const fractureSpectrogram: VisualizerType = {
           canvas.height / 2,
           radius * (1 + amplitude * 0.3),
           startAngle,
-          endAngle
+          endAngle,
         );
 
         ctx.strokeStyle = segmentColor
@@ -62,7 +62,7 @@ const fractureSpectrogram: VisualizerType = {
           ctx.moveTo(canvas.width / 2, canvas.height / 2);
           ctx.lineTo(
             canvas.width / 2 + radius * Math.cos(startAngle),
-            canvas.height / 2 + radius * Math.sin(startAngle)
+            canvas.height / 2 + radius * Math.sin(startAngle),
           );
           ctx.strokeStyle = segmentColor
             .replace("{hue}", `${(freqIndex * 360) / bufferLength}`)

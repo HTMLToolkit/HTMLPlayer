@@ -146,6 +146,32 @@
 
 ## Done
 
+- [X] the lyrics don't show embedded/USLT/SYLT lyrics properly
+
+- [X] Fix visualizer overlay covering title, and top actions
+
+- [X] the file_handler doesn't wait for our library to load so it adds before the songs are loaded and the song is lost
+
+- [X] Disable Eruda by default
+
+- [X] Memory issue and resulting crash when having a lot (300+) of songs on ChromeOS. The app should behave mostly the same no matter the amount of songs stored
+  - suspect 2 reasons:
+    - The IndexedDB is way too big to load in the larger it is, causing it to crash (edit: nope)
+    - The smart caching is broken (<- edit: it was this and also caused below bug)
+      - [X] The music files take up double the space they should?!
+
+- [X] Pressing next, play, pause anywhere has a delay sometimes
+
+- [X] Increase pitch range from -48 to 48
+
+- [X] Songs speed up sometimes on the next song automatically
+
+- [X] Clean up and improve Lyrics component
+
+- [X] Fix Embedded Lyrics "not being saved" but they actually are
+
+- [X] Fix repeated CacheManager erraneous logs
+
 - [X] Speed up and fix song uploading being slow and a RAM hog (lagging)
 
 - [X] fix some themes's visibility issues
@@ -285,6 +311,8 @@
   - [X] Grey, Black, and White in one (Monochrome)
 
 - [X] I forgot to uncache and recache the smart song caching after the next song, as currently, 4 songs are played, but the next song shows a `Failed to load resource: net::ERR_FILE_NOT_FOUND` error as it never is loaded in.
+
+- [X] Smart Caching Algo: basically only the next and prev 2-4 songs are cached and the rest are dynamically fetched and cleared every song change
 
 - [X] And I think that the album art is messed up by either the format, or that the title is in a diff language
 

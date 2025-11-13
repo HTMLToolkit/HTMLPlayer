@@ -3,9 +3,7 @@ import { DraggableItem, DropZone } from "./Draggable";
 import { SongActionsDropdown } from "./SongActionsDropdown";
 import { Checkbox } from "./Checkbox";
 import { useRightClickMenu } from "./DropdownMenu";
-import {
-  pickAudioFiles,
-} from "../helpers/filePickerHelper";
+import { pickAudioFiles } from "../helpers/filePickerHelper";
 import { toast } from "sonner";
 import { Button } from "./Button";
 import { Input } from "./Input";
@@ -18,7 +16,9 @@ import {
   DialogFooter,
 } from "./Dialog";
 import styles from "./MainContent.module.css";
-import PersistentDropdownMenu, { PersistentDropdownMenuRef } from "./PersistentDropdownMenu";
+import PersistentDropdownMenu, {
+  PersistentDropdownMenuRef,
+} from "./PersistentDropdownMenu";
 import { AddToPopover } from "./AddToPopover";
 import { useTranslation } from "react-i18next";
 import { Icon } from "./Icon";
@@ -79,18 +79,33 @@ const SortableSongItem = ({
     >
       <div className={styles.songInfo}>
         {isSelectActive && (
-          <Checkbox
-            checked={isSelected}
-            onChange={onCheckboxChange}
-          />
+          <Checkbox checked={isSelected} onChange={onCheckboxChange} />
         )}
         <div className={styles.albumArt}>
-          {song.albumArt && <img src={song.albumArt} alt={t("player.albumArtAlt", { title: song.title })} style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "inherit" }} />}
+          {song.albumArt && (
+            <img
+              src={song.albumArt}
+              alt={t("player.albumArtAlt", { title: song.title })}
+              style={{
+                width: "100%",
+                height: "100%",
+                objectFit: "cover",
+                borderRadius: "inherit",
+              }}
+            />
+          )}
         </div>
         <div className={styles.songDetails}>
           <div className={styles.songTitle}>{song.title}</div>
           <div className={styles.songArtist}>
-            <span className={`${styles.fieldLabel}`}>{t("common.album")}: </span>{song.album || t("common.unknownAlbum")}<span className={`${styles.fieldLabel} ${styles.desktopOnly}`}> {t("common.duration")}: {formatDuration(song.duration)}</span>
+            <span className={`${styles.fieldLabel}`}>
+              {t("common.album")}:{" "}
+            </span>
+            {song.album || t("common.unknownAlbum")}
+            <span className={`${styles.fieldLabel} ${styles.desktopOnly}`}>
+              {" "}
+              {t("common.duration")}: {formatDuration(song.duration)}
+            </span>
           </div>
           <div className={`${styles.albumName} ${styles.mobileOnly}`}>
             <span className={styles.fieldLabel}>{t("common.artist")}: </span>
@@ -98,9 +113,19 @@ const SortableSongItem = ({
           </div>
         </div>
       </div>
-      <div className={`${styles.albumName} ${styles.desktopOnly}`}>{song.artist}</div>
+      <div className={`${styles.albumName} ${styles.desktopOnly}`}>
+        {song.artist}
+      </div>
       <div className={styles.songActions}>
-        <Button variant="ghost" size="icon-sm" className={`${styles.songActionButton} ${isFavorited ? styles.favorited : ""}`} onClick={(e) => { e.stopPropagation(); onFavoriteToggle(e); }}>
+        <Button
+          variant="ghost"
+          size="icon-sm"
+          className={`${styles.songActionButton} ${isFavorited ? styles.favorited : ""}`}
+          onClick={(e) => {
+            e.stopPropagation();
+            onFavoriteToggle(e);
+          }}
+        >
           <Icon
             name="heart"
             size={14}
@@ -147,11 +172,7 @@ const SortableSongItem = ({
   );
 
   return (
-    <DraggableItem
-      id={song.id}
-      type="song"
-      data={song}
-    >
+    <DraggableItem id={song.id} type="song" data={song}>
       {isInPlaylist ? (
         <DropZone
           id={song.id}
@@ -175,11 +196,16 @@ interface MainContentProps {
   onMobileMenuClick?: () => void;
 }
 
-export const MainContent = ({ musicPlayerHook, onMobileMenuClick }: MainContentProps) => {
+export const MainContent = ({
+  musicPlayerHook,
+  onMobileMenuClick,
+}: MainContentProps) => {
   const { t } = useTranslation();
 
   const [songSearchQuery, setSongSearchQuery] = useState("");
-  const [sortBy, setSortBy] = useState<"name" | "artist" | "album" | "rating" | null>(null);
+  const [sortBy, setSortBy] = useState<
+    "name" | "artist" | "album" | "rating" | null
+  >(null);
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
   const [ratings, setRatings] = useState<
     Record<string, "thumbs-up" | "thumbs-down" | "none">
@@ -210,7 +236,7 @@ export const MainContent = ({ musicPlayerHook, onMobileMenuClick }: MainContentP
   // Navigation listener
   React.useEffect(() => {
     const handleNavigate = (
-      e: CustomEvent<{ view: "artist" | "album"; value: string }>
+      e: CustomEvent<{ view: "artist" | "album"; value: string }>,
     ) => {
       if (e.detail.view === "artist") navigateToArtist(e.detail.value);
       else if (e.detail.view === "album") navigateToAlbum(e.detail.value);
@@ -230,11 +256,11 @@ export const MainContent = ({ musicPlayerHook, onMobileMenuClick }: MainContentP
   const songsToDisplay = React.useMemo(() => {
     if (playerState.view === "artist" && playerState.currentArtist) {
       return library.songs.filter(
-        (song) => song.artist === playerState.currentArtist
+        (song) => song.artist === playerState.currentArtist,
       );
     } else if (playerState.view === "album" && playerState.currentAlbum) {
       return library.songs.filter(
-        (song) => song.album === playerState.currentAlbum
+        (song) => song.album === playerState.currentAlbum,
       );
     } else if (playerState.currentPlaylist) {
       return playerState.currentPlaylist.songs;
@@ -252,7 +278,7 @@ export const MainContent = ({ musicPlayerHook, onMobileMenuClick }: MainContentP
   const filteredSongs = songsToDisplay.filter(
     (song: Song) =>
       song.title.toLowerCase().includes(songSearchQuery.toLowerCase()) ||
-      song.artist.toLowerCase().includes(songSearchQuery.toLowerCase())
+      song.artist.toLowerCase().includes(songSearchQuery.toLowerCase()),
   );
 
   const sortedSongs = React.useMemo(() => {
@@ -275,8 +301,18 @@ export const MainContent = ({ musicPlayerHook, onMobileMenuClick }: MainContentP
             bVal = b.album?.toLowerCase() || "";
             break;
           case "rating":
-            aVal = ratings[a.id] === "thumbs-up" ? 1 : ratings[a.id] === "thumbs-down" ? -1 : 0;
-            bVal = ratings[b.id] === "thumbs-up" ? 1 : ratings[b.id] === "thumbs-down" ? -1 : 0;
+            aVal =
+              ratings[a.id] === "thumbs-up"
+                ? 1
+                : ratings[a.id] === "thumbs-down"
+                  ? -1
+                  : 0;
+            bVal =
+              ratings[b.id] === "thumbs-up"
+                ? 1
+                : ratings[b.id] === "thumbs-down"
+                  ? -1
+                  : 0;
             break;
           default:
             return 0;
@@ -297,7 +333,7 @@ export const MainContent = ({ musicPlayerHook, onMobileMenuClick }: MainContentP
 
   const handleRating = (
     songId: string,
-    rating: "thumbs-up" | "thumbs-down"
+    rating: "thumbs-up" | "thumbs-down",
   ) => {
     const currentRating = ratings[songId];
     const newRating = currentRating === rating ? "none" : rating;
@@ -306,7 +342,7 @@ export const MainContent = ({ musicPlayerHook, onMobileMenuClick }: MainContentP
 
   const handleToggleFavorite = (
     e: React.MouseEvent<HTMLButtonElement, MouseEvent>,
-    songId: string
+    songId: string,
   ) => {
     e.stopPropagation();
     const wasAdded = toggleFavorite(songId);
@@ -315,7 +351,7 @@ export const MainContent = ({ musicPlayerHook, onMobileMenuClick }: MainContentP
       toast.success(
         wasAdded
           ? t("favorites.added", { title: song.title })
-          : t("favorites.removed", { title: song.title })
+          : t("favorites.removed", { title: song.title }),
       );
     }
   };
@@ -327,7 +363,9 @@ export const MainContent = ({ musicPlayerHook, onMobileMenuClick }: MainContentP
     }
 
     // Check if user has chosen not to show delete confirmation
-    const shouldShow = await musicIndexedDbHelper.shouldShowDialog("delete-song-confirmation");
+    const shouldShow = await musicIndexedDbHelper.shouldShowDialog(
+      "delete-song-confirmation",
+    );
     if (!shouldShow) {
       // Delete directly without showing dialog
       const songToDelete = filteredSongs[0];
@@ -356,9 +394,11 @@ export const MainContent = ({ musicPlayerHook, onMobileMenuClick }: MainContentP
   };
 
   // Helper to import audio files (used for both manual and share target)
-  const handleImportAudioFiles = async (audioFiles: Array<{ file: File } | File>) => {
+  const handleImportAudioFiles = async (
+    audioFiles: Array<{ file: File } | File>,
+  ) => {
     await importAudioFiles(audioFiles, addSong, t);
-  }
+  };
 
   // Manual add music (Uppy)
   const handleAddMusic = async () => {
@@ -414,17 +454,29 @@ export const MainContent = ({ musicPlayerHook, onMobileMenuClick }: MainContentP
             <h1 className={styles.title}>HTMLPlayer</h1>
           ) : playerState.view === "artist" ? (
             <>
-              <Button variant="link" onClick={navigateToSongs} className={styles.backLink}>
+              <Button
+                variant="link"
+                onClick={navigateToSongs}
+                className={styles.backLink}
+              >
                 {t("actions.back")}
               </Button>
-              <h1 className={styles.title}>{`${t("common.artist")}: ${playerState.currentArtist}`}</h1>
+              <h1
+                className={styles.title}
+              >{`${t("common.artist")}: ${playerState.currentArtist}`}</h1>
             </>
           ) : playerState.view === "album" ? (
             <>
-              <Button variant="link" onClick={navigateToSongs} className={styles.backLink}>
+              <Button
+                variant="link"
+                onClick={navigateToSongs}
+                className={styles.backLink}
+              >
                 {t("actions.back")}
               </Button>
-              <h1 className={styles.title}>{`${t("common.album")}: ${playerState.currentAlbum}`}</h1>
+              <h1
+                className={styles.title}
+              >{`${t("common.album")}: ${playerState.currentAlbum}`}</h1>
             </>
           ) : null}
         </div>
@@ -444,75 +496,143 @@ export const MainContent = ({ musicPlayerHook, onMobileMenuClick }: MainContentP
               data-tour="search"
             />
           </div>
-          <Button variant="outline" size="icon-md" className={styles.actionButton} onClick={handleDeleteSong} aria-label={t("actions.delete")}>
+          <Button
+            variant="outline"
+            size="icon-md"
+            className={styles.actionButton}
+            onClick={handleDeleteSong}
+            aria-label={t("actions.delete")}
+          >
             <Icon name="trash2" size={16} decorative />
           </Button>
           <PersistentDropdownMenu
             ref={sortDropdownRef}
             trigger={
-              <Button variant="outline" size="icon-md" className={styles.actionButton} aria-label={t("sort.sortBy")}>
+              <Button
+                variant="outline"
+                size="icon-md"
+                className={styles.actionButton}
+                aria-label={t("sort.sortBy")}
+              >
                 <Icon name="arrowUpDown" size={16} decorative />
               </Button>
             }
-            onClose={() => { }}
+            onClose={() => {}}
           >
-            <Button variant="ghost" onClick={() => setSortBy('name')} className="w-full justify-start text-sm">
+            <Button
+              variant="ghost"
+              onClick={() => setSortBy("name")}
+              className="w-full justify-start text-sm"
+            >
               <Icon name="type" size={16} className="mr-2" decorative />
               {t("sort.name")}
-              {sortBy === 'name' && <span className="ml-auto">•</span>}
+              {sortBy === "name" && <span className="ml-auto">•</span>}
             </Button>
-            <Button variant="ghost" onClick={() => setSortBy('artist')} className="w-full justify-start text-sm">
+            <Button
+              variant="ghost"
+              onClick={() => setSortBy("artist")}
+              className="w-full justify-start text-sm"
+            >
               <Icon name="user" size={16} className="mr-2" decorative />
               {t("sort.artist")}
-              {sortBy === 'artist' && <span className="ml-auto">•</span>}
+              {sortBy === "artist" && <span className="ml-auto">•</span>}
             </Button>
-            <Button variant="ghost" onClick={() => setSortBy('album')} className="w-full justify-start text-sm">
+            <Button
+              variant="ghost"
+              onClick={() => setSortBy("album")}
+              className="w-full justify-start text-sm"
+            >
               <Icon name="disc" size={16} className="mr-2" decorative />
               {t("sort.album")}
-              {sortBy === 'album' && <span className="ml-auto">•</span>}
+              {sortBy === "album" && <span className="ml-auto">•</span>}
             </Button>
-            <Button variant="ghost" onClick={() => setSortBy('rating')} className="w-full justify-start text-sm">
+            <Button
+              variant="ghost"
+              onClick={() => setSortBy("rating")}
+              className="w-full justify-start text-sm"
+            >
               <Icon name="star" size={16} className="mr-2" decorative />
               {t("sort.rating")}
-              {sortBy === 'rating' && <span className="ml-auto">•</span>}
+              {sortBy === "rating" && <span className="ml-auto">•</span>}
             </Button>
             <div className="border-t my-1"></div>
-            <Button variant="ghost" onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')} className="w-full justify-start text-sm">
-              {sortOrder === 'asc' ? (
+            <Button
+              variant="ghost"
+              onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
+              className="w-full justify-start text-sm"
+            >
+              {sortOrder === "asc" ? (
                 <Icon name="arrowUp" size={16} className="mr-2" decorative />
               ) : (
                 <Icon name="arrowDown" size={16} className="mr-2" decorative />
               )}
-              {sortOrder === 'asc' ? t('sort.ascending') : t('sort.descending')}
+              {sortOrder === "asc" ? t("sort.ascending") : t("sort.descending")}
             </Button>
             <div className="border-t my-1"></div>
-            <Button variant="ghost" onClick={() => { setSortBy(null); sortDropdownRef.current?.close(); }} className="w-full justify-start text-sm">
+            <Button
+              variant="ghost"
+              onClick={() => {
+                setSortBy(null);
+                sortDropdownRef.current?.close();
+              }}
+              className="w-full justify-start text-sm"
+            >
               <Icon name="close" size={16} className="mr-2" decorative />
-              {t('sort.clear')}
+              {t("sort.clear")}
             </Button>
           </PersistentDropdownMenu>
           <PersistentDropdownMenu
             trigger={
-              <Button variant="outline" size="icon-md" className={styles.actionButton} onClick={handleSelectSongsToggle} aria-label={t("actions.selectSongs")}>
+              <Button
+                variant="outline"
+                size="icon-md"
+                className={styles.actionButton}
+                onClick={handleSelectSongsToggle}
+                aria-label={t("actions.selectSongs")}
+              >
                 <Icon name="listChecks" size={16} decorative />
               </Button>
             }
             onClose={() => handleSelectSongsToggle()}
           >
             <Button variant="ghost" onClick={handleSelectAll}>
-              <Icon name="listChecks" size={16} style={{ marginRight: 8 }} decorative />
-              {selectedSongs.length === sortedSongs.length ? t("actions.deselectAll") : t("actions.selectAll")}
+              <Icon
+                name="listChecks"
+                size={16}
+                style={{ marginRight: 8 }}
+                decorative
+              />
+              {selectedSongs.length === sortedSongs.length
+                ? t("actions.deselectAll")
+                : t("actions.selectAll")}
             </Button>
             <Button variant="ghost" onClick={handleAddToPlaylist}>
-              <Icon name="plus" size={16} style={{ marginRight: 8 }} decorative />
+              <Icon
+                name="plus"
+                size={16}
+                style={{ marginRight: 8 }}
+                decorative
+              />
               {t("playlist.addTo")}
             </Button>
             <Button variant="ghost" onClick={handleDeleteSelectedSongs}>
-              <Icon name="trash2" size={16} style={{ marginRight: 8 }} decorative />
+              <Icon
+                name="trash2"
+                size={16}
+                style={{ marginRight: 8 }}
+                decorative
+              />
               {t("common.delete")}
             </Button>
           </PersistentDropdownMenu>
-          <Button variant="outline" size="icon-md" className={styles.actionButton} onClick={handleAddMusic} aria-label={t("actions.addMusic")} data-tour="upload-music">
+          <Button
+            variant="outline"
+            size="icon-md"
+            className={styles.actionButton}
+            onClick={handleAddMusic}
+            aria-label={t("actions.addMusic")}
+            data-tour="upload-music"
+          >
             <Icon name="plus" size={16} decorative />
           </Button>
         </div>
@@ -523,7 +643,9 @@ export const MainContent = ({ musicPlayerHook, onMobileMenuClick }: MainContentP
         <div className={styles.songList}>
           <div className={styles.songListHeader}>
             <span className={styles.columnHeader}>{t("songInfo.title")}</span>
-            <span className={`${styles.columnHeader} ${styles.desktopOnly}`}>{t("common.artist")}</span>
+            <span className={`${styles.columnHeader} ${styles.desktopOnly}`}>
+              {t("common.artist")}
+            </span>
             <span className={styles.columnHeader}>{t("actions.addTo")}</span>
           </div>
           {sortedSongs.map((song: Song) => (
@@ -535,8 +657,10 @@ export const MainContent = ({ musicPlayerHook, onMobileMenuClick }: MainContentP
               onClick={() => handleSongClick(song)}
               onCheckboxChange={(e) => {
                 e.stopPropagation();
-                setSelectedSongs(prev =>
-                  prev.includes(song.id) ? prev.filter(id => id !== song.id) : [...prev, song.id]
+                setSelectedSongs((prev) =>
+                  prev.includes(song.id)
+                    ? prev.filter((id) => id !== song.id)
+                    : [...prev, song.id],
                 );
               }}
               isSelectActive={isSelectSongsActive}
@@ -557,7 +681,9 @@ export const MainContent = ({ musicPlayerHook, onMobileMenuClick }: MainContentP
           ))}
           {sortedSongs.length === 0 && (
             <div className={styles.noResults}>
-              {songSearchQuery ? t("noResults.search") : t("noResults.playlist")}
+              {songSearchQuery
+                ? t("noResults.search")
+                : t("noResults.playlist")}
             </div>
           )}
         </div>
@@ -568,18 +694,26 @@ export const MainContent = ({ musicPlayerHook, onMobileMenuClick }: MainContentP
         <DialogContent dontShowAgainKey="delete-song-confirmation">
           <DialogHeader>
             <DialogTitle>{t("delete.songTitle")}</DialogTitle>
-            <DialogDescription>{t("delete.confirm", { title: songToDelete?.title })}</DialogDescription>
+            <DialogDescription>
+              {t("delete.confirm", { title: songToDelete?.title })}
+            </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={handleDeleteCancel}>{t("common.cancel")}</Button>
-            <Button variant="destructive" onClick={handleDeleteConfirm}>{t("common.delete")}</Button>
+            <Button variant="outline" onClick={handleDeleteCancel}>
+              {t("common.cancel")}
+            </Button>
+            <Button variant="destructive" onClick={handleDeleteConfirm}>
+              {t("common.delete")}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
       {/* Add To Popover */}
       <AddToPopover
-        songs={selectedSongs.map((id) => library.songs.find((s) => s.id === id)).filter((s): s is Song => s !== undefined)}
+        songs={selectedSongs
+          .map((id) => library.songs.find((s) => s.id === id))
+          .filter((s): s is Song => s !== undefined)}
         library={library}
         onCreatePlaylist={createPlaylist}
         onAddToPlaylist={addToPlaylist}

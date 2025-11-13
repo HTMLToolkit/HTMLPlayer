@@ -10,7 +10,7 @@ const fluidSpectrogram: VisualizerType = {
     bufferLength,
     freqDataArray,
     dataType,
-    settings = {}
+    settings = {},
   ) {
     const {
       particleColor = "hsla({hue}, 80%, 50%, {alpha})",
@@ -66,7 +66,7 @@ const fluidSpectrogram: VisualizerType = {
         p.y,
         particleSize * p.life * (0.5 + amplitude * 0.5),
         0,
-        Math.PI * 2
+        Math.PI * 2,
       );
       ctx.fill();
     });

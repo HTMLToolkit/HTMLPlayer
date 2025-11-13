@@ -5,7 +5,7 @@ import { MutableRefObject } from "react";
 export const getSmartShuffledSong = (
   availableSongs: Song[],
   currentSongId: string,
-  playHistory: Map<string, { lastPlayed: number; playCount: number }>
+  playHistory: Map<string, { lastPlayed: number; playCount: number }>,
 ): Song | null => {
   if (availableSongs.length === 0) return null;
 
@@ -18,17 +18,19 @@ export const getSmartShuffledSong = (
   let filteredCandidates = candidates;
   if (availableSongs.length <= 3) {
     // Get recently played songs (within last 30 minutes for small playlists)
-    const recentThreshold = now - (30 * 60 * 1000); // 30 minutes
+    const recentThreshold = now - 30 * 60 * 1000; // 30 minutes
     const recentlyPlayedIds = new Set<string>();
-    
+
     for (const [songId, history] of playHistory.entries()) {
       if (history.lastPlayed > recentThreshold) {
         recentlyPlayedIds.add(songId);
       }
     }
-    
+
     // Filter out recently played songs, but keep at least one option
-    filteredCandidates = candidates.filter(song => !recentlyPlayedIds.has(song.id));
+    filteredCandidates = candidates.filter(
+      (song) => !recentlyPlayedIds.has(song.id),
+    );
     if (filteredCandidates.length === 0) {
       // If all candidates were recently played, use the least recently played one
       filteredCandidates = candidates.sort((a, b) => {
@@ -65,14 +67,15 @@ export const getSmartShuffledSong = (
 
   // If no candidates after filtering, fall back to original candidates
   if (songsWithWeights.length === 0) {
-    const fallbackSong = candidates[Math.floor(Math.random() * candidates.length)];
+    const fallbackSong =
+      candidates[Math.floor(Math.random() * candidates.length)];
     return fallbackSong;
   }
 
   // Weighted random selection using reservoir sampling
   const totalWeight = songsWithWeights.reduce(
     (sum, item) => sum + item.weight,
-    0
+    0,
   );
   let randomValue = Math.random() * totalWeight;
 
@@ -90,7 +93,7 @@ export const getSmartShuffledSong = (
 // Next song cache manager
 export const createNextSongManager = (
   nextSongCacheRef: MutableRefObject<Song | null>,
-  nextSongCacheValidRef: MutableRefObject<boolean>
+  nextSongCacheValidRef: MutableRefObject<boolean>,
 ) => {
   let lastCacheInvalidation = 0;
   const CACHE_INVALIDATION_THROTTLE = 500; // Throttle invalidations to max once per 500ms
@@ -101,7 +104,7 @@ export const createNextSongManager = (
     settingsRef: MutableRefObject<any>,
     playHistoryRef: MutableRefObject<
       Map<string, { lastPlayed: number; playCount: number }>
-    >
+    >,
   ): Song | null => {
     if (
       !playerStateRef.current.currentPlaylist ||
@@ -117,13 +120,13 @@ export const createNextSongManager = (
 
     const songs = playerStateRef.current.currentPlaylist.songs;
     const currentIndex = songs.findIndex(
-      (s: { id: any }) => s.id === playerStateRef.current.currentSong!.id
+      (s: { id: any }) => s.id === playerStateRef.current.currentSong!.id,
     );
     let nextSong: Song | null = null;
 
     if (playerStateRef.current.shuffle) {
       const available = songs.filter(
-        (s: { id: any }) => s.id !== playerStateRef.current.currentSong!.id
+        (s: { id: any }) => s.id !== playerStateRef.current.currentSong!.id,
       );
       if (available.length > 0) {
         if (settingsRef.current.smartShuffle) {
@@ -131,7 +134,7 @@ export const createNextSongManager = (
           nextSong = getSmartShuffledSong(
             available,
             playerStateRef.current.currentSong!.id,
-            playHistoryRef.current
+            playHistoryRef.current,
           );
           if (!nextSong) {
             nextSong = available[Math.floor(Math.random() * available.length)];
@@ -172,7 +175,7 @@ export const createNextSongManager = (
     playHistoryRef: MutableRefObject<
       Map<string, { lastPlayed: number; playCount: number }>
     >,
-    songId: string
+    songId: string,
   ) => {
     const now = Date.now();
     const currentHistory = playHistoryRef.current.get(songId) || {

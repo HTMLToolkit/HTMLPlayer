@@ -26,11 +26,11 @@
   align-items: center;
   gap: 12px;
   backdrop-filter: blur(20px);
-  
+
   /* Smooth GPU-accelerated transform */
   transform: rotate(-2deg) scale(1.05);
   transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
-  
+
   /* Subtle pulse animation */
   animation: dragPulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
@@ -68,11 +68,11 @@
   align-items: center;
   gap: 12px;
   backdrop-filter: blur(20px);
-  
+
   /* Smooth transform */
   transform: rotate(-2deg) scale(1.05);
   transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
-  
+
   /* Subtle pulse animation */
   animation: dragPulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
@@ -91,11 +91,14 @@
 }
 
 @keyframes dragPulse {
-  0%, 100% {
+  0%,
+  100% {
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
   }
   50% {
-    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4), 0 0 20px var(--themecolor2-transparent);
+    box-shadow:
+      0 12px 32px rgba(0, 0, 0, 0.4),
+      0 0 20px var(--themecolor2-transparent);
   }
 }
 
@@ -114,9 +117,10 @@
 
 /* Drop zone styling */
 .dropZone {
-  transition: background-color 0.15s ease, 
-              border 0.15s ease, 
-              transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition:
+    background-color 0.15s ease,
+    border 0.15s ease,
+    transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .dropZone[data-droppable="true"] {
@@ -128,7 +132,9 @@
 
 /* Draggable item styling */
 .draggableItem {
-  transition: opacity 0.2s ease, transform 0.2s ease;
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease;
   will-change: transform, opacity;
 }
 
@@ -136,4 +142,3 @@
   opacity: 0.5;
   cursor: grabbing;
 }
-

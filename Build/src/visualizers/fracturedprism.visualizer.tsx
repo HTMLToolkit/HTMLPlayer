@@ -10,7 +10,7 @@ const fracturedPrism: VisualizerType = {
     bufferLength,
     timeDataArray,
     dataType,
-    settings = {}
+    settings = {},
   ) {
     const {
       lineColor = "hsla({hue}, 70%, 50%, 0.6)",
@@ -46,7 +46,7 @@ const fracturedPrism: VisualizerType = {
         else if (i % jitterInterval === 0) {
           ctx.lineTo(
             x + Math.random() * jitterAmplitude,
-            y + Math.random() * jitterAmplitude
+            y + Math.random() * jitterAmplitude,
           );
         } else {
           ctx.lineTo(x, y);

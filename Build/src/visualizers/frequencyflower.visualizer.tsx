@@ -10,7 +10,7 @@ const frequencyFlower: VisualizerType = {
     bufferLength,
     freqDataArray,
     dataType,
-    settings = {}
+    settings = {},
   ) {
     const {
       lineColor = "hsl({hue}, 100%, 50%)",

@@ -10,7 +10,7 @@ const flowerSpectrogram: VisualizerType = {
     bufferLength,
     freqDataArray,
     dataType,
-    settings = {}
+    settings = {},
   ) {
     const {
       pointColor = "hsla({hue}, 80%, 50%, 0.6)",
@@ -39,7 +39,7 @@ const flowerSpectrogram: VisualizerType = {
 
       ctx.fillStyle = pointColor.replace(
         "{hue}",
-        `${(i * 360) / bufferLength}`
+        `${(i * 360) / bufferLength}`,
       );
       ctx.beginPath();
       ctx.arc(x, y, pointSize, 0, 2 * Math.PI);

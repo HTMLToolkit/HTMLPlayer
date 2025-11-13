@@ -1,4 +1,10 @@
-import React, { useState, useRef, useEffect, useImperativeHandle, forwardRef } from "react";
+import React, {
+  useState,
+  useRef,
+  useEffect,
+  useImperativeHandle,
+  forwardRef,
+} from "react";
 import styles from "./PersistentDropdownMenu.module.css";
 
 interface CustomDropdownMenuProps {
@@ -12,12 +18,10 @@ export interface PersistentDropdownMenuRef {
   close: () => void;
 }
 
-const PersistentDropdownMenu = forwardRef<PersistentDropdownMenuRef, CustomDropdownMenuProps>(({
-  children,
-  trigger,
-  onClose,
-  enableRightClick = false,
-}, ref) => {
+const PersistentDropdownMenu = forwardRef<
+  PersistentDropdownMenuRef,
+  CustomDropdownMenuProps
+>(({ children, trigger, onClose, enableRightClick = false }, ref) => {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -64,7 +68,11 @@ const PersistentDropdownMenu = forwardRef<PersistentDropdownMenuRef, CustomDropd
   }, [children, toggleOpen, onClose]);
 
   return (
-    <div className={styles.persistentDropdown} ref={dropdownRef} onContextMenu={handleContextMenu}>
+    <div
+      className={styles.persistentDropdown}
+      ref={dropdownRef}
+      onContextMenu={handleContextMenu}
+    >
       <div
         onClick={() => {
           toggleOpen();

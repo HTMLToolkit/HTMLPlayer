@@ -10,7 +10,7 @@ const fracturedCircle: VisualizerType = {
     bufferLength,
     freqDataArray,
     dataType,
-    settings = {}
+    settings = {},
   ) {
     const {
       segmentColor = "hsl({hue}, 70%, 50%)",
@@ -41,7 +41,7 @@ const fracturedCircle: VisualizerType = {
       ctx.arc(centerX, centerY, radius, startAngle, endAngle);
       ctx.strokeStyle = segmentColor.replace(
         "{hue}",
-        `${(i * 360) / segments}`
+        `${(i * 360) / segments}`,
       );
       ctx.lineWidth = lineWidth + amplitude * 5;
       ctx.stroke();

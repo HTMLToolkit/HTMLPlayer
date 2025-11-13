@@ -11,7 +11,7 @@ const CACHE_CONFIG = {
 
 // Cache management utilities with improved error handling and performance
 export const createCacheManager = (
-  songCacheRef: MutableRefObject<Map<string, CachedSong>>
+  songCacheRef: MutableRefObject<Map<string, CachedSong>>,
 ) => {
   const cacheSong = async (song: Song): Promise<void> => {
     // Check if song is already cached and valid
@@ -27,7 +27,7 @@ export const createCacheManager = (
             if (audioData && !existingCache.url.startsWith("blob:")) {
               // Need to create new blob URL
               const newUrl = URL.createObjectURL(
-                new Blob([audioData.fileData], { type: audioData.mimeType })
+                new Blob([audioData.fileData], { type: audioData.mimeType }),
               );
               // Revoke old URL if it was a blob
               if (existingCache.url.startsWith("blob:")) {
@@ -45,7 +45,7 @@ export const createCacheManager = (
             console.warn(
               "Failed to refresh IndexedDB cache for song:",
               song.id,
-              error
+              error,
             );
           }
         }
@@ -69,29 +69,26 @@ export const createCacheManager = (
         audioData = await musicIndexedDbHelper.loadSongAudio(song.id);
         if (audioData) {
           const url = URL.createObjectURL(
-            new Blob([audioData.fileData], { type: audioData.mimeType })
+            new Blob([audioData.fileData], { type: audioData.mimeType }),
           );
           songCacheRef.current.set(song.id, {
             song: { ...song, url },
-            audioBuffer: audioData.fileData,
             url,
             loadedAt: Date.now(),
           });
           console.log(
             "CacheManager: Successfully cached song from IndexedDB:",
-            song.title
+            song.title,
           );
+          return; // Successfully loaded from IndexedDB, exit early
+        } else {
+          // Audio was marked as stored but not found in IndexedDB
+          console.warn(
+            "CacheManager: Song has stored audio but not found in IndexedDB:",
+            song.id,
+          );
+          return; // Don't try to fetch if audio should be in IndexedDB
         }
-      }
-
-            // If not in IndexedDB or failed to load, fetch from original URL
-      // But don't try to fetch if the song has stored audio (should only be loaded from IndexedDB)
-      if (song.hasStoredAudio) {
-        console.warn(
-          "CacheManager: Song has stored audio but not found in IndexedDB:",
-          song.id
-        );
-        return;
       }
 
       if (
@@ -101,7 +98,7 @@ export const createCacheManager = (
       ) {
         console.error(
           "CacheManager: No valid URL to fetch song from:",
-          song.id
+          song.id,
         );
         return;
       }
@@ -119,7 +116,7 @@ export const createCacheManager = (
           if (fileSize > CACHE_CONFIG.PRELOAD_THRESHOLD) {
             console.log(
               "CacheManager: Large file detected, skipping aggressive caching:",
-              song.title
+              song.title,
             );
             shouldCache = false;
           }
@@ -128,7 +125,7 @@ export const createCacheManager = (
         // HEAD request failed, continue with normal caching
         console.warn(
           "CacheManager: HEAD request failed, continuing with caching:",
-          headError
+          headError,
         );
       }
 
@@ -145,7 +142,6 @@ export const createCacheManager = (
       if (shouldCache || buffer.byteLength <= CACHE_CONFIG.PRELOAD_THRESHOLD) {
         songCacheRef.current.set(song.id, {
           song: { ...song, url },
-          audioBuffer: buffer,
           url,
           loadedAt: Date.now(),
         });
@@ -166,7 +162,7 @@ export const createCacheManager = (
 
       console.log(
         "CacheManager: Successfully cached song from URL:",
-        song.title
+        song.title,
       );
     } catch (error) {
       console.error("CacheManager: Failed to cache song:", song.title, error);
@@ -208,7 +204,7 @@ export const createCacheManager = (
 
     if (expiredKeys.length > 0) {
       console.log(
-        `CacheManager: Cleared ${expiredKeys.length} expired cache entries`
+        `CacheManager: Cleared ${expiredKeys.length} expired cache entries`,
       );
     }
   };
@@ -218,12 +214,12 @@ export const createCacheManager = (
 
     // Sort by last accessed time (oldest first)
     const entries = Array.from(songCacheRef.current.entries()).sort(
-      (a, b) => a[1].loadedAt - b[1].loadedAt
+      (a, b) => a[1].loadedAt - b[1].loadedAt,
     );
 
     const toRemove = entries.slice(
       0,
-      songCacheRef.current.size - CACHE_CONFIG.MAX_CACHE_SIZE
+      songCacheRef.current.size - CACHE_CONFIG.MAX_CACHE_SIZE,
     );
 
     for (const [id, cached] of toRemove) {
@@ -234,7 +230,7 @@ export const createCacheManager = (
     }
 
     console.log(
-      `CacheManager: Removed ${toRemove.length} entries to enforce cache size limit`
+      `CacheManager: Removed ${toRemove.length} entries to enforce cache size limit`,
     );
   };
 
@@ -270,8 +266,8 @@ export const createCacheManager = (
     getSmartShuffledSong: (
       availableSongs: Song[],
       currentSongId: string,
-      playHistory: Map<string, { lastPlayed: number; playCount: number }>
-    ) => Song | null
+      playHistory: Map<string, { lastPlayed: number; playCount: number }>,
+    ) => Song | null,
   ) => {
     if (!currentSong || !playlist) return;
 
@@ -280,7 +276,7 @@ export const createCacheManager = (
     enforceCacheSize();
 
     const currentIndex = playlist.songs.findIndex(
-      (s) => s.id === currentSong.id
+      (s) => s.id === currentSong.id,
     );
     if (currentIndex === -1) return;
 
@@ -288,14 +284,14 @@ export const createCacheManager = (
     const start = Math.max(0, currentIndex - CACHE_CONFIG.PREV_SONGS);
     const end = Math.min(
       playlist.songs.length - 1,
-      currentIndex + CACHE_CONFIG.NEXT_SONGS
+      currentIndex + CACHE_CONFIG.NEXT_SONGS,
     );
 
     // Get next shuffled songs if shuffle is enabled (cache multiple for better performance)
     const nextShuffledSongs: Song[] = [];
     if (playerStateRef.current.shuffle) {
       const availableSongs = playlist.songs.filter(
-        (_, i) => i !== currentIndex
+        (_, i) => i !== currentIndex,
       );
 
       if (availableSongs.length > 0) {
@@ -309,21 +305,21 @@ export const createCacheManager = (
           if (settingsRef.current.smartShuffle) {
             // Use smart shuffle for caching
             const availableForThis = availableSongs.filter(
-              (s) => !usedSongs.has(s.id)
+              (s) => !usedSongs.has(s.id),
             );
             nextSong = getSmartShuffledSong(
               availableForThis,
               currentSong.id,
-              playHistoryRef.current
+              playHistoryRef.current,
             );
           } else {
             // Use regular shuffle for caching
             const availableForThis = availableSongs.filter(
-              (s) => !usedSongs.has(s.id)
+              (s) => !usedSongs.has(s.id),
             );
             if (availableForThis.length > 0) {
               const randomIndex = Math.floor(
-                Math.random() * availableForThis.length
+                Math.random() * availableForThis.length,
               );
               nextSong = availableForThis[randomIndex];
             }
@@ -392,10 +388,10 @@ export const createCacheManager = (
     try {
       const results = await Promise.allSettled(cachePromises);
       const successful = results.filter(
-        (r) => r.status === "fulfilled" && r.value
+        (r) => r.status === "fulfilled" && r.value,
       ).length;
       console.log(
-        `CacheManager: Successfully cached ${successful} of ${cachePromises.length} songs`
+        `CacheManager: Successfully cached ${successful} of ${cachePromises.length} songs`,
       );
     } catch (error) {
       console.error("CacheManager: Error in batch caching:", error);

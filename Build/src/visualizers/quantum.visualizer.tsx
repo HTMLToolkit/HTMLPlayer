@@ -10,7 +10,7 @@ const quantumSpectrogram: VisualizerType = {
     bufferLength,
     freqDataArray,
     dataType,
-    settings = {}
+    settings = {},
   ) {
     const {
       pointColor = "hsla({hue}, 90%, 50%, {alpha})",
@@ -49,7 +49,7 @@ const quantumSpectrogram: VisualizerType = {
           if (i > 0 && j > 0) {
             ctx.strokeStyle = lineColor.replace(
               "{alpha}",
-              `${amplitude * 0.2}`
+              `${amplitude * 0.2}`,
             );
             ctx.beginPath();
             ctx.moveTo(x, y);

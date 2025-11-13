@@ -10,7 +10,7 @@ const kaleidoscopeSpectrogram: VisualizerType = {
     bufferLength,
     freqDataArray,
     dataType,
-    settings = {}
+    settings = {},
   ) {
     const {
       pointColor = "hsla({hue}, 85%, 50%, 0.5)",
@@ -41,7 +41,7 @@ const kaleidoscopeSpectrogram: VisualizerType = {
 
         ctx.fillStyle = pointColor.replace(
           "{hue}",
-          `${(i * 360) / bufferLength}`
+          `${(i * 360) / bufferLength}`,
         );
         ctx.beginPath();
         ctx.arc(x, y, pointSize, 0, 2 * Math.PI);

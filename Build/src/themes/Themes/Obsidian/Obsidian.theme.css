@@ -86,19 +86,22 @@
   /* Miscellaneous */
   --border: hsl(260, 15%, 20%);
   --certain-icons: var(--themecolor);
-  --albumart-gradient: linear-gradient(135deg, var(--themecolor2) 0%, var(--themecolor3) 100%);
+  --albumart-gradient: linear-gradient(
+    135deg,
+    var(--themecolor2) 0%,
+    var(--themecolor3) 100%
+  );
 
   /* Shadows */
-  --shadow: 0 1px 2px hsla(0, 0%, 0%, 0.05),
-    0 3px 6px hsla(0, 0%, 0%, 0.07);
-  --shadow-md: 0 1px 3px hsla(0, 0%, 0%, 0.05),
-    0 10px 15px -5px hsla(0, 0%, 0%, 0.05),
+  --shadow: 0 1px 2px hsla(0, 0%, 0%, 0.05), 0 3px 6px hsla(0, 0%, 0%, 0.07);
+  --shadow-md:
+    0 1px 3px hsla(0, 0%, 0%, 0.05), 0 10px 15px -5px hsla(0, 0%, 0%, 0.05),
     0 20px 25px -5px hsla(0, 0%, 0%, 0.04);
-  --shadow-lg: 0 1px 3px hsla(0, 0%, 0%, 0.05),
-    0 20px 25px -5px hsla(0, 0%, 0%, 0.07),
+  --shadow-lg:
+    0 1px 3px hsla(0, 0%, 0%, 0.05), 0 20px 25px -5px hsla(0, 0%, 0%, 0.07),
     0 30px 40px -5px hsla(0, 0%, 0%, 0.05);
-  --shadow-focus: 0 0 0 2px hsla(260, 30%, 45%, 0.25),
-    0 1px 2px hsla(0, 0%, 0%, 0.05);
+  --shadow-focus:
+    0 0 0 2px hsla(260, 30%, 45%, 0.25), 0 1px 2px hsla(0, 0%, 0%, 0.05);
 }
 
 .dark {
@@ -185,19 +188,18 @@
   --error-foreground: hsl(0, 0%, 100%);
 
   /* Miscellaneous */
-    --certain-icons: hsl(260, 50%, 60%);
+  --certain-icons: hsl(260, 50%, 60%);
   --albumart-gradient: linear-gradient(135deg, #1b1b2a 0%, #252535 100%);
 
   /* Shadows */
   --border: hsl(260, 20%, 20%);
-  --shadow: 0 1px 2px hsla(0, 0%, 0%, 0.05),
-    0 3px 6px hsla(0, 0%, 0%, 0.07);
-  --shadow-md: 0 1px 3px hsla(0, 0%, 0%, 0.05),
-    0 10px 15px -5px hsla(0, 0%, 0%, 0.05),
+  --shadow: 0 1px 2px hsla(0, 0%, 0%, 0.05), 0 3px 6px hsla(0, 0%, 0%, 0.07);
+  --shadow-md:
+    0 1px 3px hsla(0, 0%, 0%, 0.05), 0 10px 15px -5px hsla(0, 0%, 0%, 0.05),
     0 20px 25px -5px hsla(0, 0%, 0%, 0.04);
-  --shadow-lg: 0 1px 3px hsla(0, 0%, 0%, 0.05),
-    0 20px 25px -5px hsla(0, 0%, 0%, 0.07),
+  --shadow-lg:
+    0 1px 3px hsla(0, 0%, 0%, 0.05), 0 20px 25px -5px hsla(0, 0%, 0%, 0.07),
     0 30px 40px -5px hsla(0, 0%, 0%, 0.05);
-  --shadow-focus: 0 0 0 2px hsla(260, 25%, 35%, 0.25),
-    0 1px 2px hsla(0, 0%, 0%, 0.05);
+  --shadow-focus:
+    0 0 0 2px hsla(260, 25%, 35%, 0.25), 0 1px 2px hsla(0, 0%, 0%, 0.05);
 }

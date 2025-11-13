@@ -80,7 +80,7 @@ const openDatabase = (): Promise<IDBDatabase> => {
 const saveToIndexedDB = async (
   storeName: string,
   key: string,
-  data: any
+  data: any,
 ): Promise<void> => {
   try {
     // First, get existing data if needed
@@ -102,6 +102,9 @@ const saveToIndexedDB = async (
           hasStoredAudio: song.hasStoredAudio || false,
           url: "", // Clear URL - will be created on-demand
           albumArt: song.albumArt, // Preserve album art data
+          embeddedLyrics: song.embeddedLyrics, // Preserve embedded lyrics
+          encoding: song.encoding, // Preserve encoding
+          gapless: song.gapless, // Preserve gapless flag
         })),
       };
     }
@@ -125,7 +128,7 @@ const saveToIndexedDB = async (
 
 const loadFromIndexedDB = async (
   storeName: string,
-  key: string
+  key: string,
 ): Promise<any> => {
   try {
     const db = await openDatabase();
@@ -164,6 +167,9 @@ const loadFromIndexedDB = async (
           url: placeholderUrl,
           hasStoredAudio: song.hasStoredAudio || false,
           albumArt: song.albumArt, // Keep album art when loading
+          embeddedLyrics: song.embeddedLyrics, // Restore embedded lyrics
+          encoding: song.encoding, // Restore encoding
+          gapless: song.gapless, // Restore gapless flag
         };
       });
 
@@ -257,7 +263,7 @@ export const musicIndexedDbHelper = {
       const db = await openDatabase();
       const transaction = db.transaction(
         [STORES.AUDIO_DATA, STORES.LIBRARY],
-        "readwrite"
+        "readwrite",
       );
       const audioStore = transaction.objectStore(STORES.AUDIO_DATA);
       const libraryStore = transaction.objectStore(STORES.LIBRARY);
@@ -347,12 +353,18 @@ export const musicIndexedDbHelper = {
       // Return true if no preference is set (show by default), false if user chose not to show
       return result?.data?.dontShowAgain !== true;
     } catch (error) {
-      console.error(`Failed to check dialog preference for ${dialogKey}:`, error);
+      console.error(
+        `Failed to check dialog preference for ${dialogKey}:`,
+        error,
+      );
       return true; // Default to showing the dialog if there's an error
     }
   },
 
-  async setDialogPreference(dialogKey: string, dontShowAgain: boolean): Promise<void> {
+  async setDialogPreference(
+    dialogKey: string,
+    dontShowAgain: boolean,
+  ): Promise<void> {
     try {
       const db = await openDatabase();
       const transaction = db.transaction([STORES.SETTINGS], "readwrite");
@@ -361,16 +373,21 @@ export const musicIndexedDbHelper = {
       await new Promise<void>((resolve, reject) => {
         const request = store.put({
           id: `dialog-${dialogKey}`,
-          data: { dontShowAgain, timestamp: Date.now() }
+          data: { dontShowAgain, timestamp: Date.now() },
         });
         request.onsuccess = () => resolve();
         request.onerror = () => reject(request.error);
       });
 
       db.close();
-      console.log(`Saved dialog preference for ${dialogKey}: dontShowAgain=${dontShowAgain}`);
+      console.log(
+        `Saved dialog preference for ${dialogKey}: dontShowAgain=${dontShowAgain}`,
+      );
     } catch (error) {
-      console.error(`Failed to save dialog preference for ${dialogKey}:`, error);
+      console.error(
+        `Failed to save dialog preference for ${dialogKey}:`,
+        error,
+      );
       throw error;
     }
   },
@@ -391,13 +408,15 @@ export async function resetAllDialogPreferences(): Promise<void> {
     });
     // Delete all dialog-* keys
     await Promise.all(
-      keys.filter((key) => key.startsWith("dialog-")).map((key) => {
-        return new Promise<void>((resolve, reject) => {
-          const req = store.delete(key);
-          req.onsuccess = () => resolve();
-          req.onerror = () => reject(req.error);
-        });
-      })
+      keys
+        .filter((key) => key.startsWith("dialog-"))
+        .map((key) => {
+          return new Promise<void>((resolve, reject) => {
+            const req = store.delete(key);
+            req.onsuccess = () => resolve();
+            req.onerror = () => reject(req.error);
+          });
+        }),
     );
     db.close();
   } catch (error) {

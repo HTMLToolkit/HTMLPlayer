@@ -10,7 +10,7 @@ const cityscape: VisualizerType = {
     bufferLength,
     freqDataArray,
     dataType,
-    settings = {}
+    settings = {},
   ) {
     const {
       buildingColor = "rgb(20, 20, {blue})",
@@ -40,7 +40,7 @@ const cityscape: VisualizerType = {
         x,
         canvas.height - height - baseHeight,
         buildingWidth - 2,
-        height
+        height,
       );
 
       const rows = Math.floor(height / windowRows);
@@ -53,7 +53,7 @@ const cityscape: VisualizerType = {
             x + col * (buildingWidth / 3) + 2,
             canvas.height - height - baseHeight + row * windowRows + 5,
             buildingWidth / 4,
-            windowRows / 2
+            windowRows / 2,
           );
         }
       }

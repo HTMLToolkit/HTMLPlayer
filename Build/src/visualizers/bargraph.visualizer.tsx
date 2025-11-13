@@ -10,7 +10,7 @@ const barGraph: VisualizerType = {
     bufferLength,
     dataArray,
     dataType,
-    settings = {}
+    settings = {},
   ) {
     const {
       barColor = "hsl({hue}, 80%, 50%)",

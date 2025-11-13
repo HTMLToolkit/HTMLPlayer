@@ -44,7 +44,7 @@ export const ScrollText = ({
   const innerRef = useRef<HTMLDivElement>(null);
   const resizeObserverRef = useRef<ResizeObserver | null>(null);
   const rafRef = useRef<number | null>(null);
-  
+
   // Combined state for better performance
   const [scrollState, setScrollState] = useState({
     shouldScroll: false,
@@ -52,7 +52,10 @@ export const ScrollText = ({
     duration: minDuration,
   });
 
-  const safeText = useMemo(() => (allowHTML ? DOMPurify.sanitize(text) : text), [text, allowHTML]);
+  const safeText = useMemo(
+    () => (allowHTML ? DOMPurify.sanitize(text) : text),
+    [text, allowHTML],
+  );
 
   // Memoize the span props to avoid recreating on every render
   const spanProps = useMemo(() => {
@@ -60,7 +63,7 @@ export const ScrollText = ({
       className: styles.text,
       style: scrollState.shouldScroll ? { marginRight: `${gap}px` } : undefined,
     };
-    
+
     return allowHTML
       ? { ...baseProps, dangerouslySetInnerHTML: { __html: safeText } }
       : { ...baseProps, children: text };
@@ -72,7 +75,9 @@ export const ScrollText = ({
     const inner = innerRef.current;
     if (!wrapper || !inner) return;
 
-    const base = inner.querySelector("[data-scroll-text='primary']") as HTMLElement | null;
+    const base = inner.querySelector(
+      "[data-scroll-text='primary']",
+    ) as HTMLElement | null;
     if (!base) return;
 
     const contentWidth = base.scrollWidth;
@@ -132,9 +137,9 @@ export const ScrollText = ({
   // Initialize resize observer once
   useEffect(() => {
     if (typeof ResizeObserver === "undefined") return;
-    
+
     resizeObserverRef.current = new ResizeObserver(() => measure());
-    
+
     return () => {
       resizeObserverRef.current?.disconnect();
     };
@@ -143,14 +148,14 @@ export const ScrollText = ({
   // Observe both elements with the same observer
   useLayoutEffect(() => {
     if (!resizeObserverRef.current) return;
-    
+
     const wrapper = wrapperRef.current;
     const inner = innerRef.current;
-    
+
     if (wrapper) resizeObserverRef.current.observe(wrapper);
     if (inner) resizeObserverRef.current.observe(inner);
     measure();
-    
+
     return () => {
       if (wrapper) resizeObserverRef.current?.unobserve(wrapper);
       if (inner) resizeObserverRef.current?.unobserve(inner);
@@ -166,48 +171,60 @@ export const ScrollText = ({
   }, []);
 
   // Memoize class names to avoid recalculating on every render
-  const wrapperClasses = useMemo(() => [
-    styles.wrapper,
-    pauseOnHover && scrollState.shouldScroll ? styles.pauseOnHover : "",
-    className,
-    containerClassName
-  ].filter(Boolean).join(" "), [className, containerClassName, pauseOnHover, scrollState.shouldScroll]);
+  const wrapperClasses = useMemo(
+    () =>
+      [
+        styles.wrapper,
+        pauseOnHover && scrollState.shouldScroll ? styles.pauseOnHover : "",
+        className,
+        containerClassName,
+      ]
+        .filter(Boolean)
+        .join(" "),
+    [className, containerClassName, pauseOnHover, scrollState.shouldScroll],
+  );
 
-  const innerClasses = useMemo(() => [
-    styles.inner,
-    textClassName,
-    scrollState.shouldScroll ? styles.scrolling : ""
-  ].filter(Boolean).join(" "), [textClassName, scrollState.shouldScroll]);
+  const innerClasses = useMemo(
+    () =>
+      [
+        styles.inner,
+        textClassName,
+        scrollState.shouldScroll ? styles.scrolling : "",
+      ]
+        .filter(Boolean)
+        .join(" "),
+    [textClassName, scrollState.shouldScroll],
+  );
 
   // Memoize combined text style
-  const combinedTextStyle = useMemo(() => ({
-    ...(scrollState.shouldScroll
-      ? {
-          "--scroll-distance": `${scrollState.distance}px`,
-          "--scroll-duration": `${scrollState.duration}s`,
-          "--scroll-gap": `${gap}px`,
-        }
-      : {}),
-    ...textStyle,
-  } as CSSProperties), [scrollState, gap, textStyle]);
+  const combinedTextStyle = useMemo(
+    () =>
+      ({
+        ...(scrollState.shouldScroll
+          ? {
+              "--scroll-distance": `${scrollState.distance}px`,
+              "--scroll-duration": `${scrollState.duration}s`,
+              "--scroll-gap": `${gap}px`,
+            }
+          : {}),
+        ...textStyle,
+      }) as CSSProperties,
+    [scrollState, gap, textStyle],
+  );
 
   return (
-    <div 
-      ref={wrapperRef} 
-      className={wrapperClasses} 
-      style={wrapperStyle} 
-      role="region" 
+    <div
+      ref={wrapperRef}
+      className={wrapperClasses}
+      style={wrapperStyle}
+      role="region"
       aria-label={t("accessibility.scrollingText")}
       {...rest}
     >
       <div ref={innerRef} className={innerClasses} style={combinedTextStyle}>
         <span data-scroll-text="primary" {...spanProps} />
         {scrollState.shouldScroll && (
-          <span
-            data-scroll-text="clone"
-            aria-hidden="true"
-            {...spanProps}
-          />
+          <span data-scroll-text="clone" aria-hidden="true" {...spanProps} />
         )}
       </div>
     </div>

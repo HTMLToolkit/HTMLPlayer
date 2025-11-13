@@ -84,7 +84,8 @@
     color: var(--muted-foreground);
     border: none;
     cursor: pointer;
-    transition: background-color var(--animation-duration-fast) ease,
+    transition:
+      background-color var(--animation-duration-fast) ease,
       transform var(--animation-duration-fast) ease;
   }
 

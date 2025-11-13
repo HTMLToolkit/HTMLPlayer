@@ -8,20 +8,23 @@ export const useRightClickMenu = (enableRightClick: boolean = false) => {
   const [open, setOpen] = React.useState(false);
   const containerRef = React.useRef<HTMLDivElement>(null);
 
-  const handleContextMenu = React.useCallback((e: MouseEvent) => {
-    if (enableRightClick) {
-      e.preventDefault();
-      e.stopPropagation();
-      setOpen(true);
-    }
-  }, [enableRightClick]);
+  const handleContextMenu = React.useCallback(
+    (e: MouseEvent) => {
+      if (enableRightClick) {
+        e.preventDefault();
+        e.stopPropagation();
+        setOpen(true);
+      }
+    },
+    [enableRightClick],
+  );
 
   React.useEffect(() => {
     const element = containerRef.current;
     if (enableRightClick && element) {
-      element.addEventListener('contextmenu', handleContextMenu);
+      element.addEventListener("contextmenu", handleContextMenu);
       return () => {
-        element.removeEventListener('contextmenu', handleContextMenu);
+        element.removeEventListener("contextmenu", handleContextMenu);
       };
     }
   }, [enableRightClick, handleContextMenu]);

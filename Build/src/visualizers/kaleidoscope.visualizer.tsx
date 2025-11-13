@@ -10,7 +10,7 @@ const kaleidoscope: VisualizerType = {
     bufferLength,
     freqDataArray,
     dataType,
-    settings = {}
+    settings = {},
   ) {
     const {
       pointColor = "hsl({hue}, 100%, 50%)",
@@ -41,7 +41,7 @@ const kaleidoscope: VisualizerType = {
 
         ctx.fillStyle = pointColor.replace(
           "{hue}",
-          `${(i * 360) / bufferLength}`
+          `${(i * 360) / bufferLength}`,
         );
         ctx.beginPath();
         ctx.arc(x, y, pointSize, 0, 2 * Math.PI);

@@ -8,7 +8,8 @@
   display: flex;
   flex-direction: column;
   padding: var(--spacing-4);
-  transition: width var(--animation-duration-normal) ease-in-out,
+  transition:
+    width var(--animation-duration-normal) ease-in-out,
     padding var(--animation-duration-normal) ease-in-out;
 }
 

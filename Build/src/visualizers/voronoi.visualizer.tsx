@@ -10,7 +10,7 @@ const voronoiSpectrum: VisualizerType = {
     bufferLength,
     freqDataArray,
     dataType,
-    settings = {}
+    settings = {},
   ) {
     const {
       pointCount = 20,

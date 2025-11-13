@@ -6,11 +6,11 @@ import { Toaster } from "sonner";
 import { ThemeLoader } from "../helpers/themeLoader";
 import { IconRegistryProvider } from "../helpers/iconLoader";
 import { WallpaperLoader } from "../helpers/wallpaperLoader";
-import { I18nextProvider } from 'react-i18next';
-import i18n from 'i18next';
-import { initReactI18next } from 'react-i18next';
-import HttpApi from 'i18next-http-backend';
-import LanguageDetector from 'i18next-browser-languagedetector';
+import { I18nextProvider } from "react-i18next";
+import i18n from "i18next";
+import { initReactI18next } from "react-i18next";
+import HttpApi from "i18next-http-backend";
+import LanguageDetector from "i18next-browser-languagedetector";
 import { languageNames } from "../../public/locales/supportedLanguages";
 import { useThemeLoader } from "../helpers/themeLoader";
 import { useIconRegistry } from "../helpers/iconLoader";
@@ -20,21 +20,20 @@ i18n
   .use(LanguageDetector)
   .use(initReactI18next)
   .init({
-    fallbackLng: 'en',
+    fallbackLng: "en",
     debug: true,
     supportedLngs: Object.keys(languageNames), // <-- dynamically from file
     backend: {
-      loadPath: './locales/{{lng}}/translation.json',
+      loadPath: "./locales/{{lng}}/translation.json",
     },
     detection: {
-      order: ['queryString', 'cookie'],
-      caches: ['cookie']
+      order: ["queryString", "cookie"],
+      caches: ["cookie"],
     },
     interpolation: {
-      escapeValue: false
-    }
+      escapeValue: false,
+    },
   });
-
 
 function LoadingGate({ children }: { children: React.ReactNode }) {
   const { isLoading: themeLoading } = useThemeLoader();
@@ -53,9 +52,9 @@ function LoadingGate({ children }: { children: React.ReactNode }) {
       // Wait for app to be painted, then hide loading screen
       requestAnimationFrame(() => {
         requestAnimationFrame(() => {
-          const loadingScreen = document.getElementById('loading-screen');
+          const loadingScreen = document.getElementById("loading-screen");
           if (loadingScreen) {
-            loadingScreen.classList.add('fade-out');
+            loadingScreen.classList.add("fade-out");
             // Remove after transition completes
             setTimeout(() => {
               loadingScreen.remove();
@@ -69,7 +68,7 @@ function LoadingGate({ children }: { children: React.ReactNode }) {
 
   // Don't render children until ready
   if (!ready) return null;
-  
+
   return <>{children}</>;
 }
 
@@ -87,5 +86,5 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
         </ThemeLoader>
       </IconRegistryProvider>
     </I18nextProvider>
-  </React.StrictMode>
+  </React.StrictMode>,
 );

@@ -1,0 +1,10 @@
+{
+  "wallpaper": {
+    "id": "geometric-patterns",
+    "label": "Geometric Patterns",
+    "author": "NellowTCS",
+    "description": "Animated geometric shapes (hexagons, triangles, circles) in a hypnotizing (subjectively) grid pattern.",
+    "version": "1.0.0",
+    "componentFile": "GeometricPatterns.wallpaper.tsx"
+  }
+}

@@ -10,7 +10,7 @@ const circularSpectrogram: VisualizerType = {
     bufferLength,
     freqDataArray,
     dataType,
-    settings = {}
+    settings = {},
   ) {
     const {
       baseColor = "hsl({hue}, 100%, 50%)",

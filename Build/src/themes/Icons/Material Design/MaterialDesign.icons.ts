@@ -132,10 +132,7 @@ export const libraryConfig: IconLibraryConfigMap = {
   },
 };
 
-const materialIcon = (
-  icon: string,
-  title?: string
-): IconDefinition => ({
+const materialIcon = (icon: string, title?: string): IconDefinition => ({
   type: "library",
   library: "material",
   icon,
@@ -194,7 +191,7 @@ const icons: IconDefinitionMap = {
   rotateCcw: materialIcon("MdRotateLeft"),
   keyboard: materialIcon("MdKeyboard"),
   messageCircle: materialIcon("MdChatBubbleOutline"),
-  visualizerControls: materialIcon("MdTune")
+  visualizerControls: materialIcon("MdTune"),
 };
 
 export default icons;

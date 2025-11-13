@@ -44,8 +44,14 @@ interface IconRegistryValue {
   iconsReady: boolean;
   error: string | null;
   setIconSet: (idOrName: string) => void;
-  getIconDefinition: (name: string, options?: IconLookupOptions) => IconDefinition | undefined;
-  loadIcon: (name: string, options?: IconLookupOptions) => Promise<ResolvedIcon | null>;
+  getIconDefinition: (
+    name: string,
+    options?: IconLookupOptions,
+  ) => IconDefinition | undefined;
+  loadIcon: (
+    name: string,
+    options?: IconLookupOptions,
+  ) => Promise<ResolvedIcon | null>;
 }
 
 interface IconRegistryProviderProps {
@@ -57,7 +63,10 @@ interface IconRegistryProviderProps {
 
 const iconModuleLoaders = import.meta.glob("../themes/**/*.icons.{ts,tsx}");
 
-const builtinLibraryLoaders: Record<string, () => Promise<Record<string, any>>> = {
+const builtinLibraryLoaders: Record<
+  string,
+  () => Promise<Record<string, any>>
+> = {
   lucide: async () => import("lucide-react"),
 };
 
@@ -107,7 +116,11 @@ const ICON_CACHE_SIZE = 128; // TODO: Tune
 const resolvedIconCache = new LRUCache<string, ResolvedIcon>(ICON_CACHE_SIZE);
 const libraryModuleCache = new LRUCache<string, Record<string, any>>(8); // Limit loaded libraries
 
-function deriveSetIdentity(path: string, metadata?: IconSetMetadata, themeJson?: any): {
+function deriveSetIdentity(
+  path: string,
+  metadata?: IconSetMetadata,
+  themeJson?: any,
+): {
   id: string;
   label: string;
   themeName: string;
@@ -115,14 +128,24 @@ function deriveSetIdentity(path: string, metadata?: IconSetMetadata, themeJson?:
   const segments = path.split("/");
   const fileName = segments[segments.length - 1] ?? "";
   const baseName = fileName.replace(/\.icons\.(?:ts|tsx)$/, "");
-  
+
   // Use theme JSON metadata if available
   const iconMeta = themeJson?.icons || {};
-  const themeName = themeJson?.name ?? metadata?.theme ?? segments[segments.length - 2] ?? baseName;
-  
+  const themeName =
+    themeJson?.name ??
+    metadata?.theme ??
+    segments[segments.length - 2] ??
+    baseName;
+
   // Priority: JSON metadata > TS metadata > derived values
-  const derivedName = iconMeta.label ?? metadata?.label ?? metadata?.id ?? themeName ?? baseName;
-  const normalizedId = (iconMeta.id ?? metadata?.id ?? themeName ?? derivedName).toLowerCase();
+  const derivedName =
+    iconMeta.label ?? metadata?.label ?? metadata?.id ?? themeName ?? baseName;
+  const normalizedId = (
+    iconMeta.id ??
+    metadata?.id ??
+    themeName ??
+    derivedName
+  ).toLowerCase();
 
   return {
     id: normalizedId,
@@ -135,7 +158,7 @@ const GLOBAL_LIBRARY_NAMESPACE = "__global";
 
 async function resolveLibraryModule(
   library: string,
-  sourceSet?: IconRegistrySet
+  sourceSet?: IconRegistrySet,
 ): Promise<Record<string, any> | null> {
   const cacheKey = `${sourceSet ? sourceSet.id : GLOBAL_LIBRARY_NAMESPACE}::${library}`;
   const cachedModule = libraryModuleCache.get(cacheKey);
@@ -143,9 +166,26 @@ async function resolveLibraryModule(
     return cachedModule;
   }
 
-  const loaderCandidate = sourceSet?.libraries?.[library] ?? builtinLibraryLoaders[library];
+  // First check if the library is already available in the sourceSet
+  let loaderCandidate = sourceSet?.libraries?.[library];
 
   if (!loaderCandidate) {
+    // Check builtin loaders
+    loaderCandidate = builtinLibraryLoaders[library];
+  }
+
+  if (!loaderCandidate) {
+    // Try to load the library dynamically if it's a known library
+    if (library === "lucide" && sourceSet?.id === "lucide") {
+      try {
+        const lucideModule = await import("lucide-react");
+        libraryModuleCache.set(cacheKey, lucideModule);
+        return lucideModule;
+      } catch (error) {
+        console.error(`Failed to dynamically load lucide-react`, error);
+        return null;
+      }
+    }
     return null;
   }
 
@@ -153,7 +193,10 @@ async function resolveLibraryModule(
     let module: Record<string, any>;
     if (typeof loaderCandidate === "function") {
       const result = loaderCandidate();
-      module = (result instanceof Promise ? await result : result) as Record<string, any>;
+      module = (result instanceof Promise ? await result : result) as Record<
+        string,
+        any
+      >;
     } else {
       module = loaderCandidate as Record<string, any>;
     }
@@ -166,7 +209,10 @@ async function resolveLibraryModule(
   }
 }
 
-function getExportByPath(container: Record<string, any> | undefined, path: string): any {
+function getExportByPath(
+  container: Record<string, any> | undefined,
+  path: string,
+): any {
   if (!container) return undefined;
   const segments = path.split(".");
   let current: any = container;
@@ -183,12 +229,14 @@ function getExportByPath(container: Record<string, any> | undefined, path: strin
 async function loadLibraryIcon(
   library: string,
   iconName: string,
-  sourceSet?: IconRegistrySet
+  sourceSet?: IconRegistrySet,
 ): Promise<React.ComponentType<React.SVGProps<SVGSVGElement>> | null> {
   const module = await resolveLibraryModule(library, sourceSet);
 
   if (!module) {
-    console.warn(`Unsupported icon library "${library}"${sourceSet ? ` for set "${sourceSet.label}"` : ""}`);
+    console.warn(
+      `Unsupported icon library "${library}"${sourceSet ? ` for set "${sourceSet.label}"` : ""}`,
+    );
     return null;
   }
 
@@ -212,7 +260,10 @@ async function loadLibraryIcon(
   let resolvedExport: any;
   for (const container of candidateContainers) {
     for (const pathCandidate of candidateNames) {
-      resolvedExport = getExportByPath(container as Record<string, any>, pathCandidate);
+      resolvedExport = getExportByPath(
+        container as Record<string, any>,
+        pathCandidate,
+      );
       if (resolvedExport) {
         break;
       }
@@ -223,7 +274,11 @@ async function loadLibraryIcon(
     }
   }
 
-  if (resolvedExport && typeof resolvedExport === "object" && typeof resolvedExport.default === "function") {
+  if (
+    resolvedExport &&
+    typeof resolvedExport === "object" &&
+    typeof resolvedExport.default === "function"
+  ) {
     resolvedExport = resolvedExport.default;
   }
 
@@ -269,28 +324,27 @@ export const IconRegistryProvider: React.FC<IconRegistryProviderProps> = ({
 
         const entries: IconRegistrySet[] = [];
 
-        for (const [path, loader] of Object.entries(iconModuleLoaders)) {
+        for (const [path] of Object.entries(iconModuleLoaders)) {
           try {
-            // Only load module metadata, not icon map, until selected
+            // Load theme JSON for metadata without loading the full icon module
             const themeJson = await loadThemeJsonFromSourcePath(path);
-            let moduleMeta: any = {};
-            try {
-              // Try to load just the metadata export
-              const mod = await loader();
-              moduleMeta = (mod as any)?.metadata || {};
-            } catch {}
-            const identity = deriveSetIdentity(path, moduleMeta, themeJson);
+            // Skip loading the full module at startup - only load metadata from themeJson
+            const identity = deriveSetIdentity(path, undefined, themeJson);
             const iconMeta = themeJson?.icons || {};
-            const fullMetadata: IconSetMetadata & { id: string; label: string; themeName: string } = {
+            const fullMetadata: IconSetMetadata & {
+              id: string;
+              label: string;
+              themeName: string;
+            } = {
               id: identity.id,
               label: identity.label,
               themeName: identity.themeName,
-              description: iconMeta.description ?? moduleMeta?.description,
-              version: iconMeta.version ?? moduleMeta?.version,
+              description: iconMeta.description,
+              version: iconMeta.version,
               theme: identity.themeName,
-              inheritsFrom: iconMeta.inheritsFrom ?? moduleMeta?.inheritsFrom,
-              author: iconMeta.author ?? moduleMeta?.author ?? themeJson?.author,
-              tags: iconMeta.tags ?? moduleMeta?.tags,
+              inheritsFrom: iconMeta.inheritsFrom,
+              author: iconMeta.author ?? themeJson?.author,
+              tags: iconMeta.tags,
             };
             // Only set icons to empty object until loaded
             const registrySet: IconRegistrySet = {
@@ -305,7 +359,10 @@ export const IconRegistryProvider: React.FC<IconRegistryProviderProps> = ({
             };
             entries.push(registrySet);
           } catch (err) {
-            console.error(`Failed to load icon registry module metadata at ${path}`, err);
+            console.error(
+              `Failed to load icon registry module metadata at ${path}`,
+              err,
+            );
           }
         }
 
@@ -322,12 +379,17 @@ export const IconRegistryProvider: React.FC<IconRegistryProviderProps> = ({
           const preferredId = storedId ?? defaultSetId;
 
           const nextSet = preferredId
-            ? entries.find((entry) => entry.id === preferredId || entry.themeName === preferredId)
+            ? entries.find(
+                (entry) =>
+                  entry.id === preferredId || entry.themeName === preferredId,
+              )
             : null;
 
           const fallbackSet =
             nextSet ??
-            entries.find((entry) => entry.metadata?.inheritsFrom === undefined) ??
+            entries.find(
+              (entry) => entry.metadata?.inheritsFrom === undefined,
+            ) ??
             entries[0] ??
             null;
 
@@ -343,7 +405,9 @@ export const IconRegistryProvider: React.FC<IconRegistryProviderProps> = ({
                   libraries: module.libraries,
                   libraryConfig: module.libraryConfig,
                 };
-                setIconSets((sets) => sets.map((s) => (s.id === loadedSet.id ? loadedSet : s)));
+                setIconSets((sets) =>
+                  sets.map((s) => (s.id === loadedSet.id ? loadedSet : s)),
+                );
                 setCurrentSet(loadedSet);
                 setIconsReady(true);
                 if (rememberSelection && typeof window !== "undefined") {
@@ -361,7 +425,8 @@ export const IconRegistryProvider: React.FC<IconRegistryProviderProps> = ({
         }
       } catch (err) {
         if (!cancelled) {
-          const message = err instanceof Error ? err.message : "Unable to load icon registry";
+          const message =
+            err instanceof Error ? err.message : "Unable to load icon registry";
           setError(message);
           console.error("Icon registry loading error:", err);
         }
@@ -394,7 +459,12 @@ export const IconRegistryProvider: React.FC<IconRegistryProviderProps> = ({
   const setIconSet = useCallback(
     async (idOrName: string) => {
       const normalized = idOrName.toLowerCase();
-      let next = iconSetMap.get(normalized) ?? iconSets.find((set) => set.id === normalized || set.themeName.toLowerCase() === normalized);
+      let next =
+        iconSetMap.get(normalized) ??
+        iconSets.find(
+          (set) =>
+            set.id === normalized || set.themeName.toLowerCase() === normalized,
+        );
       if (!next) {
         console.warn(`Icon set "${idOrName}" not found`);
         return;
@@ -439,11 +509,15 @@ export const IconRegistryProvider: React.FC<IconRegistryProviderProps> = ({
 
       notifyChange.current?.(next);
     },
-    [iconSetMap, iconSets, rememberSelection]
+    [iconSetMap, iconSets, rememberSelection],
   );
 
   const resolveIconEntry = useCallback(
-    (name: string, startSet: IconRegistrySet | null, visited: Set<string>): IconDefinitionEntry | undefined => {
+    (
+      name: string,
+      startSet: IconRegistrySet | null,
+      visited: Set<string>,
+    ): IconDefinitionEntry | undefined => {
       if (!startSet || visited.has(startSet.id)) {
         return undefined;
       }
@@ -457,7 +531,8 @@ export const IconRegistryProvider: React.FC<IconRegistryProviderProps> = ({
 
       const parentId = startSet.metadata?.inheritsFrom;
       if (parentId) {
-        const parent = iconSetMap.get(parentId) ?? iconSetMap.get(parentId.toLowerCase());
+        const parent =
+          iconSetMap.get(parentId) ?? iconSetMap.get(parentId.toLowerCase());
         if (parent) {
           return resolveIconEntry(name, parent, visited);
         }
@@ -465,16 +540,21 @@ export const IconRegistryProvider: React.FC<IconRegistryProviderProps> = ({
 
       return undefined;
     },
-    [iconSetMap]
+    [iconSetMap],
   );
 
   const findIconEntry = useCallback(
-    (name: string, options?: IconLookupOptions): IconDefinitionEntry | undefined => {
+    (
+      name: string,
+      options?: IconLookupOptions,
+    ): IconDefinitionEntry | undefined => {
       if (!name) return undefined;
 
       const primary = options?.setId
-        ? iconSetMap.get(options.setId) ?? iconSetMap.get(options.setId.toLowerCase()) ?? null
-        : currentSet ?? iconSets[0] ?? null;
+        ? (iconSetMap.get(options.setId) ??
+          iconSetMap.get(options.setId.toLowerCase()) ??
+          null)
+        : (currentSet ?? iconSets[0] ?? null);
 
       const primaryEntry = resolveIconEntry(name, primary, new Set<string>());
       if (primaryEntry) {
@@ -483,8 +563,13 @@ export const IconRegistryProvider: React.FC<IconRegistryProviderProps> = ({
 
       if (options?.fallbackOrder && options.fallbackOrder.length > 0) {
         for (const fallback of options.fallbackOrder) {
-          const fallbackSet = iconSetMap.get(fallback) ?? iconSetMap.get(fallback.toLowerCase());
-          const entry = resolveIconEntry(name, fallbackSet ?? null, new Set<string>());
+          const fallbackSet =
+            iconSetMap.get(fallback) ?? iconSetMap.get(fallback.toLowerCase());
+          const entry = resolveIconEntry(
+            name,
+            fallbackSet ?? null,
+            new Set<string>(),
+          );
           if (entry) {
             return entry;
           }
@@ -493,34 +578,46 @@ export const IconRegistryProvider: React.FC<IconRegistryProviderProps> = ({
 
       return undefined;
     },
-    [currentSet, iconSetMap, iconSets, resolveIconEntry]
+    [currentSet, iconSetMap, iconSets, resolveIconEntry],
   );
 
   const getIconDefinition = useCallback(
-    (name: string, options?: IconLookupOptions) => findIconEntry(name, options)?.definition,
-    [findIconEntry]
+    (name: string, options?: IconLookupOptions) =>
+      findIconEntry(name, options)?.definition,
+    [findIconEntry],
   );
 
-
   const loadIcon = useCallback(
-    async (name: string, options?: IconLookupOptions): Promise<ResolvedIcon | null> => {
+    async (
+      name: string,
+      options?: IconLookupOptions,
+    ): Promise<ResolvedIcon | null> => {
       if (!name) {
         return null;
       }
 
       // Ensure currentSet icons are loaded
-      if (currentSet && (!currentSet.icons || Object.keys(currentSet.icons).length === 0)) {
+      if (
+        currentSet &&
+        (!currentSet.icons || Object.keys(currentSet.icons).length === 0)
+      ) {
         setIconsReady(false);
         try {
           const loader = iconModuleLoaders[currentSet.path];
           if (loader) {
             const module = (await loader()) as IconSetModule;
-            setIconSets((sets) => sets.map((s) => (s.id === currentSet.id ? {
-              ...s,
-              icons: module.default,
-              libraries: module.libraries,
-              libraryConfig: module.libraryConfig,
-            } : s)));
+            setIconSets((sets) =>
+              sets.map((s) =>
+                s.id === currentSet.id
+                  ? {
+                      ...s,
+                      icons: module.default,
+                      libraries: module.libraries,
+                      libraryConfig: module.libraryConfig,
+                    }
+                  : s,
+              ),
+            );
           }
         } catch (err) {
           console.error(`Failed to load icon set "${currentSet.label}"`, err);
@@ -551,19 +648,29 @@ export const IconRegistryProvider: React.FC<IconRegistryProviderProps> = ({
 
       switch (definition.type) {
         case "library": {
-          const component = await loadLibraryIcon(definition.library, definition.icon, set);
+          const component = await loadLibraryIcon(
+            definition.library,
+            definition.icon,
+            set,
+          );
           if (!component) {
-            console.warn(`Icon "${definition.icon}" from library "${definition.library}" not found.`);
+            console.warn(
+              `Icon "${definition.icon}" from library "${definition.library}" not found.`,
+            );
             return null;
           }
 
           // Extract prop transformer for this library
           const libraryConfig = set.libraryConfig?.[definition.library];
           let propTransformer: IconPropTransformer | undefined;
-          
-          if (libraryConfig && typeof libraryConfig === 'object' && 'propTransformer' in libraryConfig) {
+
+          if (
+            libraryConfig &&
+            typeof libraryConfig === "object" &&
+            "propTransformer" in libraryConfig
+          ) {
             const transformer = (libraryConfig as any).propTransformer;
-            if (typeof transformer === 'function') {
+            if (typeof transformer === "function") {
               propTransformer = transformer as IconPropTransformer;
             }
           }
@@ -616,7 +723,7 @@ export const IconRegistryProvider: React.FC<IconRegistryProviderProps> = ({
         }
       }
     },
-    [findIconEntry, currentSet, setIconSets]
+    [findIconEntry, currentSet, setIconSets],
   );
 
   const contextValue = useMemo<IconRegistryValue>(
@@ -631,7 +738,17 @@ export const IconRegistryProvider: React.FC<IconRegistryProviderProps> = ({
       getIconDefinition,
       loadIcon,
     }),
-    [currentSet, error, getIconDefinition, iconSetMap, iconSets, isLoading, iconsReady, loadIcon, setIconSet]
+    [
+      currentSet,
+      error,
+      getIconDefinition,
+      iconSetMap,
+      iconSets,
+      isLoading,
+      iconsReady,
+      loadIcon,
+      setIconSet,
+    ],
   );
 
   useEffect(() => {
@@ -644,13 +761,19 @@ export const IconRegistryProvider: React.FC<IconRegistryProviderProps> = ({
     }
   }, [iconSets, currentSet, setIconSet]);
 
-  return <IconRegistryContext.Provider value={contextValue}>{children}</IconRegistryContext.Provider>;
+  return (
+    <IconRegistryContext.Provider value={contextValue}>
+      {children}
+    </IconRegistryContext.Provider>
+  );
 };
 
 export const useIconRegistry = () => {
   const context = useContext(IconRegistryContext);
   if (!context) {
-    throw new Error("useIconRegistry must be used within an IconRegistryProvider");
+    throw new Error(
+      "useIconRegistry must be used within an IconRegistryProvider",
+    );
   }
   return context;
 };

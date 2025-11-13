@@ -1,5 +1,11 @@
-import React, { useState, useEffect, createContext, useContext, useCallback } from 'react';
-import { loadThemeJsonFromSourcePath } from './themeMetadata';
+import React, {
+  useState,
+  useEffect,
+  createContext,
+  useContext,
+  useCallback,
+} from "react";
+import { loadThemeJsonFromSourcePath } from "./themeMetadata";
 
 // ----------------------
 // Types
@@ -27,7 +33,7 @@ const WallpaperContext = createContext<WallpaperContextProps>({
   currentWallpaperComponent: null,
   isLoading: false,
   error: null,
-  setWallpaper: async () => { },
+  setWallpaper: async () => {},
 });
 
 interface WallpaperLoaderProps {
@@ -44,7 +50,10 @@ let globalWallpapers: WallpaperMetadata[] = [];
 // ----------------------
 // Import wallpaper components
 // ----------------------
-const wallpaperComponentFiles = import.meta.glob('../themes/Wallpapers/**/*.wallpaper.tsx', { eager: false });
+const wallpaperComponentFiles = import.meta.glob(
+  "../themes/Wallpapers/**/*.wallpaper.tsx",
+  { eager: false },
+);
 
 // ----------------------
 // WallpaperLoader Component
@@ -52,11 +61,13 @@ const wallpaperComponentFiles = import.meta.glob('../themes/Wallpapers/**/*.wall
 export const WallpaperLoader: React.FC<WallpaperLoaderProps> = ({
   defaultWallpaper,
   children,
-  onWallpaperChange
+  onWallpaperChange,
 }) => {
   const [wallpapers, setWallpapers] = useState<WallpaperMetadata[]>([]);
-  const [currentWallpaper, setCurrentWallpaper] = useState<WallpaperMetadata | null>(null);
-  const [currentWallpaperComponent, setCurrentWallpaperComponent] = useState<React.ComponentType<WallpaperProps> | null>(null);
+  const [currentWallpaper, setCurrentWallpaper] =
+    useState<WallpaperMetadata | null>(null);
+  const [currentWallpaperComponent, setCurrentWallpaperComponent] =
+    useState<React.ComponentType<WallpaperProps> | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -78,27 +89,35 @@ export const WallpaperLoader: React.FC<WallpaperLoaderProps> = ({
             const wallpaperMeta = themeJson?.wallpaper;
 
             if (!wallpaperMeta) {
-              console.warn(`Wallpaper file ${path}: No wallpaper metadata in theme.json`);
+              console.warn(
+                `Wallpaper file ${path}: No wallpaper metadata in theme.json`,
+              );
               continue;
             }
 
             const metadata: WallpaperMetadata = {
-              name: wallpaperMeta.label || wallpaperMeta.name || 'Unnamed Wallpaper',
-              author: wallpaperMeta.author || 'Unknown',
-              description: wallpaperMeta.description || '',
-              version: wallpaperMeta.version || '1.0.0',
-              componentFile: wallpaperMeta.componentFile || path.split('/').pop() || ''
+              name:
+                wallpaperMeta.label ||
+                wallpaperMeta.name ||
+                "Unnamed Wallpaper",
+              author: wallpaperMeta.author || "Unknown",
+              description: wallpaperMeta.description || "",
+              version: wallpaperMeta.version || "1.0.0",
+              componentFile:
+                wallpaperMeta.componentFile || path.split("/").pop() || "",
             };
 
             // Verify component file exists
-            const componentExists = Object.keys(wallpaperComponentFiles).some(componentPath =>
-              componentPath.endsWith(metadata.componentFile)
+            const componentExists = Object.keys(wallpaperComponentFiles).some(
+              (componentPath) => componentPath.endsWith(metadata.componentFile),
             );
 
             if (componentExists) {
               loadedWallpapers.push(metadata);
             } else {
-              console.warn(`Wallpaper "${metadata.name}": Component file "${metadata.componentFile}" not found`);
+              console.warn(
+                `Wallpaper "${metadata.name}": Component file "${metadata.componentFile}" not found`,
+              );
             }
           } catch (err) {
             console.warn(`Failed to load wallpaper metadata for ${path}`, err);
@@ -106,33 +125,40 @@ export const WallpaperLoader: React.FC<WallpaperLoaderProps> = ({
         }
 
         if (loadedWallpapers.length === 0) {
-          throw new Error('No valid wallpapers found');
+          throw new Error("No valid wallpapers found");
         }
 
         setWallpapers(loadedWallpapers);
         globalWallpapers = loadedWallpapers; // Update global variable for console access
 
         // Load initial wallpaper
-        const storedWallpaperName = localStorage.getItem('selected-wallpaper') || defaultWallpaper;
-        
+        const storedWallpaperName =
+          localStorage.getItem("selected-wallpaper") || defaultWallpaper;
+
         if (storedWallpaperName === "None") {
           // Special case for "None" - no wallpaper
           setCurrentWallpaper(null);
           setCurrentWallpaperComponent(null);
           setError(null);
         } else {
-          const initialWallpaper = loadedWallpapers.find(wallpaper => wallpaper.name === storedWallpaperName)
-            || loadedWallpapers.find(wallpaper => wallpaper.name === defaultWallpaper)
-            || loadedWallpapers[0]; // Fallback to first available
+          const initialWallpaper =
+            loadedWallpapers.find(
+              (wallpaper) => wallpaper.name === storedWallpaperName,
+            ) ||
+            loadedWallpapers.find(
+              (wallpaper) => wallpaper.name === defaultWallpaper,
+            ) ||
+            loadedWallpapers[0]; // Fallback to first available
 
           if (initialWallpaper) {
             await applyWallpaper(initialWallpaper);
           }
         }
       } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : 'Failed to load wallpapers';
+        const errorMessage =
+          err instanceof Error ? err.message : "Failed to load wallpapers";
         setError(errorMessage);
-        console.error('Wallpaper loading error:', err);
+        console.error("Wallpaper loading error:", err);
       } finally {
         setIsLoading(false);
       }
@@ -144,64 +170,73 @@ export const WallpaperLoader: React.FC<WallpaperLoaderProps> = ({
   // ----------------------
   // Apply wallpaper: dynamically import and render component
   // ----------------------
-  const applyWallpaper = useCallback(async (wallpaper: WallpaperMetadata): Promise<void> => {
-    try {
-      // Find the matching component file
-      const componentPath = Object.keys(wallpaperComponentFiles).find(path =>
-        path.endsWith(wallpaper.componentFile)
-      );
+  const applyWallpaper = useCallback(
+    async (wallpaper: WallpaperMetadata): Promise<void> => {
+      try {
+        // Find the matching component file
+        const componentPath = Object.keys(wallpaperComponentFiles).find(
+          (path) => path.endsWith(wallpaper.componentFile),
+        );
 
-      if (!componentPath) {
-        throw new Error(`Component file not found: ${wallpaper.componentFile}`);
+        if (!componentPath) {
+          throw new Error(
+            `Component file not found: ${wallpaper.componentFile}`,
+          );
+        }
+
+        // Load the component module
+        const componentModule = await wallpaperComponentFiles[componentPath]();
+        const WallpaperComponent = (componentModule as any).default;
+
+        if (!WallpaperComponent || typeof WallpaperComponent !== "function") {
+          throw new Error(`Invalid component for ${componentPath}`);
+        }
+
+        // Update state
+        setCurrentWallpaper(wallpaper);
+        setCurrentWallpaperComponent(() => WallpaperComponent);
+        localStorage.setItem("selected-wallpaper", wallpaper.name);
+
+        // Call optional callback
+        onWallpaperChange?.(wallpaper);
+
+        setError(null);
+
+        console.log(`Successfully applied wallpaper: ${wallpaper.name}`);
+      } catch (err) {
+        const errorMessage =
+          err instanceof Error ? err.message : "Failed to apply wallpaper";
+        setError(errorMessage);
+        console.error("Wallpaper application error:", err);
+        throw err;
       }
-
-      // Load the component module
-      const componentModule = await wallpaperComponentFiles[componentPath]();
-      const WallpaperComponent = (componentModule as any).default;
-
-      if (!WallpaperComponent || typeof WallpaperComponent !== 'function') {
-        throw new Error(`Invalid component for ${componentPath}`);
-      }
-
-      // Update state
-      setCurrentWallpaper(wallpaper);
-      setCurrentWallpaperComponent(() => WallpaperComponent);
-      localStorage.setItem('selected-wallpaper', wallpaper.name);
-
-      // Call optional callback
-      onWallpaperChange?.(wallpaper);
-
-      setError(null);
-
-      console.log(`Successfully applied wallpaper: ${wallpaper.name}`);
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to apply wallpaper';
-      setError(errorMessage);
-      console.error('Wallpaper application error:', err);
-      throw err;
-    }
-  }, [onWallpaperChange]);
+    },
+    [onWallpaperChange],
+  );
 
   // ----------------------
   // Set wallpaper by name
   // ----------------------
-  const setWallpaper = useCallback(async (wallpaperName: string): Promise<void> => {
-    if (wallpaperName === "None") {
-      // Special case for "None" - disable wallpaper
-      setCurrentWallpaper(null);
-      setCurrentWallpaperComponent(null);
-      localStorage.setItem('selected-wallpaper', "None");
-      setError(null);
-      return;
-    }
+  const setWallpaper = useCallback(
+    async (wallpaperName: string): Promise<void> => {
+      if (wallpaperName === "None") {
+        // Special case for "None" - disable wallpaper
+        setCurrentWallpaper(null);
+        setCurrentWallpaperComponent(null);
+        localStorage.setItem("selected-wallpaper", "None");
+        setError(null);
+        return;
+      }
 
-    const wallpaper = wallpapers.find(w => w.name === wallpaperName);
-    if (!wallpaper) {
-      throw new Error(`Wallpaper "${wallpaperName}" not found`);
-    }
+      const wallpaper = wallpapers.find((w) => w.name === wallpaperName);
+      if (!wallpaper) {
+        throw new Error(`Wallpaper "${wallpaperName}" not found`);
+      }
 
-    await applyWallpaper(wallpaper);
-  }, [wallpapers, applyWallpaper]);
+      await applyWallpaper(wallpaper);
+    },
+    [wallpapers, applyWallpaper],
+  );
 
   const value: WallpaperContextProps = {
     wallpapers,
@@ -209,18 +244,18 @@ export const WallpaperLoader: React.FC<WallpaperLoaderProps> = ({
     currentWallpaperComponent,
     isLoading,
     error,
-    setWallpaper
+    setWallpaper,
   };
 
   // ----------------------
   // Expose wallpapers globally for console access
   // ----------------------
   useEffect(() => {
-    if (typeof window !== 'undefined') {
+    if (typeof window !== "undefined") {
       (window as any).wallpaperLoader = {
         getAllWallpapers: () => globalWallpapers,
         getCurrentWallpaper: () => currentWallpaper,
-        setWallpaper: setWallpaper
+        setWallpaper: setWallpaper,
       };
     }
   }, [wallpapers, currentWallpaper, setWallpaper]);
@@ -238,7 +273,9 @@ export const WallpaperLoader: React.FC<WallpaperLoaderProps> = ({
 export const useWallpaperLoader = () => {
   const context = useContext(WallpaperContext);
   if (!context) {
-    throw new Error('useWallpaperLoader must be used within a WallpaperProvider');
+    throw new Error(
+      "useWallpaperLoader must be used within a WallpaperProvider",
+    );
   }
   return context;
 };

@@ -43,7 +43,9 @@ interface GaplessInfo {
   encoderPadding?: number;
 }
 
-function mapLyricsTag(tag: ILyricsTag | undefined | null): EmbeddedLyrics | null {
+function mapLyricsTag(
+  tag: ILyricsTag | undefined | null,
+): EmbeddedLyrics | null {
   if (!tag) return null;
 
   const description = tag.descriptor?.trim() || undefined;
@@ -51,12 +53,17 @@ function mapLyricsTag(tag: ILyricsTag | undefined | null): EmbeddedLyrics | null
 
   if (Array.isArray(tag.syncText) && tag.syncText.length > 0) {
     const lines = tag.syncText
-      .filter((entry) => typeof entry.text === "string" && entry.text.trim().length > 0)
+      .filter(
+        (entry) =>
+          typeof entry.text === "string" && entry.text.trim().length > 0,
+      )
       .map((entry) => ({
         text: entry.text.trim(),
-        timestamp: typeof entry.timestamp === "number" && Number.isFinite(entry.timestamp)
-          ? entry.timestamp
-          : 0,
+        timestamp:
+          typeof entry.timestamp === "number" &&
+          Number.isFinite(entry.timestamp)
+            ? entry.timestamp
+            : 0,
       }));
 
     if (lines.length === 0) {
@@ -96,8 +103,12 @@ function parseLrcValue(lrc: string): EmbeddedLyrics | null {
       continue;
     }
 
-    const tagMatches = [...trimmed.matchAll(/\[(\d{1,2}):(\d{2})(?:\.(\d{2,3}))?\]/g)];
-    let text = trimmed.replace(/\[(\d{1,2}):(\d{2})(?:\.(\d{2,3}))?\]/g, "").trim();
+    const tagMatches = [
+      ...trimmed.matchAll(/\[(\d{1,2}):(\d{2})(?:\.(\d{2,3}))?\]/g),
+    ];
+    let text = trimmed
+      .replace(/\[(\d{1,2}):(\d{2})(?:\.(\d{2,3}))?\]/g, "")
+      .trim();
 
     if (tagMatches.length > 0) {
       hasTimestamps = true;
@@ -114,7 +125,10 @@ function parseLrcValue(lrc: string): EmbeddedLyrics | null {
         lines.push({ text, timestamp });
       }
     } else {
-      lines.push({ text: trimmed, timestamp: lines.length > 0 ? lines[lines.length - 1].timestamp : 0 });
+      lines.push({
+        text: trimmed,
+        timestamp: lines.length > 0 ? lines[lines.length - 1].timestamp : 0,
+      });
     }
   }
 
@@ -176,13 +190,19 @@ function parseItunesGapless(value: unknown): GaplessInfo | null {
   return Object.keys(result).length > 0 ? result : null;
 }
 
-function mergeGaplessInfo(base: GaplessInfo | undefined, extra: GaplessInfo | null): GaplessInfo | undefined {
+function mergeGaplessInfo(
+  base: GaplessInfo | undefined,
+  extra: GaplessInfo | null,
+): GaplessInfo | undefined {
   if (!base && !extra) return undefined;
   const result: GaplessInfo = {};
   if (base?.encoderDelay !== undefined) result.encoderDelay = base.encoderDelay;
-  if (base?.encoderPadding !== undefined) result.encoderPadding = base.encoderPadding;
-  if (extra?.encoderDelay !== undefined) result.encoderDelay = extra.encoderDelay;
-  if (extra?.encoderPadding !== undefined) result.encoderPadding = extra.encoderPadding;
+  if (base?.encoderPadding !== undefined)
+    result.encoderPadding = base.encoderPadding;
+  if (extra?.encoderDelay !== undefined)
+    result.encoderDelay = extra.encoderDelay;
+  if (extra?.encoderPadding !== undefined)
+    result.encoderPadding = extra.encoderPadding;
   return Object.keys(result).length > 0 ? result : undefined;
 }
 
@@ -191,7 +211,10 @@ self.onmessage = async (event: MessageEvent) => {
   const { file, fileName } = event.data;
 
   try {
-    const metadata = await parseBlob(file, { skipCovers: false, duration: true });
+    const metadata = await parseBlob(file, {
+      skipCovers: false,
+      duration: true,
+    });
 
     const warnings: string[] = [];
 
@@ -205,11 +228,12 @@ self.onmessage = async (event: MessageEvent) => {
         albumArt = await new Promise<string>((resolve, reject) => {
           const reader = new FileReader();
           reader.onloadend = () => resolve(reader.result as string);
-          reader.onerror = () => reject(new Error('Failed to read album art'));
+          reader.onerror = () => reject(new Error("Failed to read album art"));
           reader.readAsDataURL(blob);
         });
       } catch (artError) {
-        const message = artError instanceof Error ? artError.message : String(artError);
+        const message =
+          artError instanceof Error ? artError.message : String(artError);
         warnings.push(`Failed to process album art: ${message}`);
       }
     }
@@ -217,10 +241,13 @@ self.onmessage = async (event: MessageEvent) => {
     const parserWarnings = (metadata.quality?.warnings ?? [])
       .map((warning) => {
         if (typeof warning === "string") return warning;
-        if (warning && typeof warning.message === "string") return warning.message;
+        if (warning && typeof warning.message === "string")
+          return warning.message;
         return JSON.stringify(warning);
       })
-      .filter((message) => typeof message === "string" && message.trim().length > 0);
+      .filter(
+        (message) => typeof message === "string" && message.trim().length > 0,
+      );
 
     warnings.push(...parserWarnings);
 
@@ -247,7 +274,8 @@ self.onmessage = async (event: MessageEvent) => {
     for (const tag of vorbisTags) {
       const tagId = typeof tag.id === "string" ? tag.id.toUpperCase() : "";
       if (!LRC_TAG_IDS.has(tagId)) continue;
-      if (typeof tag.value !== "string" || tag.value.trim().length === 0) continue;
+      if (typeof tag.value !== "string" || tag.value.trim().length === 0)
+        continue;
 
       const lrcLyrics = parseLrcValue(tag.value);
       if (lrcLyrics) {
@@ -268,14 +296,28 @@ self.onmessage = async (event: MessageEvent) => {
 
     let gaplessInfo: GaplessInfo | undefined;
 
-  const formatExtra = metadata.format as unknown as Record<string, unknown>;
-    const encoderDelay = typeof formatExtra.encoderDelay === "number" ? formatExtra.encoderDelay : undefined;
-    if (typeof encoderDelay === "number" && Number.isFinite(encoderDelay) && encoderDelay > 0) {
+    const formatExtra = metadata.format as unknown as Record<string, unknown>;
+    const encoderDelay =
+      typeof formatExtra.encoderDelay === "number"
+        ? formatExtra.encoderDelay
+        : undefined;
+    if (
+      typeof encoderDelay === "number" &&
+      Number.isFinite(encoderDelay) &&
+      encoderDelay > 0
+    ) {
       gaplessInfo = { ...(gaplessInfo ?? {}), encoderDelay };
     }
 
-    const encoderPadding = typeof formatExtra.encoderPadding === "number" ? formatExtra.encoderPadding : undefined;
-    if (typeof encoderPadding === "number" && Number.isFinite(encoderPadding) && encoderPadding > 0) {
+    const encoderPadding =
+      typeof formatExtra.encoderPadding === "number"
+        ? formatExtra.encoderPadding
+        : undefined;
+    if (
+      typeof encoderPadding === "number" &&
+      Number.isFinite(encoderPadding) &&
+      encoderPadding > 0
+    ) {
       gaplessInfo = { ...(gaplessInfo ?? {}), encoderPadding };
     }
 
@@ -289,7 +331,10 @@ self.onmessage = async (event: MessageEvent) => {
           continue;
         }
 
-        if (id === "MP4:----:COM.APPLE.ITUNES:ITUNSMPB" || id === "----:COM.APPLE.ITUNES:ITUNSMPB") {
+        if (
+          id === "MP4:----:COM.APPLE.ITUNES:ITUNSMPB" ||
+          id === "----:COM.APPLE.ITUNES:ITUNSMPB"
+        ) {
           const parsed = parseItunesGapless(tag.value);
           gaplessInfo = mergeGaplessInfo(gaplessInfo, parsed);
         }
@@ -297,18 +342,23 @@ self.onmessage = async (event: MessageEvent) => {
     }
 
     const result = {
-      title: (metadata.common.title && typeof metadata.common.title === "string")
-        ? metadata.common.title
-        : fileName.replace(/\.[^/.]+$/, ""),
-      artist: (metadata.common.artist && typeof metadata.common.artist === "string")
-        ? metadata.common.artist
-        : UNKNOWN_ARTIST,
-      album: (metadata.common.album && typeof metadata.common.album === "string")
-        ? metadata.common.album
-        : UNKNOWN_ALBUM,
+      title:
+        metadata.common.title && typeof metadata.common.title === "string"
+          ? metadata.common.title
+          : fileName.replace(/\.[^/.]+$/, ""),
+      artist:
+        metadata.common.artist && typeof metadata.common.artist === "string"
+          ? metadata.common.artist
+          : UNKNOWN_ARTIST,
+      album:
+        metadata.common.album && typeof metadata.common.album === "string"
+          ? metadata.common.album
+          : UNKNOWN_ALBUM,
       duration: metadata.format.duration ?? 0,
       embeddedLyrics: embeddedLyrics.length > 0 ? embeddedLyrics : undefined,
-      encoding: Object.values(encodingDetails).some((value) => value !== undefined)
+      encoding: Object.values(encodingDetails).some(
+        (value) => value !== undefined,
+      )
         ? encodingDetails
         : undefined,
       gapless: gaplessInfo,
@@ -316,6 +366,8 @@ self.onmessage = async (event: MessageEvent) => {
 
     self.postMessage({ metadata: result, albumArt, warnings });
   } catch (e) {
-    self.postMessage({ error: `Failed to process metadata for ${fileName}: ${e}` });
+    self.postMessage({
+      error: `Failed to process metadata for ${fileName}: ${e}`,
+    });
   }
 };

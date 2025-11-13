@@ -16,10 +16,11 @@ interface PlayerSettings {
   lastPlayedPlaylistId?: string;
   language: string;
   tempo: number;
-  pitch: number; // Pitch shift in semitones (-12 to +12), default: 0
+  pitch: number; // Pitch shift in semitones, default: 0
   gaplessPlayback: boolean;
   smartShuffle: boolean;
   discordUserId?: string;
   discordEnabled: boolean;
+  erudaEnabled: boolean;
   playHistory?: [string, { lastPlayed: number; playCount: number }][];
 }

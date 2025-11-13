@@ -9,28 +9,28 @@ export const platform = {
    * Check if running in a web browser (not Tauri)
    */
   get isWeb(): boolean {
-    return typeof window !== 'undefined' && !('__TAURI__' in window);
+    return typeof window !== "undefined" && !("__TAURI__" in window);
   },
 
   /**
    * Check if running in Tauri desktop app
    */
   get isDesktop(): boolean {
-    return typeof window !== 'undefined' && '__TAURI__' in window;
+    return typeof window !== "undefined" && "__TAURI__" in window;
   },
 
   /**
    * Check if PWA features are available
    */
   get isPWA(): boolean {
-    return 'serviceWorker' in navigator;
+    return "serviceWorker" in navigator;
   },
 
   /**
    * Check if IndexedDB is available
    */
   get hasIndexedDB(): boolean {
-    return typeof indexedDB !== 'undefined';
+    return typeof indexedDB !== "undefined";
   },
 
   /**
@@ -51,14 +51,17 @@ export const platform = {
    * Check if can install as PWA
    */
   get canInstallPWA(): boolean {
-    return this.isWeb && 'BeforeInstallPromptEvent' in window;
+    return this.isWeb && "BeforeInstallPromptEvent" in window;
   },
 
   /**
    * Check if Web Audio API is available
    */
   get hasWebAudio(): boolean {
-    return typeof AudioContext !== 'undefined' || typeof (window as any).webkitAudioContext !== 'undefined';
+    return (
+      typeof AudioContext !== "undefined" ||
+      typeof (window as any).webkitAudioContext !== "undefined"
+    );
   },
 
   /**
@@ -66,7 +69,9 @@ export const platform = {
    */
   get isSafari(): boolean {
     const ua = navigator.userAgent.toLowerCase();
-    return /^((?!chrome|android).)*safari/i.test(ua) || /iphone|ipad|ipod/i.test(ua);
+    return (
+      /^((?!chrome|android).)*safari/i.test(ua) || /iphone|ipad|ipod/i.test(ua)
+    );
   },
 };
 
@@ -79,13 +84,23 @@ export async function pickAudioFiles(options?: {
 }): Promise<File[]> {
   if (platform.isDesktop) {
     // Use Tauri's native file picker
-    const { open } = await import('@tauri-apps/plugin-dialog');
+    const { open } = await import("@tauri-apps/plugin-dialog");
     const selected = await open({
       multiple: options?.multiple ?? true,
       filters: [
         {
-          name: 'Audio Files',
-          extensions: ['mp3', 'wav', 'm4a', 'flac', 'aif', 'aiff', 'ogg', 'opus', 'webm'],
+          name: "Audio Files",
+          extensions: [
+            "mp3",
+            "wav",
+            "m4a",
+            "flac",
+            "aif",
+            "aiff",
+            "ogg",
+            "opus",
+            "webm",
+          ],
         },
       ],
     });
@@ -93,39 +108,43 @@ export async function pickAudioFiles(options?: {
     if (!selected) return [];
 
     // Convert Tauri paths to File objects
-    const { readFile } = await import('@tauri-apps/plugin-fs');
+    const { readFile } = await import("@tauri-apps/plugin-fs");
     const paths = Array.isArray(selected) ? selected : [selected];
 
     const files = await Promise.all(
       paths.map(async (path) => {
         const contents = await readFile(path);
-        const fileName = path.split('/').pop() ?? 'unknown';
-        const ext = fileName.split('.').pop()?.toLowerCase() ?? 'mp3';
-        
+        const fileName = path.split("/").pop() ?? "unknown";
+        const ext = fileName.split(".").pop()?.toLowerCase() ?? "mp3";
+
         // Determine MIME type from extension
         const mimeTypes: Record<string, string> = {
-          mp3: 'audio/mpeg',
-          wav: 'audio/wav',
-          m4a: 'audio/mp4',
-          flac: 'audio/flac',
-          aif: 'audio/aiff',
-          aiff: 'audio/aiff',
-          ogg: 'audio/ogg',
-          opus: 'audio/opus',
-          webm: 'audio/webm',
+          mp3: "audio/mpeg",
+          wav: "audio/wav",
+          m4a: "audio/mp4",
+          flac: "audio/flac",
+          aif: "audio/aiff",
+          aiff: "audio/aiff",
+          ogg: "audio/ogg",
+          opus: "audio/opus",
+          webm: "audio/webm",
         };
-        
-        return new File([contents], fileName, { type: mimeTypes[ext] || 'audio/mpeg' });
-      })
+
+        return new File([contents], fileName, {
+          type: mimeTypes[ext] || "audio/mpeg",
+        });
+      }),
     );
 
     return files;
   } else {
     // Web: Use existing Uppy implementation from filePickerHelper.tsx
     // This returns a promise that resolves when user completes selection
-    const { pickAudioFiles: webPickAudioFiles } = await import('./filePickerHelper');
+    const { pickAudioFiles: webPickAudioFiles } = await import(
+      "./filePickerHelper"
+    );
     const audioFiles = await webPickAudioFiles();
-    return audioFiles.map(af => af.file);
+    return audioFiles.map((af) => af.file);
   }
 }
 
@@ -135,21 +154,21 @@ export async function pickAudioFiles(options?: {
 export async function exportPlaylistFile(
   content: string,
   fileName: string,
-  fileType: 'json' | 'm3u'
+  fileType: "json" | "m3u",
 ): Promise<void> {
-  const mimeType = fileType === 'json' ? 'application/json' : 'audio/x-mpegurl';
+  const mimeType = fileType === "json" ? "application/json" : "audio/x-mpegurl";
   const blob = new Blob([content], { type: mimeType });
 
   if (platform.isDesktop) {
     // Use Tauri's native save dialog
-    const { save } = await import('@tauri-apps/plugin-dialog');
-    const { writeTextFile } = await import('@tauri-apps/plugin-fs');
-    
+    const { save } = await import("@tauri-apps/plugin-dialog");
+    const { writeTextFile } = await import("@tauri-apps/plugin-fs");
+
     const filePath = await save({
       defaultPath: fileName,
       filters: [
         {
-          name: fileType === 'json' ? 'JSON Files' : 'M3U Playlist',
+          name: fileType === "json" ? "JSON Files" : "M3U Playlist",
           extensions: [fileType],
         },
       ],
@@ -161,7 +180,7 @@ export async function exportPlaylistFile(
   } else {
     // Web: Use download link
     const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
+    const a = document.createElement("a");
     a.href = url;
     a.download = fileName;
     document.body.appendChild(a);
@@ -176,15 +195,15 @@ export async function exportPlaylistFile(
  */
 export async function importPlaylistFile(): Promise<File | null> {
   if (platform.isDesktop) {
-    const { open } = await import('@tauri-apps/plugin-dialog');
-    const { readTextFile } = await import('@tauri-apps/plugin-fs');
-    
+    const { open } = await import("@tauri-apps/plugin-dialog");
+    const { readTextFile } = await import("@tauri-apps/plugin-fs");
+
     const selected = await open({
       multiple: false,
       filters: [
         {
-          name: 'Playlist Files',
-          extensions: ['json', 'm3u', 'm3u8'],
+          name: "Playlist Files",
+          extensions: ["json", "m3u", "m3u8"],
         },
       ],
     });
@@ -192,17 +211,17 @@ export async function importPlaylistFile(): Promise<File | null> {
     if (!selected || Array.isArray(selected)) return null;
 
     const content = await readTextFile(selected);
-    const fileName = selected.split('/').pop() ?? 'playlist';
-    const ext = fileName.split('.').pop()?.toLowerCase() ?? 'json';
-    const mimeType = ext === 'json' ? 'application/json' : 'audio/x-mpegurl';
-    
+    const fileName = selected.split("/").pop() ?? "playlist";
+    const ext = fileName.split(".").pop()?.toLowerCase() ?? "json";
+    const mimeType = ext === "json" ? "application/json" : "audio/x-mpegurl";
+
     return new File([content], fileName, { type: mimeType });
   } else {
     // Web: Use file input
     return new Promise((resolve) => {
-      const input = document.createElement('input');
-      input.type = 'file';
-      input.accept = '.json,.m3u,.m3u8';
+      const input = document.createElement("input");
+      input.type = "file";
+      input.accept = ".json,.m3u,.m3u8";
       input.onchange = () => {
         resolve(input.files?.[0] || null);
       };
@@ -214,22 +233,30 @@ export async function importPlaylistFile(): Promise<File | null> {
 /**
  * Show native notification
  */
-export async function showNotification(title: string, body: string): Promise<void> {
+export async function showNotification(
+  title: string,
+  body: string,
+): Promise<void> {
   if (platform.isDesktop) {
     // Use Tauri's native notifications
     try {
-      const { sendNotification } = await import('@tauri-apps/plugin-notification');
+      const { sendNotification } = await import(
+        "@tauri-apps/plugin-notification"
+      );
       await sendNotification({ title, body });
     } catch (error) {
-      console.warn('Desktop notification failed:', error);
+      console.warn("Desktop notification failed:", error);
     }
   } else {
     // Use web Notification API
-    if ('Notification' in window && Notification.permission === 'granted') {
+    if ("Notification" in window && Notification.permission === "granted") {
       new Notification(title, { body });
-    } else if ('Notification' in window && Notification.permission !== 'denied') {
+    } else if (
+      "Notification" in window &&
+      Notification.permission !== "denied"
+    ) {
       const permission = await Notification.requestPermission();
-      if (permission === 'granted') {
+      if (permission === "granted") {
         new Notification(title, { body });
       }
     }
@@ -242,14 +269,14 @@ export async function showNotification(title: string, body: string): Promise<voi
 export async function getAppVersion(): Promise<string> {
   if (platform.isDesktop) {
     try {
-      const { getVersion } = await import('@tauri-apps/api/app');
+      const { getVersion } = await import("@tauri-apps/api/app");
       return await getVersion();
     } catch {
-      return '2.0.0';
+      return "2.0.0";
     }
   } else {
     // Return version from package.json
-    return '2.0.0';
+    return "2.0.0";
   }
 }
 
@@ -258,10 +285,10 @@ export async function getAppVersion(): Promise<string> {
  */
 export async function openExternal(url: string): Promise<void> {
   if (platform.isDesktop) {
-    const { openUrl } = await import('@tauri-apps/plugin-opener');
+    const { openUrl } = await import("@tauri-apps/plugin-opener");
     await openUrl(url);
   } else {
-    window.open(url, '_blank', 'noopener,noreferrer');
+    window.open(url, "_blank", "noopener,noreferrer");
   }
 }
 
@@ -269,9 +296,9 @@ export async function openExternal(url: string): Promise<void> {
  * Check if a specific audio format is supported
  */
 export function isAudioFormatSupported(format: string): boolean {
-  const audio = document.createElement('audio');
+  const audio = document.createElement("audio");
   const canPlay = audio.canPlayType(format);
-  return canPlay === 'probably' || canPlay === 'maybe';
+  return canPlay === "probably" || canPlay === "maybe";
 }
 
 /**
@@ -282,7 +309,7 @@ export async function getStorageEstimate(): Promise<{
   quota: number;
   percentage: number;
 } | null> {
-  if ('storage' in navigator && 'estimate' in navigator.storage) {
+  if ("storage" in navigator && "estimate" in navigator.storage) {
     try {
       const estimate = await navigator.storage.estimate();
       const usage = estimate.usage || 0;
@@ -290,7 +317,7 @@ export async function getStorageEstimate(): Promise<{
       const percentage = quota > 0 ? (usage / quota) * 100 : 0;
       return { usage, quota, percentage };
     } catch (error) {
-      console.warn('Failed to get storage estimate:', error);
+      console.warn("Failed to get storage estimate:", error);
       return null;
     }
   }

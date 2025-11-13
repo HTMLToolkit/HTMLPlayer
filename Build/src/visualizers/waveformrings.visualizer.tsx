@@ -10,7 +10,7 @@ const waveformRings: VisualizerType = {
     bufferLength,
     freqDataArray,
     dataType,
-    settings = {}
+    settings = {},
   ) {
     const {
       ringColor = "hsla({hue}, 70%, 50%, 0.5)",

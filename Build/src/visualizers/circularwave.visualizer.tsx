@@ -10,7 +10,7 @@ const circularWave: VisualizerType = {
     bufferLength,
     timeDataArray,
     dataType,
-    settings = {}
+    settings = {},
   ) {
     const {
       lineColor = "hsl({hue}, 100%, 50%)",

@@ -85,20 +85,26 @@
 
   /* Miscellaneous */
   --certain-icons: var(--themecolor);
-  --albumart-gradient: linear-gradient(135deg, var(--themecolor2) 0%, var(--themecolor3) 100%);
+  --albumart-gradient: linear-gradient(
+    135deg,
+    var(--themecolor2) 0%,
+    var(--themecolor3) 100%
+  );
 
   /* Shadows */
   --border: hsl(45, 20%, 85%);
-  --shadow: 0 1px 2px hsla(120, 25%, 10%, 0.05),
-    0 3px 6px hsla(120, 25%, 10%, 0.07);
-  --shadow-md: 0 1px 3px hsla(120, 25%, 10%, 0.05),
+  --shadow:
+    0 1px 2px hsla(120, 25%, 10%, 0.05), 0 3px 6px hsla(120, 25%, 10%, 0.07);
+  --shadow-md:
+    0 1px 3px hsla(120, 25%, 10%, 0.05),
     0 10px 15px -5px hsla(120, 25%, 10%, 0.05),
     0 20px 25px -5px hsla(120, 25%, 10%, 0.04);
-  --shadow-lg: 0 1px 3px hsla(120, 25%, 10%, 0.05),
+  --shadow-lg:
+    0 1px 3px hsla(120, 25%, 10%, 0.05),
     0 20px 25px -5px hsla(120, 25%, 10%, 0.07),
     0 30px 40px -5px hsla(120, 25%, 10%, 0.05);
-  --shadow-focus: 0 0 0 2px hsla(142, 76%, 36%, 0.25),
-    0 1px 2px hsla(120, 25%, 10%, 0.05);
+  --shadow-focus:
+    0 0 0 2px hsla(142, 76%, 36%, 0.25), 0 1px 2px hsla(120, 25%, 10%, 0.05);
 }
 
 .dark {
@@ -190,14 +196,15 @@
 
   /* Shadows */
   --border: hsl(120, 10%, 18%);
-  --shadow: 0 1px 2px hsla(120, 25%, 0%, 0.1),
-    0 3px 6px hsla(120, 25%, 0%, 0.15);
-  --shadow-md: 0 1px 3px hsla(120, 25%, 0%, 0.1),
-    0 10px 15px -5px hsla(120, 25%, 0%, 0.1),
+  --shadow:
+    0 1px 2px hsla(120, 25%, 0%, 0.1), 0 3px 6px hsla(120, 25%, 0%, 0.15);
+  --shadow-md:
+    0 1px 3px hsla(120, 25%, 0%, 0.1), 0 10px 15px -5px hsla(120, 25%, 0%, 0.1),
     0 20px 25px -5px hsla(120, 25%, 0%, 0.08);
-  --shadow-lg: 0 1px 3px hsla(120, 25%, 0%, 0.1),
+  --shadow-lg:
+    0 1px 3px hsla(120, 25%, 0%, 0.1),
     0 20px 25px -5px hsla(120, 25%, 0%, 0.15),
     0 30px 40px -5px hsla(120, 25%, 0%, 0.1);
-  --shadow-focus: 0 0 0 2px hsla(142, 65%, 45%, 0.25),
-    0 1px 2px hsla(120, 25%, 0%, 0.1);
+  --shadow-focus:
+    0 0 0 2px hsla(142, 65%, 45%, 0.25), 0 1px 2px hsla(120, 25%, 0%, 0.1);
 }

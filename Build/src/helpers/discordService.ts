@@ -6,11 +6,12 @@
 export interface DiscordPresenceData {
   userId: string;
   details: string; // Track name
-  state: string;   // Artist name
+  state: string; // Artist name
 }
 
 export class DiscordService {
-  private static readonly API_BASE_URL = 'https://htmlplayer-backend.onrender.com';
+  private static readonly API_BASE_URL =
+    "https://htmlplayer-backend.onrender.com";
   private static instance: DiscordService | null = null;
 
   private constructor() {}
@@ -26,7 +27,10 @@ export class DiscordService {
    * Log track update instead of sending to Discord backend
    */
   public async updatePresence(data: DiscordPresenceData): Promise<boolean> {
-    console.log(`[DiscordService] Would POST to ${DiscordService.API_BASE_URL}/presence with:`, data);
+    console.log(
+      `[DiscordService] Would POST to ${DiscordService.API_BASE_URL}/presence with:`,
+      data,
+    );
     return true;
   }
 
@@ -45,8 +49,8 @@ export class DiscordService {
   public static parseUserIdFromCallback(url: string): string | null {
     try {
       const urlObj = new URL(url);
-      const code = urlObj.searchParams.get('code');
-      
+      const code = urlObj.searchParams.get("code");
+
       if (!code) {
         return null;
       }
@@ -54,10 +58,10 @@ export class DiscordService {
       // In a real implementation, you would exchange the code for user info
       // For now, we'll need to handle this differently since the callback goes to the backend
       // The backend should provide the user ID somehow
-      
+
       return null; // This will be handled by the OAuth callback flow
     } catch (error) {
-      console.error('Error parsing Discord callback:', error);
+      console.error("Error parsing Discord callback:", error);
       return null;
     }
   }
