@@ -5,11 +5,19 @@
 - [X] Add TS/TSX support and wallpapers for interactivity
   - Start with built-in wallpapers using TS/TSX components, loaded via a wallpaper loader (similar to themeLoader)
   - Use sandboxed iframe with postMessage for API access to HTMLPlayer internals (playback state, settings, etc.)
-  - Eventually have an NPM module (@htmlplayer/api) for external wallpaper development, allowing user-created interactive wallpapers
+  - Eventually have an NPM module (@htmlplayer/api (using above postmessage system and validation/abstraction) for external wallpaper development, allowing user-created interactive wallpapers
+
 - [ ] a queue
   - like a line of records behind album art
   - smooth animation
 
+- [ ] Share links (client-side)
+  - Encode metadata in query/hash (`?artist=NellowTCS&title=Dashback`)
+  - Prompt user to load local file if no `songFile` URL
+    - songFile is for the future, so that I can have a simple way to share song files directly (files staying in a simple Cloudflare worker for 10-30 min or more probs)  
+  - Export/import JSON playlists for sharing
+  - Add "Copy Share Link" button to hide messy encoding
+  
 - [ ] making a homepage of sorts instead of directly songlist, so that it doesn't feel like you can't remove songs from all songs (even though like the name suggests, its *all* songs, and so you can't)
 
 - [ ] make default visualizer Ocean Wave
