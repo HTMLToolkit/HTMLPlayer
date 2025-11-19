@@ -7,6 +7,18 @@
   - Use sandboxed iframe with postMessage for API access to HTMLPlayer internals (playback state, settings, etc.)
   - Eventually have an NPM module (@htmlplayer/api (using above postmessage system and validation/abstraction) for external wallpaper development, allowing user-created interactive wallpapers
 
+- [ ] platform-specific files
+    - For example: split storage into:
+      - Storage.web.ts
+      - Storage.web.webkit.ts (for showDirectoryPicker)
+      - Storage.desktop.ts
+      - Storage.desktop.webkit.ts
+    
+    - with dynamic loader (use import.meta.glob to auto-discover)
+      - detect platform + engine
+      - load the correct file
+      - maybe add helper like getPlatformFlavor() → "desktop.webkit" etc
+
 - [ ] a queue
   - like a line of records behind album art
   - smooth animation
