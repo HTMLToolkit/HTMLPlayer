@@ -23,6 +23,10 @@
   - like a line of records behind album art
   - smooth animation
 
+- [ ] Make a choose for me/auto start/something button so that htmlplayer auto chooses what to play first, and use a REALLY good algorithm so that it's **perfect** every **single** time
+
+- [ ] Make the shuffle algorithm similarly amazing
+
 - [ ] Share links (client-side)
   - Encode metadata in query/hash (`?artist=NellowTCS&title=Dashback`)
   - Prompt user to load local file if no `songFile` URL
