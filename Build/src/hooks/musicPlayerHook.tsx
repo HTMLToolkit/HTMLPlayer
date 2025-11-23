@@ -11,7 +11,6 @@ import {
   createNextSongManager,
 } from "../helpers/shuffleManager";
 import { createCrossfadeManager } from "../helpers/crossfadeUtils";
-import { createAudioProcessor } from "../helpers/audioProcessor";
 import { calculateGaplessOffsets } from "../helpers/gaplessHelper";
 import { createPlaylistManager } from "../helpers/playlistManager";
 import { debounce } from "lodash";
@@ -149,7 +148,6 @@ export const useMusicPlayer = () => {
     gaplessAdvanceTriggeredRef,
     gaplessStartAppliedRef,
   );
-  const audioProcessor = createAudioProcessor();
   const playlistManager = createPlaylistManager(
     setLibrary,
     library,
@@ -177,8 +175,6 @@ export const useMusicPlayer = () => {
     startCrossfadeTransition,
     cleanupCrossfadeManager,
   } = crossfadeManager;
-
-  const { processAudioBatch } = audioProcessor;
 
   const {
     createPlaylist,
@@ -812,6 +808,7 @@ export const useMusicPlayer = () => {
           await audioRef.current.play();
         } catch (error: any) {
           console.error("Failed to play song:", error);
+          // TODO: i18n-ize
           toast.error(`Failed to play "${song.title}"`, {
             description: error.message || "Unknown error occurred",
           });
@@ -1411,20 +1408,20 @@ export const useMusicPlayer = () => {
   }, []);
 
   const addSong = useCallback(
-    async (song: Song) => {
-      // First, update library synchronously
+    async (song: Song, file?: File) => {
+      // First, update library synchronously to show song in UI immediately
       setLibrary((prev) => {
         const newSongs = [...prev.songs, song];
         const allSongsPlaylistExists = prev.playlists.some(
           (p) => p.id === "all-songs",
         );
-
+  
         let newPlaylists = prev.playlists.map((p) =>
           p.id === "all-songs"
             ? { ...p, songs: prepareSongsForPlaylist(newSongs) }
             : p,
         );
-
+  
         if (!allSongsPlaylistExists) {
           newPlaylists = [
             {
@@ -1441,33 +1438,48 @@ export const useMusicPlayer = () => {
           playlists: newPlaylists,
         };
       });
-
-      // Then, process its audio in the background
-      try {
-        const [processedSong] = await processAudioBatch([song]);
-        // Update the song with the processed version
-        setLibrary((prev) => {
-          const newSongs = prev.songs.map((s) =>
-            s.id === processedSong.id ? processedSong : s,
-          );
-          return {
-            ...prev,
-            songs: newSongs,
-            playlists: prev.playlists.map((p) =>
-              p.id === "all-songs"
-                ? { ...p, songs: prepareSongsForPlaylist(newSongs) }
-                : p,
-            ),
-          };
-        });
-      } catch (error) {
-        console.error("Failed to process song audio:", error);
-        toast.error(`Failed to process "${song.title}"`, {
-          description: (error as Error).message || "Unknown error occurred",
-        });
+  
+      // If we have the file, process and store audio in background
+      if (file) {
+        try {
+          // Convert file directly to ArrayBuffer
+          const arrayBuffer = await file.arrayBuffer();
+          
+          // Save to IndexedDB
+          await musicIndexedDbHelper.saveSongAudio(song.id, {
+            fileData: arrayBuffer,
+            mimeType: file.type,
+          });
+  
+          // Update song to mark it as stored
+          setLibrary((prev) => {
+            const newSongs = prev.songs.map((s) =>
+              s.id === song.id 
+                ? { ...s, hasStoredAudio: true, url: `indexeddb://${song.id}` } 
+                : s,
+            );
+            return {
+              ...prev,
+              songs: newSongs,
+              playlists: prev.playlists.map((p) =>
+                p.id === "all-songs"
+                  ? { ...p, songs: prepareSongsForPlaylist(newSongs) }
+                  : p,
+              ),
+            };
+          });
+          
+          console.log(`Successfully stored audio for: ${song.title}`);
+        } catch (error) {
+          console.error("Failed to process song audio:", error);
+          // TODO: i18n-ize
+          toast.error(`Failed to process "${song.title}"`, {
+            description: (error as Error).message || "Unknown error occurred",
+          });
+        }
       }
     },
-    [processAudioBatch, prepareSongsForPlaylist],
+    [prepareSongsForPlaylist, t],
   );
 
   const removeSong = useCallback(async (songId: string) => {

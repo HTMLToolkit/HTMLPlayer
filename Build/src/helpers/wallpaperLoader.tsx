@@ -95,6 +95,7 @@ export const WallpaperLoader: React.FC<WallpaperLoaderProps> = ({
               continue;
             }
 
+            // TODO: i18n-ize
             const metadata: WallpaperMetadata = {
               name:
                 wallpaperMeta.label ||

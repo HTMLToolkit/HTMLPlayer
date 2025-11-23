@@ -405,7 +405,7 @@
   "goToArtist": "Aller à l'artiste",
   "goToAlbum": "Aller à l'album",
   "deleteFromLibrary": "Supprimer de la bibliothèque",
-  "deletedFromLibrary": "{{song}} supprimé de votre bibliothèque",
+  "deletedFromLibrary": "{{song}} chanson supprimé de votre bibliothèque",
   "deleteSong": "Supprimer la chanson",
   "deleteSongConfirmation": "Êtes-vous sûr de vouloir supprimer définitivement « {{song}} » ? Cette action est irréversible.",
   "songInformation": "Informations sur la chanson",
@@ -535,6 +535,9 @@
   },
   "accessibility": {
     "scrollingText": "Texte défilant"
+  },
+  "help": {
+    "startTour": "Aide (WIP)"
   },
   "icon": {
     "nameNotProvided": "Nom d'icône non fourni",

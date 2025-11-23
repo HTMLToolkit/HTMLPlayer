@@ -15,6 +15,7 @@ import ReactDOM from "react-dom/client";
 import { useTranslation } from "react-i18next";
 import i18n from "i18next";
 import { IconRegistryProvider } from "./iconLoader";
+import { importAudioFiles } from "./importAudioFiles";
 
 // Extend Window interface for File Handling API
 declare global {
@@ -62,6 +63,65 @@ export interface EncodingDetails {
 export interface GaplessInfo {
   encoderDelay?: number;
   encoderPadding?: number;
+}
+
+/**
+ * Compress album art to reduce memory usage
+ * Skips compression for animated images (WebP, GIF) to preserve animation
+ */
+async function compressAlbumArt(base64: string, maxSize = 400): Promise<string> {
+  // Check if it's an animated format
+  const isAnimatedFormat = base64.startsWith('data:image/webp') || 
+                          base64.startsWith('data:image/gif');
+  
+  if (isAnimatedFormat) {
+    console.log('Skipping compression for animated image');
+    return base64; // Return original to preserve animation
+  }
+  
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    
+    img.onerror = () => reject(new Error('Failed to load image'));
+    
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      let width = img.width;
+      let height = img.height;
+      
+      // Resize if too large (maintain aspect ratio)
+      if (width > maxSize || height > maxSize) {
+        if (width > height) {
+          height = Math.round((height / width) * maxSize);
+          width = maxSize;
+        } else {
+          width = Math.round((width / height) * maxSize);
+          height = maxSize;
+        }
+      }
+      
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      
+      if (!ctx) {
+        reject(new Error('Failed to get canvas context'));
+        return;
+      }
+      
+      // Draw and compress
+      ctx.drawImage(img, 0, 0, width, height);
+      
+      // Compress to JPEG at 85% quality
+      const compressed = canvas.toDataURL('image/jpeg', 0.85);
+      
+      console.log(`Album art compressed: ${(base64.length / 1024).toFixed(1)}KB → ${(compressed.length / 1024).toFixed(1)}KB`);
+      
+      resolve(compressed);
+    };
+    
+    img.src = base64;
+  });
 }
 
 function buildEncodingDetails(format: any): EncodingDetails | undefined {
@@ -377,11 +437,13 @@ function processFiles(files: File[]): AudioFile[] {
       !file.type.startsWith("audio/") &&
       !(ext && allowedExtensions.includes(ext))
     ) {
+      // TODO: i18n-ize
       toast.error(`Skipping non-audio file: ${file.name}`);
       continue;
     }
     const canPlay = audioTest.canPlayType(file.type);
     if (canPlay !== "probably" && canPlay !== "maybe") {
+      // TODO: i18n-ize
       toast.error(
         `Skipping unsupported audio format by browser: ${file.name} (${file.type})`,
       );
@@ -478,6 +540,7 @@ export async function extractAudioMetadata(file: File): Promise<AudioMetadata> {
         encoding = buildEncodingDetails(metadata.format);
         gapless = buildGaplessInfo(metadata);
 
+        // Find this section in extractAudioMetadata (around line 420)
         const cover = selectCover(metadata.common.picture);
         if (cover && cover.data.length > 0) {
           const blob = new Blob([new Uint8Array(cover.data)], {
@@ -485,7 +548,18 @@ export async function extractAudioMetadata(file: File): Promise<AudioMetadata> {
           });
           albumArt = await new Promise<string>((resolve, reject) => {
             const reader = new FileReader();
-            reader.onloadend = () => resolve(reader.result as string);
+            reader.onloadend = async () => {
+              try {
+                const base64 = reader.result as string;
+                // Compress album art to save memory
+                const compressed = await compressAlbumArt(base64);
+                resolve(compressed);
+              } catch (error) {
+                console.warn('Failed to compress album art:', error);
+                // Fallback to original if compression fails
+                resolve(reader.result as string);
+              }
+            };
             reader.onerror = () =>
               reject(new Error("Failed to read album art"));
             reader.readAsDataURL(blob);
@@ -512,9 +586,6 @@ export async function extractAudioMetadata(file: File): Promise<AudioMetadata> {
 // ---------------------
 // URL + ID helpers
 // ---------------------
-export function createAudioUrl(file: File): string {
-  return URL.createObjectURL(file);
-}
 
 export function generateUniqueId(): string {
   return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
@@ -538,7 +609,7 @@ export function setupFileHandler(
     typeof window.launchQueue.setConsumer !== "function"
   ) {
     console.warn("File Handling API not supported in this browser");
-    return () => {}; // Return empty cleanup function
+    return () => { }; // Return empty cleanup function
   }
 
   const consumer = async (launchParams: any) => {
@@ -603,7 +674,7 @@ export function setupFileHandler(
       typeof window.launchQueue.setConsumer === "function"
     ) {
       try {
-        window.launchQueue.setConsumer(() => {});
+        window.launchQueue.setConsumer(() => { });
       } catch (e) {
         console.warn("Could not clear file handler consumer:", e);
       }
@@ -637,11 +708,11 @@ export function handleShareTarget(): ShareTargetResult | null {
   // Files would typically come through launch queue for file shares
   return title || text || url
     ? {
-        files: [],
-        title,
-        text,
-        url,
-      }
+      files: [],
+      title,
+      text,
+      url,
+    }
     : null;
 }
 
@@ -746,58 +817,4 @@ export function useFileHandler(
   }, [isInitialized, addSong, t]);
 
   return { isSupported };
-}
-export async function importAudioFiles(
-  audioFiles: Array<{ file: File } | File>,
-  addSong: (song: Song) => Promise<void>,
-  t: any,
-) {
-  if (!audioFiles || audioFiles.length === 0) return;
-  const BATCH_SIZE = 10; // Reduced batch size
-  let successCount = 0;
-  let errorCount = 0;
-  let currentBatch = 1;
-  const totalBatches = Math.ceil(audioFiles.length / BATCH_SIZE);
-  for (let i = 0; i < audioFiles.length; i += BATCH_SIZE) {
-    const batch = audioFiles.slice(i, i + BATCH_SIZE);
-    toast.loading(t("batch.processing", { currentBatch, totalBatches }));
-
-    // Process batch sequentially to minimize memory usage
-    for (const audioFile of batch) {
-      try {
-        const file: File = (audioFile as any).file || (audioFile as File);
-        const metadata = await extractAudioMetadata(file);
-        const audioUrl = createAudioUrl(file);
-        const song: Song = {
-          id: generateUniqueId(),
-          title: metadata.title,
-          artist: metadata.artist,
-          album:
-            metadata.album ||
-            t("songInfo.album", { title: t("common.unknownAlbum") }),
-          duration: metadata.duration,
-          url: audioUrl,
-          albumArt: metadata.albumArt,
-          embeddedLyrics: metadata.embeddedLyrics,
-          encoding: metadata.encoding,
-          gapless: metadata.gapless,
-        };
-        await addSong(song);
-        URL.revokeObjectURL(audioUrl); // Revoke immediately after adding
-        if (typeof audioFile === "object" && "file" in audioFile) {
-          (audioFile as { file: File }).file = null as any; // Clear reference
-        }
-        successCount++;
-      } catch {
-        errorCount++;
-      }
-    }
-
-    currentBatch++;
-  }
-  toast.dismiss();
-  if (successCount > 0)
-    toast.success(t("filePicker.successImport", { count: successCount }));
-  if (errorCount > 0)
-    toast.error(t("filePicker.failedImport", { count: errorCount }));
 }

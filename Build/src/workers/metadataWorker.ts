@@ -43,6 +43,65 @@ interface GaplessInfo {
   encoderPadding?: number;
 }
 
+/**
+ * Compress album art to reduce memory usage
+ * Skips compression for animated images (WebP, GIF) to preserve animation
+ */
+async function compressAlbumArt(base64: string, maxSize = 400): Promise<string> {
+  // Check if it's an animated format
+  const isAnimatedFormat = base64.startsWith('data:image/webp') || 
+                          base64.startsWith('data:image/gif');
+  
+  if (isAnimatedFormat) {
+    console.log('Skipping compression for animated image');
+    return base64; // Return original to preserve animation
+  }
+  
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    
+    img.onerror = () => reject(new Error('Failed to load image'));
+    
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      let width = img.width;
+      let height = img.height;
+      
+      // Resize if too large (maintain aspect ratio)
+      if (width > maxSize || height > maxSize) {
+        if (width > height) {
+          height = Math.round((height / width) * maxSize);
+          width = maxSize;
+        } else {
+          width = Math.round((width / height) * maxSize);
+          height = maxSize;
+        }
+      }
+      
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      
+      if (!ctx) {
+        reject(new Error('Failed to get canvas context'));
+        return;
+      }
+      
+      // Draw and compress
+      ctx.drawImage(img, 0, 0, width, height);
+      
+      // Compress to JPEG at 85% quality
+      const compressed = canvas.toDataURL('image/jpeg', 0.85);
+      
+      console.log(`Album art compressed: ${(base64.length / 1024).toFixed(1)}KB → ${(compressed.length / 1024).toFixed(1)}KB`);
+      
+      resolve(compressed);
+    };
+    
+    img.src = base64;
+  });
+}
+
 function mapLyricsTag(
   tag: ILyricsTag | undefined | null,
 ): EmbeddedLyrics | null {
@@ -61,7 +120,7 @@ function mapLyricsTag(
         text: entry.text.trim(),
         timestamp:
           typeof entry.timestamp === "number" &&
-          Number.isFinite(entry.timestamp)
+            Number.isFinite(entry.timestamp)
             ? entry.timestamp
             : 0,
       }));
@@ -220,21 +279,24 @@ self.onmessage = async (event: MessageEvent) => {
 
     let albumArt: string | undefined = undefined;
     const cover = selectCover(metadata.common.picture);
-    if (cover && cover.data && cover.data.length > 0) {
-      try {
-        const uint8Array = new Uint8Array(cover.data);
-        const blob = new Blob([uint8Array], { type: cover.format });
+    if (cover && cover.data.length > 0) {
+      const blob = new Blob([new Uint8Array(cover.data)], {
+        type: cover.format,
+      });
 
-        albumArt = await new Promise<string>((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onloadend = () => resolve(reader.result as string);
-          reader.onerror = () => reject(new Error("Failed to read album art"));
-          reader.readAsDataURL(blob);
-        });
-      } catch (artError) {
-        const message =
-          artError instanceof Error ? artError.message : String(artError);
-        warnings.push(`Failed to process album art: ${message}`);
+      const base64 = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result as string);
+        reader.onerror = () => reject(new Error("Failed to read album art"));
+        reader.readAsDataURL(blob);
+      });
+
+      // Compress before sending back to main thread
+      try {
+        albumArt = await compressAlbumArt(base64);
+      } catch (error) {
+        console.warn('Worker: Failed to compress album art:', error);
+        albumArt = base64; // Fallback to original
       }
     }
 

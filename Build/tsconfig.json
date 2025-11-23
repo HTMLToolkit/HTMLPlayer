@@ -21,8 +21,8 @@
     "noEmit": true,
     "jsx": "react-jsx",
     "types": [
+      "vite",
       "vite/client",
-      "jasmine",
       "node"
     ]
   },

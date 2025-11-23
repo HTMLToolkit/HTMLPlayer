@@ -433,7 +433,7 @@
   "goToArtist": "Go to artist",
   "goToAlbum": "Go to album",
   "deleteFromLibrary": "Delete from library",
-  "deletedFromLibrary": "{{song}} deleted from your library",
+  "deletedFromLibrary": "{{song}} song(s) deleted from your library",
   "deleteSong": "Delete Song",
   "deleteSongConfirmation": "Are you sure you want to permanently delete \"{{song}}\"? This action cannot be undone.",
   "songInformation": "Song Information",
@@ -570,7 +570,7 @@
     "scrollingText": "Scrolling text"
   },
   "help": {
-    "startTour": "Help"
+    "startTour": "Help (WIP)"
   },
   "icon": {
     "nameNotProvided": "Icon name not provided",

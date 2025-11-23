@@ -221,6 +221,7 @@ export const Settings = ({
     }
   };
 
+  // TODO: i18n-ize
   const handleErudaToggle = async (enabled: boolean) => {
     try {
       if (enabled) {

@@ -12,12 +12,6 @@ export const createCrossfadeManager = (
   gaplessAdvanceTriggeredRef?: MutableRefObject<boolean>,
   gaplessStartAppliedRef?: MutableRefObject<boolean>,
 ) => {
-  const getValidTempo = (tempo: number | undefined) => {
-    if (typeof tempo !== "number" || !Number.isFinite(tempo) || tempo <= 0) {
-      return 1;
-    }
-    return Math.max(0.25, Math.min(4.0, tempo));
-  };
 
   const setupCrossfadeManager = (audioContext: AudioContext) => {
     try {

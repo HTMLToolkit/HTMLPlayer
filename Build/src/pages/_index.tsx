@@ -15,11 +15,8 @@ import styles from "./_index.module.css";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { DraggableProvider, DragItem, DropZone } from "../components/Draggable";
-import {
-  useFileHandler,
-  useShareTarget,
-  importAudioFiles,
-} from "../helpers/filePickerHelper";
+import { useFileHandler, useShareTarget } from "../helpers/filePickerHelper";
+import { importAudioFiles } from "../helpers/importAudioFiles";
 import { HelpGuideProvider } from "../components/HelpGuide";
 import WallpaperRenderer from "../components/Wallpaper";
 
