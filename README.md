@@ -1,6 +1,13 @@
 # HTMLPlayer
 
 ---
+
+## HTMLPlayer (beta) Users?
+If you're wondering where HTMLPlayer (beta) is, firstly, super cool! :D 
+And secondly it's in the `updates` branch [here](https://github.com/HTMLToolkit/HTMLPlayer/tree/updates). 
+The live link is [here](https://htmltoolkit.github.io/beta/HTMLPlayerBeta/)
+
+---
 [![All Contributors](https://img.shields.io/github/all-contributors/HTMLToolkit/HTMLPlayer?color=ee8449&style=flat-square)](#contributors)
 ---
 ![Alt](https://repobeats.axiom.co/api/embed/29883a69034cdc74979defb46de1f9a1de895288.svg "Repobeats analytics image")
