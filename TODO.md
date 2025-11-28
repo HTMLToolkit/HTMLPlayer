@@ -67,6 +67,8 @@
 
 - [ ] theme Sonner toasts
 
+- [ ] a similar to Spotify Wrapped thing
+
 - [ ] Auto-fetch album art from MusicBrainz/Discogs if missing.
   - <https://github.com/Borewit/musicbrainz-api>
 
