@@ -16,7 +16,7 @@ concurrency:
   cancel-in-progress: false
 
 permissions:
-  contents: read  # For artifact access
+  contents: read
 
 jobs:
   build-and-dispatch:
@@ -43,16 +43,14 @@ jobs:
         run: npm run build
 
       - name: Zip build artifacts
-        run: |
-          cd Build/dist
-          zip -r ../../../htmlplayer-build.zip .
+        run: zip -r htmlplayer-build.zip Build/dist
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: htmlplayer-build
           path: htmlplayer-build.zip
-          retention-days: 1  # Short retention since it's for deploy
+          retention-days: 1
 
       - name: Get artifact download URL
         id: get-artifact
