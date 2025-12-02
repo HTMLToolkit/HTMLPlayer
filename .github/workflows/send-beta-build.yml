@@ -43,7 +43,7 @@ jobs:
         run: npm run build
 
       - name: Zip build artifacts
-        run: zip -r htmlplayer-build.zip Build/dist
+        run: zip -j htmlplayer-build.zip Build/dist/*
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
