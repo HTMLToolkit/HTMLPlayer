@@ -16,7 +16,7 @@ concurrency:
   cancel-in-progress: false
 
 permissions:
-  contents: read
+  contents: readwrite
 
 jobs:
   build-and-dispatch:
@@ -68,19 +68,18 @@ jobs:
 
       - name: Dispatch to beta repo
         run: |
-          SUBFOLDER="${{ github.event.inputs.subfolder }}"
+          SUBFOLDER="${{ github.event.inputs.subfolder || 'HTMLPlayerBeta' }}"
           ARTIFACT_URL="${{ steps.get-artifact.outputs.url }}"
-          TOKEN="${{ secrets.GITHUB_TOKEN }}"
           curl -X POST \
-            -H "Authorization: token ${TOKEN}" \
-            -H "Accept: application/vnd.github.v3+json" \
+            -H "Authorization: token ${{ secrets.BETA_PAT_TOKEN }}" \
+            -H "Accept: application/vnd.github+json" \
             https://api.github.com/repos/HTMLToolkit/beta/dispatches \
             -d '{
               "event_type": "deploy-build",
               "client_payload": {
                 "source_repo": "'${{ github.repository }}'",
                 "artifact_url": "'${ARTIFACT_URL}'",
-                "token": "'${TOKEN}'",
+                "token": "'${{ secrets.GITHUB_TOKEN }}'",
                 "subfolder": "'${SUBFOLDER}'"
               }
             }'
