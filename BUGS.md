@@ -2,6 +2,7 @@
 
 - [ ] The app is using 400 MB RAM by default, but it should use more like 200 MB
   - now 290 MB
+  - around 320-330 MB when playing a song
 
 - [ ] Loading a custom iconset tanks performance
 - [ ] Gapless and crossfade are just broken, they just are
