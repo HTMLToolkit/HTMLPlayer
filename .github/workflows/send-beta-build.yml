@@ -13,7 +13,7 @@ permissions:
   contents: read
 
 jobs:
-  build-and-dispatch:
+  send:
     runs-on: ubuntu-latest
     outputs:
       artifact-url: ${{ steps.get-artifact.outputs.url }}
@@ -101,17 +101,18 @@ jobs:
           echo "  artifact_url: ${ARTIFACT_URL}"
           echo "  zip_name: ${ZIP_NAME}"
 
+          JSON=$(jq -n \
+            --arg event_type "deploy-build" \
+            --arg source_repo "${{ github.repository }}" \
+            --arg artifact_url "$ARTIFACT_URL" \
+            --arg token "${{ secrets.GITHUB_TOKEN }}" \
+            --arg subfolder "$SUBFOLDER" \
+            --arg zip_name "$ZIP_NAME" \
+            '{event_type: $event_type, client_payload: {source_repo: $source_repo, artifact_url: $artifact_url, token: $token, subfolder: $subfolder, zip_name: $zip_name}}' \
+          )
+
           curl -X POST \
             -H "Authorization: token ${{ secrets.BETA_PAT_TOKEN }}" \
             -H "Accept: application/vnd.github+json" \
             https://api.github.com/repos/${BETA_REPO}/dispatches \
-            -d '{
-              "event_type": "deploy-build",
-              "client_payload": {
-                "source_repo": "'"${{ github.repository }}"'",
-                "artifact_url": "'"${ARTIFACT_URL}"'",
-                "token": "'"${{ secrets.GITHUB_TOKEN }}"'",
-                "subfolder": "'"${SUBFOLDER}"'",
-                "zip_name": "'"${ZIP_NAME}"'"
-              }
-            }'
+            -d "$JSON"
