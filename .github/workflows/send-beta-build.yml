@@ -33,10 +33,7 @@ jobs:
       - name: Determine subfolder and zip name
         id: set-zip-name
         run: |
-          # Use workflow_dispatch input if present; fall back to default
           SUBFOLDER="${{ github.event.inputs.subfolder || 'HTMLPlayerBeta' }}"
-
-          # Lowercase subfolder for zip name
           ZIP_NAME="$(echo "${SUBFOLDER}" | tr '[:upper:]' '[:lower:]')-build.zip"
 
           echo "Subfolder: ${SUBFOLDER}"
@@ -92,8 +89,8 @@ jobs:
             }
 
             core.setOutput('url', artifact.archive_download_url);
-          env:
-            ZIP_NAME: ${{ steps.set-zip-name.outputs.zip_name }}
+        env:
+          ZIP_NAME: ${{ steps.set-zip-name.outputs.zip_name }}
 
       - name: Dispatch to beta repo
         run: |
