@@ -3,7 +3,7 @@ name: Deploy to Beta
 on:
   push:
     branches:
-      - updates
+      - v2.0.0
 
 concurrency:
   group: "deploy-beta"
@@ -22,7 +22,7 @@ jobs:
       - name: Checkout source repo
         uses: actions/checkout@v4
         with:
-          ref: updates
+          ref: v2.0.0
 
       - name: Determine subfolder and zip name
         id: set-zip-name
