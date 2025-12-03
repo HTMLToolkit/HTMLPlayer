@@ -23,11 +23,27 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       artifact-url: ${{ steps.get-artifact.outputs.url }}
+      zip-name: ${{ steps.set-zip-name.outputs.zip_name }}
     steps:
       - name: Checkout source repo
         uses: actions/checkout@v4
         with:
           ref: updates
+
+      - name: Determine subfolder and zip name
+        id: set-zip-name
+        run: |
+          # Use workflow_dispatch input if present; fall back to default
+          SUBFOLDER="${{ github.event.inputs.subfolder || 'HTMLPlayerBeta' }}"
+
+          # Lowercase subfolder for zip name
+          ZIP_NAME="$(echo "${SUBFOLDER}" | tr '[:upper:]' '[:lower:]')-build.zip"
+
+          echo "Subfolder: ${SUBFOLDER}"
+          echo "Zip name: ${ZIP_NAME}"
+
+          echo "subfolder=${SUBFOLDER}" >> "$GITHUB_OUTPUT"
+          echo "zip_name=${ZIP_NAME}" >> "$GITHUB_OUTPUT"
 
       - name: Use Node.js
         uses: actions/setup-node@v4
@@ -43,13 +59,17 @@ jobs:
         run: npm run build
 
       - name: Zip build artifacts
-        run: zip -r htmlplayer-build.zip Build/dist
+        run: |
+          ZIP_NAME="${{ steps.set-zip-name.outputs.zip_name }}"
+          echo "Creating zip: ${ZIP_NAME}"
+          zip -r "${ZIP_NAME}" Build/dist
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: htmlplayer-build
-          path: htmlplayer-build.zip
+          # Use the dynamic zip name as the artifact name too
+          name: ${{ steps.set-zip-name.outputs.zip_name }}
+          path: ${{ steps.set-zip-name.outputs.zip_name }}
           retention-days: 1
 
       - name: Get artifact download URL
@@ -57,29 +77,47 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
+            const zipName = process.env.ZIP_NAME;
+            const { owner, repo } = context.repo;
+
             const artifacts = await github.rest.actions.listWorkflowRunArtifacts({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
+              owner,
+              repo,
               run_id: context.runId
             });
-            const artifact = artifacts.data.artifacts.find(a => a.name === 'htmlplayer-build');
-            if (!artifact) throw new Error('Artifact not found');
+
+            const artifact = artifacts.data.artifacts.find(a => a.name === zipName);
+            if (!artifact) {
+              core.setFailed(`Artifact with name ${zipName} not found`);
+              return;
+            }
+
             core.setOutput('url', artifact.archive_download_url);
+          env:
+            ZIP_NAME: ${{ steps.set-zip-name.outputs.zip_name }}
 
       - name: Dispatch to beta repo
         run: |
-          SUBFOLDER="${{ github.event.inputs.subfolder || 'HTMLPlayerBeta' }}"
+          SUBFOLDER="${{ steps.set-zip-name.outputs.subfolder }}"
           ARTIFACT_URL="${{ steps.get-artifact.outputs.url }}"
+          ZIP_NAME="${{ steps.set-zip-name.outputs.zip_name }}"
+
+          echo "Dispatching with:"
+          echo "  subfolder: ${SUBFOLDER}"
+          echo "  artifact_url: ${ARTIFACT_URL}"
+          echo "  zip_name: ${ZIP_NAME}"
+
           curl -X POST \
             -H "Authorization: token ${{ secrets.BETA_PAT_TOKEN }}" \
             -H "Accept: application/vnd.github+json" \
             https://api.github.com/repos/HTMLToolkit/beta/dispatches \
-            -d '{
-              "event_type": "deploy-build",
-              "client_payload": {
-                "source_repo": "'${{ github.repository }}'",
-                "artifact_url": "'${ARTIFACT_URL}'",
-                "token": "'${{ secrets.GITHUB_TOKEN }}'",
-                "subfolder": "'${SUBFOLDER}'"
+            -d "{
+              \"event_type\": \"deploy-build\",
+              \"client_payload\": {
+                \"source_repo\": \"${{ github.repository }}\",
+                \"artifact_url\": \"${ARTIFACT_URL}\",
+                \"token\": \"${{ secrets.GITHUB_TOKEN }}\",
+                \"subfolder\": \"${SUBFOLDER}\",
+                \"zip_name\": \"${ZIP_NAME}\"
               }
-            }'
+            }"
