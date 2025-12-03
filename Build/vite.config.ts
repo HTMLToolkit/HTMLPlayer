@@ -20,13 +20,13 @@ if (isWeb) {
       includeAssets: ["robots.txt"],
       manifest: {
         id: "htmlplayer",
-        name: "HTMLPlayerBeta",
-        short_name: "HTMLPlayerBeta",
+        name: "HTMLPlayer (beta)",
+        short_name: "HTMLPlayer(beta)",
         description:
           "A modern music player interface with playlists, song management, visualizers, and offline support.",
         categories: ["music", "audio", "entertainment", "tools"],
-        start_url: "/beta/HTMLPlayerBeta/",
-        scope: "/beta/HTMLPlayerBeta/",
+        start_url: "/beta/HTMLPlayer/",
+        scope: "/beta/HTMLPlayer/",
         display: "standalone",
         theme_color: "#00bfff",
         background_color: "#00bfff",
@@ -49,7 +49,7 @@ if (isWeb) {
         // },
         file_handlers: [
           {
-            action: "/beta/HTMLPlayerBeta/",
+            action: "/beta/HTMLPlayer/",
             accept: {
               "audio/mpeg": [".mp3"],
               "audio/wav": [".wav"],

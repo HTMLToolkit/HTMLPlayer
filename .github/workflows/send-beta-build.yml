@@ -4,12 +4,6 @@ on:
   push:
     branches:
       - updates
-  workflow_dispatch:
-    inputs:
-      subfolder:
-        description: 'Target subfolder in beta repo'
-        required: true
-        default: 'HTMLPlayerBeta'
 
 concurrency:
   group: "deploy-beta"
@@ -33,7 +27,7 @@ jobs:
       - name: Determine subfolder and zip name
         id: set-zip-name
         run: |
-          SUBFOLDER="${{ github.event.inputs.subfolder || 'HTMLPlayerBeta' }}"
+          SUBFOLDER="${{ github.event.repository.name }}"
           ZIP_NAME="$(echo "${SUBFOLDER}" | tr '[:upper:]' '[:lower:]')-build.zip"
 
           echo "Subfolder: ${SUBFOLDER}"
@@ -96,11 +90,13 @@ jobs:
         run: |
           set -euo pipefail
 
+          BETA_REPO="${{ github.repository_owner }}/beta"
           SUBFOLDER="${{ steps.set-zip-name.outputs.subfolder }}"
           ARTIFACT_URL="${{ steps.get-artifact.outputs.url }}"
           ZIP_NAME="${{ steps.set-zip-name.outputs.zip_name }}"
 
-          echo "Dispatching with:"
+          echo "Dispatching to: ${BETA_REPO}"
+          echo "With:"
           echo "  subfolder: ${SUBFOLDER}"
           echo "  artifact_url: ${ARTIFACT_URL}"
           echo "  zip_name: ${ZIP_NAME}"
@@ -108,7 +104,7 @@ jobs:
           curl -X POST \
             -H "Authorization: token ${{ secrets.BETA_PAT_TOKEN }}" \
             -H "Accept: application/vnd.github+json" \
-            https://api.github.com/repos/HTMLToolkit/beta/dispatches \
+            https://api.github.com/repos/${BETA_REPO}/dispatches \
             -d '{
               "event_type": "deploy-build",
               "client_payload": {
