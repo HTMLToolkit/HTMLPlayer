@@ -8,16 +8,16 @@
   - Eventually have an NPM module (@htmlplayer/api (using above postmessage system and validation/abstraction) for external wallpaper development, allowing user-created interactive wallpapers
 
 - [ ] platform-specific files
-    - For example: split storage into:
-      - Storage.web.ts
-      - Storage.web.webkit.ts (for showDirectoryPicker)
-      - Storage.desktop.ts
-      - Storage.desktop.webkit.ts
-    
-    - with dynamic loader (use import.meta.glob to auto-discover)
-      - detect platform + engine
-      - load the correct file
-      - maybe add helper like getPlatformFlavor() → "desktop.webkit" etc
+  - For example: split storage into:
+    - Storage.web.ts
+    - Storage.web.webkit.ts (for showDirectoryPicker)
+    - Storage.desktop.ts
+    - Storage.desktop.webkit.ts
+
+  - with dynamic loader (use import.meta.glob to auto-discover)
+    - detect platform + engine
+    - load the correct file
+    - maybe add helper like getPlatformFlavor() → "desktop.webkit" etc
 
 - [ ] a queue
   - like a line of records behind album art
@@ -36,21 +36,11 @@
   
 - [ ] making a homepage of sorts instead of directly songlist, so that it doesn't feel like you can't remove songs from all songs (even though like the name suggests, its *all* songs, and so you can't)
 
-- [ ] make default visualizer Ocean Wave
-
-- [ ] Make settings UI much better and not just a list of *every single* settings option
-
 - [ ] Use the KSoft Lyrics API ([https://docs.ksoft.si/api/lyrics-api](https://docs.ksoft.si/api/lyrics-api))
 
 - [ ] Play more/less often dropdown in SongActionsDropdown
 
 - [ ] Dynamic theming based on album art colors.
-  - CSS backgrounds can be images, and album art is images
-
-- [ ] Add TS/TSX support to wallpapers for interactivity
-  - eventually using a NPM module or something for API
-  
-- [ ] Dynamic theming based on album art.
   - CSS backgrounds can be images, and album art is images
 
 - [ ] 🔼 I'll need to add some sort of quick guide and help menu or something to HTMLPlayer. (extensive and interactive ig)
@@ -171,6 +161,10 @@
 - [ ] need good APIs if I want this (not the current visualizer stuff 🫣)
 
 ## Done
+
+- [X] make default visualizer Ocean Wave
+
+- [X] Make settings UI much better and not just a list of *every single* settings option
 
 - [X] the lyrics don't show embedded/USLT/SYLT lyrics properly
 

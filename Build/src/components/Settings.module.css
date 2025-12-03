@@ -13,20 +13,131 @@
 
 .sheetContent {
   width: 100%;
-  max-width: 400px;
+  max-width: 860px;
   background-color: var(--popup);
   border-radius: 0 1.5rem 1.5rem 0;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.sheetHeader {
+  padding: var(--spacing-4);
+  margin-bottom: var(--spacing-4);
+  border-bottom: 1px solid var(--border);
 }
 
 .settingsContent {
   flex: 1;
+  display: flex;
+  overflow: hidden;
+  padding: 0;
+  margin: var(--spacing-3) 0;
+}
+
+.settingsLayout {
+  display: flex;
+  gap: var(--spacing-4);
+  align-items: stretch;
+  width: 100%;
+}
+
+.sidebarShell {
+  flex-shrink: 0;
+  min-width: 230px;
+  max-width: 240px;
+  display: flex;
+  align-items: flex-start;
+  padding-right: var(--spacing-2);
+  position: relative;
+}
+
+.settingsSidebar {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+  width: 100%;
+  padding: var(--spacing-4);
+  background: var(--surface);
+  border-radius: 0 var(--radius-lg) var(--radius-lg) 0;
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm, 0 8px 20px rgba(0, 0, 0, 0.06));
+}
+
+.sidebarButton {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-3);
+  padding: var(--spacing-3) var(--spacing-4);
+  border-radius: var(--radius-lg);
+  border: 1px solid transparent;
+  background: var(--surface);
+  cursor: pointer;
+  text-align: left;
+  transition: border-color var(--animation-duration-fast) ease,
+    background-color var(--animation-duration-fast) ease,
+    color var(--animation-duration-fast) ease;
+  color: var(--muted-foreground);
+}
+
+.sidebarButton:hover {
+  border-color: var(--border);
+  background: var(--surface-transparent-05);
+  color: var(--foreground);
+}
+
+.sidebarButtonActive {
+  border-color: var(--primary-border, var(--primary));
+  background: var(--primary-transparent-1, rgba(0, 0, 0, 0.04));
+  color: var(--foreground);
+  box-shadow: var(--shadow-sm, 0 4px 10px rgba(0, 0, 0, 0.08));
+}
+
+.sidebarButtonIcon {
+  flex-shrink: 0;
+  color: inherit;
+}
+
+.sidebarButtonText {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1);
+}
+
+.sidebarButtonLabel {
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: inherit;
+}
+
+.sidebarButtonDescription {
+  font-size: 0.8rem;
+  color: var(--muted-foreground);
+}
+
+.sidebarButtonActive .sidebarButtonDescription,
+.sidebarButton:hover .sidebarButtonDescription {
+  color: inherit;
+}
+
+.categoryContent {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-6);
+  min-width: 0;
+  max-height: 100%;
   overflow-y: auto;
-  padding: var(--spacing-6) var(--spacing-4);
-  margin: var(--spacing-6) 0;
+  padding-right: var(--spacing-1);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: none;
+  border-radius: var(--radius-lg) 0 0 var(--radius-lg);
+  padding: var(--spacing-4);
 }
 
 .section {
-  margin-bottom: var(--spacing-12);
+  margin-bottom: var(--spacing-6);
   padding: var(--spacing-4);
   background: var(--surface);
   border-radius: var(--radius-lg);
@@ -149,6 +260,62 @@
 @media (max-width: 640px) {
   .sheetContent {
     max-width: 100%;
+    height: auto;
+    border-radius: 0;
+  }
+
+  .settingsContent {
+    padding: var(--spacing-3);
+    margin: 0;
+    overflow: visible;
+  }
+
+  .settingsLayout {
+    flex-direction: column;
+    gap: var(--spacing-3);
+  }
+
+  .sidebarShell {
+    min-width: 0;
+    max-width: none;
+    padding-right: 0;
+    overflow: visible;
+  }
+
+  .settingsSidebar {
+    flex-direction: column;
+    padding: var(--spacing-3);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border);
+    box-shadow: none;
+  }
+
+  .categoryContent {
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    border-left: 1px solid var(--border);
+    max-height: none;
+    overflow: visible;
+    padding: var(--spacing-3);
+    padding-right: var(--spacing-3);
+  }
+
+  .sidebarButton {
+    width: 100%;
+    justify-content: flex-start;
+    padding: var(--spacing-3);
+  }
+
+  .sidebarButtonText {
+    gap: var(--spacing-1);
+  }
+
+  .sidebarButtonLabel {
+    font-size: 0.875rem;
+  }
+
+  .sidebarButtonDescription {
+    display: none;
   }
 
   .settingItem {

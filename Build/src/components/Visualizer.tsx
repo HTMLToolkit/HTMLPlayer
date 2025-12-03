@@ -29,6 +29,8 @@ export const Visualizer = ({
 }: VisualizerProps) => {
   const { t } = useTranslation();
 
+  const DEFAULT_VISUALIZER_KEY = "oceanwaves";
+
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animationFrameId = useRef<number | null>(null);
   const [availableVisualizers, setAvailableVisualizers] = useState<string[]>(
@@ -64,7 +66,11 @@ export const Visualizer = ({
     });
 
     if (visualizers.length > 0 && !selectedVisualizerKey) {
-      setSelectedVisualizerKey(visualizers[0]);
+      setSelectedVisualizerKey(
+        visualizers.includes(DEFAULT_VISUALIZER_KEY)
+          ? DEFAULT_VISUALIZER_KEY
+          : visualizers[0],
+      );
     }
   }, [selectedVisualizerKey]);
 
