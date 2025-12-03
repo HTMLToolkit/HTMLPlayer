@@ -1,5 +1,7 @@
 # Icon System
 
+> Out of date a bit
+
 ## Overview
 
 The icon system allows themes to define custom icon sets independently from theme CSS files. Icons are loaded dynamically and can be swapped without changing the visual theme.
