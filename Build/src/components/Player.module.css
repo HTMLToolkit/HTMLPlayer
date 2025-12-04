@@ -18,8 +18,39 @@
   box-sizing: border-box;
   z-index: 50;
   margin-left: 15px;
-  transition: ease-in-out var(--animation-duration-fast);
+  transition:
+    height var(--animation-duration-fast) ease-in-out,
+    padding var(--animation-duration-fast) ease-in-out;
   outline: 2px solid var(--themecolor2-transparent);
+}
+
+/* Compact player for home view */
+.playerCompact {
+  height: 100px;
+  padding: 0 var(--spacing-4);
+  gap: var(--spacing-4);
+}
+
+.playerCompact .albumArt {
+  width: 64px;
+  height: 64px;
+}
+
+.playerCompact .songTitleWrapper {
+  width: 160px;
+}
+
+.playerCompact .songTitle {
+  font-size: 0.95rem;
+}
+
+.playerCompact .artistName {
+  font-size: 0.8rem;
+}
+
+.playerCompact .playButton {
+  width: 40px;
+  height: 40px;
 }
 
 .currentSong {
@@ -361,7 +392,7 @@
 /* Visualizer Overlay */
 .visualizerOverlay {
   position: fixed;
-  top: 80px;
+  top: 65px;
   right: 0;
   width: calc(100vw - var(--sidebar-width));
   height: calc(100vh - 90px - 180px);

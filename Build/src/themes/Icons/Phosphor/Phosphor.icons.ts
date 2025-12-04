@@ -50,6 +50,8 @@ import {
   PiKeyboard,
   PiChatCircle,
   PiSliders,
+  PiSparkle,
+  PiHouse,
 } from "react-icons/pi";
 import type {
   IconDefinition,
@@ -112,6 +114,8 @@ export const libraries: IconLibraryMap = {
     PiKeyboard,
     PiChatCircle,
     PiSliders,
+    PiSparkle,
+    PiHouse,
   },
 };
 
@@ -196,6 +200,8 @@ const icons: IconDefinitionMap = {
   keyboard: phosphorIcon("PiKeyboard"),
   messageCircle: phosphorIcon("PiChatCircle"),
   visualizerControls: phosphorIcon("PiSliders"),
+  sparkles: phosphorIcon("PiSparkle"),
+  home: phosphorIcon("PiHouse"),
 };
 
 export default icons;

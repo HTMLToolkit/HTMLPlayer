@@ -8,7 +8,7 @@ interface PlayerState {
   shuffle: boolean;
   repeat: "off" | "one" | "all";
   analyserNode: AnalyserNode | null;
-  view: "songs" | "artist" | "album";
+  view: "home" | "songs" | "artist" | "album";
   currentArtist?: string;
   currentAlbum?: string;
 }

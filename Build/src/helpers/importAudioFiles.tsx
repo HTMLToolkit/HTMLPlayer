@@ -1,8 +1,5 @@
 import { toast } from "sonner";
-import {
-  extractAudioMetadata,
-  generateUniqueId,
-} from "./filePickerHelper";
+import { extractAudioMetadata, generateUniqueId } from "./filePickerHelper";
 
 export async function importAudioFiles(
   audioFiles: Array<{ file: File } | File>,
@@ -15,11 +12,11 @@ export async function importAudioFiles(
   let errorCount = 0;
   let currentBatch = 1;
   const totalBatches = Math.ceil(audioFiles.length / BATCH_SIZE);
-  
+
   for (let i = 0; i < audioFiles.length; i += BATCH_SIZE) {
     const batch = audioFiles.slice(i, i + BATCH_SIZE);
     toast.loading(t("batch.processing", { currentBatch, totalBatches }));
-    
+
     // Process sequentially instead of Promise.all to reduce memory pressure
     for (const audioFile of batch) {
       try {
@@ -33,15 +30,15 @@ export async function importAudioFiles(
             metadata.album ||
             t("songInfo.album", { title: t("common.unknownAlbum") }),
           duration: metadata.duration,
-          url: '', // Will be set by addSong
+          url: "", // Will be set by addSong
           albumArt: metadata.albumArt,
           embeddedLyrics: metadata.embeddedLyrics,
           encoding: metadata.encoding,
           gapless: metadata.gapless,
         };
-        
+
         await addSong(song, file); // Pass File object directly
-        
+
         // Clear file reference
         if (typeof audioFile === "object" && "file" in audioFile) {
           (audioFile as { file: File }).file = null as any;
@@ -52,13 +49,13 @@ export async function importAudioFiles(
         errorCount++;
       }
     }
-    
+
     currentBatch++;
-    
+
     // Give browser time to garbage collect between batches
-    await new Promise(r => setTimeout(r, 100));
+    await new Promise((r) => setTimeout(r, 100));
   }
-  
+
   toast.dismiss();
   if (successCount > 0)
     toast.success(t("filePicker.successImport", { count: successCount }));

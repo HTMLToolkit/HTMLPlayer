@@ -54,7 +54,7 @@ export const useMusicPlayer = () => {
     shuffle: false,
     repeat: "off",
     analyserNode: null,
-    view: "songs",
+    view: "home",
   });
 
   const [settings, setSettings] = useState<PlayerSettings>({
@@ -191,6 +191,7 @@ export const useMusicPlayer = () => {
     getFavoriteSongs,
     searchSongs,
     getSearchResults,
+    navigateToHome,
     navigateToArtist,
     navigateToAlbum,
     navigateToSongs,
@@ -1415,13 +1416,13 @@ export const useMusicPlayer = () => {
         const allSongsPlaylistExists = prev.playlists.some(
           (p) => p.id === "all-songs",
         );
-  
+
         let newPlaylists = prev.playlists.map((p) =>
           p.id === "all-songs"
             ? { ...p, songs: prepareSongsForPlaylist(newSongs) }
             : p,
         );
-  
+
         if (!allSongsPlaylistExists) {
           newPlaylists = [
             {
@@ -1438,24 +1439,24 @@ export const useMusicPlayer = () => {
           playlists: newPlaylists,
         };
       });
-  
+
       // If we have the file, process and store audio in background
       if (file) {
         try {
           // Convert file directly to ArrayBuffer
           const arrayBuffer = await file.arrayBuffer();
-          
+
           // Save to IndexedDB
           await musicIndexedDbHelper.saveSongAudio(song.id, {
             fileData: arrayBuffer,
             mimeType: file.type,
           });
-  
+
           // Update song to mark it as stored
           setLibrary((prev) => {
             const newSongs = prev.songs.map((s) =>
-              s.id === song.id 
-                ? { ...s, hasStoredAudio: true, url: `indexeddb://${song.id}` } 
+              s.id === song.id
+                ? { ...s, hasStoredAudio: true, url: `indexeddb://${song.id}` }
                 : s,
             );
             return {
@@ -1468,7 +1469,7 @@ export const useMusicPlayer = () => {
               ),
             };
           });
-          
+
           console.log(`Successfully stored audio for: ${song.title}`);
         } catch (error) {
           console.error("Failed to process song audio:", error);
@@ -1543,6 +1544,7 @@ export const useMusicPlayer = () => {
     searchSongs,
     getSearchResults,
     setSearchQuery,
+    navigateToHome,
     navigateToArtist,
     navigateToAlbum,
     navigateToSongs,

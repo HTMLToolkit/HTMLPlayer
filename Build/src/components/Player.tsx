@@ -218,10 +218,13 @@ export const Player = ({ musicPlayerHook, settings }: PlayerProps) => {
     ? (currentTime / currentSong.duration) * 100
     : 0;
   const volumePercentage = volume * 100;
+  const isHomeView = playerState.view === "home";
 
   if (!currentSong) {
     return (
-      <div className={styles.player}>
+      <div
+        className={`${styles.player} ${isHomeView ? styles.playerCompact : ""}`}
+      >
         <div className={styles.noSong}>
           <span>{t("player.selectSong")}</span>
         </div>
@@ -242,7 +245,9 @@ export const Player = ({ musicPlayerHook, settings }: PlayerProps) => {
           />
         </div>
       )}
-      <div className={styles.player}>
+      <div
+        className={`${styles.player} ${isHomeView ? styles.playerCompact : ""}`}
+      >
         <div className={styles.currentSong}>
           <div className={styles.albumArt}>
             {currentSong.albumArt && (

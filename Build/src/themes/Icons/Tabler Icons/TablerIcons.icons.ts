@@ -50,6 +50,8 @@ import {
   TbKeyboard,
   TbMessageCircle,
   TbWaveSine,
+  TbSparkles,
+  TbHome,
 } from "react-icons/tb";
 import type {
   IconDefinition,
@@ -112,6 +114,8 @@ export const libraries: IconLibraryMap = {
     TbKeyboard,
     TbMessageCircle,
     TbWaveSine,
+    TbSparkles,
+    TbHome,
   },
 };
 
@@ -196,6 +200,8 @@ const icons: IconDefinitionMap = {
   keyboard: tablerIcon("TbKeyboard"),
   messageCircle: tablerIcon("TbMessageCircle"),
   visualizerControls: tablerIcon("TbWaveSine"),
+  sparkles: tablerIcon("TbSparkles"),
+  home: tablerIcon("TbHome"),
 };
 
 export default icons;

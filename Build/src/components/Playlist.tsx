@@ -97,6 +97,7 @@ export const PlaylistComponent = ({ musicPlayerHook }: PlaylistProps) => {
     moveToFolder,
     exportPlaylist,
     importPlaylist,
+    navigateToSongs,
   } = musicPlayerHook;
 
   useEffect(() => {
@@ -176,6 +177,7 @@ export const PlaylistComponent = ({ musicPlayerHook }: PlaylistProps) => {
       existingAllSongs.songs.length > 0
     ) {
       playSong(existingAllSongs.songs[0], existingAllSongs);
+      navigateToSongs();
     } else if (library.songs.length > 0) {
       const allSongsPlaylist: Playlist = {
         id: "all-songs",
@@ -183,8 +185,9 @@ export const PlaylistComponent = ({ musicPlayerHook }: PlaylistProps) => {
         songs: library.songs,
       };
       playSong(allSongsPlaylist.songs[0], allSongsPlaylist);
+      navigateToSongs();
     }
-  }, [library.playlists, library.songs, playSong]);
+  }, [library.playlists, library.songs, playSong, navigateToSongs]);
 
   const handleAddPlaylist = () => {
     setShowCreatePlaylist(true);

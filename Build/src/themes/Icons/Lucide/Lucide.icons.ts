@@ -95,6 +95,8 @@ const icons: IconDefinitionMap = {
   messageCircle: lucideIcon("MessageCircle"),
   visualizerControls: lucideIcon("SlidersHorizontal"),
   circleQuestionMark: lucideIcon("CircleQuestionMark"),
+  sparkles: lucideIcon("Sparkles"),
+  home: lucideIcon("Home"),
 };
 
 export default icons;

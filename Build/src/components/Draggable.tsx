@@ -94,8 +94,6 @@ const customCollisionDetection: CollisionDetection = (args) => {
     const { pointerCoordinates } = args;
 
     if (pointerCoordinates) {
-      // If dragging to the left side of screen (where playlists typically are), prefer playlists
-      // Adjust this threshold based on your layout - assuming sidebar is ~300px wide
       if (pointerCoordinates.x < 350) {
         return playlistIntersections;
       }

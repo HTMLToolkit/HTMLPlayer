@@ -50,6 +50,8 @@ import {
   MdKeyboard,
   MdChatBubbleOutline,
   MdTune,
+  MdAutoAwesome,
+  MdHome,
 } from "react-icons/md";
 import type {
   IconDefinition,
@@ -112,6 +114,8 @@ export const libraries: IconLibraryMap = {
     MdKeyboard,
     MdChatBubbleOutline,
     MdTune,
+    MdAutoAwesome,
+    MdHome,
   },
 };
 
@@ -192,6 +196,8 @@ const icons: IconDefinitionMap = {
   keyboard: materialIcon("MdKeyboard"),
   messageCircle: materialIcon("MdChatBubbleOutline"),
   visualizerControls: materialIcon("MdTune"),
+  sparkles: materialIcon("MdAutoAwesome"),
+  home: materialIcon("MdHome"),
 };
 
 export default icons;

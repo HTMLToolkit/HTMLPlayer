@@ -43,6 +43,8 @@ import {
   SlReload,
   SlCursorMove,
   SlSpeech,
+  SlMagicWand,
+  SlHome,
 } from "react-icons/sl";
 import type {
   IconDefinition,
@@ -98,6 +100,8 @@ export const libraries: IconLibraryMap = {
     SlReload,
     SlCursorMove,
     SlSpeech,
+    SlMagicWand,
+    SlHome,
   },
 };
 
@@ -182,6 +186,8 @@ const icons: IconDefinitionMap = {
   keyboard: simpleLineIcon("SlCursorMove"), // No direct keyboard, use cursor
   messageCircle: simpleLineIcon("SlSpeech"),
   visualizerControls: simpleLineIcon("SlControlPlay"),
+  sparkles: simpleLineIcon("SlMagicWand"),
+  home: simpleLineIcon("SlHome"),
 };
 
 export default icons;

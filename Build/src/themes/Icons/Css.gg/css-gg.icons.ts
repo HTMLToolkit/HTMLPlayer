@@ -45,6 +45,8 @@ import {
   CgKeyboard,
   CgComment,
   CgMusicSpeaker,
+  CgAbstract,
+  CgHome,
 } from "react-icons/cg";
 import type {
   IconDefinition,
@@ -101,6 +103,8 @@ const cssggIcons = {
   CgKeyboard,
   CgComment,
   CgMusicSpeaker,
+  CgAbstract,
+  CgHome,
 };
 
 export const libraries: IconLibraryMap = {
@@ -196,6 +200,8 @@ const icons: IconDefinitionMap = {
   keyboard: cssggIcon("CgKeyboard"),
   messageCircle: cssggIcon("CgComment"),
   visualizerControls: cssggIcon("CgMusicSpeaker"),
+  sparkles: cssggIcon("CgAbstract"),
+  home: cssggIcon("CgHome"),
 };
 
 export default icons;

@@ -334,6 +334,38 @@
     "previousTrack": "Piste précédente",
     "nextTrack": "Piste suivante"
   },
+  "home": {
+    "title": "Accueil",
+    "subtitle": "Reprenez là où vous vous êtes arrêté ou tentez quelque chose de nouveau.",
+    "heroNowPlaying": "Lecture en cours",
+    "heroEmpty": "Aucune piste dans la file",
+    "heroEmptyDescription": "Importez ou déposez des morceaux pour commencer à bâtir votre bibliothèque.",
+    "resume": "Reprendre",
+    "startListening": "Commencer l'écoute",
+    "uploadMusic": "Importer de la musique",
+    "browseLibrary": "Aller à la bibliothèque",
+    "quickActions": "Actions rapides",
+    "smartStart": "Lire quelque chose",
+    "smartStartDescription": "HTMLPlayer choisit un excellent prochain titre.",
+    "libraryDescription": "Accédez à la liste complète des titres.",
+    "favorites": "Lire les favoris",
+    "favoritesDescription": "Faites tourner les morceaux que vous aimez le plus.",
+    "uploadDescription": "Importez en lot ou glissez-déposez des fichiers audio.",
+    "statsTitle": "Votre bibliothèque en un coup d'œil",
+    "stats": {
+      "songs": "Titres",
+      "playlists": "Playlists",
+      "favorites": "Favoris",
+      "duration": "Heures d'écoute"
+    },
+    "recentlyAdded": "Ajouts récents",
+    "viewAll": "Tout afficher",
+    "emptyRecent": "Ajoutez de la musique pour voir les derniers titres ici.",
+    "featuredPlaylists": "Playlists à l'honneur",
+    "emptyPlaylists": "Créez des playlists pour les retrouver ici.",
+    "playPlaylist": "Lecture",
+    "playlistCount": "{{count}} titres"
+  },
   "pip": {
     "couldNotAccessStylesheet": "Impossible d'accéder à la feuille de style :",
     "couldNotCopyStylesheets": "Impossible de copier certaines feuilles de style :",
@@ -432,6 +464,16 @@
     "resetDialogs": "Réinitialiser les dialogues",
     "resetDialogsTitle": "Réinitialiser les Confirmations de Dialogue ?",
     "resetDialogsButton": "Réinitialiser",
+    "category": {
+      "playback": "Lecture",
+      "playbackDescription": "Comportement audio et lecture",
+      "interface": "Interface",
+      "interfaceDescription": "Thèmes, langue et apparence",
+      "shortcuts": "Raccourcis",
+      "shortcutsDescription": "Préférences des raccourcis clavier",
+      "experimental": "Bêta",
+      "experimentalDescription": "Fonctionnalités précoces et expérimentales"
+    },
     "audio": {
       "title": "Paramètres Audio",
       "crossfade": "Fondu enchaîné",

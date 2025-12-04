@@ -4,7 +4,6 @@
   flex: 1;
   overflow-y: auto;
   scrollbar-width: extra-thin;
-  scrollbar-color: var(--themecolor) transparent;
 }
 
 .searchContainer {

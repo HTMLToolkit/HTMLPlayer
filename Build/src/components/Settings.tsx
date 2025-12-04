@@ -288,7 +288,7 @@ export const Settings = ({
               ? "0"
               : (settings.pitch ?? 0) > 0
                 ? `+${settings.pitch ?? 0}`
-                : settings.pitch ?? 0}
+                : (settings.pitch ?? 0)}
           </span>
         </div>
         <Slider
@@ -334,7 +334,8 @@ export const Settings = ({
               {t("settings.audio.crossfade")}
               {settings.gaplessPlayback && (
                 <span className={styles.settingDescription}>
-                  {" "}({t("settings.audio.crossfadeDisabled")})
+                  {" "}
+                  ({t("settings.audio.crossfadeDisabled")})
                 </span>
               )}
             </label>
@@ -402,9 +403,7 @@ export const Settings = ({
           size="1.25rem"
           decorative
         />
-        <h3 className={styles.sectionTitle}>
-          {t("settings.playback.title")}
-        </h3>
+        <h3 className={styles.sectionTitle}>{t("settings.playback.title")}</h3>
       </div>
 
       <div className={styles.settingItem}>
@@ -419,9 +418,7 @@ export const Settings = ({
         <Switch
           id="default-shuffle"
           checked={settings.defaultShuffle}
-          onCheckedChange={(val) =>
-            onSettingsChange({ defaultShuffle: val })
-          }
+          onCheckedChange={(val) => onSettingsChange({ defaultShuffle: val })}
         />
       </div>
 
@@ -437,9 +434,7 @@ export const Settings = ({
         <Switch
           id="smart-shuffle"
           checked={settings.smartShuffle}
-          onCheckedChange={(val) =>
-            onSettingsChange({ smartShuffle: val })
-          }
+          onCheckedChange={(val) => onSettingsChange({ smartShuffle: val })}
         />
       </div>
 
@@ -480,9 +475,7 @@ export const Settings = ({
         <Switch
           id="auto-play-next"
           checked={settings.autoPlayNext}
-          onCheckedChange={(val) =>
-            onSettingsChange({ autoPlayNext: val })
-          }
+          onCheckedChange={(val) => onSettingsChange({ autoPlayNext: val })}
         />
       </div>
 
@@ -498,9 +491,7 @@ export const Settings = ({
         <Switch
           id="session-restore"
           checked={settings.sessionRestore}
-          onCheckedChange={(val) =>
-            onSettingsChange({ sessionRestore: val })
-          }
+          onCheckedChange={(val) => onSettingsChange({ sessionRestore: val })}
         />
       </div>
     </section>
@@ -515,9 +506,7 @@ export const Settings = ({
           size="1.25rem"
           decorative
         />
-        <h3 className={styles.sectionTitle}>
-          {t("settings.interface.title")}
-        </h3>
+        <h3 className={styles.sectionTitle}>{t("settings.interface.title")}</h3>
       </div>
 
       <div className={styles.settingItem}>
@@ -552,9 +541,7 @@ export const Settings = ({
 
       <div className={styles.settingItem}>
         <div className={styles.settingLabel}>
-          <label htmlFor="icon-set">
-            {t("settings.interface.iconSet")}
-          </label>
+          <label htmlFor="icon-set">{t("settings.interface.iconSet")}</label>
           <p className={styles.settingDescription}>
             {t("settings.interface.iconSetDesc")}
           </p>
@@ -585,9 +572,7 @@ export const Settings = ({
 
       <div className={styles.settingItem}>
         <div className={styles.settingLabel}>
-          <label htmlFor="wallpaper">
-            {t("settings.interface.wallpaper")}
-          </label>
+          <label htmlFor="wallpaper">{t("settings.interface.wallpaper")}</label>
           <p className={styles.settingDescription}>
             {t("settings.interface.wallpaperDesc")}
           </p>
@@ -669,17 +654,13 @@ export const Settings = ({
         <Switch
           id="show-album-art"
           checked={settings.showAlbumArt}
-          onCheckedChange={(val) =>
-            onSettingsChange({ showAlbumArt: val })
-          }
+          onCheckedChange={(val) => onSettingsChange({ showAlbumArt: val })}
         />
       </div>
 
       <div className={styles.settingItem}>
         <div className={styles.settingInfo}>
-          <label htmlFor="show-lyrics">
-            {t("settings.interface.lyrics")}
-          </label>
+          <label htmlFor="show-lyrics">{t("settings.interface.lyrics")}</label>
           <p className={styles.settingDescription}>
             {t("settings.interface.lyricsDesc")}
           </p>
@@ -775,9 +756,7 @@ export const Settings = ({
                 disabled={dialogResetLoading}
                 variant="destructive"
               >
-                {dialogResetLoading
-                  ? t("common.loading")
-                  : t("common.reset")}
+                {dialogResetLoading ? t("common.loading") : t("common.reset")}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -795,9 +774,7 @@ export const Settings = ({
           size="1.25rem"
           decorative
         />
-        <h3 className={styles.sectionTitle}>
-          {t("settings.shortcuts.title")}
-        </h3>
+        <h3 className={styles.sectionTitle}>{t("settings.shortcuts.title")}</h3>
       </div>
 
       <div className={styles.settingItem}>
@@ -807,7 +784,11 @@ export const Settings = ({
             {t("settings.shortcuts.enabledDesc")}
           </p>
         </div>
-        <Switch id="shortcuts-enabled" checked={true} onCheckedChange={() => { }} />
+        <Switch
+          id="shortcuts-enabled"
+          checked={true}
+          onCheckedChange={() => {}}
+        />
       </div>
 
       <ShortcutConfig onShortcutsChanged={onShortcutsChanged} />
@@ -851,8 +832,8 @@ export const Settings = ({
               <p className={styles.settingDescription}>
                 {settings.discordUserId
                   ? t("discord.connected", {
-                    userId: settings.discordUserId,
-                  })
+                      userId: settings.discordUserId,
+                    })
                   : t("discord.notConnected")}
               </p>
             </div>
@@ -967,43 +948,43 @@ export const Settings = ({
     description: string;
     icon: string;
   }> = [
-      {
-        id: "playback",
-        label: t("settings.category.playback", "Playback"),
-        description: t(
-          "settings.category.playbackDescription",
-          "Audio and playback behavior",
-        ),
-        icon: "music",
-      },
-      {
-        id: "interface",
-        label: t("settings.category.interface", "Interface"),
-        description: t(
-          "settings.category.interfaceDescription",
-          "Themes, language, and appearance",
-        ),
-        icon: "palette",
-      },
-      {
-        id: "shortcuts",
-        label: t("settings.category.shortcuts", "Shortcuts"),
-        description: t(
-          "settings.category.shortcutsDescription",
-          "Keyboard shortcut preferences",
-        ),
-        icon: "keyboard",
-      },
-      {
-        id: "experimental",
-        label: t("settings.category.experimental", "Beta"),
-        description: t(
-          "settings.category.experimentalDescription",
-          "Early and experimental features",
-        ),
-        icon: "messageCircle",
-      },
-    ];
+    {
+      id: "playback",
+      label: t("settings.category.playback", "Playback"),
+      description: t(
+        "settings.category.playbackDescription",
+        "Audio and playback behavior",
+      ),
+      icon: "music",
+    },
+    {
+      id: "interface",
+      label: t("settings.category.interface", "Interface"),
+      description: t(
+        "settings.category.interfaceDescription",
+        "Themes, language, and appearance",
+      ),
+      icon: "palette",
+    },
+    {
+      id: "shortcuts",
+      label: t("settings.category.shortcuts", "Shortcuts"),
+      description: t(
+        "settings.category.shortcutsDescription",
+        "Keyboard shortcut preferences",
+      ),
+      icon: "keyboard",
+    },
+    {
+      id: "experimental",
+      label: t("settings.category.experimental", "Beta"),
+      description: t(
+        "settings.category.experimentalDescription",
+        "Early and experimental features",
+      ),
+      icon: "messageCircle",
+    },
+  ];
 
   return (
     <div className={`${styles.container} ${className || ""}`}>
@@ -1017,7 +998,10 @@ export const Settings = ({
           <div className={styles.settingsContent}>
             <div className={styles.settingsLayout}>
               <div className={styles.sidebarShell}>
-                <nav className={styles.settingsSidebar} aria-label={t("settings.title")}>
+                <nav
+                  className={styles.settingsSidebar}
+                  aria-label={t("settings.title")}
+                >
                   {categoryList.map((category) => {
                     const isActive = activeCategory === category.id;
                     return (

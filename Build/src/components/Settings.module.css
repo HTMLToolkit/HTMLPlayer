@@ -22,8 +22,8 @@
 }
 
 .sheetHeader {
-  padding: var(--spacing-4);
-  margin-bottom: var(--spacing-4);
+  padding: var(--spacing-3) var(--spacing-4);
+  margin-bottom: var(--spacing-2);
   border-bottom: 1px solid var(--border);
 }
 
@@ -74,7 +74,8 @@
   background: var(--surface);
   cursor: pointer;
   text-align: left;
-  transition: border-color var(--animation-duration-fast) ease,
+  transition:
+    border-color var(--animation-duration-fast) ease,
     background-color var(--animation-duration-fast) ease,
     color var(--animation-duration-fast) ease;
   color: var(--muted-foreground);

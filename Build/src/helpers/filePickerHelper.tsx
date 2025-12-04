@@ -69,26 +69,29 @@ export interface GaplessInfo {
  * Compress album art to reduce memory usage
  * Skips compression for animated images (WebP, GIF) to preserve animation
  */
-async function compressAlbumArt(base64: string, maxSize = 400): Promise<string> {
+async function compressAlbumArt(
+  base64: string,
+  maxSize = 400,
+): Promise<string> {
   // Check if it's an animated format
-  const isAnimatedFormat = base64.startsWith('data:image/webp') || 
-                          base64.startsWith('data:image/gif');
-  
+  const isAnimatedFormat =
+    base64.startsWith("data:image/webp") || base64.startsWith("data:image/gif");
+
   if (isAnimatedFormat) {
-    console.log('Skipping compression for animated image');
+    console.log("Skipping compression for animated image");
     return base64; // Return original to preserve animation
   }
-  
+
   return new Promise((resolve, reject) => {
     const img = new Image();
-    
-    img.onerror = () => reject(new Error('Failed to load image'));
-    
+
+    img.onerror = () => reject(new Error("Failed to load image"));
+
     img.onload = () => {
-      const canvas = document.createElement('canvas');
+      const canvas = document.createElement("canvas");
       let width = img.width;
       let height = img.height;
-      
+
       // Resize if too large (maintain aspect ratio)
       if (width > maxSize || height > maxSize) {
         if (width > height) {
@@ -99,27 +102,29 @@ async function compressAlbumArt(base64: string, maxSize = 400): Promise<string> 
           height = maxSize;
         }
       }
-      
+
       canvas.width = width;
       canvas.height = height;
-      const ctx = canvas.getContext('2d');
-      
+      const ctx = canvas.getContext("2d");
+
       if (!ctx) {
-        reject(new Error('Failed to get canvas context'));
+        reject(new Error("Failed to get canvas context"));
         return;
       }
-      
+
       // Draw and compress
       ctx.drawImage(img, 0, 0, width, height);
-      
+
       // Compress to JPEG at 85% quality
-      const compressed = canvas.toDataURL('image/jpeg', 0.85);
-      
-      console.log(`Album art compressed: ${(base64.length / 1024).toFixed(1)}KB → ${(compressed.length / 1024).toFixed(1)}KB`);
-      
+      const compressed = canvas.toDataURL("image/jpeg", 0.85);
+
+      console.log(
+        `Album art compressed: ${(base64.length / 1024).toFixed(1)}KB → ${(compressed.length / 1024).toFixed(1)}KB`,
+      );
+
       resolve(compressed);
     };
-    
+
     img.src = base64;
   });
 }
@@ -555,7 +560,7 @@ export async function extractAudioMetadata(file: File): Promise<AudioMetadata> {
                 const compressed = await compressAlbumArt(base64);
                 resolve(compressed);
               } catch (error) {
-                console.warn('Failed to compress album art:', error);
+                console.warn("Failed to compress album art:", error);
                 // Fallback to original if compression fails
                 resolve(reader.result as string);
               }
@@ -609,7 +614,7 @@ export function setupFileHandler(
     typeof window.launchQueue.setConsumer !== "function"
   ) {
     console.warn("File Handling API not supported in this browser");
-    return () => { }; // Return empty cleanup function
+    return () => {}; // Return empty cleanup function
   }
 
   const consumer = async (launchParams: any) => {
@@ -674,7 +679,7 @@ export function setupFileHandler(
       typeof window.launchQueue.setConsumer === "function"
     ) {
       try {
-        window.launchQueue.setConsumer(() => { });
+        window.launchQueue.setConsumer(() => {});
       } catch (e) {
         console.warn("Could not clear file handler consumer:", e);
       }
@@ -708,11 +713,11 @@ export function handleShareTarget(): ShareTargetResult | null {
   // Files would typically come through launch queue for file shares
   return title || text || url
     ? {
-      files: [],
-      title,
-      text,
-      url,
-    }
+        files: [],
+        title,
+        text,
+        url,
+      }
     : null;
 }
 

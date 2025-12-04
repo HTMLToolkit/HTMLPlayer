@@ -1,0 +1,455 @@
+.home {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+  color: var(--primary-foreground);
+  padding-left: var(--spacing-6);
+  padding-right: 0;
+  padding-top: var(--spacing-4);
+  padding-bottom: var(--spacing-6);
+}
+
+.panel {
+  position: relative;
+  background: var(--menu-background);
+  border: 1px solid var(--surface-transparent-2);
+  border-right: none;
+  border-radius: var(--radius-lg) 0 0 var(--radius-lg);
+  padding: var(--spacing-6);
+  box-shadow: -8px 0 24px var(--surface-transparent-2);
+  backdrop-filter: blur(30px);
+  overflow: hidden;
+}
+
+.panel::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  background: linear-gradient(
+    -135deg,
+    color-mix(in srgb, var(--themecolor2) 8%, transparent),
+    transparent 60%
+  );
+  opacity: 0.5;
+}
+
+.panel > * {
+  position: relative;
+  z-index: 1;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+}
+
+.hero {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-5);
+}
+
+.heroContent {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+  flex: 1;
+  min-width: 0;
+  padding-left: var(--spacing-3);
+
+  justify-content: center;
+}
+
+.heroTag {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  padding: 0.25rem 0.75rem;
+  border-radius: var(--radius);
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  background: var(--surface-transparent-2);
+  color: var(--foreground-subtle);
+  border: 1px solid var(--surface-transparent-3);
+}
+
+.heroTitle {
+  margin: 0;
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--primary-foreground);
+  line-height: 1.2;
+}
+
+.heroSubtitle {
+  margin: 0;
+  color: var(--foreground-subtle);
+  font-size: 0.95rem;
+}
+
+.heroActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-3);
+  margin-top: var(--spacing-2);
+}
+
+.heroArt {
+  position: relative;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background: var(--surface-transparent-2);
+  width: 150px;
+  height: 150px;
+  min-width: 150px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 24px var(--surface-transparent-2);
+
+  order: -1;
+}
+
+.heroArt img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.heroArtPlaceholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--foreground-muted);
+}
+
+.sectionTitle {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--primary-foreground);
+}
+
+.sectionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--spacing-3);
+}
+
+.sectionSubtitle {
+  margin: 0;
+  color: var(--foreground-subtle);
+  font-size: 0.85rem;
+}
+
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--spacing-4);
+}
+
+.statCard {
+  padding: var(--spacing-4);
+  border-radius: var(--radius);
+  border: 1px solid var(--surface-transparent-2);
+  background: var(--surface-transparent-1);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+  text-align: center;
+}
+
+.statLabel {
+  font-size: 0.75rem;
+  color: var(--foreground-subtle);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.statValue {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--primary-foreground);
+}
+
+.quickActions {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: var(--spacing-4);
+}
+
+.quickAction {
+  border: none;
+  background: var(--surface-transparent-1);
+  border-radius: var(--radius);
+  padding: var(--spacing-4);
+  display: flex;
+  gap: var(--spacing-3);
+  align-items: center;
+  text-align: left;
+  cursor: pointer;
+  border: 1px solid var(--surface-transparent-2);
+  transition:
+    background var(--animation-duration-fast) ease,
+    border-color var(--animation-duration-fast) ease,
+    transform var(--animation-duration-fast) ease;
+}
+
+.quickAction:hover {
+  background: var(--surface-transparent-2);
+  border-color: var(--primary-transparent);
+  transform: translateX(-4px);
+}
+
+.quickActionIcon {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius);
+  background: var(--themecolor2-transparent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary-foreground);
+  flex-shrink: 0;
+}
+
+.quickActionLabel {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--primary-foreground);
+}
+
+.quickActionDescription {
+  margin: 0;
+  color: var(--foreground-subtle);
+  font-size: 0.75rem;
+  line-height: 1.4;
+}
+
+.cardGrid {
+  display: flex;
+  overflow-x: auto;
+  gap: var(--spacing-4);
+  padding-bottom: var(--spacing-2);
+
+  scrollbar-width: none;
+}
+
+.cardGrid::-webkit-scrollbar {
+  display: none;
+}
+
+.songCard {
+  min-width: 200px;
+  width: 200px;
+  flex-shrink: 0;
+  border: none;
+  border-radius: var(--radius);
+  background: var(--surface-transparent-1);
+  padding: var(--spacing-3) var(--spacing-4);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  border: 1px solid var(--surface-transparent-2);
+  cursor: pointer;
+  transition:
+    background var(--animation-duration-fast) ease,
+    transform var(--animation-duration-fast) ease;
+}
+
+.songCard:hover {
+  background: var(--surface-transparent-2);
+  transform: translateX(-4px);
+}
+
+.albumArtSmall {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius);
+  background: var(--surface-transparent-2);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.albumArtSmall img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.songMeta {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.songTitle {
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: var(--primary-foreground);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.songArtist {
+  font-size: 0.75rem;
+  color: var(--foreground-subtle);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.emptyState {
+  padding: var(--spacing-4);
+  color: var(--foreground-subtle);
+  font-size: 0.9rem;
+  text-align: center;
+  background: var(--surface-transparent-1);
+  border-radius: var(--radius);
+  border: 1px dashed var(--surface-transparent-3);
+}
+
+.playlistCard {
+  min-width: 200px;
+  width: 200px;
+  flex-shrink: 0;
+  border-radius: var(--radius);
+  border: 1px solid var(--surface-transparent-2);
+  background: var(--surface-transparent-1);
+  padding: var(--spacing-3) var(--spacing-4);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  cursor: pointer;
+  transition:
+    background var(--animation-duration-fast) ease,
+    transform var(--animation-duration-fast) ease;
+}
+
+.playlistCard:hover {
+  background: var(--surface-transparent-2);
+  transform: translateX(-4px);
+}
+
+.playlistArt {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius);
+  background: linear-gradient(
+    135deg,
+    var(--themecolor2) 0%,
+    var(--themecolor4) 100%
+  );
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: var(--primary-foreground);
+  overflow: hidden;
+}
+
+.playlistMeta {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.playlistName {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--primary-foreground);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.playlistCount {
+  font-size: 0.75rem;
+  color: var(--foreground-subtle);
+}
+
+@media (max-width: 900px) {
+  .statsGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .quickActions {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .home {
+    padding-left: var(--spacing-4);
+  }
+
+  .panel {
+    padding: var(--spacing-4);
+    padding-right: var(--spacing-4);
+    border-radius: var(--radius);
+  }
+
+  .hero {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    grid-template-rows: auto auto;
+    gap: var(--spacing-4);
+    align-items: start;
+  }
+
+  .heroArt {
+    width: 80px;
+    height: 80px;
+    min-width: 80px;
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .heroContent {
+    grid-column: 2;
+    grid-row: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-height: 80px;
+  }
+
+  .heroActions {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    width: 100%;
+    margin-top: 0;
+    display: flex;
+  }
+
+  .heroActions button {
+    flex: 1;
+  }
+
+  .statsGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .quickActions {
+    grid-template-columns: 1fr;
+  }
+
+  .cardGrid {
+    grid-template-columns: 1fr;
+  }
+}

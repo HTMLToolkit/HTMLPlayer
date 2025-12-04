@@ -51,6 +51,8 @@ import {
   RiKeyboardBoxFill,
   RiMessage3Fill,
   RiSlideshowFill,
+  RiSparklingFill,
+  RiHomeFill,
 } from "react-icons/ri";
 import type {
   IconDefinition,
@@ -114,6 +116,8 @@ export const libraries: IconLibraryMap = {
     RiKeyboardBoxFill,
     RiMessage3Fill,
     RiSlideshowFill,
+    RiSparklingFill,
+    RiHomeFill,
   },
 };
 
@@ -198,6 +202,8 @@ const icons: IconDefinitionMap = {
   keyboard: remixIcon("RiKeyboardBoxFill"),
   messageCircle: remixIcon("RiMessage3Fill"),
   visualizerControls: remixIcon("RiSlideshowFill"),
+  sparkles: remixIcon("RiSparklingFill"),
+  home: remixIcon("RiHomeFill"),
 };
 
 export default icons;

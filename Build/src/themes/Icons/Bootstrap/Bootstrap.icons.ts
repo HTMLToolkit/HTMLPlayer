@@ -50,6 +50,8 @@ import {
   BsKeyboard,
   BsChat,
   BsSliders,
+  BsStars,
+  BsHouse,
 } from "react-icons/bs";
 import type {
   IconDefinition,
@@ -111,6 +113,8 @@ export const libraries = {
     BsKeyboard,
     BsChat,
     BsSliders,
+    BsStars,
+    BsHouse,
   },
 } as const;
 
@@ -198,6 +202,8 @@ const icons: IconDefinitionMap = {
   keyboard: bootstrapIcon("BsKeyboard"),
   messageCircle: bootstrapIcon("BsChat"),
   visualizerControls: bootstrapIcon("BsSliders"),
+  sparkles: bootstrapIcon("BsStars"),
+  home: bootstrapIcon("BsHouse"),
 };
 
 export default icons;

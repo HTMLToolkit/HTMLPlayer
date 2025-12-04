@@ -12,7 +12,6 @@ export const createCrossfadeManager = (
   gaplessAdvanceTriggeredRef?: MutableRefObject<boolean>,
   gaplessStartAppliedRef?: MutableRefObject<boolean>,
 ) => {
-
   const setupCrossfadeManager = (audioContext: AudioContext) => {
     try {
       if (!crossfadeManagerRef.current) {

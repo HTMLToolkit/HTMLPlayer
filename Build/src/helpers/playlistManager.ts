@@ -453,6 +453,15 @@ export const createPlaylistManager = (
     }));
   };
 
+  const navigateToHome = () => {
+    setPlayerState((prev: any) => ({
+      ...prev,
+      view: "home",
+      currentArtist: undefined,
+      currentAlbum: undefined,
+    }));
+  };
+
   const navigateToSongs = () => {
     setPlayerState((prev: any) => ({
       ...prev,
@@ -636,6 +645,7 @@ export const createPlaylistManager = (
     getFavoriteSongs,
     searchSongs,
     getSearchResults,
+    navigateToHome,
     navigateToArtist,
     navigateToAlbum,
     navigateToSongs,

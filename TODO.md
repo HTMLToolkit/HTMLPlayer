@@ -34,7 +34,7 @@
   - Export/import JSON playlists for sharing
   - Add "Copy Share Link" button to hide messy encoding
   
-- [ ] making a homepage of sorts instead of directly songlist, so that it doesn't feel like you can't remove songs from all songs (even though like the name suggests, its *all* songs, and so you can't)
+- [X?] making a homepage of sorts instead of directly songlist, so that it doesn't feel like you can't remove songs from all songs (even though like the name suggests, its *all* songs, and so you can't)
 
 - [ ] Use the KSoft Lyrics API ([https://docs.ksoft.si/api/lyrics-api](https://docs.ksoft.si/api/lyrics-api))
 

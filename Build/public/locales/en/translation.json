@@ -362,6 +362,38 @@
     "previousTrack": "Previous track",
     "nextTrack": "Next track"
   },
+  "home": {
+    "title": "Home",
+    "subtitle": "Pick up where you left off or try something new.",
+    "heroNowPlaying": "Now playing",
+    "heroEmpty": "Nothing queued yet",
+    "heroEmptyDescription": "Upload or import tracks to start building your library.",
+    "resume": "Resume",
+    "startListening": "Start listening",
+    "uploadMusic": "Upload music",
+    "browseLibrary": "Go to library",
+    "quickActions": "Quick actions",
+    "smartStart": "Play something",
+    "smartStartDescription": "HTMLPlayer picks a great next track.",
+    "libraryDescription": "Jump into the full song list.",
+    "favorites": "Play favorites",
+    "favoritesDescription": "Shuffle the songs you love the most.",
+    "uploadDescription": "Batch import or drag-and-drop audio files.",
+    "statsTitle": "Library at a glance",
+    "stats": {
+      "songs": "Songs",
+      "playlists": "Playlists",
+      "favorites": "Favorites",
+      "duration": "Hours of audio"
+    },
+    "recentlyAdded": "Recently added",
+    "viewAll": "View all",
+    "emptyRecent": "Add music to see your latest songs here.",
+    "featuredPlaylists": "Spotlight playlists",
+    "emptyPlaylists": "Create playlists to pin them here.",
+    "playPlaylist": "Play",
+    "playlistCount": "{{count}} songs"
+  },
   "pip": {
     "couldNotAccessStylesheet": "Could not access stylesheet:",
     "couldNotCopyStylesheets": "Could not copy some stylesheets:",
@@ -461,6 +493,16 @@
     "resetDialogs": "Reset Dialogs",
     "resetDialogsTitle": "Reset Dialog Confirmations?",
     "resetDialogsButton": "Reset",
+    "category": {
+      "playback": "Playback",
+      "playbackDescription": "Audio and playback behavior",
+      "interface": "Interface",
+      "interfaceDescription": "Themes, language, and appearance",
+      "shortcuts": "Shortcuts",
+      "shortcutsDescription": "Keyboard shortcut preferences",
+      "experimental": "Beta",
+      "experimentalDescription": "Early and experimental features"
+    },
     "audio": {
       "title": "Audio Settings",
       "crossfade": "Crossfade",
