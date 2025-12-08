@@ -2,6 +2,8 @@
 
 ## HTMLPlayer v2
 
+- [ ] A versioning system, linked with `send-beta-build.yml` and the `links.json` but different file, supporting both git commits (for beta/dev stuff) and github latest releases for normal people use
+
 - [X] Add TS/TSX support and wallpapers for interactivity
   - Start with built-in wallpapers using TS/TSX components, loaded via a wallpaper loader (similar to themeLoader)
   - Use sandboxed iframe with postMessage for API access to HTMLPlayer internals (playback state, settings, etc.)
