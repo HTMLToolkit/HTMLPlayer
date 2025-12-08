@@ -1,4 +1,4 @@
-# HTMLPlayer v2.0
+# HTMLPlayer
 
 Modern local-first audio player for the browser and for desktop (via Tauri) with a full playlist workflow, rich metadata pipeline, and deep customization options.
 
