@@ -345,8 +345,8 @@
 }
 
 .playlistArt {
-  width: 48px;
-  height: 48px;
+  width: 60px;
+  height: 60px;
   border-radius: var(--radius);
   background: linear-gradient(
     135deg,
@@ -401,7 +401,7 @@
   .panel {
     padding: var(--spacing-4);
     padding-right: var(--spacing-4);
-    border-radius: var(--radius);
+    border-radius: var(--radius-lg) 0 0 var(--radius-lg);
   }
 
   .hero {
