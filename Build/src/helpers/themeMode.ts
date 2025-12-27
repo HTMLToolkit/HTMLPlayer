@@ -119,7 +119,7 @@ export function getCurrentThemeCSS(): string {
     "--themecolor3",
     "--themecolor4",
     "--themegradient",
-    "--themecolor1-transparent",
+    "--themecolor-transparent",
     "--themecolor2-transparent",
     "--themecolor3-transparent",
     "--foreground",

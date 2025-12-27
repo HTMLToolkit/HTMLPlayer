@@ -7,7 +7,7 @@
 - [X] Add TS/TSX support and wallpapers for interactivity
   - Start with built-in wallpapers using TS/TSX components, loaded via a wallpaper loader (similar to themeLoader)
   - Use sandboxed iframe with postMessage for API access to HTMLPlayer internals (playback state, settings, etc.)
-  - Eventually have an NPM module (@htmlplayer/api (using above postmessage system and validation/abstraction) for external wallpaper development, allowing user-created interactive wallpapers
+  - Eventually have an NPM module (@htmlplayer/api) (using above postmessage system and validation/abstraction) for external wallpaper development, allowing user-created interactive wallpapers
 
 - [ ] platform-specific files
   - For example: split storage into:
@@ -57,8 +57,6 @@
 
 - [ ] 🔼 a Whisper based, fully in browser, Live Lyrics thing
 
-- [ ] theme Sonner toasts
-
 - [ ] a similar to Spotify Wrapped thing
 
 - [ ] Auto-fetch album art from MusicBrainz/Discogs if missing.
@@ -92,10 +90,6 @@
         }
       };
       ```
-
-- [ ] 🔼 a Whisper based, fully in browser, Live Lyrics thing
-
-- [ ] theme Sonner toasts
 
 - [ ] Animated album art transitions, like fade/zoom/warp album art between songs.
 
@@ -163,6 +157,8 @@
 - [ ] need good APIs if I want this (not the current visualizer stuff 🫣)
 
 ## Done
+
+- [X] theme Sonner toasts
 
 - [X] make default visualizer Ocean Wave
 

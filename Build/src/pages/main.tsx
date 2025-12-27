@@ -79,7 +79,20 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
         <ThemeLoader defaultTheme="Blue">
           <WallpaperLoader defaultWallpaper="None">
             <LoadingGate>
-              <Toaster />
+              <Toaster
+                theme="system"
+                position="bottom-right"
+                toastOptions={{
+                  style: {
+                    background: "linear-gradient(135deg, var(--themecolor-transparent), var(--themecolor2-transparent))",
+                    color: "var(--primary-foreground)",
+                    borderRadius: "var(--radius-md)",
+                    boxShadow: "var(--shadow-md)",
+                    fontFamily: "var(--font-family-base)",
+                    border: "1px solid var(--primary-border)",
+                  },
+                }}
+              />
               <IndexPage />
             </LoadingGate>
           </WallpaperLoader>

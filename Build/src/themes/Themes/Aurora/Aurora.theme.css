@@ -10,7 +10,7 @@
   --themecolor2: color-mix(in oklab, #0080ff 75%, #000000 25%);
   --themecolor3: color-mix(in oklab, #00ffaa 70%, #0066ff 30%);
   --themecolor4: color-mix(in oklab, #0099ff 65%, #ff0066 35%);
-  --themecolor1-transparent: color-mix(in oklab, transparent 50%, #00ff87);
+  --themecolor-transparent: color-mix(in oklab, transparent 50%, #00ff87);
   --themecolor2-transparent: color-mix(in oklab, transparent 50%, #0080ff);
   --themecolor3-transparent: color-mix(in oklab, transparent 50%, #00ffaa);
   --menu-background: color-mix(in oklab, transparent 65%, #0080ff);
@@ -183,7 +183,7 @@
   --themecolor2: color-mix(in oklab, #0066cc 70%, #ffffff 30%);
   --themecolor3: color-mix(in oklab, #00cc88 65%, #003366 35%);
   --themecolor4: color-mix(in oklab, #0077cc 65%, #cc0044 35%);
-  --themecolor1-transparent: color-mix(in oklab, transparent 50%, #00cc6a);
+  --themecolor-transparent: color-mix(in oklab, transparent 50%, #00cc6a);
   --themecolor2-transparent: color-mix(in oklab, transparent 50%, #0066cc);
   --themecolor3-transparent: color-mix(in oklab, transparent 50%, #00cc88);
   --menu-background: color-mix(in oklab, transparent 75%, #0066cc);

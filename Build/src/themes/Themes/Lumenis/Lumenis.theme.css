@@ -6,7 +6,7 @@
   --themecolor2: hsl(280, 65%, 50%);
   --themecolor3: hsl(340, 80%, 60%);
   --themecolor4: hsl(210, 70%, 45%);
-  --themecolor1-transparent: hsla(15, 90%, 60%, 0.5);
+  --themecolor-transparent: hsla(15, 90%, 60%, 0.5);
   --themecolor2-transparent: hsla(280, 65%, 50%, 0.5);
   --themecolor3-transparent: hsla(340, 80%, 60%, 0.5);
   --menu-background: hsla(280, 65%, 50%, 0.35);
@@ -112,7 +112,7 @@
   --themecolor2: hsl(280, 65%, 25%);
   --themecolor3: hsl(320, 65%, 30%);
   --themecolor4: hsl(200, 65%, 25%);
-  --themecolor1-transparent: hsla(15, 85%, 35%, 0.5);
+  --themecolor-transparent: hsla(15, 85%, 35%, 0.5);
   --themecolor2-transparent: hsla(320, 65%, 30%, 0.5);
   --themecolor3-transparent: hsla(15, 85%, 35%, 0.5);
   --menu-background: hsla(280, 65%, 40%, 0.25);

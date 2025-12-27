@@ -75,7 +75,7 @@
 
 .controls button:hover {
   color: var(--themecolor);
-  background: var(--themecolor1-transparent);
+  background: var(--themecolor-transparent);
   transform: translateY(-1px);
 }
 
