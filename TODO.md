@@ -2,13 +2,23 @@
 
 ## HTMLPlayer v2
 
+- [ ] Open Search should open a global search modal overlay, similar to Spotlight Search
+
+- [X?] making a homepage of sorts instead of directly songlist, so that it doesn't feel like you can't remove songs from all songs (even though like the name suggests, it's *All* Songs, and so you can't)
+
 - [ ] A versioning system, linked with `send-beta-build.yml` and the `links.json` but different file, supporting both git commits (for beta/dev stuff) and github latest releases for normal people use
+  - maybe this isn't needed (note to self, read *all* of the docs first): <https://vite-pwa-org.netlify.app/frameworks/react.html#react>
+  - to migrate?: <https://vite-pwa-org.netlify.app/guide/unregister-service-worker.html#custom-selfdestroying-service-worker>
+    - shouldn't clear cache handle this? ¯\_(ツ)_/¯
 
 - [X] Add TS/TSX support and wallpapers for interactivity
   - Start with built-in wallpapers using TS/TSX components, loaded via a wallpaper loader (similar to themeLoader)
   - Use sandboxed iframe with postMessage for API access to HTMLPlayer internals (playback state, settings, etc.)
   - Eventually have an NPM module (@htmlplayer/api) (using above postmessage system and validation/abstraction) for external wallpaper development, allowing user-created interactive wallpapers
 
+- [ ] Add showDirectoryPicker API and ponyfil
+    - but `showDirectoryPicker` is not supported in all browsers (e.g., Safari).
+    
 - [ ] platform-specific files
   - For example: split storage into:
     - Storage.web.ts
@@ -19,87 +29,94 @@
   - with dynamic loader (use import.meta.glob to auto-discover)
     - detect platform + engine
     - load the correct file
-    - maybe add helper like getPlatformFlavor() → "desktop.webkit" etc
+    - maybe add helper like getPlatformFlavor() -> "desktop.webkit" etc
+
+  - <https://github.com/LZS911/vite-plugin-conditional-compile>
 
 - [ ] a queue
-  - like a line of records behind album art
+  - like a line of records behind album art?
   - smooth animation
-
-- [ ] Make a choose for me/auto start/something button so that htmlplayer auto chooses what to play first, and use a REALLY good algorithm so that it's **perfect** every **single** time
-
-- [ ] Make the shuffle algorithm similarly amazing
 
 - [ ] Share links (client-side)
   - Encode metadata in query/hash (`?artist=NellowTCS&title=Dashback`)
   - Prompt user to load local file if no `songFile` URL
-    - songFile is for the future, so that I can have a simple way to share song files directly (files staying in a simple Cloudflare worker for 10-30 min or more probs)  
-  - Export/import JSON playlists for sharing
+    - `songFile` is for the future, so that I can have a simple way to share song files directly (files staying in a simple Cloudflare worker's KV or Durable Objects for 10-30 min or more probs (max like 2 days though))  
+  - Export/import JSON playlists via sharing as well but url encoding limits are troublesome
   - Add "Copy Share Link" button to hide messy encoding
-  
-- [X?] making a homepage of sorts instead of directly songlist, so that it doesn't feel like you can't remove songs from all songs (even though like the name suggests, its *all* songs, and so you can't)
-
-- [ ] Use the KSoft Lyrics API ([https://docs.ksoft.si/api/lyrics-api](https://docs.ksoft.si/api/lyrics-api))
-
-- [ ] Play more/less often dropdown in SongActionsDropdown
 
 - [ ] Dynamic theming based on album art colors.
   - CSS backgrounds can be images, and album art is images
+
+- [ ] Animated album art transitions, like fade/zoom/warp album art between songs.
 
 - [ ] 🔼 I'll need to add some sort of quick guide and help menu or something to HTMLPlayer. (extensive and interactive ig)
 
 - [ ] 🔼 custom theme builder with options for custom picture backgrounds
 
-## Either now or future versions
+### Metadata
 
-- [ ] Play more/less often dropdown in SongActionsDropdown
+- [ ] More places to fetch lyrics from:
+  - use [all2mp3](https://github.com/AllToMP3/alltomp3/blob/master/index.js) as reference
+  - KSoft Lyrics API (<https://docs.ksoft.si/api/lyrics-api>)
+  - Paroles (<http://paroles.net/>)
+  - LyricsMania (<https://www.lyricsmania.com/>)
+  - SweetsLyrics (<http://www.sweetslyrics.com>)
+  - Spotify?? (requires api key though)
+
+- [ ] Auto-fetch album art from MusicBrainz/Discogs if missing.
+  - <https://github.com/Borewit/musicbrainz-api>
+
+- [ ] metadata editor that saves to IndexedDB, or downloads file
+  - <https://github.com/CharlesWiltgen/taglib-wasm> <- so underrated :O
+  - ID3Editor (mine) 
+
+- [ ] Duplicate file detection (not just by title but checksum as well).
+
+### LocalDataDB (workshop name)
+
+- Basically all your data (which songs played, how much, etc. ) but local, and gets smarter the more you use HTMLPlayer
+
+- [ ] PointPerSong: All songs are assigned a value, which is increased by inverse play count (to prevent overplaying), similarity to current song, time of day, season even if relevant, etc. and decreased by opposites. This is essentially like an weighted scoring system for which song to play next.
+  - **freshness**
+  - powers shuffle algorithm (will replace both Smart Shuffle and Shuffle)
+  - [ ] Make a choose for me/auto start/something button so that htmlplayer auto chooses what to play first, and use a REALLY good algorithm using PointPerSong so that it's **perfect** every **single** time
+      - Instead of picking the absolute highest score (which can be too predictable), use a Weighted Random Algorithm like Vose's Alias Method for peak
+  - [ ] Play more/less often dropdown in SongActionsDropdown that manually influences PointPerSong
+
+- [ ] a similar to Spotify Wrapped thing using this
+
+## Either now or future versions
 
 - [ ] Add subsonic API support
 
 - [ ] 🔼 a Whisper based, fully in browser, Live Lyrics thing
 
-- [ ] a similar to Spotify Wrapped thing
+- [ ] 🔼 (when HTMLPlayer is almost ready) add HTMLPlayer Store (below)
 
-- [ ] Auto-fetch album art from MusicBrainz/Discogs if missing.
-  - <https://github.com/Borewit/musicbrainz-api>
+### HTMLPlayer Store
 
-- [ ] metadata editor that saves to IndexedDB, or downloads file
-  - <https://github.com/eidoriantan/mp3tag.js/>
+- [ ] a basic store for Themes, Icons, and Visualizers
 
-- [ ] Add showDirectoryPicker API and ponyfil
-    Issue: `showDirectoryPicker` missing but is not supported in all browsers (e.g., Safari).
-    Improvement: Fallback to file input for unsupported browsers.
-    Implementation:
-      ```javascript
-      document.getElementById("uploadBtn").onclick = async () => {
-        if (window.showDirectoryPicker) {
-          try {
-            const dirHandle = await window.showDirectoryPicker();
-            if (
-              (await dirHandle.requestPermission({ mode: "read" })) === "granted"
-            ) {
-              saveSetting("musicDirectory", dirHandle);
-              await processDirectoryWithPopups(dirHandle);
-            }
-          } catch (error) {
-            console.error("Directory selection failed:", error);
-            document.getElementById("fileInput").click();
-          }
-        } else {
-          alert("Directory picker not supported. Please select files manually.");
-          document.getElementById("fileInput").click();
-        }
-      };
-      ```
+- [ ] maybe some paid stuff
+  - if paid stuff, then a backend is definitely needed
+    - cloudflare worker to fetch stuff from something and some form of auth
+      - maybe a personal link
 
-- [ ] Animated album art transitions, like fade/zoom/warp album art between songs.
+- [ ] IndexedDB as storage for all three
 
-- [ ] Auto-fetch album art from MusicBrainz/Discogs if missing.
-  - <https://github.com/Borewit/musicbrainz-api>
+- [ ] combination sets of icons and visualizers
 
-- [ ] metadata editor that saves to IndexedDB, or downloads file
-  - <https://github.com/eidoriantan/mp3tag.js/>
+#### UI
 
-## Future (probably)
+- [ ] a similar UI style to HTMLPlayer for sure
+  - but maybe more white themed
+  - clicking/tapping on name (ex NellowTCS) causes artist page to open
+
+#### Dev Details
+
+- [ ] need good APIs if I want this (not the current visualizer stuff 🫣)
+
+## Future (most likely)
 
 - [ ] Check out what music-metadata can do, and maybe implement those things
   - [ ] Custom Metadata Parsing (AKA ACAPlayer (lol aka aca)): access nonstandard or raw tags embedded in audio files
@@ -114,49 +131,27 @@
 
 - [ ] Smart playlists (maybe)
 
-- [ ] scrobbling
+- [ ] scrobbling using Last.fm or other services
+  - maybe even a htmlplayer one :D
 
 - [ ] Discord Integration
   - Implemented and theoretically works but requires Discord approval for Rich Presence API (via server) access. Need to submit Discord app for verification to enable it.
     - Asked Discord currently, they understandably said no.
 
-- [ ] Visualizer → audio-reactive backgrounds (basically picture background theme but actually visualizer and not theme) (can easily pipe through background-image or background via image)
-
-- [ ] Duplicate file detection (not just by title but checksum as well).
-
 - [ ] Equalizer Settings
     Issue: No audio customization options.
     Improvement: Add a equalizer using the Web Audio API or an external library.
 
-- [ ] 🔼 (when HTMLPlayer is almost ready) add HTMLPlayer Store (below)
-
-### HTMLPlayer Store
-
-- [ ] a basic store for Themes, Icons, and Visualizers
-
-- [ ] maybe some paid stuff
-  - [ ] if paid stuff, then a backend is definitely needed
-    - [ ] cloudflare worker to fetch stuff from something and some form of auth
-      - [ ] maybe a personal link
-
-- [ ] IndexedDB as storage for all three
-
-- [ ] combination sets of icons and visualizers
-
-#### UI
-
-- [ ] a similar UI style to HTMLPlayer for sure
-  - [ ] but maybe more white themed
-  - [ ] image here
-  - [ ] hovering on a photo:
-    - [ ] image here
-    - [ ] clicking/tapping on name (ex NellowTCS) causes artist page to open
-
-#### Dev Details
-
-- [ ] need good APIs if I want this (not the current visualizer stuff 🫣)
-
 ## Done
+
+### v2.0.0
+
+- [X] Visualizer -> audio-reactive backgrounds (basically picture background theme but actually visualizer and not theme) (can easily pipe through background-image or background via image) (aka visualizer as background?)
+
+- [X] Speed up and fix song uploading being slow and a RAM hog (lagging)
+  - fixed ram hog partially by only processing 1 at a time sequentially, but need to speed up
+  - better system now
+  - much faster now :D
 
 - [X] theme Sonner toasts
 
@@ -204,7 +199,7 @@
 
 - [X] Add `Don't show again? [ ]` to all modals
 
-- [X] add htmlplayer to system right click menu
+- [X] add htmlplayer to system right click menu (file_handler)
 
 - [X] Design a custom icon abstraction layer inspired by i18n
   - [X] Must be easily configurable and swappable
@@ -302,7 +297,7 @@
 
 - [X] fix the lyrics popup not having the correct scrolling
 
-- [X] 🔺 Make top bar of MainContent separate and floating and  persistent and not a part of the Song Lists
+- [X] Make top bar of MainContent separate and floating and  persistent and not a part of the Song Lists
 
 - [X] have some preinstalled themes for sure
 
@@ -327,6 +322,7 @@
   - [X] Purple and Pink in one(Twilight)
   - [X] Purple and Orange (Lumenis)
   - [X] Grey, Black, and White in one (Monochrome)
+  - more that i'm not listing
 
 - [X] I forgot to uncache and recache the smart song caching after the next song, as currently, 4 songs are played, but the next song shows a `Failed to load resource: net::ERR_FILE_NOT_FOUND` error as it never is loaded in.
 
@@ -349,25 +345,6 @@
 - [X] Lyrics Display
     Issue: No support for displaying lyrics.
     Improvement: Add a lyrics panel that fetches lyrics from lyrics.ovh or metadata.
-    Implementation:
-      ```html
-      <div id="lyricsPanel" style="display: none; padding: 10px;"></div>
-      ```
-      ```javascript
-      async function fetchLyrics(trackName) {
-        try {
-          const response = await fetch(
-            `https://api.lyrics.ovh/v1/artist/${trackName}`
-          );
-          const data = await response.json();
-          document.getElementById("lyricsPanel").textContent =
-            data.lyrics || "No lyrics found";
-          document.getElementById("lyricsPanel").style.display = "block";
-        } catch (error) {
-          console.error("Lyrics fetch error:", error);
-        }
-      }
-      ```
 
 - [X] Optimize IndexedDB Transactions
     Issue: Multiple simultaneous IndexedDB transactions can degrade performance.
@@ -408,40 +385,19 @@
 - [X] Test Audio Format Support
     Issue: Some browsers may not support certain audio formats (e.g., OGG).
     Improvement: Check format support and notify users.
-    Implementation:
-      ```javascript
-      function isAudioFormatSupported(format) {
-        const audio = document.createElement("audio");
-        return !!audio.canPlayType(format);
-      }
-      document.getElementById("fileInput").onchange = (e) => {
-        const supportedFormats = ["audio/mp3", "audio/ogg", "audio/m4a"];
-        Array.from(e.target.files).forEach((file) => {
-          const format = `audio/${file.name.split(".").pop().toLowerCase()}`;
-          if (
-            !supportedFormats.includes(format) ||
-            !isAudioFormatSupported(format)
-          ) {
-            alert(`Unsupported audio format: ${file.name}`);
-            return;
-          }
-          // Proceed with file processing
-        });
-      };
-      ```
 
-  - [X] Debounce Rapid Clicks on Controls
-      Issue: Rapid clicks on buttons like play/pause, next, or previous can cause unintended behavior or race conditions.
-      Improvement: Add a debounce mechanism to prevent multiple rapid clicks.
+- [X] Debounce Rapid Clicks on Controls
+    Issue: Rapid clicks on buttons like play/pause, next, or previous can cause unintended behavior or race conditions.
+    Improvement: Add a debounce mechanism to prevent multiple rapid clicks.
 
-  - [X] Lazy Load Playlist Art
-      Issue: Loading all playlist images at once can slow down rendering, especially with many playlists or large images.
-      Improvement: Use the `loading="lazy"` attribute for playlist and track images to defer offscreen image loading.
+- [X] Lazy Load Playlist Art
+    Issue: Loading all playlist images at once can slow down rendering, especially with many playlists or large images.
+    Improvement: Use the `loading="lazy"` attribute for playlist and track images to defer offscreen image loading.
 
-  - [X] Handle Missing Track Files
-      Issue: If a track file is missing or inaccessible, the player may fail silently.
-      Improvement: Add error handling for file access.
+- [X] Handle Missing Track Files
+    Issue: If a track file is missing or inaccessible, the player may fail silently.
+    Improvement: Add error handling for file access.
 
-  - [X] Adaptive Progress Bar
-      Issue: Progress bar width is not optimal for very wide screens.
-      Improvement: Cap the maximum width more dynamically.
+- [X] Adaptive Progress Bar
+    Issue: Progress bar width is not optimal for very wide screens.
+    Improvement: Cap the maximum width more dynamically.

@@ -59,8 +59,8 @@ export const AddToPopover = ({
 
   const filteredPlaylists = searchQuery
     ? allPlaylists.filter((p) =>
-        p.name.toLowerCase().includes(searchQuery.toLowerCase()),
-      )
+      p.name.toLowerCase().includes(searchQuery.toLowerCase()),
+    )
     : allPlaylists;
 
   const handleAddToPlaylist = (playlist: Playlist) => {
@@ -81,9 +81,9 @@ export const AddToPopover = ({
       toast.success(
         songs.length === 1
           ? t("addedToPlaylist", {
-              song: songs[0].title,
-              playlist: playlist.name,
-            })
+            song: songs[0].title,
+            playlist: playlist.name,
+          })
           : t("playlist.addedToExisting", { count: addedCount }),
       );
     }
@@ -91,9 +91,9 @@ export const AddToPopover = ({
       toast.info(
         songs.length === 1
           ? t("songAlreadyInPlaylist", {
-              song: songs[0].title,
-              playlist: playlist.name,
-            })
+            song: songs[0].title,
+            playlist: playlist.name,
+          })
           : t("playlist.someAlreadyInPlaylist", { count: skippedCount }),
       );
     }
@@ -112,13 +112,13 @@ export const AddToPopover = ({
     toast.success(
       songs.length === 1
         ? t("createdNewPlaylistAddedSong", {
-            playlist: newPlaylist.name,
-            song: songs[0].title,
-          })
+          playlist: newPlaylist.name,
+          song: songs[0].title,
+        })
         : t("playlist.created", {
-            name: newPlaylist.name,
-            count: songs.length,
-          }),
+          name: newPlaylist.name,
+          count: songs.length,
+        }),
     );
 
     setNewPlaylistName("");
@@ -177,7 +177,93 @@ export const AddToPopover = ({
           </DialogDescription>
         </DialogHeader>
 
-        {isCreatingNew ? (
+        {!isCreatingNew ? (
+          <div className={modalStyles.spaceY4}>
+
+            {/* Create New Playlist */}
+            <Button
+              variant="outline"
+              className={`${modalStyles["w-full"]} ${modalStyles["justify-start"]}`}
+              onClick={() => setIsCreatingNew(true)}
+            >
+              <Icon name="plusCircle" size={16} className="mr-2" decorative />
+              {t("playlist.createNewPlaylist")}
+            </Button>
+
+            {/* Search playlists */}
+            {allPlaylists.length > 0 && (
+              <div style={{ position: "relative" }}>
+                <Icon
+                  name="search"
+                  size={16}
+                  style={{
+                    position: "absolute",
+                    left: "var(--spacing-3)",
+                    top: "50%",
+                    transform: "translateY(-50%)",
+                    color: "var(--muted-foreground)",
+                    pointerEvents: "none",
+                  }}
+                  decorative
+                />
+                <Input
+                  placeholder={t("playlist.searchPlaylists")}
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  style={{
+                    paddingLeft:
+                      "calc(var(--spacing-3) + 16px + var(--spacing-2))",
+                  }}
+                />
+              </div>
+            )}
+
+            {/* Add to favorites */}
+            {onAddToFavorites && (
+              <Button
+                variant="outline"
+                className={`${modalStyles["w-full"]} ${modalStyles["justify-start"]}`}
+                onClick={handleAddToFavorites}
+              >
+                <Icon name="heart" size={16} className="mr-2" decorative />
+                {t("favorites.addToFavorites")}
+              </Button>
+            )}
+
+            {/* Playlist list */}
+            {allPlaylists.length > 0 ? (
+              <div
+                className={modalStyles.spaceY2}
+                style={{
+                  maxHeight: "300px",
+                  overflowY: "auto",
+                  paddingRight: "var(--spacing-2)",
+                }}
+              >
+                {filteredPlaylists.length > 0 ? (
+                  filteredPlaylists.map((playlist) => (
+                    <Button
+                      key={playlist.id}
+                      variant="outline"
+                      className={`${modalStyles["w-full"]} ${modalStyles["justify-start"]}`}
+                      onClick={() => handleAddToPlaylist(playlist)}
+                    >
+                      <Icon name="music" size={16} className="mr-2" decorative />
+                      {playlist.name}
+                    </Button>
+                  ))
+                ) : (
+                  <p className={modalStyles.muted}>
+                    {t("search.noPlaylistsFound")}
+                  </p>
+                )}
+              </div>
+            ) : (
+              <p className={modalStyles.muted}>{t("playlist.noPlaylists")}</p>
+            )}
+
+          </div>
+        ) : (
           <div className={modalStyles.spaceY4}>
             <Input
               placeholder={t("playlist.enterPlaylistName")}
@@ -204,122 +290,6 @@ export const AddToPopover = ({
                 {t("playlist.createPlaylist")}
               </Button>
             </div>
-          </div>
-        ) : (
-          <div className={modalStyles.spaceY4}>
-            {/* Quick Actions */}
-            {onAddToFavorites && (
-              <div className={modalStyles.spaceY2}>
-                <Button
-                  variant="outline"
-                  className={`${modalStyles["w-full"]} ${modalStyles["justify-start"]}`}
-                  onClick={handleAddToFavorites}
-                >
-                  <Icon name="heart" size={16} className="mr-2" decorative />
-                  {t("favorites.addToFavorites")}
-                </Button>
-                <Button
-                  variant="outline"
-                  className={`${modalStyles["w-full"]} ${modalStyles["justify-start"]}`}
-                  onClick={() => setIsCreatingNew(true)}
-                >
-                  <Icon
-                    name="plusCircle"
-                    size={16}
-                    className="mr-2"
-                    decorative
-                  />
-                  {t("playlist.createNewPlaylist")}
-                </Button>
-              </div>
-            )}
-
-            {!onAddToFavorites && (
-              <Button
-                variant="outline"
-                className={`${modalStyles["w-full"]} ${modalStyles["justify-start"]}`}
-                onClick={() => setIsCreatingNew(true)}
-              >
-                <Icon name="plusCircle" size={16} className="mr-2" decorative />
-                {t("playlist.createNewPlaylist")}
-              </Button>
-            )}
-
-            {/* Separator */}
-            {allPlaylists.length > 0 && (
-              <div
-                style={{
-                  borderTop: "1px solid var(--border)",
-                  margin: "var(--spacing-2) 0",
-                }}
-              />
-            )}
-
-            {/* Search and Playlist List */}
-            {allPlaylists.length > 0 && (
-              <>
-                <div style={{ position: "relative" }}>
-                  <Icon
-                    name="search"
-                    size={16}
-                    style={{
-                      position: "absolute",
-                      left: "var(--spacing-3)",
-                      top: "50%",
-                      transform: "translateY(-50%)",
-                      color: "var(--muted-foreground)",
-                      pointerEvents: "none",
-                    }}
-                    decorative
-                  />
-                  <Input
-                    placeholder={t("playlist.searchPlaylists")}
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    style={{
-                      paddingLeft:
-                        "calc(var(--spacing-3) + 16px + var(--spacing-2))",
-                    }}
-                  />
-                </div>
-
-                <div
-                  className={modalStyles.spaceY2}
-                  style={{
-                    maxHeight: "300px",
-                    overflowY: "auto",
-                    paddingRight: "var(--spacing-2)",
-                  }}
-                >
-                  {filteredPlaylists.length > 0 ? (
-                    filteredPlaylists.map((playlist) => (
-                      <Button
-                        key={playlist.id}
-                        variant="outline"
-                        className={`${modalStyles["w-full"]} ${modalStyles["justify-start"]}`}
-                        onClick={() => handleAddToPlaylist(playlist)}
-                      >
-                        <Icon
-                          name="music"
-                          size={16}
-                          className="mr-2"
-                          decorative
-                        />
-                        {playlist.name}
-                      </Button>
-                    ))
-                  ) : (
-                    <p className={modalStyles.muted}>
-                      {t("search.noPlaylistsFound")}
-                    </p>
-                  )}
-                </div>
-              </>
-            )}
-
-            {allPlaylists.length === 0 && (
-              <p className={modalStyles.muted}>{t("playlist.noPlaylists")}</p>
-            )}
           </div>
         )}
       </DialogContent>

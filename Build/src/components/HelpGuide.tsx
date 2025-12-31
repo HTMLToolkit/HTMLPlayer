@@ -24,7 +24,7 @@ export const HelpGuideProvider = ({ children }: HelpGuideProps) => {
       const loadTourConfig = async () => {
         try {
           const lang = i18n.language?.split("-")[0] || "en";
-          const response = await fetch(`/locales/${lang}/tour.json`);
+          const response = await fetch(`${import.meta.env.BASE_URL}/locales/${lang}/tour.json`);
           if (!response.ok) {
             throw new Error(
               `HTTP ${response.status}: Failed to fetch tour configuration`,

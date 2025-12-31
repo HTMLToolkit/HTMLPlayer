@@ -26,7 +26,7 @@ import { useWallpaperLoader } from "../helpers/wallpaperLoader";
 import { toast } from "sonner";
 import { useRef, useState, useEffect, JSX } from "react";
 import { useTranslation } from "react-i18next";
-import { languageNames } from "../../public/locales/supportedLanguages";
+import { languageNames } from "../types/supportedLanguages";
 import { isSafari } from "../helpers/safariHelper";
 import { Icon } from "./Icon";
 
