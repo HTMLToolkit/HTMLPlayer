@@ -7,6 +7,8 @@
   - [ ] Toggle Lyrics
   - [ ] Toggle Visualizer
 
+- [ ] Show SYLT first if both USLT and SYLT are available
+
 - [ ] fix visualizer missing left padding
 
 - [ ] prevent esc from closing lyrics overlay
