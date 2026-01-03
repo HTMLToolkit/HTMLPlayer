@@ -587,6 +587,20 @@ export const IconRegistryProvider: React.FC<IconRegistryProviderProps> = ({
     [findIconEntry],
   );
 
+  // Use refs for values needed in loadIcon to keep the callback stable
+  const currentSetRef = useRef(currentSet);
+  const iconSetsRef = useRef(iconSets);
+  const iconModuleLoadersRef = useRef(iconModuleLoaders);
+  
+  // Update refs when state changes
+  useEffect(() => {
+    currentSetRef.current = currentSet;
+  }, [currentSet]);
+  
+  useEffect(() => {
+    iconSetsRef.current = iconSets;
+  }, [iconSets]);
+
   const loadIcon = useCallback(
     async (
       name: string,
@@ -596,33 +610,39 @@ export const IconRegistryProvider: React.FC<IconRegistryProviderProps> = ({
         return null;
       }
 
-      // Ensure currentSet icons are loaded
+      // Use ref values to avoid triggering re-renders
+      const localCurrentSet = currentSetRef.current;
+      
+      // Ensure currentSet icons are loaded (but don't update state from inside the callback)
       if (
-        currentSet &&
-        (!currentSet.icons || Object.keys(currentSet.icons).length === 0)
+        localCurrentSet &&
+        (!localCurrentSet.icons || Object.keys(localCurrentSet.icons).length === 0)
       ) {
-        setIconsReady(false);
         try {
-          const loader = iconModuleLoaders[currentSet.path];
+          const loader = iconModuleLoadersRef.current[localCurrentSet.path];
           if (loader) {
             const module = (await loader()) as IconSetModule;
-            setIconSets((sets) =>
-              sets.map((s) =>
-                s.id === currentSet.id
-                  ? {
-                      ...s,
-                      icons: module.default,
-                      libraries: module.libraries,
-                      libraryConfig: module.libraryConfig,
-                    }
-                  : s,
-              ),
-            );
+            // Update the set in iconSets without triggering re-renders in loadIcon
+            const updatedSet = {
+              ...localCurrentSet,
+              icons: module.default,
+              libraries: module.libraries,
+              libraryConfig: module.libraryConfig,
+            };
+            // Update the ref immediately for the current request
+            currentSetRef.current = updatedSet;
+            // Schedule state update for the next render cycle
+            queueMicrotask(() => {
+              setIconSets((sets) =>
+                sets.map((s) =>
+                  s.id === localCurrentSet.id ? updatedSet : s,
+                ),
+              );
+            });
           }
         } catch (err) {
-          console.error(`Failed to load icon set "${currentSet.label}"`, err);
+          console.error(`Failed to load icon set "${localCurrentSet.label}"`, err);
         }
-        setIconsReady(true);
       }
 
       const entry = findIconEntry(name, options);
@@ -723,7 +743,7 @@ export const IconRegistryProvider: React.FC<IconRegistryProviderProps> = ({
         }
       }
     },
-    [findIconEntry, currentSet, setIconSets],
+    [findIconEntry, setIconSets],
   );
 
   const contextValue = useMemo<IconRegistryValue>(

@@ -52,6 +52,8 @@ import {
   TbWaveSine,
   TbSparkles,
   TbHome,
+  TbGripVertical,
+  TbRefresh,
 } from "react-icons/tb";
 import type {
   IconDefinition,
@@ -116,6 +118,8 @@ export const libraries: IconLibraryMap = {
     TbWaveSine,
     TbSparkles,
     TbHome,
+    TbGripVertical,
+    TbRefresh,
   },
 };
 
@@ -202,6 +206,8 @@ const icons: IconDefinitionMap = {
   visualizerControls: tablerIcon("TbWaveSine"),
   sparkles: tablerIcon("TbSparkles"),
   home: tablerIcon("TbHome"),
+  gripVertical: tablerIcon("TbGripVertical"),
+  refreshCw: tablerIcon("TbRefresh", "Refresh"),
 };
 
 export default icons;

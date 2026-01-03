@@ -52,6 +52,7 @@ import {
   MdTune,
   MdAutoAwesome,
   MdHome,
+  MdRefresh,
 } from "react-icons/md";
 import type {
   IconDefinition,
@@ -116,6 +117,7 @@ export const libraries: IconLibraryMap = {
     MdTune,
     MdAutoAwesome,
     MdHome,
+    MdRefresh,
   },
 };
 
@@ -198,6 +200,7 @@ const icons: IconDefinitionMap = {
   visualizerControls: materialIcon("MdTune"),
   sparkles: materialIcon("MdAutoAwesome"),
   home: materialIcon("MdHome"),
+  refreshCw: materialIcon("MdRefresh", "Refresh"),
 };
 
 export default icons;

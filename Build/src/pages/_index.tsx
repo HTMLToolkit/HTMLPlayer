@@ -1,7 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Sidebar } from "../components/Sidebar";
 import { MainContent } from "../components/MainContent";
-import { Player } from "../components/Player";
+import { Player, PlayerRef } from "../components/Player";
 import { useMusicPlayer } from "../hooks/musicPlayerHook";
 import { useKeyboardShortcuts } from "../hooks/useKeyboardShortcuts";
 import {
@@ -19,6 +19,7 @@ import { useFileHandler, useShareTarget } from "../helpers/filePickerHelper";
 import { importAudioFiles } from "../helpers/importAudioFiles";
 import { HelpGuideProvider } from "../components/HelpGuide";
 import WallpaperRenderer from "../components/Wallpaper";
+import { UpdatePrompt } from "../components/UpdatePrompt";
 
 export default function IndexPage() {
   const { t } = useTranslation();
@@ -26,6 +27,7 @@ export default function IndexPage() {
   const [, setThemeMode] = useState<ThemeMode>("auto");
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+  const playerRef = useRef<PlayerRef>(null);
 
   // Initialize file handler for PWA file opening
   // @ts-ignore
@@ -270,16 +272,12 @@ export default function IndexPage() {
       setSettingsOpen(!settingsOpen);
     },
     onToggleLyrics: () => {
-      // Toggle lyrics visibility in player settings
-      const currentSettings = musicPlayerHook.settings;
-      musicPlayerHook.updateSettings({
-        showLyrics: !currentSettings.showLyrics,
-      });
+      // Use Player ref to toggle lyrics
+      playerRef.current?.toggleLyrics();
     },
     onToggleVisualizer: () => {
-      // Toggle visualizer (this might need to be implemented differently)
-      // For now, just log as the visualizer system might not be fully set up
-      console.log("Toggle visualizer shortcut - implementation needed");
+      // Use Player ref to toggle visualizer
+      playerRef.current?.toggleVisualizer();
     },
     onSearch: () => {
       // Focus search input if it exists
@@ -362,33 +360,13 @@ export default function IndexPage() {
               onMobileMenuClick={() => setIsMobileSidebarOpen(true)}
             />
             <Player
+              ref={playerRef}
               musicPlayerHook={musicPlayerHook}
-              settings={{
-                volume: 0,
-                crossfade: 0,
-                defaultShuffle: false,
-                defaultRepeat: "off",
-                themeMode: "light",
-                colorTheme: "",
-                wallpaper: "None",
-                autoPlayNext: false,
-                compactMode: false,
-                showAlbumArt: false,
-                showLyrics: false,
-                sessionRestore: true,
-                gaplessPlayback: false,
-                smartShuffle: true,
-                lastPlayedSongId: undefined,
-                lastPlayedPlaylistId: undefined,
-                language: "English",
-                tempo: 1,
-                pitch: 0,
-                discordEnabled: false,
-                erudaEnabled: false,
-              }}
+              settings={musicPlayerHook.settings}
             />
           </div>
         </div>
+        <UpdatePrompt />
       </DraggableProvider>
     </HelpGuideProvider>
   );

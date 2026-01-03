@@ -52,6 +52,8 @@ import {
   BsSliders,
   BsStars,
   BsHouse,
+  BsGripVertical,
+  BsArrowClockwise,
 } from "react-icons/bs";
 import type {
   IconDefinition,
@@ -115,6 +117,8 @@ export const libraries = {
     BsSliders,
     BsStars,
     BsHouse,
+    BsGripVertical,
+    BsArrowClockwise,
   },
 } as const;
 
@@ -204,6 +208,8 @@ const icons: IconDefinitionMap = {
   visualizerControls: bootstrapIcon("BsSliders"),
   sparkles: bootstrapIcon("BsStars"),
   home: bootstrapIcon("BsHouse"),
+  gripVertical: bootstrapIcon("BsGripVertical"),
+  refreshCw: bootstrapIcon("BsArrowClockwise", "Refresh"),
 };
 
 export default icons;

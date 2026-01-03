@@ -188,6 +188,7 @@ const icons: IconDefinitionMap = {
   visualizerControls: simpleLineIcon("SlControlPlay"),
   sparkles: simpleLineIcon("SlMagicWand"),
   home: simpleLineIcon("SlHome"),
+  refreshCw: simpleLineIcon("SlRefresh", "Refresh"),
 };
 
 export default icons;

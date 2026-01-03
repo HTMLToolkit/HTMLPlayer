@@ -46,8 +46,15 @@ interface DraggableItemProps {
   id: string;
   type: "song" | "playlist" | "folder";
   data: any;
-  children: React.ReactNode;
+  children: React.ReactNode | ((dragHandleProps: DragHandleProps) => React.ReactNode);
   disabled?: boolean;
+  /** If true, only the DragHandle child will initiate drag (allows text selection) */
+  useDragHandle?: boolean;
+}
+
+export interface DragHandleProps {
+  listeners: ReturnType<typeof useDraggable>["listeners"];
+  attributes: ReturnType<typeof useDraggable>["attributes"];
 }
 
 interface DropZoneProps {
@@ -259,6 +266,7 @@ export const DraggableItem: React.FC<DraggableItemProps> = ({
   data,
   children,
   disabled = false,
+  useDragHandle = false,
 }) => {
   const { attributes, listeners, setNodeRef, transform, isDragging } =
     useDraggable({
@@ -273,13 +281,53 @@ export const DraggableItem: React.FC<DraggableItemProps> = ({
       }
     : undefined;
 
+  // If using drag handle, pass listeners via render prop or inject into children
+  const renderChildren = (): React.ReactNode => {
+    if (useDragHandle && typeof children === "function") {
+      // Render prop pattern - call the function with drag handle props
+      return children({ listeners, attributes });
+    } else if (useDragHandle && typeof children !== "function" && React.isValidElement(children)) {
+      // Clone children and inject drag listeners for any DragHandle components
+      return React.Children.map(children, (child) => {
+        if (React.isValidElement(child)) {
+          return React.cloneElement(child as React.ReactElement<any>, {
+            __dragListeners: listeners,
+          });
+        }
+        return child;
+      });
+    }
+    return typeof children === "function" ? null : children;
+  };
+
   return (
     <div
       ref={setNodeRef}
       style={style}
       className={dragStyles.draggableItem}
       data-dragging={isDragging ? "true" : "false"}
-      {...listeners}
+      {...(useDragHandle ? {} : listeners)}
+      {...(useDragHandle ? {} : attributes)}
+    >
+      {renderChildren()}
+    </div>
+  );
+};
+
+// Drag handle component - only this element initiates drag when useDragHandle is true
+export const DragHandle: React.FC<{
+  children: React.ReactNode;
+  className?: string;
+  listeners?: DragHandleProps["listeners"];
+  attributes?: DragHandleProps["attributes"];
+  __dragListeners?: any; // Legacy: Injected by DraggableItem via cloneElement
+}> = ({ children, className, listeners, attributes, __dragListeners }) => {
+  // Use explicit props first, fall back to injected props
+  const dragListeners = listeners || __dragListeners;
+  return (
+    <div
+      className={`${dragStyles.dragHandle} ${className || ""}`}
+      {...dragListeners}
       {...attributes}
     >
       {children}

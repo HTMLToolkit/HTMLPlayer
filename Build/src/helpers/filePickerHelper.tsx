@@ -71,7 +71,7 @@ export interface GaplessInfo {
  */
 async function compressAlbumArt(
   base64: string,
-  maxSize = 400,
+  maxSize = 200,
 ): Promise<string> {
   // Check if it's an animated format
   const isAnimatedFormat =
@@ -115,12 +115,16 @@ async function compressAlbumArt(
       // Draw and compress
       ctx.drawImage(img, 0, 0, width, height);
 
-      // Compress to JPEG at 85% quality
-      const compressed = canvas.toDataURL("image/jpeg", 0.85);
+      // Compress to JPEG at 70% quality
+      const compressed = canvas.toDataURL("image/jpeg", 0.70);
 
       console.log(
         `Album art compressed: ${(base64.length / 1024).toFixed(1)}KB → ${(compressed.length / 1024).toFixed(1)}KB`,
       );
+      
+      // Clean up the canvas to free memory
+      canvas.width = 0;
+      canvas.height = 0;
 
       resolve(compressed);
     };
@@ -695,6 +699,7 @@ export interface ShareTargetResult {
   title?: string;
   text?: string;
   url?: string;
+  type: "files" | "search" | "none";
 }
 
 export function handleShareTarget(): ShareTargetResult | null {
@@ -709,21 +714,25 @@ export function handleShareTarget(): ShareTargetResult | null {
   const text = urlParams.get("text") || undefined;
   const url = urlParams.get("url") || undefined;
 
-  // For now, return basic share info
-  // Files would typically come through launch queue for file shares
-  return title || text || url
-    ? {
-        files: [],
-        title,
-        text,
-        url,
-      }
-    : null;
+  // Determine what type of share this is
+  // Files would typically come through launch queue or POST request
+  if (title || text) {
+    // Text-based share - could be song info to search for
+    return {
+      files: [],
+      title,
+      text,
+      url,
+      type: "search",
+    };
+  }
+
+  return null;
 }
 
 // Hook to handle share targets and file shares
 export function useShareTarget(
-  onFilesReceived: (result: ShareTargetResult) => void,
+  onShareReceived: (result: ShareTargetResult) => void,
 ) {
   const hasProcessedRef = useRef(false);
 
@@ -732,9 +741,9 @@ export function useShareTarget(
     if (hasProcessedRef.current) return;
 
     const shareResult = handleShareTarget();
-    if (shareResult) {
+    if (shareResult && shareResult.type !== "none") {
       hasProcessedRef.current = true;
-      onFilesReceived(shareResult);
+      onShareReceived(shareResult);
 
       // Clear share target parameters from URL after processing
       const url = new URL(window.location.href);
@@ -744,7 +753,7 @@ export function useShareTarget(
       // Update URL without triggering a page reload
       window.history.replaceState({}, "", url.toString());
     }
-  }, [onFilesReceived]);
+  }, [onShareReceived]);
 }
 export function useFileHandler(
   addSong: (song: Song) => Promise<void>,

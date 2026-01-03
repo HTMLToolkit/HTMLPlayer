@@ -40,6 +40,9 @@ export class CrossfadeManager {
 
   // Current pitch setting
   private currentPitch: number = 0;
+  
+  // Track the current song ended handler for cleanup
+  private currentEndedHandler: (() => void) | null = null;
 
   constructor(audioContext: AudioContext) {
     this.audioContext = audioContext;
@@ -137,6 +140,12 @@ export class CrossfadeManager {
       console.warn("Crossfade already in progress, cancelling previous");
       this.cancelCrossfade();
     }
+    
+    // Ensure audio context is running (may be suspended on mobile after tab switch)
+    if (this.audioContext.state === "suspended") {
+      console.log("Resuming suspended audio context before crossfade");
+      await this.audioContext.resume();
+    }
 
     this.crossfadeInProgress = true;
     const { duration, curve = "smooth" } = options;
@@ -194,10 +203,14 @@ export class CrossfadeManager {
         const handleCurrentEnded = () => {
           if (this.crossfadeInProgress) {
             console.log("Current song ended during crossfade");
+            this.currentEndedHandler = null; // Clear reference since it fired
             this.completeCrossfade();
             resolve();
           }
         };
+        
+        // Store handler reference for potential cleanup in cancelCrossfade
+        this.currentEndedHandler = handleCurrentEnded;
 
         this.currentSource!.element.addEventListener(
           "ended",
@@ -302,6 +315,9 @@ export class CrossfadeManager {
 
     try {
       console.log("Completing crossfade transition");
+      
+      // Clear the ended handler reference (it either fired or will be removed by {once: true})
+      this.currentEndedHandler = null;
 
       // Stop the old audio
       if (this.currentSource) {
@@ -344,6 +360,12 @@ export class CrossfadeManager {
 
     try {
       const now = this.audioContext.currentTime;
+
+      // Remove the ended event listener if it hasn't fired yet
+      if (this.currentEndedHandler && this.currentSource) {
+        this.currentSource.element.removeEventListener("ended", this.currentEndedHandler);
+        this.currentEndedHandler = null;
+      }
 
       // Stop any scheduled gain changes
       if (this.currentSource) {

@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import styles from "./Home.module.css";
 import { Button } from "./Button";
 import { Icon } from "./Icon";
+import { useAlbumArt } from "../hooks/useAlbumArt";
 
 interface HomeProps {
   musicPlayerHook: ReturnType<
@@ -26,6 +27,72 @@ const flattenPlaylists = (items: (Playlist | PlaylistFolder)[]): Playlist[] => {
   }
   return result;
 };
+// Song card component with lazy album art loading
+const SongCardItem: React.FC<{ song: Song; onPlay: (song: Song) => void }> = React.memo(({ song, onPlay }) => {
+  const lazyAlbumArt = useAlbumArt(song.id, song.hasAlbumArt || !!song.albumArt);
+  const albumArt = song.albumArt || lazyAlbumArt;
+  
+  return (
+    <button
+      className={styles.songCard}
+      onClick={() => onPlay(song)}
+    >
+      <div className={styles.albumArtSmall}>
+        {albumArt ? (
+          <img src={albumArt} alt={song.title} loading="lazy" />
+        ) : (
+          <Icon name="music" size={16} decorative />
+        )}
+      </div>
+      <div className={styles.songMeta}>
+        <div className={styles.songTitle}>{song.title}</div>
+        <div className={styles.songArtist}>{song.artist}</div>
+      </div>
+      <Icon name="play" size={14} decorative />
+    </button>
+  );
+});
+
+// Playlist card component with lazy album art loading for first song
+const PlaylistCardItem: React.FC<{ 
+  playlist: Playlist; 
+  onPlay: (playlist: Playlist) => void;
+  countLabel: string;
+}> = React.memo(({ playlist, onPlay, countLabel }) => {
+  const firstSong = playlist.songs[0];
+  const lazyAlbumArt = useAlbumArt(firstSong?.id, firstSong?.hasAlbumArt || !!firstSong?.albumArt);
+  const albumArt = firstSong?.albumArt || lazyAlbumArt;
+  
+  return (
+    <button
+      className={styles.playlistCard}
+      onClick={() => onPlay(playlist)}
+      type="button"
+    >
+      <div className={styles.playlistArt}>
+        {albumArt ? (
+          <img
+            src={albumArt}
+            alt=""
+            loading="lazy"
+            style={{
+              width: "100%",
+              height: "100%",
+              objectFit: "cover",
+            }}
+          />
+        ) : (
+          <Icon name="list" size={20} decorative />
+        )}
+      </div>
+      <div className={styles.playlistMeta}>
+        <div className={styles.playlistName}>{playlist.name}</div>
+        <div className={styles.playlistCount}>{countLabel}</div>
+      </div>
+      <Icon name="play" size={16} decorative />
+    </button>
+  );
+});
 
 export const Home: React.FC<HomeProps> = ({ musicPlayerHook, onAddMusic }) => {
   const { t } = useTranslation();
@@ -259,24 +326,11 @@ export const Home: React.FC<HomeProps> = ({ musicPlayerHook, onAddMusic }) => {
         {recentlyAdded.length ? (
           <div className={styles.cardGrid}>
             {recentlyAdded.map((song) => (
-              <button
+              <SongCardItem
                 key={song.id}
-                className={styles.songCard}
-                onClick={() => handlePlaySong(song)}
-              >
-                <div className={styles.albumArtSmall}>
-                  {song.albumArt ? (
-                    <img src={song.albumArt} alt={song.title} />
-                  ) : (
-                    <Icon name="music" size={16} decorative />
-                  )}
-                </div>
-                <div className={styles.songMeta}>
-                  <div className={styles.songTitle}>{song.title}</div>
-                  <div className={styles.songArtist}>{song.artist}</div>
-                </div>
-                <Icon name="play" size={14} decorative />
-              </button>
+                song={song}
+                onPlay={handlePlaySong}
+              />
             ))}
           </div>
         ) : (
@@ -291,35 +345,12 @@ export const Home: React.FC<HomeProps> = ({ musicPlayerHook, onAddMusic }) => {
         {spotlightPlaylists.length ? (
           <div className={styles.cardGrid}>
             {spotlightPlaylists.map((playlist) => (
-              <button
+              <PlaylistCardItem
                 key={playlist.id}
-                className={styles.playlistCard}
-                onClick={() => handlePlayPlaylist(playlist)}
-                type="button"
-              >
-                <div className={styles.playlistArt}>
-                  {playlist.songs[0]?.albumArt ? (
-                    <img
-                      src={playlist.songs[0].albumArt}
-                      alt=""
-                      style={{
-                        width: "100%",
-                        height: "100%",
-                        objectFit: "cover",
-                      }}
-                    />
-                  ) : (
-                    <Icon name="list" size={20} decorative />
-                  )}
-                </div>
-                <div className={styles.playlistMeta}>
-                  <div className={styles.playlistName}>{playlist.name}</div>
-                  <div className={styles.playlistCount}>
-                    {t("home.playlistCount", { count: playlist.songs.length })}
-                  </div>
-                </div>
-                <Icon name="play" size={16} decorative />
-              </button>
+                playlist={playlist}
+                onPlay={handlePlayPlaylist}
+                countLabel={t("home.playlistCount", { count: playlist.songs.length })}
+              />
             ))}
           </div>
         ) : (

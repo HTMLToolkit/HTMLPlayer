@@ -118,6 +118,7 @@ export const libraries: IconLibraryMap = {
     RiSlideshowFill,
     RiSparklingFill,
     RiHomeFill,
+    RiRefreshLine,
   },
 };
 
@@ -204,6 +205,7 @@ const icons: IconDefinitionMap = {
   visualizerControls: remixIcon("RiSlideshowFill"),
   sparkles: remixIcon("RiSparklingFill"),
   home: remixIcon("RiHomeFill"),
+  refreshCw: remixIcon("RiRefreshLine", "Refresh"),
 };
 
 export default icons;

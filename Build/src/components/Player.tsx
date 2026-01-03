@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState, useCallback } from "react";
+import React, { useEffect, useRef, useState, useCallback, useImperativeHandle, forwardRef } from "react";
 import { Button } from "./Button";
 import { Visualizer } from "./Visualizer";
 import { Lyrics } from "./Lyrics";
@@ -10,6 +10,7 @@ import { useAudioSync } from "../hooks/useAudioSync";
 import { ScrollText } from "./ScrollText";
 import { isSafari } from "../helpers/safariHelper";
 import { Icon } from "./Icon";
+import { useAlbumArt } from "../hooks/useAlbumArt";
 
 interface PlayerProps {
   musicPlayerHook: ReturnType<
@@ -18,7 +19,12 @@ interface PlayerProps {
   settings: PlayerSettings;
 }
 
-export const Player = ({ musicPlayerHook, settings }: PlayerProps) => {
+export interface PlayerRef {
+  toggleVisualizer: () => void;
+  toggleLyrics: () => void;
+}
+
+export const Player = forwardRef<PlayerRef, PlayerProps>(({ musicPlayerHook, settings }, ref) => {
   const { t } = useTranslation();
 
   // Initialize audio sync for cross-window communication
@@ -55,11 +61,29 @@ export const Player = ({ musicPlayerHook, settings }: PlayerProps) => {
     repeat,
     analyserNode,
   } = playerState;
+// Lazy load album art for current song
+  const lazyAlbumArt = useAlbumArt(currentSong?.id, currentSong?.hasAlbumArt || !!currentSong?.albumArt);
+  const currentAlbumArt = currentSong?.albumArt || lazyAlbumArt;
 
+  
   const [showVisualizer, setShowVisualizer] = useState(false);
   const [showLyrics, setShowLyrics] = useState(false);
+  const [isVisualizerClosing, setIsVisualizerClosing] = useState(false);
+  const [isLyricsClosing, setIsLyricsClosing] = useState(false);
+  const [hasVisualizerAnimatedIn, setHasVisualizerAnimatedIn] = useState(false);
   const [isDraggingProgress, setIsDraggingProgress] = useState(false);
   const [isDraggingVolume, setIsDraggingVolume] = useState(false);
+
+  // Track when visualizer open animation completes
+  useEffect(() => {
+    if (showVisualizer && !isVisualizerClosing && !hasVisualizerAnimatedIn) {
+      const timer = setTimeout(() => setHasVisualizerAnimatedIn(true), 250);
+      return () => clearTimeout(timer);
+    }
+    if (!showVisualizer) {
+      setHasVisualizerAnimatedIn(false);
+    }
+  }, [showVisualizer, isVisualizerClosing, hasVisualizerAnimatedIn]);
 
   const formatTime = (seconds: number) => {
     const totalSeconds = Math.round(seconds);
@@ -186,8 +210,37 @@ export const Player = ({ musicPlayerHook, settings }: PlayerProps) => {
     else addToFavorites(currentSong.id);
   };
 
-  const handleVisualizerToggle = () => setShowVisualizer((prev) => !prev);
-  const handleLyricsToggle = () => setShowLyrics((prev) => !prev);
+  const handleVisualizerToggle = useCallback(() => {
+    if (showVisualizer || isVisualizerClosing) {
+      // Close with animation
+      setIsVisualizerClosing(true);
+      setTimeout(() => {
+        setIsVisualizerClosing(false);
+        setShowVisualizer(false);
+      }, 250); // Match animation duration
+    } else {
+      setShowVisualizer(true);
+    }
+  }, [showVisualizer, isVisualizerClosing]);
+
+  const handleLyricsToggle = useCallback(() => {
+    if (showLyrics || isLyricsClosing) {
+      // Close with animation
+      setIsLyricsClosing(true);
+      setTimeout(() => {
+        setIsLyricsClosing(false);
+        setShowLyrics(false);
+      }, 250); // Match animation duration
+    } else {
+      setShowLyrics(true);
+    }
+  }, [showLyrics, isLyricsClosing]);
+
+  // Expose toggle methods via ref for keyboard shortcuts
+  useImperativeHandle(ref, () => ({
+    toggleVisualizer: handleVisualizerToggle,
+    toggleLyrics: handleLyricsToggle,
+  }), [handleVisualizerToggle, handleLyricsToggle]);
 
   const getVolumeIcon = () => {
     if (volume === 0) return <Icon name="volumeOff" size={16} decorative />;
@@ -234,10 +287,17 @@ export const Player = ({ musicPlayerHook, settings }: PlayerProps) => {
 
   const isFavorite = library.favorites.includes(currentSong.id);
 
+  // Determine visualizer data-state: closing, open (initial animation), or visible (no animation)
+  const visualizerDataState = isVisualizerClosing ? "closing" : hasVisualizerAnimatedIn ? "visible" : "open";
+
   return (
     <>
-      {showVisualizer && (
-        <div className={styles.visualizerOverlay} data-tour="visualizer">
+      {(showVisualizer || isVisualizerClosing) && (
+        <div 
+          className={styles.visualizerOverlay} 
+          data-tour="visualizer"
+          data-state={visualizerDataState}
+        >
           <Visualizer
             analyserNode={analyserNode}
             isPlaying={isPlaying}
@@ -250,9 +310,9 @@ export const Player = ({ musicPlayerHook, settings }: PlayerProps) => {
       >
         <div className={styles.currentSong}>
           <div className={styles.albumArt}>
-            {currentSong.albumArt && (
+            {currentAlbumArt && (
               <img
-                src={currentSong.albumArt}
+                src={currentAlbumArt}
                 alt={t("player.albumArtAlt", { title: currentSong.title })}
                 loading="lazy"
                 style={{
@@ -453,17 +513,20 @@ export const Player = ({ musicPlayerHook, settings }: PlayerProps) => {
           />
         </div>
 
-        {showLyrics && currentSong && (
+        {(showLyrics || isLyricsClosing) && currentSong && (
           <Lyrics
             artist={currentSong.artist}
             title={currentSong.title}
-            visible={showLyrics}
-            onClose={() => setShowLyrics(false)}
+            visible={showLyrics && !isLyricsClosing}
+            onClose={handleLyricsToggle}
             embeddedLyrics={currentSong.embeddedLyrics}
             currentTime={currentTime}
+            isClosing={isLyricsClosing}
           />
         )}
       </div>
     </>
   );
-};
+});
+
+Player.displayName = "Player";

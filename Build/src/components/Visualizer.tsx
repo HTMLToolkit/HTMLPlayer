@@ -4,6 +4,7 @@ import {
   getVisualizer,
   getAvailableVisualizers,
   VisualizerType,
+  clearVisualizerState,
 } from "../helpers/visualizerLoader";
 import { Button } from "./Button";
 import { Icon } from "./Icon";
@@ -102,6 +103,14 @@ export const Visualizer = ({
         setIsLoadingVisualizer(false);
       });
   }, [selectedVisualizerKey]);
+  
+  // Cleanup visualizer state when component unmounts
+  useEffect(() => {
+    return () => {
+      // Clean up all visualizer states when unmounting
+      clearVisualizerState();
+    };
+  }, []);
 
   const handleSettingChange = (key: string, value: any) => {
     setVisualizerSettings((prev) => ({
@@ -109,6 +118,9 @@ export const Visualizer = ({
       [key]: value,
     }));
   };
+  
+  // Reuse data array to prevent allocation on every frame
+  const dataArrayRef = useRef<Uint8Array | null>(null);
 
   const draw = useCallback(() => {
     if (!analyserNode || !canvasRef.current || !selectedVisualizer) return;
@@ -117,14 +129,18 @@ export const Visualizer = ({
     if (!ctx) return;
 
     const bufferLength = analyserNode.frequencyBinCount;
-    const dataArray = new Uint8Array(bufferLength);
+    
+    // Reuse or create the data array only when buffer size changes
+    if (!dataArrayRef.current || dataArrayRef.current.length !== bufferLength) {
+      dataArrayRef.current = new Uint8Array(bufferLength);
+    }
 
     selectedVisualizer.draw(
       analyserNode,
       canvas,
       ctx,
       bufferLength,
-      dataArray,
+      dataArrayRef.current,
       selectedVisualizer.dataType,
       visualizerSettings,
     );

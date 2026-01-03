@@ -34,6 +34,11 @@
       cubic-bezier(0.16, 1, 0.3, 1);
   }
 
+  .top[data-state="closed"] {
+    animation: slideUpOut var(--animation-duration-normal)
+      cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
   .bottom {
     bottom: 0;
     left: 0;
@@ -43,6 +48,11 @@
     border-top-left-radius: var(--radius-md);
     border-top-right-radius: var(--radius-md);
     animation: slideUpAndFade var(--animation-duration-normal)
+      cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .bottom[data-state="closed"] {
+    animation: slideDownOut var(--animation-duration-normal)
       cubic-bezier(0.16, 1, 0.3, 1);
   }
 
@@ -58,6 +68,11 @@
       cubic-bezier(0.16, 1, 0.3, 1);
   }
 
+  .left[data-state="closed"] {
+    animation: slideLeftOut var(--animation-duration-normal)
+      cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
   .right {
     top: 0;
     right: 0;
@@ -67,6 +82,11 @@
     border-top-left-radius: var(--radius-md);
     border-bottom-left-radius: var(--radius-md);
     animation: slideLeftAndFade var(--animation-duration-normal)
+      cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .right[data-state="closed"] {
+    animation: slideRightOut var(--animation-duration-normal)
       cubic-bezier(0.16, 1, 0.3, 1);
   }
 
@@ -154,12 +174,30 @@
     }
   }
 
+  @keyframes slideDownOut {
+    from {
+      transform: translateY(0);
+    }
+    to {
+      transform: translateY(100%);
+    }
+  }
+
   @keyframes slideDownAndFade {
     from {
       transform: translateY(-100%);
     }
     to {
       transform: translateY(0);
+    }
+  }
+
+  @keyframes slideUpOut {
+    from {
+      transform: translateY(0);
+    }
+    to {
+      transform: translateY(-100%);
     }
   }
 
@@ -178,6 +216,38 @@
     }
     to {
       transform: translateX(0);
+    }
+  }
+
+  @keyframes slideLeftOut {
+    from {
+      transform: translateX(0);
+    }
+    to {
+      transform: translateX(-100%);
+    }
+  }
+
+  @keyframes slideRightOut {
+    from {
+      transform: translateX(0);
+    }
+    to {
+      transform: translateX(100%);
+    }
+  }
+
+  .overlay[data-state="closed"] {
+    animation: overlayHide var(--animation-duration-normal)
+      cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  @keyframes overlayHide {
+    from {
+      opacity: 1;
+    }
+    to {
+      opacity: 0;
     }
   }
 

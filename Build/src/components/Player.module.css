@@ -153,12 +153,12 @@
 .repeatOne::after {
   content: "1";
   position: absolute;
-  font-size: 10px;
-  font-weight: bold;
-  bottom: 1px;
-  right: 1px;
-  color: var(--certain-icons);
-  background: var(--surface);
+  font-size: 9px;
+  font-weight: 700;
+  bottom: 0;
+  right: 0;
+  color: var(--primary-foreground);
+  background: var(--themecolor);
   border-radius: 50%;
   width: 14px;
   height: 14px;
@@ -166,6 +166,8 @@
   align-items: center;
   justify-content: center;
   line-height: 1;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--surface);
 }
 
 .noSong {
@@ -394,7 +396,8 @@
   position: fixed;
   top: 65px;
   right: 0;
-  width: calc(100vw - var(--sidebar-width));
+  left: calc(var(--sidebar-width) + 11px);
+  width: calc(100vw - var(--sidebar-width) - 15px);
   height: calc(100vh - 90px - 180px);
   max-height: 300px;
   background: black;
@@ -403,8 +406,24 @@
   border-top: none;
   border-radius: 0 0 var(--radius-lg) var(--radius-lg);
   z-index: 9999;
-  animation: slideDown var(--animation-duration-normal) ease-out;
   transition: width var(--animation-duration-fast) ease-in-out;
+  /* Default: already visible at final position */
+  transform: translateY(0);
+  opacity: 1;
+}
+
+.visualizerOverlay[data-state="open"] {
+  animation: visualizerSlideDown var(--animation-duration-normal) ease-out forwards;
+}
+
+.visualizerOverlay[data-state="closing"] {
+  animation: visualizerSlideUp var(--animation-duration-normal) ease-in forwards;
+}
+
+/* State for when already visible (no animation needed) */
+.visualizerOverlay[data-state="visible"] {
+  transform: translateY(0);
+  opacity: 1;
 }
 
 .visualizer {
@@ -412,15 +431,25 @@
   height: 100%;
 }
 
-@keyframes slideDown {
+@keyframes visualizerSlideDown {
   from {
     transform: translateY(-100%);
     opacity: 0;
   }
-
   to {
     transform: translateY(0);
     opacity: 1;
+  }
+}
+
+@keyframes visualizerSlideUp {
+  from {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateY(-100%);
+    opacity: 0;
   }
 }
 

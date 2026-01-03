@@ -330,6 +330,8 @@
   overflow-y: auto;
   padding: var(--spacing-6);
   padding-bottom: 190px; /* Keep space for fixed player */
+  max-height: calc(100vh - 220px);
+  min-height: 300px;
 }
 
 .homeContent {
@@ -388,6 +390,25 @@
   display: flex;
   align-items: center;
   gap: var(--spacing-3);
+}
+
+.dragHandle {
+  cursor: grab;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+  display: flex;
+  align-items: center;
+  padding: var(--spacing-1);
+  margin-left: calc(-1 * var(--spacing-2));
+}
+
+.dragHandle:active {
+  cursor: grabbing;
+}
+
+.songItem:hover .dragHandle {
+  opacity: 1;
+  color: var(--primary-foreground);
 }
 
 .albumArt {
@@ -471,6 +492,7 @@
   width: 100%;
   border-radius: var(--radius);
   transition: all var(--animation-duration-fast) ease;
+  display: block;
 }
 
 .songDropZone[data-droppable="true"] {

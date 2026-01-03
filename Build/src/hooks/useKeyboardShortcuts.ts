@@ -77,6 +77,12 @@ export const useKeyboardShortcuts = ({
         return;
       }
 
+      // Ignore if tour/help guide is open
+      const tourElement = document.querySelector('[data-tour-elem="popover"]');
+      if (tourElement) {
+        return;
+      }
+
       // Find matching shortcut
       const matchingShortcut = Object.values(shortcuts).find((shortcut) =>
         matchesShortcut(event, shortcut),

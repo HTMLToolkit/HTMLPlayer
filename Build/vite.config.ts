@@ -16,7 +16,7 @@ const plugins = [react()];
 if (isWeb) {
   plugins.push(
     VitePWA({
-      registerType: "autoUpdate",
+      registerType: "prompt",
       includeAssets: ["robots.txt"],
       manifest: {
         id: "htmlplayer",
@@ -31,22 +31,22 @@ if (isWeb) {
         theme_color: "#00bfff",
         background_color: "#00bfff",
         orientation: "any",
-        // share_target: {
-        //   action: '/',
-        //   method: 'POST',
-        //   enctype: 'multipart/form-data',
-        //   params: {
-        //     title: 'title',
-        //     text: 'text',
-        //     url: 'url',
-        //     files: [
-        //       {
-        //         name: 'audio',
-        //         accept: ['audio/*']
-        //       }
-        //     ]
-        //   }
-        // },
+        share_target: {
+          action: "/beta/HTMLPlayer/",
+          method: "POST",
+          enctype: "multipart/form-data",
+          params: {
+            title: "title",
+            text: "text",
+            url: "url",
+            files: [
+              {
+                name: "audio",
+                accept: ["audio/*", ".mp3", ".wav", ".flac", ".m4a", ".aif", ".aiff", ".ogg", ".opus"]
+              }
+            ]
+          }
+        },
         file_handlers: [
           {
             action: "/beta/HTMLPlayer/",
@@ -128,6 +128,11 @@ if (isWeb) {
             options: { cacheName: "assets" },
           },
         ],
+      },
+      // Enable PWA in development mode for testing
+      devOptions: {
+        enabled: true,
+        type: "module",
       },
     })
   );

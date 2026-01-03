@@ -213,6 +213,24 @@ export const createCrossfadeManager = (
       const tempSource = currentAudioSourceRef.current;
       currentAudioSourceRef.current = nextAudioSourceRef.current;
       nextAudioSourceRef.current = tempSource;
+      
+      // Clean up the old audio element (now in nextAudioRef) to prevent memory leaks
+      // Revoke blob URL if present, then clear source
+      if (nextAudioRef.current) {
+        const oldSrc = nextAudioRef.current.src;
+        if (oldSrc && oldSrc.startsWith('blob:')) {
+          try {
+            URL.revokeObjectURL(oldSrc);
+            console.log("CrossfadeUtils: Revoked blob URL from previous song");
+          } catch (e) {
+            // Ignore errors from revoking already-revoked URLs
+          }
+        }
+        // Pause and reset the old element for reuse
+        nextAudioRef.current.pause();
+        nextAudioRef.current.currentTime = 0;
+        // Don't clear src yet: the cacheManager may still reference it
+      }
 
       // Get current time from the crossfade manager (which tracks the active element)
       const currentTime = crossfadeManagerRef.current?.getCurrentTime() || 0;

@@ -25,6 +25,7 @@ interface LyricsProps {
   onClose?: () => void;
   embeddedLyrics?: EmbeddedLyrics[];
   currentTime?: number;
+  isClosing?: boolean;
 }
 
 interface EmbeddedLyrics {
@@ -104,6 +105,7 @@ export const Lyrics = ({
   onClose,
   embeddedLyrics,
   currentTime = 0,
+  isClosing: isClosingProp = false,
 }: LyricsProps) => {
   const { t } = useTranslation();
   const [state, setState] = useState<LyricsState>(INITIAL_STATE);
@@ -116,6 +118,31 @@ export const Lyrics = ({
   const [preferredSource, setPreferredSource] = useState<"online" | "embedded">(
     "online",
   );
+  // Track if this is the initial mount to show open animation only once
+  const [hasAnimatedIn, setHasAnimatedIn] = useState(false);
+  
+  // Reset animation state when component remounts (visible changes from false to true)
+  const prevVisibleRef = useRef(visible);
+  useEffect(() => {
+    if (visible && !prevVisibleRef.current) {
+      // Reopening - reset animation state
+      setHasAnimatedIn(false);
+    }
+    prevVisibleRef.current = visible;
+  }, [visible]);
+
+  // Mark as animated in after initial mount animation completes
+  useEffect(() => {
+    if (!isClosingProp && !hasAnimatedIn) {
+      const timer = setTimeout(() => setHasAnimatedIn(true), 250);
+      return () => clearTimeout(timer);
+    }
+  }, [isClosingProp, hasAnimatedIn]);
+
+  // Handle close - just call parent handler, parent manages animation state
+  const handleClose = useCallback(() => {
+    onClose?.();
+  }, [onClose]);
 
   const fetchLyrics = useCallback(
     async (artist: string, title: string) => {
@@ -244,9 +271,12 @@ export const Lyrics = ({
   }, []);
 
   // Memoized normalized array for safer usage
+  // Sort to prioritize synced (SYLT) over unsynced (USLT)
   const normalizedEmbedded = useMemo(() => {
     if (!embeddedLyrics?.length) return [];
-    return embeddedLyrics.map((e) => normalizeEntry(e) as EmbeddedLyrics);
+    return embeddedLyrics
+      .map((e) => normalizeEntry(e) as EmbeddedLyrics)
+      .sort((a, b) => (b.synced ? 1 : 0) - (a.synced ? 1 : 0));
   }, [embeddedLyrics, normalizeEntry]);
 
   // Manage selection index when embedded lyrics change or visibility changes
@@ -316,24 +346,23 @@ export const Lyrics = ({
     lineElement?.scrollIntoView({ behavior: "smooth", block: "center" });
   }, [currentLineIndex, visible]);
 
-  useEffect(() => {
-    if (!visible || !onClose) return;
-    const handleEscapeKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    };
-    document.addEventListener("keydown", handleEscapeKey);
-    return () => document.removeEventListener("keydown", handleEscapeKey);
-  }, [visible, onClose]);
-
   const handleRetry = useCallback(() => {
     if (artist && title) fetchLyrics(artist, title);
   }, [artist, title, fetchLyrics]);
   const handleOverlayClick = useCallback(
     (e: React.MouseEvent) => {
-      if (e.target === e.currentTarget) onClose?.();
+      if (e.target === e.currentTarget) handleClose();
     },
-    [onClose],
+    [handleClose],
   );
+
+  useEffect(() => {
+    console.debug("[Lyrics] selectedLyrics changed", {
+      selectedIndex,
+      selectedLyrics,
+      currentLineIndex,
+    });
+  }, [selectedIndex, selectedLyrics, currentLineIndex]);
 
   if (!visible) return null;
 
@@ -359,14 +388,8 @@ export const Lyrics = ({
   const { lyrics, loading, error } = state;
   const shownIndexForSelect = selectedIndex >= 0 ? selectedIndex : 0;
 
-  // Debug selected item shape if needed
-  useEffect(() => {
-    console.debug("[Lyrics] selectedLyrics changed", {
-      selectedIndex,
-      selectedLyrics,
-      currentLineIndex,
-    });
-  }, [selectedIndex, selectedLyrics, currentLineIndex]);
+  // Determine data-state: closing, open (initial animation), or visible (no animation)
+  const dataState = isClosingProp ? "closing" : hasAnimatedIn ? "visible" : "open";
 
   return (
     <div
@@ -375,6 +398,7 @@ export const Lyrics = ({
       role="dialog"
       aria-modal="true"
       data-tour="lyrics"
+      data-state={dataState}
     >
       <div className={styles.lyricsContainer}>
         <header className={styles.lyricsHeader}>
@@ -417,7 +441,7 @@ export const Lyrics = ({
               <Icon name="disc" size={18} />
             </Button>
             {onClose && (
-              <button className={styles.lyricsCloseButton} onClick={onClose}>
+              <button className={styles.lyricsCloseButton} onClick={handleClose}>
                 ×
               </button>
             )}

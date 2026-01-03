@@ -141,4 +141,17 @@
 .draggableItem[data-dragging="true"] {
   opacity: 0.5;
   cursor: grabbing;
+  user-select: none;
+}
+
+/* Drag handle, only this area triggers drag */
+.dragHandle {
+  cursor: grab;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: none;
+}
+
+.dragHandle:active {
+  cursor: grabbing;
 }

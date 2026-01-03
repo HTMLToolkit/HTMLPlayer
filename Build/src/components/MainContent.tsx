@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { DraggableItem, DropZone } from "./Draggable";
+import { DraggableItem, DropZone, DragHandle, DragHandleProps } from "./Draggable";
 import { SongActionsDropdown } from "./SongActionsDropdown";
 import { Checkbox } from "./Checkbox";
 import { useRightClickMenu } from "./DropdownMenu";
@@ -25,6 +25,7 @@ import { Icon } from "./Icon";
 import { musicIndexedDbHelper } from "../helpers/musicIndexedDbHelper";
 import { importAudioFiles } from "../helpers/importAudioFiles";
 import { Home } from "./Home";
+import { useAlbumArt } from "../hooks/useAlbumArt";
 
 interface SortableSongItemProps {
   song: Song;
@@ -47,7 +48,7 @@ interface SortableSongItemProps {
   removeSong: (songId: string) => void;
   isInPlaylist: boolean; // New prop to determine drag behavior
 }
-const SortableSongItem = ({
+const SortableSongItem = React.memo(function SortableSongItem({
   song,
   isCurrent,
   isSelected,
@@ -67,26 +68,38 @@ const SortableSongItem = ({
   playSong,
   removeSong,
   isInPlaylist,
-}: SortableSongItemProps) => {
+}: SortableSongItemProps) {
   const { t } = useTranslation();
   const { open, setOpen, containerRef } = useRightClickMenu(true);
+  
+  // Lazy load album art - only loads when component is rendered
+  // Use song.albumArt if already loaded (for newly imported songs), otherwise lazy load
+  const lazyAlbumArt = useAlbumArt(song.id, song.hasAlbumArt || !!song.albumArt);
+  const albumArt = song.albumArt || lazyAlbumArt;
 
   // Use DraggableItem for clean drag functionality, and DropZone if in playlist for reordering
-  const songContent = (
+  const songContent = (dragHandleProps?: DragHandleProps) => (
     <div
       className={`${styles.songItem} ${isCurrent ? styles.currentSong : ""}`}
       onClick={onClick}
       ref={containerRef}
     >
       <div className={styles.songInfo}>
+        {dragHandleProps && (
+          <DragHandle {...dragHandleProps} className={styles.dragHandle}>
+            <Icon name="gripVertical" size={16} decorative />
+          </DragHandle>
+        )}
         {isSelectActive && (
           <Checkbox checked={isSelected} onChange={onCheckboxChange} />
         )}
         <div className={styles.albumArt}>
-          {song.albumArt && (
+          {albumArt && (
             <img
-              src={song.albumArt}
+              src={albumArt}
               alt={t("player.albumArtAlt", { title: song.title })}
+              loading="lazy"
+              decoding="async"
               style={{
                 width: "100%",
                 height: "100%",
@@ -173,22 +186,24 @@ const SortableSongItem = ({
   );
 
   return (
-    <DraggableItem id={song.id} type="song" data={song}>
-      {isInPlaylist ? (
-        <DropZone
-          id={song.id}
-          type="song"
-          data={song}
-          className={styles.songDropZone}
-        >
-          {songContent}
-        </DropZone>
-      ) : (
-        songContent
-      )}
+    <DraggableItem id={song.id} type="song" data={song} useDragHandle>
+      {(dragHandleProps) =>
+        isInPlaylist ? (
+          <DropZone
+            id={song.id}
+            type="song"
+            data={song}
+            className={styles.songDropZone}
+          >
+            {songContent(dragHandleProps)}
+          </DropZone>
+        ) : (
+          songContent(dragHandleProps)
+        )
+      }
     </DraggableItem>
   );
-};
+});
 
 interface MainContentProps {
   musicPlayerHook: ReturnType<
@@ -277,11 +292,15 @@ export const MainContent = ({
     library.songs,
   ]);
 
-  const filteredSongs = songsToDisplay.filter(
-    (song: Song) =>
-      song.title.toLowerCase().includes(songSearchQuery.toLowerCase()) ||
-      song.artist.toLowerCase().includes(songSearchQuery.toLowerCase()),
-  );
+  const filteredSongs = React.useMemo(() => {
+    const query = songSearchQuery.toLowerCase();
+    if (!query) return songsToDisplay;
+    return songsToDisplay.filter(
+      (song: Song) =>
+        song.title.toLowerCase().includes(query) ||
+        song.artist.toLowerCase().includes(query),
+    );
+  }, [songsToDisplay, songSearchQuery]);
 
   const sortedSongs = React.useMemo(() => {
     let sorted = [...filteredSongs];

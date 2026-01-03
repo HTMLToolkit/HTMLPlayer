@@ -9,6 +9,7 @@ interface Song {
   mimeType?: string;
   hasStoredAudio?: boolean;
   albumArt?: string;
+  hasAlbumArt?: boolean; // Flag for lazy loading - true if album art exists in separate store
   embeddedLyrics?: EmbeddedLyrics[];
   encoding?: EncodingDetails;
   gapless?: GaplessInfo;

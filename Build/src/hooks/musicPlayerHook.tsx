@@ -35,6 +35,9 @@ export const useMusicPlayer = () => {
   const crossfadeTimeoutRef = useRef<number | null>(null);
   const gaplessAdvanceTriggeredRef = useRef<boolean>(false);
   const gaplessStartAppliedRef = useRef<boolean>(false);
+  
+  // Guard to prevent multiple crossfade triggers from timeupdate events
+  const crossfadeInitiatedRef = useRef<boolean>(false);
 
   // Cache the next song decision
   const nextSongCacheRef = useRef<Song | null>(null);
@@ -272,25 +275,77 @@ export const useMusicPlayer = () => {
     };
   }, []);
 
-  // Initialize data loading
+  // Initialize data loading with batched processing to prevent RAM spikes
   useEffect(() => {
+    const BATCH_SIZE = 100; // Process songs in batches of 100
+    const BATCH_DELAY = 10; // ms delay between batches to let GC run
+    
+    // Helper to process songs in batches to prevent RAM spikes
+    const processSongsInBatches = async (songs: Song[]): Promise<Song[]> => {
+      if (songs.length <= BATCH_SIZE) {
+        // Small library, process all at once
+        return songs.filter((song: Song) => song.url && song.url !== "");
+      }
+      
+      const validSongs: Song[] = [];
+      
+      for (let i = 0; i < songs.length; i += BATCH_SIZE) {
+        const batch = songs.slice(i, i + BATCH_SIZE);
+        const validBatch = batch.filter((song: Song) => song.url && song.url !== "");
+        validSongs.push(...validBatch);
+        
+        // Yield to main thread between batches
+        if (i + BATCH_SIZE < songs.length) {
+          await new Promise(resolve => setTimeout(resolve, BATCH_DELAY));
+        }
+      }
+      
+      return validSongs;
+    };
+    
+    // Helper to prepare songs in batches
+    const prepareSongsInBatches = async (songs: Song[]): Promise<Song[]> => {
+      if (songs.length <= BATCH_SIZE) {
+        return prepareSongsForPlaylist(songs);
+      }
+      
+      const preparedSongs: Song[] = [];
+      
+      for (let i = 0; i < songs.length; i += BATCH_SIZE) {
+        const batch = songs.slice(i, i + BATCH_SIZE);
+        const preparedBatch = prepareSongsForPlaylist(batch);
+        preparedSongs.push(...preparedBatch);
+        
+        // Yield to main thread between batches
+        if (i + BATCH_SIZE < songs.length) {
+          await new Promise(resolve => setTimeout(resolve, BATCH_DELAY));
+        }
+      }
+      
+      return preparedSongs;
+    };
+
     const loadPersistedData = async () => {
       try {
         const persistedLibrary = await musicIndexedDbHelper.loadLibrary();
         const persistedSettings = await musicIndexedDbHelper.loadSettings();
 
         if (persistedLibrary) {
+          // Process songs in batches to prevent RAM spike
+          const validSongs = await processSongsInBatches(persistedLibrary.songs);
+          
           const validLibrary = {
             ...persistedLibrary,
-            songs: persistedLibrary.songs.filter(
-              (song: Song) => song.url && song.url !== "",
-            ),
+            songs: validSongs,
           };
+          
+          // Prepare songs for playlist in batches
+          const preparedSongs = await prepareSongsInBatches(validLibrary.songs);
 
           const allSongsPlaylist = {
             id: "all-songs",
             name: t("allSongs"),
-            songs: prepareSongsForPlaylist(validLibrary.songs),
+            songs: preparedSongs,
           };
 
           const updatedLibrary = {
@@ -302,7 +357,7 @@ export const useMusicPlayer = () => {
                   p.id === "all-songs"
                     ? {
                         ...p,
-                        songs: prepareSongsForPlaylist(validLibrary.songs),
+                        songs: preparedSongs, // Reuse already prepared songs
                       }
                     : p,
                 )
@@ -775,6 +830,7 @@ export const useMusicPlayer = () => {
 
         gaplessAdvanceTriggeredRef.current = false;
         gaplessStartAppliedRef.current = false;
+        crossfadeInitiatedRef.current = false;
 
         // Use the cached URL
         audioRef.current.src = cachedSong.url;
@@ -808,6 +864,22 @@ export const useMusicPlayer = () => {
         try {
           await audioRef.current.play();
         } catch (error: any) {
+          // Handle "play() interrupted by load request" error gracefully
+          // This happens when rapidly skipping songs and is not a real error
+          const isInterruptedError =
+            error.name === "AbortError" ||
+            error.message?.includes("interrupted") ||
+            error.message?.includes("AbortError");
+
+          if (isInterruptedError) {
+            console.debug(
+              "Play request interrupted by new load, this is expected when skipping songs quickly",
+            );
+            // Don't show error toast, just update state
+            setPlayerState((prev) => ({ ...prev, isPlaying: false }));
+            return;
+          }
+
           console.error("Failed to play song:", error);
           // TODO: i18n-ize
           toast.error(`Failed to play "${song.title}"`, {
@@ -968,7 +1040,9 @@ export const useMusicPlayer = () => {
           }
 
           // Start crossfade
-          if (timeRemaining <= crossfadeDuration) {
+          if (timeRemaining <= crossfadeDuration && !crossfadeInitiatedRef.current) {
+            // Set guard immediately to prevent re-triggering
+            crossfadeInitiatedRef.current = true;
             console.log(
               "Triggering crossfade at",
               timeRemaining.toFixed(1),
@@ -1001,6 +1075,8 @@ export const useMusicPlayer = () => {
               gaplessStartAppliedRef,
             ).catch((error: any) => {
               console.error("Crossfade transition failed:", error);
+              // Reset guard on failure so it can be retried
+              crossfadeInitiatedRef.current = false;
             });
           }
         } else if (gaplessEnabled) {
@@ -1013,16 +1089,30 @@ export const useMusicPlayer = () => {
 
           if (
             hasMeaningfulGaplessOffsets &&
-            timeRemaining <= 0.05 &&
+            timeRemaining <= 0.15 &&
             !gaplessAdvanceTriggeredRef.current
           ) {
             gaplessAdvanceTriggeredRef.current = true;
+            
+            // Schedule the advance with precise timing to minimize gap
+            const delayMs = Math.max(0, (timeRemaining - 0.02) * 1000);
 
             if (autoPlayNext && playNextRef.current) {
-              playNextRef.current();
+              if (delayMs > 0) {
+                setTimeout(() => playNextRef.current?.(), delayMs);
+              } else {
+                playNextRef.current();
+              }
             } else if (!autoPlayNext) {
-              currentAudio.pause();
-              setPlayerState((prev) => ({ ...prev, isPlaying: false }));
+              if (delayMs > 0) {
+                setTimeout(() => {
+                  currentAudio.pause();
+                  setPlayerState((prev) => ({ ...prev, isPlaying: false }));
+                }, delayMs);
+              } else {
+                currentAudio.pause();
+                setPlayerState((prev) => ({ ...prev, isPlaying: false }));
+              }
             }
           }
         }
@@ -1068,25 +1158,25 @@ export const useMusicPlayer = () => {
 
     const handleEnded = (event: Event) => {
       const target = event.target as HTMLAudioElement;
-      if (target !== audioRef.current) {
+      
+      // Determine which element should be considered "current"
+      // Use crossfade manager's active element if available, otherwise audioRef
+      const activeElement = crossfadeManagerRef.current?.getActiveElement() || audioRef.current;
+      
+      // Only respond to ended events from the active element
+      if (target !== activeElement) {
         return;
       }
 
-      // If crossfade is in progress and current song ends, complete crossfade immediately
+      // If crossfade is in progress and current (outgoing) song ends, 
+      // the crossfade manager handles this via its own 'ended' listener
+      // So we should not trigger playNext here
       if (crossfadeManagerRef.current?.isCrossfading()) {
         console.log(
-          "Current song ended during crossfade, completing immediately",
+          "Current song ended during crossfade - letting crossfade manager handle it",
         );
-        // Force complete the crossfade since the current song has ended
-        if (crossfadeManagerRef.current) {
-          // The completeCrossfade method will handle the state transitions
-          // But we need to trigger the player state update that normally happens after startCrossfade resolves
-          setTimeout(() => {
-            // This should trigger the updatePlayerStateAfterCrossfade logic
-            // But since we're in the middle of crossfade, we need to be careful
-            console.log("Crossfade interrupted by song end");
-          }, 100);
-        }
+        // Reset the crossfade initiated flag since crossfade is completing
+        crossfadeInitiatedRef.current = false;
         return;
       }
 
@@ -1166,11 +1256,10 @@ export const useMusicPlayer = () => {
     audio.addEventListener("loadedmetadata", handleLoadedMetadata);
     audio.addEventListener("ended", handleEnded);
 
-    // Also attach event listeners to the secondary audio element for crossfading
+    // Attach timeupdate and loadedmetadata to secondary audio element for crossfading
     const nextAudio = nextAudioRef.current;
     nextAudio.addEventListener("timeupdate", handleTimeUpdate);
     nextAudio.addEventListener("loadedmetadata", handleLoadedMetadata);
-    nextAudio.addEventListener("ended", handleEnded);
 
     return () => {
       audio.removeEventListener("timeupdate", handleTimeUpdate);
@@ -1179,7 +1268,6 @@ export const useMusicPlayer = () => {
 
       nextAudio.removeEventListener("timeupdate", handleTimeUpdate);
       nextAudio.removeEventListener("loadedmetadata", handleLoadedMetadata);
-      nextAudio.removeEventListener("ended", handleEnded);
 
       audio.pause();
       nextAudio.pause();

@@ -100,7 +100,10 @@ export const PlaylistComponent = ({ musicPlayerHook }: PlaylistProps) => {
     navigateToSongs,
   } = musicPlayerHook;
 
+  // Debounced and batched playlist image generation to prevent RAM spikes
   useEffect(() => {
+    let isCancelled = false;
+    
     const updatePlaylistImages = async () => {
       const newImages: Record<string, string> = {};
 
@@ -122,16 +125,51 @@ export const PlaylistComponent = ({ musicPlayerHook }: PlaylistProps) => {
       };
 
       const allPlaylists = findAllPlaylists(library.playlists);
-
-      for (const playlist of allPlaylists) {
-        if (playlist.id !== "all-songs") {
-          const image = await generatePlaylistImage(playlist.songs);
-          if (image) newImages[playlist.id] = image;
+      
+      // Process playlist images in batches to prevent RAM spikes
+      const BATCH_SIZE = 5;
+      const BATCH_DELAY = 50; // ms between batches
+      
+      for (let i = 0; i < allPlaylists.length; i += BATCH_SIZE) {
+        if (isCancelled) return;
+        
+        const batch = allPlaylists.slice(i, i + BATCH_SIZE);
+        
+        // Process batch in parallel but limited
+        await Promise.all(
+          batch.map(async (playlist) => {
+            if (playlist.id !== "all-songs") {
+              try {
+                const image = await generatePlaylistImage(playlist.songs);
+                if (image && !isCancelled) {
+                  newImages[playlist.id] = image;
+                }
+              } catch (error) {
+                console.warn(`Failed to generate image for playlist ${playlist.id}:`, error);
+              }
+            }
+          })
+        );
+        
+        // Update state incrementally to show progress and yield to main thread
+        if (!isCancelled) {
+          setPlaylistImages(prev => ({ ...prev, ...newImages }));
+        }
+        
+        // Yield to main thread between batches
+        if (i + BATCH_SIZE < allPlaylists.length) {
+          await new Promise(resolve => setTimeout(resolve, BATCH_DELAY));
         }
       }
-      setPlaylistImages(newImages);
     };
-    updatePlaylistImages();
+    
+    // Delay initial image generation to let the UI render first
+    const timeoutId = setTimeout(updatePlaylistImages, 100);
+    
+    return () => {
+      isCancelled = true;
+      clearTimeout(timeoutId);
+    };
   }, [library.playlists, library.songs]);
 
   const getAllPlaylists = useCallback(
@@ -239,13 +277,13 @@ export const PlaylistComponent = ({ musicPlayerHook }: PlaylistProps) => {
   }, [playlistToDelete, removePlaylist]);
 
   const handleSharePlaylist = useCallback((playlist: Playlist) => {
+    // Share just the playlist info, not the URL
     const shareData = {
       title: t("playlist.playlistShareTitle", { name: playlist.name }),
       text: t("playlist.playlistShareText", {
         name: playlist.name,
         count: playlist.songs.length,
       }),
-      url: window.location.href,
     };
 
     try {
@@ -258,7 +296,7 @@ export const PlaylistComponent = ({ musicPlayerHook }: PlaylistProps) => {
         toast.success(t("playlist.playlistShared"));
       } else {
         navigator.clipboard.writeText(
-          `${shareData.title}\n${shareData.text}\n${shareData.url}`,
+          `${shareData.title}\n${shareData.text}`,
         );
         toast.success(t("playlist.playlistCopied"));
       }
@@ -320,10 +358,7 @@ export const PlaylistComponent = ({ musicPlayerHook }: PlaylistProps) => {
       };
 
       const allFolders = getAllFolders(library.playlists);
-      if (allFolders.length === 0) {
-        toast.error(t("playlist.noFoldersAvailable"));
-        return;
-      }
+      // Always allow moving even if no folders, can move to root
       setAvailableFolders(allFolders);
       setItemToMove(item);
       setShowMoveDialog(true);
@@ -667,20 +702,23 @@ export const PlaylistComponent = ({ musicPlayerHook }: PlaylistProps) => {
               {item.children.map((child) =>
                 renderPlaylistItem(child, depth + 1),
               )}
-              {/* Empty folder styling handled by CSS now */}
+              {/* Empty folder, centered with i18n */}
               {item.children.length === 0 && (
                 <div
                   style={{
                     height: 20,
-                    margin: "4px 0 4px 20px",
-                    color: "#999",
+                    margin: "4px 0",
+                    padding: "0 20px",
+                    color: "var(--foreground-subtle)",
                     fontSize: 12,
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
+                    width: "100%",
+                    boxSizing: "border-box",
                   }}
                 >
-                  Empty folder
+                  {t("playlist.emptyFolder")}
                 </div>
               )}
             </div>
@@ -835,6 +873,23 @@ export const PlaylistComponent = ({ musicPlayerHook }: PlaylistProps) => {
             </DialogDescription>
           </DialogHeader>
           <div className={modalStyles.spaceY4}>
+            {/* Move to Root option */}
+            <Button
+              variant="outline"
+              className={`${modalStyles["w-full"]} ${modalStyles["justify-start"]}`}
+              onClick={() => {
+                if (itemToMove) {
+                  moveToFolder(itemToMove.id, null);
+                  toast.success(
+                    t("playlist.movedToRoot", { item: itemToMove?.name }),
+                  );
+                }
+                setShowMoveDialog(false);
+                setItemToMove(null);
+              }}
+            >
+              📁 {t("playlist.moveToRoot")}
+            </Button>
             {availableFolders.map(({ folder, path }) => (
               <Button
                 key={folder.id}

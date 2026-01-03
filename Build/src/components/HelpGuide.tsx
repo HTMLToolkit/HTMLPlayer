@@ -11,9 +11,12 @@ interface HelpGuideProps {
 
 const { Badge, Close, Navigation } = components;
 
-const TourContext = createContext<{ loaded: boolean }>({ loaded: false });
+const TourContext = createContext<{ loaded: boolean; isOpen: boolean }>({ loaded: false, isOpen: false });
 
 export const useTourLoaded = () => useContext(TourContext);
+
+// Re-export useTour for external use (e.g., keyboard shortcuts)
+export { useTour };
 
 export const HelpGuideProvider = ({ children }: HelpGuideProps) => {
   function useTourStepsConfig() {
@@ -60,14 +63,14 @@ export const HelpGuideProvider = ({ children }: HelpGuideProps) => {
 
   if (!tourStepsConfig.length) {
     return (
-      <TourContext.Provider value={{ loaded: false }}>
+      <TourContext.Provider value={{ loaded: false, isOpen: false }}>
         {children}
       </TourContext.Provider>
     );
   }
 
   return (
-    <TourContext.Provider value={{ loaded: true }}>
+    <TourContext.Provider value={{ loaded: true, isOpen: false }}>
       <TourProvider
         steps={steps}
         styles={{

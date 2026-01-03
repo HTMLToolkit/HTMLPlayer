@@ -202,6 +202,7 @@ const icons: IconDefinitionMap = {
   visualizerControls: cssggIcon("CgMusicSpeaker"),
   sparkles: cssggIcon("CgAbstract"),
   home: cssggIcon("CgHome"),
+  refreshCw: cssggIcon("CgRedo", "Refresh"),
 };
 
 export default icons;

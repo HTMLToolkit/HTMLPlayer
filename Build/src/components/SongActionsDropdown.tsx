@@ -244,10 +244,11 @@ export const SongActionsDropdown = ({
   const handleShowSongInfo = () => setShowInfoDialog(true);
 
   const handleShare = async () => {
+    // Share just the song info, not the current URL
+    const shareText = t("listenToSong", { song: song.title, artist: song.artist });
     const shareData = {
       title: `${song.title} - ${song.artist}`,
-      text: t("listenToSong", { song: song.title, artist: song.artist }),
-      url: window.location.href,
+      text: shareText,
     };
 
     try {
@@ -259,8 +260,8 @@ export const SongActionsDropdown = ({
         await navigator.share(shareData);
         toast.success(t("songShared"));
       } else {
-        const shareText = `🎵 ${shareData.title}\n${shareData.text}\n${shareData.url}`;
-        await navigator.clipboard.writeText(shareText);
+        const copyText = `${shareData.title}\n${shareText}`;
+        await navigator.clipboard.writeText(copyText);
         toast.success(t("songInfoCopied"));
       }
     } catch (error) {

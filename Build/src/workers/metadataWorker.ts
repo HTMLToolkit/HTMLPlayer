@@ -49,7 +49,7 @@ interface GaplessInfo {
  */
 async function compressAlbumArt(
   base64: string,
-  maxSize = 400,
+  maxSize = 200,
 ): Promise<string> {
   // Check if it's an animated format
   const isAnimatedFormat =
@@ -93,12 +93,16 @@ async function compressAlbumArt(
       // Draw and compress
       ctx.drawImage(img, 0, 0, width, height);
 
-      // Compress to JPEG at 85% quality
-      const compressed = canvas.toDataURL("image/jpeg", 0.85);
+      // Compress to JPEG at 70% quality
+      const compressed = canvas.toDataURL("image/jpeg", 0.70);
 
       console.log(
         `Album art compressed: ${(base64.length / 1024).toFixed(1)}KB → ${(compressed.length / 1024).toFixed(1)}KB`,
       );
+      
+      // Clean up the canvas to free memory
+      canvas.width = 0;
+      canvas.height = 0;
 
       resolve(compressed);
     };

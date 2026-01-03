@@ -1,5 +1,13 @@
 {
   "title": "HTMLPlayer",
+  "update": {
+    "available": "Update Available",
+    "description": "A new version of HTMLPlayer is ready to install.",
+    "now": "Update Now",
+    "later": "Later",
+    "installing": "Installing update...",
+    "installed": "Update installed! Reloading..."
+  },
   "common": {
     "cancel": "Cancel",
     "close": "Close",
@@ -130,7 +138,11 @@
   },
   "about": {
     "toggleVisualizerShortcut": "Toggle visualizer shortcut - implementation needed",
-    "description": "A modern music player interface with playlists, song management, and an amazing visualizer."
+    "description": "A modern music player interface with playlists, song management, and an amazing visualizer.",
+    "version": "Version",
+    "privacy": "Privacy Policy",
+    "terms": "Terms of Service",
+    "madeWith": "Made with ❤️ using React, TypeScript, and Web Audio API"
   },
   "metadataWorker": {
     "failedToReadAlbumArt": "Failed to read album art",
@@ -199,7 +211,8 @@
     "failedToReadFile": "Failed to read file",
     "cannotMoveIntoItself": "Cannot move item into itself",
     "cannotMoveFolderIntoDescendant": "Cannot move folder into its descendant",
-    "noFoldersAvailable": "No folders available"
+    "noFoldersAvailable": "No folders available",
+    "emptyFolder": "Empty folder"
   },
   "noResults": {
     "search": "No songs found",
@@ -392,7 +405,8 @@
     "featuredPlaylists": "Spotlight playlists",
     "emptyPlaylists": "Create playlists to pin them here.",
     "playPlaylist": "Play",
-    "playlistCount": "{{count}} songs"
+    "playlistCount_one": "{{count}} song",
+    "playlistCount_other": "{{count}} songs"
   },
   "pip": {
     "couldNotAccessStylesheet": "Could not access stylesheet:",

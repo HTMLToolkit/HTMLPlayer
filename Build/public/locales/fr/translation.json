@@ -1,5 +1,13 @@
 {
   "title": "HTMLPlayer",
+  "update": {
+    "available": "Mise à jour disponible",
+    "description": "Une nouvelle version de HTMLPlayer est prête à être installée.",
+    "now": "Mettre à jour",
+    "later": "Plus tard",
+    "installing": "Installation de la mise à jour...",
+    "installed": "Mise à jour installée ! Rechargement..."
+  },
   "common": {
     "cancel": "Annuler",
     "close": "Fermer",
@@ -129,7 +137,11 @@
   },
   "about": {
     "toggleVisualizerShortcut": "Raccourci pour activer/désactiver le visualiseur - implémentation nécessaire",
-    "description": "Une interface moderne de lecteur de musique avec playlists, gestion des chansons et un visualiseur incroyable."
+    "description": "Une interface moderne de lecteur de musique avec playlists, gestion des chansons et un visualiseur incroyable.",
+    "version": "Version",
+    "privacy": "Politique de confidentialité",
+    "terms": "Conditions d'utilisation",
+    "madeWith": "Fait avec ❤️ en utilisant React, TypeScript et Web Audio API"
   },
   "metadataWorker": {
     "failedToReadAlbumArt": "Échec de lecture de la pochette d'album",
@@ -195,7 +207,8 @@
     "failedToReadFile": "Échec de lecture du fichier",
     "cannotMoveIntoItself": "Impossible de déplacer l'élément vers lui-même",
     "cannotMoveFolderIntoDescendant": "Impossible de déplacer le dossier vers son descendant",
-    "noFoldersAvailable": "Aucun dossier disponible"
+    "noFoldersAvailable": "Aucun dossier disponible",
+    "emptyFolder": "Dossier vide"
   },
   "noResults": {
     "search": "Aucune chanson trouvée",
@@ -364,7 +377,8 @@
     "featuredPlaylists": "Playlists à l'honneur",
     "emptyPlaylists": "Créez des playlists pour les retrouver ici.",
     "playPlaylist": "Lecture",
-    "playlistCount": "{{count}} titres"
+    "playlistCount_one": "{{count}} titre",
+    "playlistCount_other": "{{count}} titres"
   },
   "pip": {
     "couldNotAccessStylesheet": "Impossible d'accéder à la feuille de style :",

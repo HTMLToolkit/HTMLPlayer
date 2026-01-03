@@ -97,6 +97,8 @@ const icons: IconDefinitionMap = {
   circleQuestionMark: lucideIcon("CircleQuestionMark"),
   sparkles: lucideIcon("Sparkles"),
   home: lucideIcon("Home"),
+  gripVertical: lucideIcon("GripVertical"),
+  refreshCw: lucideIcon("RefreshCw", "Refresh"),
 };
 
 export default icons;

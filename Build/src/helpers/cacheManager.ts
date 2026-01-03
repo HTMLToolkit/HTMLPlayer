@@ -2,11 +2,11 @@ import { MutableRefObject, useCallback } from "react";
 import { musicIndexedDbHelper } from "./musicIndexedDbHelper";
 
 const CACHE_CONFIG = {
-  PREV_SONGS: 2, // Number of previous songs to cache
-  NEXT_SONGS: 4, // Increased for better preloading
-  CACHE_EXPIRY: 10 * 60 * 1000, // Increased to 10 minutes
-  MAX_CACHE_SIZE: 50, // Maximum number of songs to cache
-  PRELOAD_THRESHOLD: 10 * 1024 * 1024, // 10MB - only preload smaller files
+  PREV_SONGS: 1, // Number of previous songs to cache
+  NEXT_SONGS: 2, // Number of next songs to cache
+  CACHE_EXPIRY: 5 * 60 * 1000, // 5 minutes
+  MAX_CACHE_SIZE: 15, // Maximum number of songs to cache
+  PRELOAD_THRESHOLD: 7 * 1024 * 1024, // 7MB, only preload smaller files
 };
 
 // Cache management utilities with improved error handling and performance

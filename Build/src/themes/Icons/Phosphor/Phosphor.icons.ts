@@ -116,6 +116,7 @@ export const libraries: IconLibraryMap = {
     PiSliders,
     PiSparkle,
     PiHouse,
+    PiArrowsClockwise,
   },
 };
 
@@ -202,6 +203,7 @@ const icons: IconDefinitionMap = {
   visualizerControls: phosphorIcon("PiSliders"),
   sparkles: phosphorIcon("PiSparkle"),
   home: phosphorIcon("PiHouse"),
+  refreshCw: phosphorIcon("PiArrowsClockwise", "Refresh"),
 };
 
 export default icons;

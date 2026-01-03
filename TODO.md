@@ -6,19 +6,14 @@
 
 - [X?] making a homepage of sorts instead of directly songlist, so that it doesn't feel like you can't remove songs from all songs (even though like the name suggests, it's *All* Songs, and so you can't)
 
-- [ ] A versioning system, linked with `send-beta-build.yml` and the `links.json` but different file, supporting both git commits (for beta/dev stuff) and github latest releases for normal people use
-  - maybe this isn't needed (note to self, read *all* of the docs first): <https://vite-pwa-org.netlify.app/frameworks/react.html#react>
-  - to migrate?: <https://vite-pwa-org.netlify.app/guide/unregister-service-worker.html#custom-selfdestroying-service-worker>
-    - shouldn't clear cache handle this? ¯\_(ツ)_/¯
-
 - [X] Add TS/TSX support and wallpapers for interactivity
-  - Start with built-in wallpapers using TS/TSX components, loaded via a wallpaper loader (similar to themeLoader)
-  - Use sandboxed iframe with postMessage for API access to HTMLPlayer internals (playback state, settings, etc.)
-  - Eventually have an NPM module (@htmlplayer/api) (using above postmessage system and validation/abstraction) for external wallpaper development, allowing user-created interactive wallpapers
+  - [X] Start with built-in wallpapers using TS/TSX components, loaded via a wallpaper loader (similar to themeLoader)
+  - [ ] Use sandboxed iframe with postMessage for API access to HTMLPlayer internals (playback state, settings, etc.)
+  - [ ] Eventually have an NPM module (@htmlplayer/api) (using above postmessage system and validation/abstraction) for external wallpaper development, allowing user-created interactive wallpapers
 
 - [ ] Add showDirectoryPicker API and ponyfil
-    - but `showDirectoryPicker` is not supported in all browsers (e.g., Safari).
-    
+  - but `showDirectoryPicker` is not supported in all browsers (e.g., Safari).
+
 - [ ] platform-specific files
   - For example: split storage into:
     - Storage.web.ts
@@ -68,7 +63,7 @@
 
 - [ ] metadata editor that saves to IndexedDB, or downloads file
   - <https://github.com/CharlesWiltgen/taglib-wasm> <- so underrated :O
-  - ID3Editor (mine) 
+  - ID3Editor (mine)
 
 - [ ] Duplicate file detection (not just by title but checksum as well).
 
@@ -80,7 +75,7 @@
   - **freshness**
   - powers shuffle algorithm (will replace both Smart Shuffle and Shuffle)
   - [ ] Make a choose for me/auto start/something button so that htmlplayer auto chooses what to play first, and use a REALLY good algorithm using PointPerSong so that it's **perfect** every **single** time
-      - Instead of picking the absolute highest score (which can be too predictable), use a Weighted Random Algorithm like Vose's Alias Method for peak
+    - Instead of picking the absolute highest score (which can be too predictable), use a Weighted Random Algorithm like Vose's Alias Method for peak
   - [ ] Play more/less often dropdown in SongActionsDropdown that manually influences PointPerSong
 
 - [ ] a similar to Spotify Wrapped thing using this
@@ -145,6 +140,66 @@
 ## Done
 
 ### v2.0.0
+
+- [X] A versioning system, linked with `send-beta-build.yml` and the `links.json` but different file, supporting both git commits (for beta/dev stuff) and github latest releases for normal people use
+  - maybe this isn't needed (note to self, read *all* of the docs first): <https://vite-pwa-org.netlify.app/frameworks/react.html#react>
+  - to migrate?: <https://vite-pwa-org.netlify.app/guide/unregister-service-worker.html#custom-selfdestroying-service-worker>
+    - shouldn't clear cache handle this? ¯\_(ツ)_/¯
+
+- [X] Make loading of songs, playlists, etc on load more staggered so that page doesn't freeze
+  - Added staggered loading with configurable batch sizes
+
+- [X] Add more to about menu
+
+- [X] Loading a custom iconset tanks performance
+  - Stabilized loadIcon reference with useRef pattern to prevent re-creation
+  - Added cache key tracking to skip redundant fetches when icon set changes
+  - Wrapped Icon component with React.memo to prevent unnecessary re-renders
+  - Removed state updates from inside loadIcon callback
+
+- [X] Gapless and crossfade are just broken, they just are
+  - Fixed race condition: added crossfadeInitiatedRef guard to prevent multiple triggers from timeupdate
+  - Fixed event listener cleanup: track and remove ended handler on cancelCrossfade
+  - Fixed handleEnded during crossfade: properly defer to crossfade manager
+  - Removed duplicate ended listener from nextAudio element
+  - Fixed memory leak: revoke blob URLs after crossfade swap
+  - Widened gapless trigger threshold from 50ms to 150ms with setTimeout for precision
+  - Added AudioContext resume check before starting crossfade
+  - Use crossfadeManager.getActiveElement() to determine current element after swap
+
+- [X] Load all cover art more lazily and delayed for same reason as above
+  - Added loading="lazy" and decoding="async" to album art images
+
+- [X] fix drag and drop of songs not triggering sometimes
+
+- [X] Fix share_target so that it supports both importing songs if music files supported by filePickerHelper (as a "polyfill" for file_handlers) and searching/sharing songs if text
+  - Share target already supports both files and text/search queries
+
+- [X] Fix sharing so that it just doesn't copy URL
+  - Removed URL from share data for both songs and playlists
+
+- [X] Make dragging songs not select song details in song list but also make sure we can select that stuff (prevent conflicts)
+
+- [X] Slide out settings menu on close
+
+- [X] Prevent/recover from Failed to play song so that HTMLPlayer and system don't get unsynced
+  - (`The play() request was interrupted by a new load request. https://goo.gl/LdLk22`)
+
+- [X] fix the UI of the 'Repeat Once' button
+
+- [X] Can't move playlist to root unless I have another playlist in root
+
+- [X] Center `Empty folder...`
+
+- [X] Show SYLT first if both USLT and SYLT are available
+
+- [X] fix visualizer missing left padding
+
+- [X] prevent esc from closing lyrics overlay
+
+- [X] In Home, show `1 Song` rather than `1 Songs`
+
+- [X] On mobile, the Persistent Dropdowns are loaded inside the top bar, when they should be overlays
 
 - [X] Visualizer -> audio-reactive backgrounds (basically picture background theme but actually visualizer and not theme) (can easily pipe through background-image or background via image) (aka visualizer as background?)
 

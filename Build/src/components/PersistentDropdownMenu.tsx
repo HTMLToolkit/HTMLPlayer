@@ -80,7 +80,12 @@ const PersistentDropdownMenu = forwardRef<
       >
         {trigger}
       </div>
-      {isOpen && <div className={styles.content}>{children}</div>}
+      {isOpen && (
+        <>
+          <div className={styles.backdrop} onClick={closeDropdown} />
+          <div className={styles.content}>{children}</div>
+        </>
+      )}
     </div>
   );
 });

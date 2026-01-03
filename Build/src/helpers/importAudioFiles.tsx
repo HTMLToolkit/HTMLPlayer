@@ -1,5 +1,7 @@
 import { toast } from "sonner";
 import { extractAudioMetadata, generateUniqueId } from "./filePickerHelper";
+import { musicIndexedDbHelper } from "./musicIndexedDbHelper";
+import { setAlbumArtInCache } from "../hooks/useAlbumArt";
 
 export async function importAudioFiles(
   audioFiles: Array<{ file: File } | File>,
@@ -22,8 +24,18 @@ export async function importAudioFiles(
       try {
         const file: File = (audioFile as any).file || (audioFile as File);
         const metadata = await extractAudioMetadata(file);
+        const songId = generateUniqueId();
+        
+        // If there's album art, save it separately and set hasAlbumArt flag
+        const hasAlbumArt = !!metadata.albumArt;
+        if (hasAlbumArt && metadata.albumArt) {
+          // Save album art to IndexedDB and in-memory cache
+          await musicIndexedDbHelper.saveAlbumArt(songId, metadata.albumArt);
+          setAlbumArtInCache(songId, metadata.albumArt);
+        }
+        
         const song: Song = {
-          id: generateUniqueId(),
+          id: songId,
           title: metadata.title,
           artist: metadata.artist,
           album:
@@ -31,7 +43,8 @@ export async function importAudioFiles(
             t("songInfo.album", { title: t("common.unknownAlbum") }),
           duration: metadata.duration,
           url: "", // Will be set by addSong
-          albumArt: metadata.albumArt,
+          albumArt: metadata.albumArt, // Keep for immediate display
+          hasAlbumArt, // Flag for lazy loading later
           embeddedLyrics: metadata.embeddedLyrics,
           encoding: metadata.encoding,
           gapless: metadata.gapless,
