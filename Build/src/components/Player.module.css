@@ -413,7 +413,8 @@
 }
 
 .visualizerOverlay[data-state="open"] {
-  animation: visualizerSlideDown var(--animation-duration-normal) ease-out forwards;
+  animation: visualizerSlideDown var(--animation-duration-normal) ease-out
+    forwards;
 }
 
 .visualizerOverlay[data-state="closing"] {

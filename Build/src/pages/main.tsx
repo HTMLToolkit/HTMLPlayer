@@ -84,7 +84,8 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
                 position="bottom-right"
                 toastOptions={{
                   style: {
-                    background: "linear-gradient(135deg, var(--themecolor-transparent), var(--themecolor2-transparent))",
+                    background:
+                      "linear-gradient(135deg, var(--themecolor-transparent), var(--themecolor2-transparent))",
                     color: "var(--primary-foreground)",
                     borderRadius: "var(--radius-md)",
                     boxShadow: "var(--shadow-md)",

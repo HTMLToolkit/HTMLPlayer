@@ -120,7 +120,7 @@ export const Lyrics = ({
   );
   // Track if this is the initial mount to show open animation only once
   const [hasAnimatedIn, setHasAnimatedIn] = useState(false);
-  
+
   // Reset animation state when component remounts (visible changes from false to true)
   const prevVisibleRef = useRef(visible);
   useEffect(() => {
@@ -389,7 +389,11 @@ export const Lyrics = ({
   const shownIndexForSelect = selectedIndex >= 0 ? selectedIndex : 0;
 
   // Determine data-state: closing, open (initial animation), or visible (no animation)
-  const dataState = isClosingProp ? "closing" : hasAnimatedIn ? "visible" : "open";
+  const dataState = isClosingProp
+    ? "closing"
+    : hasAnimatedIn
+      ? "visible"
+      : "open";
 
   return (
     <div
@@ -441,7 +445,10 @@ export const Lyrics = ({
               <Icon name="disc" size={18} />
             </Button>
             {onClose && (
-              <button className={styles.lyricsCloseButton} onClick={handleClose}>
+              <button
+                className={styles.lyricsCloseButton}
+                onClick={handleClose}
+              >
                 ×
               </button>
             )}

@@ -213,12 +213,12 @@ export const createCrossfadeManager = (
       const tempSource = currentAudioSourceRef.current;
       currentAudioSourceRef.current = nextAudioSourceRef.current;
       nextAudioSourceRef.current = tempSource;
-      
+
       // Clean up the old audio element (now in nextAudioRef) to prevent memory leaks
       // Revoke blob URL if present, then clear source
       if (nextAudioRef.current) {
         const oldSrc = nextAudioRef.current.src;
-        if (oldSrc && oldSrc.startsWith('blob:')) {
+        if (oldSrc && oldSrc.startsWith("blob:")) {
           try {
             URL.revokeObjectURL(oldSrc);
             console.log("CrossfadeUtils: Revoked blob URL from previous song");

@@ -25,7 +25,47 @@ export async function importAudioFiles(
         const file: File = (audioFile as any).file || (audioFile as File);
         const metadata = await extractAudioMetadata(file);
         const songId = generateUniqueId();
-        
+
+        // Pre-decode FLO files for better performance and stability
+        let processedFile = file;
+        let processedMimeType = file.type;
+        if (metadata.encoding?.codec === 'flo') {
+          try {
+            const isSafari = navigator.userAgent.includes('Safari') && !navigator.userAgent.includes('Chrome');
+            if (isSafari) {
+              // Decode to WAV for Safari
+              const { decodeFloToWav } = await import("./refloWavHelper");
+              const arrayBuffer = await file.arrayBuffer();
+              const wavBytes = await decodeFloToWav(arrayBuffer);
+              const wavArrayBuffer = new Uint8Array(Array.from(wavBytes)).buffer;
+              processedFile = new File([wavArrayBuffer], file.name.replace('.flo', '.wav'), { type: 'audio/wav' });
+              processedMimeType = 'audio/wav';
+            } else {
+              // Decode to PCM for other browsers
+              const { decodeFloToAudioBuffer } = await import("./floProcessor");
+              const arrayBuffer = await file.arrayBuffer();
+              const audioBuffer = await decodeFloToAudioBuffer(arrayBuffer, new AudioContext());
+              // Store the raw PCM data (interleaved Float32Array)
+              const frameCount = audioBuffer.length;
+              const channels = audioBuffer.numberOfChannels;
+              const pcmData = new Float32Array(frameCount * channels);
+              for (let i = 0; i < frameCount; i++) {
+                for (let channel = 0; channel < channels; channel++) {
+                  pcmData[i * channels + channel] = audioBuffer.getChannelData(channel)[i];
+                }
+              }
+              processedFile = new File([pcmData.buffer], file.name.replace('.flo', '.pcm'), { type: 'audio/pcm' });
+              processedMimeType = 'audio/pcm';
+              // Store additional metadata for AudioBuffer reconstruction
+              metadata.encoding!.sampleRate = audioBuffer.sampleRate;
+              metadata.encoding!.channels = audioBuffer.numberOfChannels;
+            }
+          } catch (error) {
+            console.warn("Failed to pre-decode FLO file, using original:", error);
+            // Fall back to original file
+          }
+        }
+
         // If there's album art, save it separately and set hasAlbumArt flag
         const hasAlbumArt = !!metadata.albumArt;
         if (hasAlbumArt && metadata.albumArt) {
@@ -33,7 +73,7 @@ export async function importAudioFiles(
           await musicIndexedDbHelper.saveAlbumArt(songId, metadata.albumArt);
           setAlbumArtInCache(songId, metadata.albumArt);
         }
-        
+
         const song: Song = {
           id: songId,
           title: metadata.title,
@@ -48,9 +88,10 @@ export async function importAudioFiles(
           embeddedLyrics: metadata.embeddedLyrics,
           encoding: metadata.encoding,
           gapless: metadata.gapless,
+          mimeType: processedMimeType,
         };
 
-        await addSong(song, file); // Pass File object directly
+        await addSong(song, processedFile); // Pass processed File object
 
         // Clear file reference
         if (typeof audioFile === "object" && "file" in audioFile) {

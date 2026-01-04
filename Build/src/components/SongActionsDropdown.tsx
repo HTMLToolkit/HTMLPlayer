@@ -245,7 +245,10 @@ export const SongActionsDropdown = ({
 
   const handleShare = async () => {
     // Share just the song info, not the current URL
-    const shareText = t("listenToSong", { song: song.title, artist: song.artist });
+    const shareText = t("listenToSong", {
+      song: song.title,
+      artist: song.artist,
+    });
     const shareData = {
       title: `${song.title} - ${song.artist}`,
       text: shareText,

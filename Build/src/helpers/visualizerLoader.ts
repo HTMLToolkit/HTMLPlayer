@@ -63,7 +63,7 @@ export function clearVisualizerState(key?: string) {
       if (state.points) state.points.length = 0;
       if (state.particles) state.particles.length = 0;
       if (state.config?.points) {
-        state.config.points.forEach(arr => arr.length = 0);
+        state.config.points.forEach((arr) => (arr.length = 0));
         state.config.points.length = 0;
       }
       visualizerStates.delete(key);
@@ -79,7 +79,7 @@ export function clearVisualizerState(key?: string) {
       if (state.points) state.points.length = 0;
       if (state.particles) state.particles.length = 0;
       if (state.config?.points) {
-        state.config.points.forEach(arr => arr.length = 0);
+        state.config.points.forEach((arr) => (arr.length = 0));
         state.config.points.length = 0;
       }
     }

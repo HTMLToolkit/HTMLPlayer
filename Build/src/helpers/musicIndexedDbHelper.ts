@@ -104,15 +104,15 @@ const saveToIndexedDB = async (
   try {
     // Open database
     const db = await openDatabase();
-    
+
     // For library data, we need to save album art separately
     if (key === "musicLibrary" && data?.songs) {
       // First pass: extract album art and save to separate store
       const albumArtsToSave: { songId: string; albumArt: string }[] = [];
-      
+
       const BATCH_SIZE = 100;
       const processedSongs: any[] = [];
-      
+
       // Process songs in batches to prevent RAM spikes
       for (let i = 0; i < data.songs.length; i += BATCH_SIZE) {
         const batch = data.songs.slice(i, i + BATCH_SIZE);
@@ -121,7 +121,7 @@ const saveToIndexedDB = async (
           if (song.albumArt) {
             albumArtsToSave.push({ songId: song.id, albumArt: song.albumArt });
           }
-          
+
           return {
             ...song,
             hasStoredAudio: song.hasStoredAudio || false,
@@ -134,13 +134,16 @@ const saveToIndexedDB = async (
           };
         });
         processedSongs.push(...processedBatch);
-        
+
         // Yield to main thread between batches for large libraries
-        if (i + BATCH_SIZE < data.songs.length && data.songs.length > BATCH_SIZE) {
-          await new Promise(resolve => setTimeout(resolve, 0));
+        if (
+          i + BATCH_SIZE < data.songs.length &&
+          data.songs.length > BATCH_SIZE
+        ) {
+          await new Promise((resolve) => setTimeout(resolve, 0));
         }
       }
-      
+
       // Save album art separately in batches (don't block library save)
       if (albumArtsToSave.length > 0) {
         // Do this in background after library is saved
@@ -148,38 +151,43 @@ const saveToIndexedDB = async (
           try {
             const artDb = await openDatabase();
             const ART_BATCH_SIZE = 20; // Smaller batches for album art (they're big)
-            
+
             for (let i = 0; i < albumArtsToSave.length; i += ART_BATCH_SIZE) {
               const artBatch = albumArtsToSave.slice(i, i + ART_BATCH_SIZE);
-              const artTransaction = artDb.transaction([STORES.ALBUM_ART], "readwrite");
+              const artTransaction = artDb.transaction(
+                [STORES.ALBUM_ART],
+                "readwrite",
+              );
               const artStore = artTransaction.objectStore(STORES.ALBUM_ART);
-              
+
               for (const art of artBatch) {
                 artStore.put(art);
               }
-              
+
               await new Promise<void>((resolve, reject) => {
                 artTransaction.oncomplete = () => resolve();
                 artTransaction.onerror = () => reject(artTransaction.error);
               });
-              
+
               // Yield between batches
               if (i + ART_BATCH_SIZE < albumArtsToSave.length) {
-                await new Promise(resolve => setTimeout(resolve, 10));
+                await new Promise((resolve) => setTimeout(resolve, 10));
               }
             }
             artDb.close();
-            console.log(`Saved ${albumArtsToSave.length} album arts to IndexedDB`);
+            console.log(
+              `Saved ${albumArtsToSave.length} album arts to IndexedDB`,
+            );
           } catch (error) {
             console.error("Failed to save album art:", error);
           }
         }, 100);
       }
-      
+
       // Save library without album art data
       const transaction = db.transaction([storeName], "readwrite");
       const store = transaction.objectStore(storeName);
-      
+
       const processedData = {
         ...data,
         songs: processedSongs,
@@ -240,14 +248,14 @@ const loadFromIndexedDB = async (
     if (key === "musicLibrary" && result?.songs) {
       // Ensure we have a songs array even if empty
       const rawSongs = result.songs || [];
-      
+
       // Process songs in batches to prevent RAM spikes on large libraries
       const BATCH_SIZE = 100;
       const songsWithoutAudio: any[] = [];
-      
+
       for (let i = 0; i < rawSongs.length; i += BATCH_SIZE) {
         const batch = rawSongs.slice(i, i + BATCH_SIZE);
-        
+
         // Transform this batch - don't include albumArt, it will be loaded lazily
         const transformedBatch = batch.map((song: any) => {
           // Always set up the indexeddb URL if the song has stored audio
@@ -274,12 +282,12 @@ const loadFromIndexedDB = async (
             gapless: song.gapless, // Restore gapless flag
           };
         });
-        
+
         songsWithoutAudio.push(...transformedBatch);
-        
+
         // Yield to main thread between batches for large libraries
         if (i + BATCH_SIZE < rawSongs.length && rawSongs.length > BATCH_SIZE) {
-          await new Promise(resolve => setTimeout(resolve, 0));
+          await new Promise((resolve) => setTimeout(resolve, 0));
         }
       }
 
@@ -501,27 +509,29 @@ export const musicIndexedDbHelper = {
       throw error;
     }
   },
-  
+
   // Lazy load album art for a single song
   async loadAlbumArt(songId: string): Promise<string | null> {
     // Check in-memory cache first
     if (albumArtCache.has(songId)) {
       return albumArtCache.get(songId)!;
     }
-    
+
     try {
       const db = await openDatabase();
       const transaction = db.transaction([STORES.ALBUM_ART], "readonly");
       const store = transaction.objectStore(STORES.ALBUM_ART);
-      
-      const result = await new Promise<{ songId: string; albumArt: string } | undefined>((resolve, reject) => {
+
+      const result = await new Promise<
+        { songId: string; albumArt: string } | undefined
+      >((resolve, reject) => {
         const request = store.get(songId);
         request.onsuccess = () => resolve(request.result);
         request.onerror = () => reject(request.error);
       });
-      
+
       db.close();
-      
+
       if (result?.albumArt) {
         // Cache in memory (with LRU eviction)
         if (albumArtCache.size >= MAX_ALBUM_ART_CACHE) {
@@ -532,19 +542,19 @@ export const musicIndexedDbHelper = {
         albumArtCache.set(songId, result.albumArt);
         return result.albumArt;
       }
-      
+
       return null;
     } catch (error) {
       console.error(`Failed to load album art for ${songId}:`, error);
       return null;
     }
   },
-  
+
   // Load album art for multiple songs at once (more efficient than one-by-one)
   async loadAlbumArtBatch(songIds: string[]): Promise<Map<string, string>> {
     const result = new Map<string, string>();
     const toLoad: string[] = [];
-    
+
     // Check cache first
     for (const songId of songIds) {
       if (albumArtCache.has(songId)) {
@@ -553,28 +563,30 @@ export const musicIndexedDbHelper = {
         toLoad.push(songId);
       }
     }
-    
+
     if (toLoad.length === 0) {
       return result;
     }
-    
+
     try {
       const db = await openDatabase();
       const transaction = db.transaction([STORES.ALBUM_ART], "readonly");
       const store = transaction.objectStore(STORES.ALBUM_ART);
-      
+
       // Load all needed album arts in parallel
-      const loadPromises = toLoad.map(songId => {
-        return new Promise<{ songId: string; albumArt: string } | null>((resolve, reject) => {
-          const request = store.get(songId);
-          request.onsuccess = () => resolve(request.result || null);
-          request.onerror = () => reject(request.error);
-        });
+      const loadPromises = toLoad.map((songId) => {
+        return new Promise<{ songId: string; albumArt: string } | null>(
+          (resolve, reject) => {
+            const request = store.get(songId);
+            request.onsuccess = () => resolve(request.result || null);
+            request.onerror = () => reject(request.error);
+          },
+        );
       });
-      
+
       const loadedArts = await Promise.all(loadPromises);
       db.close();
-      
+
       // Process results and cache
       for (const art of loadedArts) {
         if (art?.albumArt) {
@@ -587,29 +599,29 @@ export const musicIndexedDbHelper = {
           result.set(art.songId, art.albumArt);
         }
       }
-      
+
       return result;
     } catch (error) {
       console.error("Failed to load album art batch:", error);
       return result;
     }
   },
-  
+
   // Save album art for a single song (used when adding new songs)
   async saveAlbumArt(songId: string, albumArt: string): Promise<void> {
     try {
       const db = await openDatabase();
       const transaction = db.transaction([STORES.ALBUM_ART], "readwrite");
       const store = transaction.objectStore(STORES.ALBUM_ART);
-      
+
       await new Promise<void>((resolve, reject) => {
         const request = store.put({ songId, albumArt });
         request.onsuccess = () => resolve();
         request.onerror = () => reject(request.error);
       });
-      
+
       db.close();
-      
+
       // Update cache
       if (albumArtCache.size >= MAX_ALBUM_ART_CACHE) {
         const firstKey = albumArtCache.keys().next().value;
@@ -620,7 +632,7 @@ export const musicIndexedDbHelper = {
       console.error(`Failed to save album art for ${songId}:`, error);
     }
   },
-  
+
   // Clear album art cache to free memory
   clearAlbumArtCache(): void {
     albumArtCache.clear();

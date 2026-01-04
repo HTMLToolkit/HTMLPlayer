@@ -16,6 +16,7 @@ import { createPlaylistManager } from "../helpers/playlistManager";
 import { debounce } from "lodash";
 import { useTranslation } from "react-i18next";
 import { getSafariAudioManager } from "../contexts/audioStore";
+import { isSafari } from "../helpers/safariHelper";
 
 export const useMusicPlayer = () => {
   const { t } = useTranslation();
@@ -26,6 +27,14 @@ export const useMusicPlayer = () => {
   // Safari audio manager for background playback support
   const safariAudioRef = useRef(getSafariAudioManager());
 
+  // --- AudioBufferSourceNode for FLO (non-Safari) ---
+  const floBufferSourceRef = useRef<AudioBufferSourceNode | null>(null);
+  const floAudioBufferRef = useRef<AudioBuffer | null>(null);
+  const floStartTimeRef = useRef<number>(0);
+  const floPausedAtRef = useRef<number>(0);
+  const floIsPlayingRef = useRef<boolean>(false);
+  const floGainNodeRef = useRef<GainNode | null>(null);
+
   // Simplified crossfade-related refs
   const nextAudioRef = useRef<HTMLAudioElement | null>(null);
   const crossfadeManagerRef = useRef<CrossfadeManager | null>(null);
@@ -35,7 +44,7 @@ export const useMusicPlayer = () => {
   const crossfadeTimeoutRef = useRef<number | null>(null);
   const gaplessAdvanceTriggeredRef = useRef<boolean>(false);
   const gaplessStartAppliedRef = useRef<boolean>(false);
-  
+
   // Guard to prevent multiple crossfade triggers from timeupdate events
   const crossfadeInitiatedRef = useRef<boolean>(false);
 
@@ -203,27 +212,34 @@ export const useMusicPlayer = () => {
   } = playlistManager;
 
   const setupAudioContext = useCallback(() => {
-    // Skip Web Audio API setup on Safari - it causes suspension in background
-    // Safari will use native audio playback only
+    // Skip Web Audio API setup on Safari for non-FLO playback (crossfade/gapless)
+    // But allow for FLO playback
     const isSafari = safariAudioRef.current.isActive();
-    if (isSafari) {
+    const currentSong = playerStateRef.current.currentSong;
+    const isFlo =
+      currentSong?.url?.toLowerCase().endsWith(".flo") ||
+      currentSong?.mimeType === "audio/x-flo";
+    if (isSafari && !isFlo) {
       console.log(
-        "[Safari] Skipping Web Audio API setup for background playback compatibility",
+        "[Safari] Skipping Web Audio API setup for non-FLO playback compatibility",
       );
       return;
     }
 
     if (!audioContextRef.current && audioRef.current) {
-      const context = new (window.AudioContext ||
-        (window as any).webkitAudioContext)();
+      const context = new (
+        window.AudioContext || (window as any).webkitAudioContext
+      )();
 
       audioContextRef.current = context;
 
-      // Setup crossfade manager with the new audio context
-      const manager = setupCrossfadeManager(context);
-      if (manager) {
-        const analyserNode = manager.getAnalyzerNode();
-        setPlayerState((prev) => ({ ...prev, analyserNode }));
+      // Setup crossfade manager with the new audio context (only if not Safari or if FLO)
+      if (!isSafari || isFlo) {
+        const manager = setupCrossfadeManager(context);
+        if (manager) {
+          const analyserNode = manager.getAnalyzerNode();
+          setPlayerState((prev) => ({ ...prev, analyserNode }));
+        }
       }
 
       console.log("[Audio Context] Created and initialized");
@@ -262,6 +278,33 @@ export const useMusicPlayer = () => {
     };
   }, []);
 
+  // Update currentTime for FLO playback
+  useEffect(() => {
+    let animationFrame: number;
+    const updateTime = () => {
+      if (floIsPlayingRef.current && audioContextRef.current) {
+        const currentTime = Math.max(
+          0,
+          audioContextRef.current.currentTime - floStartTimeRef.current,
+        );
+        setPlayerState((prev) => {
+          // Only update if time changed significantly to avoid excessive re-renders
+          if (Math.abs(prev.currentTime - currentTime) > 0.1) {
+            return { ...prev, currentTime };
+          }
+          return prev;
+        });
+      }
+      animationFrame = requestAnimationFrame(updateTime);
+    };
+    updateTime(); // Start immediately
+    return () => {
+      if (animationFrame) {
+        cancelAnimationFrame(animationFrame);
+      }
+    };
+  }, []); // Empty deps, runs once
+
   // Clear timeouts on unmount
   useEffect(() => {
     return () => {
@@ -279,49 +322,51 @@ export const useMusicPlayer = () => {
   useEffect(() => {
     const BATCH_SIZE = 100; // Process songs in batches of 100
     const BATCH_DELAY = 10; // ms delay between batches to let GC run
-    
+
     // Helper to process songs in batches to prevent RAM spikes
     const processSongsInBatches = async (songs: Song[]): Promise<Song[]> => {
       if (songs.length <= BATCH_SIZE) {
         // Small library, process all at once
         return songs.filter((song: Song) => song.url && song.url !== "");
       }
-      
+
       const validSongs: Song[] = [];
-      
+
       for (let i = 0; i < songs.length; i += BATCH_SIZE) {
         const batch = songs.slice(i, i + BATCH_SIZE);
-        const validBatch = batch.filter((song: Song) => song.url && song.url !== "");
+        const validBatch = batch.filter(
+          (song: Song) => song.url && song.url !== "",
+        );
         validSongs.push(...validBatch);
-        
+
         // Yield to main thread between batches
         if (i + BATCH_SIZE < songs.length) {
-          await new Promise(resolve => setTimeout(resolve, BATCH_DELAY));
+          await new Promise((resolve) => setTimeout(resolve, BATCH_DELAY));
         }
       }
-      
+
       return validSongs;
     };
-    
+
     // Helper to prepare songs in batches
     const prepareSongsInBatches = async (songs: Song[]): Promise<Song[]> => {
       if (songs.length <= BATCH_SIZE) {
         return prepareSongsForPlaylist(songs);
       }
-      
+
       const preparedSongs: Song[] = [];
-      
+
       for (let i = 0; i < songs.length; i += BATCH_SIZE) {
         const batch = songs.slice(i, i + BATCH_SIZE);
         const preparedBatch = prepareSongsForPlaylist(batch);
         preparedSongs.push(...preparedBatch);
-        
+
         // Yield to main thread between batches
         if (i + BATCH_SIZE < songs.length) {
-          await new Promise(resolve => setTimeout(resolve, BATCH_DELAY));
+          await new Promise((resolve) => setTimeout(resolve, BATCH_DELAY));
         }
       }
-      
+
       return preparedSongs;
     };
 
@@ -332,13 +377,15 @@ export const useMusicPlayer = () => {
 
         if (persistedLibrary) {
           // Process songs in batches to prevent RAM spike
-          const validSongs = await processSongsInBatches(persistedLibrary.songs);
-          
+          const validSongs = await processSongsInBatches(
+            persistedLibrary.songs,
+          );
+
           const validLibrary = {
             ...persistedLibrary,
             songs: validSongs,
           };
-          
+
           // Prepare songs for playlist in batches
           const preparedSongs = await prepareSongsInBatches(validLibrary.songs);
 
@@ -568,56 +615,24 @@ export const useMusicPlayer = () => {
 
       // Seek handlers for system controls
       navigator.mediaSession.setActionHandler("seekto", (details) => {
-        if (details.seekTime !== undefined && audioRef.current) {
-          const time = Math.max(
-            0,
-            Math.min(details.seekTime, audioRef.current.duration || 0),
-          );
-          audioRef.current.currentTime = time;
-
-          // Also update Safari audio element if active
-          const isSafari = safariAudioRef.current.isActive();
-          if (isSafari) {
-            safariAudioRef.current.seek(time);
-          }
-
-          console.log("[Media Session] Seek to:", time);
+        if (details.seekTime !== undefined) {
+          seekTo(details.seekTime);
         }
       });
 
       navigator.mediaSession.setActionHandler("seekforward", (details) => {
-        if (audioRef.current) {
-          const skipTime = details.seekOffset || 10; // Default 10 seconds
-          const newTime = Math.min(
-            audioRef.current.currentTime + skipTime,
-            audioRef.current.duration || 0,
-          );
-          audioRef.current.currentTime = newTime;
-
-          // Also update Safari audio element if active
-          const isSafari = safariAudioRef.current.isActive();
-          if (isSafari) {
-            safariAudioRef.current.seek(newTime);
-          }
-
-          console.log("[Media Session] Seek forward:", skipTime, "seconds");
-        }
+        const skipTime = details.seekOffset || 10; // Default 10 seconds
+        const currentTime = playerState.currentTime;
+        const duration = playerState.duration || 0;
+        const newTime = Math.min(currentTime + skipTime, duration);
+        seekTo(newTime);
       });
 
       navigator.mediaSession.setActionHandler("seekbackward", (details) => {
-        if (audioRef.current) {
-          const skipTime = details.seekOffset || 10; // Default 10 seconds
-          const newTime = Math.max(audioRef.current.currentTime - skipTime, 0);
-          audioRef.current.currentTime = newTime;
-
-          // Also update Safari audio element if active
-          const isSafari = safariAudioRef.current.isActive();
-          if (isSafari) {
-            safariAudioRef.current.seek(newTime);
-          }
-
-          console.log("[Media Session] Seek backward:", skipTime, "seconds");
-        }
+        const skipTime = details.seekOffset || 10; // Default 10 seconds
+        const currentTime = playerState.currentTime;
+        const newTime = Math.max(currentTime - skipTime, 0);
+        seekTo(newTime);
       });
 
       // Only set enterpictureinpicture handler if supported
@@ -729,12 +744,17 @@ export const useMusicPlayer = () => {
         nextSongCacheValidRef.current = true;
 
         if (settings.crossfade > 0 && nextAudioRef.current) {
-          await preloadNextSong(
-            () => nextSong,
-            cacheSong,
-            getCachedSong,
-            settingsRef,
-          );
+          const isFlo =
+            nextSong.url?.toLowerCase().endsWith(".flo") ||
+            nextSong.mimeType === "audio/x-flo";
+          if (!isFlo) {
+            await preloadNextSong(
+              () => nextSong,
+              cacheSong,
+              getCachedSong,
+              settingsRef,
+            );
+          }
         }
       }
     } catch (error) {
@@ -822,94 +842,200 @@ export const useMusicPlayer = () => {
         );
       }
 
-      if (audioRef.current) {
-        // Cancel any ongoing crossfade
-        if (crossfadeManagerRef.current?.isCrossfading()) {
-          crossfadeManagerRef.current.cancelCrossfade();
-        }
-
-        gaplessAdvanceTriggeredRef.current = false;
-        gaplessStartAppliedRef.current = false;
-        crossfadeInitiatedRef.current = false;
-
-        // Use the cached URL
-        audioRef.current.src = cachedSong.url;
-        // Apply combined tempo and pitch rate
-        const combinedRate = getValidPlaybackRate(
-          settingsRef.current.tempo,
-          settingsRef.current.pitch,
-        );
-        audioRef.current.playbackRate = combinedRate;
-
-        // Set up crossfade manager if needed
-        // Note: Using Web Audio API on all browsers including Safari
-        // Safari workaround for background playback is handled via replay on visibility change
-        if (!audioContextRef.current) setupAudioContext();
-        if (audioContextRef.current && !crossfadeManagerRef.current) {
-          setupCrossfadeManager(audioContextRef.current);
-        }
-        if (crossfadeManagerRef.current) {
-          if (
-            !currentAudioSourceRef.current ||
-            currentAudioSourceRef.current.element !== audioRef.current
-          ) {
-            currentAudioSourceRef.current =
-              crossfadeManagerRef.current.createAudioSource(audioRef.current);
-          }
-          crossfadeManagerRef.current.setCurrentSource(
-            currentAudioSourceRef.current,
-          );
-        }
-
+      // --- FLO playback hybrid path ---
+      const isFloWav = song.mimeType === "audio/wav";
+      const isFloPcm = song.mimeType === "audio/pcm";
+      if (isFloWav) {
+        // Play pre-decoded WAV (Safari)
         try {
-          await audioRef.current.play();
-        } catch (error: any) {
-          // Handle "play() interrupted by load request" error gracefully
-          // This happens when rapidly skipping songs and is not a real error
-          const isInterruptedError =
-            error.name === "AbortError" ||
-            error.message?.includes("interrupted") ||
-            error.message?.includes("AbortError");
-
-          if (isInterruptedError) {
-            console.debug(
-              "Play request interrupted by new load, this is expected when skipping songs quickly",
-            );
-            // Don't show error toast, just update state
-            setPlayerState((prev) => ({ ...prev, isPlaying: false }));
-            return;
+          let wavBuffer: ArrayBuffer | undefined;
+          if (song.hasStoredAudio && song.url.startsWith("indexeddb://")) {
+            const audioData = await musicIndexedDbHelper.loadSongAudio(song.id);
+            wavBuffer = audioData?.fileData;
+          } else if (song.url && song.url.startsWith("blob:")) {
+            const res = await fetch(song.url);
+            wavBuffer = await res.arrayBuffer();
           }
-
-          console.error("Failed to play song:", error);
-          // TODO: i18n-ize
-          toast.error(`Failed to play "${song.title}"`, {
+          if (!wavBuffer)
+            throw new Error("Could not load WAV data for playback");
+          const wavBlob = new Blob([wavBuffer], { type: "audio/wav" });
+          const wavUrl = URL.createObjectURL(wavBlob);
+          if (audioRef.current) {
+            audioRef.current.src = wavUrl;
+            audioRef.current.playbackRate = 1;
+            await audioRef.current.play();
+          } else {
+            throw new Error("Audio element not available");
+          }
+        } catch (error: any) {
+          console.error("Failed to play pre-decoded FLO (WAV):", error);
+          toast.error(`Failed to play "${song.title}" (FLO)`, {
             description: error.message || "Unknown error occurred",
           });
           setPlayerState((prev) => ({ ...prev, isPlaying: false }));
           return;
         }
-
-        // No need to sync - on Safari, audioRef.current IS the Safari element
-
-        // Update the cache and invalidate next song cache
-        if (playlist) {
-          updateSongCache(
-            song,
-            playlist,
-            playerStateRef,
-            settingsRef,
-            playHistoryRef,
-            getSmartShuffledSong,
-          );
+      } else if (isFloPcm) {
+        // Play pre-decoded PCM (non-Safari)
+        try {
+          let pcmBuffer: ArrayBuffer | undefined;
+          if (song.hasStoredAudio && song.url.startsWith("indexeddb://")) {
+            const audioData = await musicIndexedDbHelper.loadSongAudio(song.id);
+            pcmBuffer = audioData?.fileData;
+          } else if (song.url && song.url.startsWith("blob:")) {
+            const res = await fetch(song.url);
+            pcmBuffer = await res.arrayBuffer();
+          }
+          if (!pcmBuffer)
+            throw new Error("Could not load PCM data for playback");
+          if (!audioContextRef.current) setupAudioContext();
+          const ctx = audioContextRef.current;
+          if (!ctx) throw new Error("AudioContext not available");
+          // Stop any previous buffer source
+          if (floBufferSourceRef.current) {
+            try {
+              floBufferSourceRef.current.stop();
+            } catch {}
+            floBufferSourceRef.current.disconnect();
+            floBufferSourceRef.current = null;
+          }
+          // Reconstruct AudioBuffer from interleaved PCM data
+          const sampleRate = song.encoding?.sampleRate || 44100;
+          const channels = song.encoding?.channels || 2;
+          const pcmData = new Float32Array(pcmBuffer);
+          const frameCount = pcmData.length / channels;
+          const audioBuffer = ctx.createBuffer(channels, frameCount, sampleRate);
+          for (let channel = 0; channel < channels; channel++) {
+            const channelData = audioBuffer.getChannelData(channel);
+            for (let i = 0; i < frameCount; i++) {
+              channelData[i] = pcmData[i * channels + channel];
+            }
+          }
+          floAudioBufferRef.current = audioBuffer;
+          // Create source
+          const source = ctx.createBufferSource();
+          source.buffer = audioBuffer;
+          // Connect through gain node for volume control
+          if (!floGainNodeRef.current) {
+            floGainNodeRef.current = ctx.createGain();
+            floGainNodeRef.current.connect(ctx.destination);
+          }
+          source.connect(floGainNodeRef.current);
+          floGainNodeRef.current.gain.value = settingsRef.current.volume;
+          source.onended = () => {
+            floIsPlayingRef.current = false;
+            setPlayerState((prev) => ({
+              ...prev,
+              isPlaying: false,
+              currentTime: audioBuffer.duration,
+            }));
+          };
+          floBufferSourceRef.current = source;
+          floStartTimeRef.current = ctx.currentTime;
+          floPausedAtRef.current = 0;
+          floIsPlayingRef.current = true;
+          setPlayerState((prev) => ({
+            ...prev,
+            isPlaying: true,
+            currentTime: 0,
+            duration: audioBuffer.duration,
+          }));
+          source.start();
+        } catch (error: any) {
+          console.error("Failed to play pre-decoded FLO (PCM):", error);
+          toast.error(`Failed to play "${song.title}" (FLO)`, {
+            description: error.message || "Unknown error occurred",
+          });
+          setPlayerState((prev) => ({ ...prev, isPlaying: false }));
+          return;
         }
+      } else {
+        // Non-FLO: normal path
+        // Only use <audio> for non-FLO
+        if (!isFloPcm && !isFloWav && audioRef.current) {
+          // Cancel any ongoing crossfade
+          if (crossfadeManagerRef.current?.isCrossfading()) {
+            crossfadeManagerRef.current.cancelCrossfade();
+          }
 
-        updateDiscordPresence(song, true);
-        invalidateNextSongCache();
+          gaplessAdvanceTriggeredRef.current = false;
+          gaplessStartAppliedRef.current = false;
+          crossfadeInitiatedRef.current = false;
 
-        // Smart preload the next song after a short delay
-        preloadTimeoutRef.current = window.setTimeout(() => {
-          smartPreloadNextSong();
-        }, 2000);
+          // Use the cached URL
+          audioRef.current.src = cachedSong.url;
+          // Apply combined tempo and pitch rate
+          const combinedRate = getValidPlaybackRate(
+            settingsRef.current.tempo,
+            settingsRef.current.pitch,
+          );
+          audioRef.current.playbackRate = combinedRate;
+
+          // Set up crossfade manager if needed
+          if (!audioContextRef.current) setupAudioContext();
+          if (audioContextRef.current && !crossfadeManagerRef.current) {
+            setupCrossfadeManager(audioContextRef.current);
+          }
+          if (crossfadeManagerRef.current) {
+            if (
+              !currentAudioSourceRef.current ||
+              currentAudioSourceRef.current.element !== audioRef.current
+            ) {
+              currentAudioSourceRef.current =
+                crossfadeManagerRef.current.createAudioSource(audioRef.current);
+            }
+            crossfadeManagerRef.current.setCurrentSource(
+              currentAudioSourceRef.current,
+            );
+          }
+
+          try {
+            await audioRef.current.play();
+          } catch (error: any) {
+            // Handle "play() interrupted by load request" error gracefully
+            const isInterruptedError =
+              error.name === "AbortError" ||
+              error.message?.includes("interrupted") ||
+              error.message?.includes("AbortError");
+
+            if (isInterruptedError) {
+              console.debug(
+                "Play request interrupted by new load, this is expected when skipping songs quickly",
+              );
+              setPlayerState((prev) => ({ ...prev, isPlaying: false }));
+              return;
+            }
+
+            console.error("Failed to play song:", error);
+            toast.error(`Failed to play "${song.title}"`, {
+              description: error.message || "Unknown error occurred",
+            });
+            setPlayerState((prev) => ({ ...prev, isPlaying: false }));
+            return;
+          }
+
+          // No need to sync - on Safari, audioRef.current IS the Safari element
+
+          // Update the cache and invalidate next song cache
+          if (playlist) {
+            updateSongCache(
+              song,
+              playlist,
+              playerStateRef,
+              settingsRef,
+              playHistoryRef,
+              getSmartShuffledSong,
+            );
+          }
+
+          updateDiscordPresence(song, true);
+          invalidateNextSongCache();
+
+          // Smart preload the next song after a short delay
+          preloadTimeoutRef.current = window.setTimeout(() => {
+            smartPreloadNextSong();
+          }, 2000);
+        }
       }
     },
     [
@@ -1040,7 +1166,10 @@ export const useMusicPlayer = () => {
           }
 
           // Start crossfade
-          if (timeRemaining <= crossfadeDuration && !crossfadeInitiatedRef.current) {
+          if (
+            timeRemaining <= crossfadeDuration &&
+            !crossfadeInitiatedRef.current
+          ) {
             // Set guard immediately to prevent re-triggering
             crossfadeInitiatedRef.current = true;
             console.log(
@@ -1093,7 +1222,7 @@ export const useMusicPlayer = () => {
             !gaplessAdvanceTriggeredRef.current
           ) {
             gaplessAdvanceTriggeredRef.current = true;
-            
+
             // Schedule the advance with precise timing to minimize gap
             const delayMs = Math.max(0, (timeRemaining - 0.02) * 1000);
 
@@ -1158,17 +1287,18 @@ export const useMusicPlayer = () => {
 
     const handleEnded = (event: Event) => {
       const target = event.target as HTMLAudioElement;
-      
+
       // Determine which element should be considered "current"
       // Use crossfade manager's active element if available, otherwise audioRef
-      const activeElement = crossfadeManagerRef.current?.getActiveElement() || audioRef.current;
-      
+      const activeElement =
+        crossfadeManagerRef.current?.getActiveElement() || audioRef.current;
+
       // Only respond to ended events from the active element
       if (target !== activeElement) {
         return;
       }
 
-      // If crossfade is in progress and current (outgoing) song ends, 
+      // If crossfade is in progress and current (outgoing) song ends,
       // the crossfade manager handles this via its own 'ended' listener
       // So we should not trigger playNext here
       if (crossfadeManagerRef.current?.isCrossfading()) {
@@ -1275,6 +1405,50 @@ export const useMusicPlayer = () => {
   }, []);
 
   const togglePlayPause = useCallback(async () => {
+    const isFlo =
+      playerState.currentSong?.url?.toLowerCase().endsWith(".flo") ||
+      playerState.currentSong?.mimeType === "audio/x-flo" ||
+      playerState.currentSong?.mimeType === "audio/wav" ||
+      playerState.currentSong?.mimeType === "audio/pcm" ||
+      playerState.currentSong?.encoding?.codec === "flo";
+    if (isFlo && !isSafari()) {
+      // AudioBufferSourceNode path
+      const ctx = audioContextRef.current;
+      if (!ctx || !floAudioBufferRef.current) return;
+      if (floIsPlayingRef.current) {
+        // Pause: stop source, record pausedAt
+        try {
+          floBufferSourceRef.current?.stop();
+        } catch {}
+        floPausedAtRef.current = ctx.currentTime - floStartTimeRef.current;
+        floIsPlayingRef.current = false;
+        setPlayerState((prev) => ({ ...prev, isPlaying: false }));
+      } else {
+        // Resume: create new source, start at pausedAt
+        const source = ctx.createBufferSource();
+        source.buffer = floAudioBufferRef.current;
+        if (floGainNodeRef.current) {
+          source.connect(floGainNodeRef.current);
+        } else {
+          source.connect(ctx.destination);
+        }
+        source.onended = () => {
+          floIsPlayingRef.current = false;
+          setPlayerState((prev) => ({
+            ...prev,
+            isPlaying: false,
+            currentTime: floAudioBufferRef.current?.duration || 0,
+          }));
+        };
+        floBufferSourceRef.current = source;
+        floStartTimeRef.current = ctx.currentTime - floPausedAtRef.current;
+        floIsPlayingRef.current = true;
+        setPlayerState((prev) => ({ ...prev, isPlaying: true }));
+        source.start(0, floPausedAtRef.current);
+      }
+      return;
+    }
+    // Default path
     if (!audioRef.current || !playerState.currentSong) return;
     if (audioContextRef.current?.state === "suspended") {
       audioContextRef.current.resume();
@@ -1283,28 +1457,21 @@ export const useMusicPlayer = () => {
       audioRef.current.pause();
       setPlayerState((prev) => ({ ...prev, isPlaying: false }));
       updateDiscordPresence(playerState.currentSong, false);
-
-      // No need to sync - on Safari, audioRef.current IS the Safari element
     } else {
-      // Check if audio source is loaded
       if (
         !audioRef.current.src ||
         audioRef.current.src.includes("about:blank")
       ) {
-        // Audio source not loaded, need to load the song first
         await playSong(
           playerState.currentSong,
           playerState.currentPlaylist || undefined,
         );
-        return; // playSong will set isPlaying to true
+        return;
       }
-
       try {
         await audioRef.current.play();
         setPlayerState((prev) => ({ ...prev, isPlaying: true }));
         updateDiscordPresence(playerState.currentSong, true);
-
-        // No need to sync - on Safari, audioRef.current IS the Safari element
       } catch (error) {
         setPlayerState((prev) => ({ ...prev, isPlaying: false }));
       }
@@ -1433,6 +1600,11 @@ export const useMusicPlayer = () => {
     const clamped = Math.max(0, Math.min(1, volume));
     setSettings((prev) => ({ ...prev, volume: clamped }));
 
+    // Set volume for FLO playback
+    if (floGainNodeRef.current) {
+      floGainNodeRef.current.gain.value = clamped;
+    }
+
     // Safari uses native playback without Web Audio API
     const isSafari = safariAudioRef.current.isActive();
     if (isSafari) {
@@ -1469,6 +1641,44 @@ export const useMusicPlayer = () => {
   }, []);
 
   const seekTo = useCallback((time: number) => {
+    // Handle FLO seek
+    if (
+      floIsPlayingRef.current &&
+      floAudioBufferRef.current &&
+      audioContextRef.current
+    ) {
+      const ctx = audioContextRef.current;
+      // Stop current source
+      if (floBufferSourceRef.current) {
+        try {
+          floBufferSourceRef.current.stop();
+        } catch {}
+        floBufferSourceRef.current.disconnect();
+      }
+      // Create new source
+      const source = ctx.createBufferSource();
+      source.buffer = floAudioBufferRef.current;
+      if (floGainNodeRef.current) {
+        source.connect(floGainNodeRef.current);
+      } else {
+        source.connect(ctx.destination);
+      }
+      source.onended = () => {
+        floIsPlayingRef.current = false;
+        setPlayerState((prev) => ({
+          ...prev,
+          isPlaying: false,
+          currentTime: floAudioBufferRef.current!.duration,
+        }));
+      };
+      floBufferSourceRef.current = source;
+      floStartTimeRef.current = ctx.currentTime - time;
+      floPausedAtRef.current = 0;
+      source.start(0, time);
+      setPlayerState((prev) => ({ ...prev, currentTime: time }));
+      return;
+    }
+
     if (audioRef.current) {
       const beforeSeek = audioRef.current.currentTime;
       console.log(
@@ -1535,16 +1745,17 @@ export const useMusicPlayer = () => {
           const arrayBuffer = await file.arrayBuffer();
 
           // Save to IndexedDB
+          const mimeType = song.mimeType || file.type;
           await musicIndexedDbHelper.saveSongAudio(song.id, {
             fileData: arrayBuffer,
-            mimeType: file.type,
+            mimeType,
           });
 
           // Update song to mark it as stored
           setLibrary((prev) => {
             const newSongs = prev.songs.map((s) =>
               s.id === song.id
-                ? { ...s, hasStoredAudio: true, url: `indexeddb://${song.id}` }
+                ? { ...s, hasStoredAudio: true, url: `indexeddb://${song.id}`, mimeType }
                 : s,
             );
             return {

@@ -69,11 +69,11 @@ export const generatePlaylistImage = async (songs: Song[]): Promise<string> => {
     ctx.fillRect(0, 0, 80, 80);
 
     const result = canvas.toDataURL("image/jpeg", 0.7); // Reduced from 0.8 to 0.7 for memory savings
-    
+
     // Clean up canvas to free memory
     canvas.width = 0;
     canvas.height = 0;
-    
+
     return result;
   } catch (error) {
     console.error("Failed to generate playlist image:", error);

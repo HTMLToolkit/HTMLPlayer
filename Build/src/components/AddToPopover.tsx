@@ -59,8 +59,8 @@ export const AddToPopover = ({
 
   const filteredPlaylists = searchQuery
     ? allPlaylists.filter((p) =>
-      p.name.toLowerCase().includes(searchQuery.toLowerCase()),
-    )
+        p.name.toLowerCase().includes(searchQuery.toLowerCase()),
+      )
     : allPlaylists;
 
   const handleAddToPlaylist = (playlist: Playlist) => {
@@ -81,9 +81,9 @@ export const AddToPopover = ({
       toast.success(
         songs.length === 1
           ? t("addedToPlaylist", {
-            song: songs[0].title,
-            playlist: playlist.name,
-          })
+              song: songs[0].title,
+              playlist: playlist.name,
+            })
           : t("playlist.addedToExisting", { count: addedCount }),
       );
     }
@@ -91,9 +91,9 @@ export const AddToPopover = ({
       toast.info(
         songs.length === 1
           ? t("songAlreadyInPlaylist", {
-            song: songs[0].title,
-            playlist: playlist.name,
-          })
+              song: songs[0].title,
+              playlist: playlist.name,
+            })
           : t("playlist.someAlreadyInPlaylist", { count: skippedCount }),
       );
     }
@@ -112,13 +112,13 @@ export const AddToPopover = ({
     toast.success(
       songs.length === 1
         ? t("createdNewPlaylistAddedSong", {
-          playlist: newPlaylist.name,
-          song: songs[0].title,
-        })
+            playlist: newPlaylist.name,
+            song: songs[0].title,
+          })
         : t("playlist.created", {
-          name: newPlaylist.name,
-          count: songs.length,
-        }),
+            name: newPlaylist.name,
+            count: songs.length,
+          }),
     );
 
     setNewPlaylistName("");
@@ -179,7 +179,6 @@ export const AddToPopover = ({
 
         {!isCreatingNew ? (
           <div className={modalStyles.spaceY4}>
-
             {/* Create New Playlist */}
             <Button
               variant="outline"
@@ -248,7 +247,12 @@ export const AddToPopover = ({
                       className={`${modalStyles["w-full"]} ${modalStyles["justify-start"]}`}
                       onClick={() => handleAddToPlaylist(playlist)}
                     >
-                      <Icon name="music" size={16} className="mr-2" decorative />
+                      <Icon
+                        name="music"
+                        size={16}
+                        className="mr-2"
+                        decorative
+                      />
                       {playlist.name}
                     </Button>
                   ))
@@ -261,7 +265,6 @@ export const AddToPopover = ({
             ) : (
               <p className={modalStyles.muted}>{t("playlist.noPlaylists")}</p>
             )}
-
           </div>
         ) : (
           <div className={modalStyles.spaceY4}>

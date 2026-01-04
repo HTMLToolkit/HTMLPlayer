@@ -46,7 +46,9 @@ interface DraggableItemProps {
   id: string;
   type: "song" | "playlist" | "folder";
   data: any;
-  children: React.ReactNode | ((dragHandleProps: DragHandleProps) => React.ReactNode);
+  children:
+    | React.ReactNode
+    | ((dragHandleProps: DragHandleProps) => React.ReactNode);
   disabled?: boolean;
   /** If true, only the DragHandle child will initiate drag (allows text selection) */
   useDragHandle?: boolean;
@@ -286,7 +288,11 @@ export const DraggableItem: React.FC<DraggableItemProps> = ({
     if (useDragHandle && typeof children === "function") {
       // Render prop pattern - call the function with drag handle props
       return children({ listeners, attributes });
-    } else if (useDragHandle && typeof children !== "function" && React.isValidElement(children)) {
+    } else if (
+      useDragHandle &&
+      typeof children !== "function" &&
+      React.isValidElement(children)
+    ) {
       // Clone children and inject drag listeners for any DragHandle components
       return React.Children.map(children, (child) => {
         if (React.isValidElement(child)) {

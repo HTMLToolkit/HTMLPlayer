@@ -591,12 +591,12 @@ export const IconRegistryProvider: React.FC<IconRegistryProviderProps> = ({
   const currentSetRef = useRef(currentSet);
   const iconSetsRef = useRef(iconSets);
   const iconModuleLoadersRef = useRef(iconModuleLoaders);
-  
+
   // Update refs when state changes
   useEffect(() => {
     currentSetRef.current = currentSet;
   }, [currentSet]);
-  
+
   useEffect(() => {
     iconSetsRef.current = iconSets;
   }, [iconSets]);
@@ -612,11 +612,12 @@ export const IconRegistryProvider: React.FC<IconRegistryProviderProps> = ({
 
       // Use ref values to avoid triggering re-renders
       const localCurrentSet = currentSetRef.current;
-      
+
       // Ensure currentSet icons are loaded (but don't update state from inside the callback)
       if (
         localCurrentSet &&
-        (!localCurrentSet.icons || Object.keys(localCurrentSet.icons).length === 0)
+        (!localCurrentSet.icons ||
+          Object.keys(localCurrentSet.icons).length === 0)
       ) {
         try {
           const loader = iconModuleLoadersRef.current[localCurrentSet.path];
@@ -634,14 +635,15 @@ export const IconRegistryProvider: React.FC<IconRegistryProviderProps> = ({
             // Schedule state update for the next render cycle
             queueMicrotask(() => {
               setIconSets((sets) =>
-                sets.map((s) =>
-                  s.id === localCurrentSet.id ? updatedSet : s,
-                ),
+                sets.map((s) => (s.id === localCurrentSet.id ? updatedSet : s)),
               );
             });
           }
         } catch (err) {
-          console.error(`Failed to load icon set "${localCurrentSet.label}"`, err);
+          console.error(
+            `Failed to load icon set "${localCurrentSet.label}"`,
+            err,
+          );
         }
       }
 

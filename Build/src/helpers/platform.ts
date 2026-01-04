@@ -140,9 +140,8 @@ export async function pickAudioFiles(options?: {
   } else {
     // Web: Use existing Uppy implementation from filePickerHelper.tsx
     // This returns a promise that resolves when user completes selection
-    const { pickAudioFiles: webPickAudioFiles } = await import(
-      "./filePickerHelper"
-    );
+    const { pickAudioFiles: webPickAudioFiles } =
+      await import("./filePickerHelper");
     const audioFiles = await webPickAudioFiles();
     return audioFiles.map((af) => af.file);
   }
@@ -240,9 +239,8 @@ export async function showNotification(
   if (platform.isDesktop) {
     // Use Tauri's native notifications
     try {
-      const { sendNotification } = await import(
-        "@tauri-apps/plugin-notification"
-      );
+      const { sendNotification } =
+        await import("@tauri-apps/plugin-notification");
       await sendNotification({ title, body });
     } catch (error) {
       console.warn("Desktop notification failed:", error);

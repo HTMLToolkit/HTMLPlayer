@@ -192,16 +192,42 @@ export const Sidebar = memo(
                   {t("aboutHTMLPlayerDesc")}
                 </DialogDescription>
               </DialogHeader>
-              <div style={{ display: "flex", flexDirection: "column", gap: "var(--spacing-3)", padding: "var(--spacing-2) 0" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.875rem" }}>
-                  <span style={{ color: "var(--muted-foreground)" }}>{t("about.version")}</span>
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "var(--spacing-3)",
+                  padding: "var(--spacing-2) 0",
+                }}
+              >
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    fontSize: "0.875rem",
+                  }}
+                >
+                  <span style={{ color: "var(--muted-foreground)" }}>
+                    {t("about.version")}
+                  </span>
                   <span>2.0.0</span>
                 </div>
-                <div style={{ display: "flex", gap: "var(--spacing-2)", flexWrap: "wrap" }}>
+                <div
+                  style={{
+                    display: "flex",
+                    gap: "var(--spacing-2)",
+                    flexWrap: "wrap",
+                  }}
+                >
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => window.open("https://github.com/user/HTMLPlayer", "_blank")}
+                    onClick={() =>
+                      window.open(
+                        "https://github.com/user/HTMLPlayer",
+                        "_blank",
+                      )
+                    }
                   >
                     <Icon name="github" size={14} decorative />
                     GitHub
@@ -221,7 +247,13 @@ export const Sidebar = memo(
                     {t("about.terms")}
                   </Button>
                 </div>
-                <p style={{ fontSize: "0.75rem", color: "var(--muted-foreground)", marginTop: "var(--spacing-2)" }}>
+                <p
+                  style={{
+                    fontSize: "0.75rem",
+                    color: "var(--muted-foreground)",
+                    marginTop: "var(--spacing-2)",
+                  }}
+                >
                   {t("about.madeWith")}
                 </p>
               </div>

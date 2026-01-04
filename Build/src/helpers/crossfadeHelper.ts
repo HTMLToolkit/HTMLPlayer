@@ -40,7 +40,7 @@ export class CrossfadeManager {
 
   // Current pitch setting
   private currentPitch: number = 0;
-  
+
   // Track the current song ended handler for cleanup
   private currentEndedHandler: (() => void) | null = null;
 
@@ -140,7 +140,7 @@ export class CrossfadeManager {
       console.warn("Crossfade already in progress, cancelling previous");
       this.cancelCrossfade();
     }
-    
+
     // Ensure audio context is running (may be suspended on mobile after tab switch)
     if (this.audioContext.state === "suspended") {
       console.log("Resuming suspended audio context before crossfade");
@@ -208,7 +208,7 @@ export class CrossfadeManager {
             resolve();
           }
         };
-        
+
         // Store handler reference for potential cleanup in cancelCrossfade
         this.currentEndedHandler = handleCurrentEnded;
 
@@ -315,7 +315,7 @@ export class CrossfadeManager {
 
     try {
       console.log("Completing crossfade transition");
-      
+
       // Clear the ended handler reference (it either fired or will be removed by {once: true})
       this.currentEndedHandler = null;
 
@@ -363,7 +363,10 @@ export class CrossfadeManager {
 
       // Remove the ended event listener if it hasn't fired yet
       if (this.currentEndedHandler && this.currentSource) {
-        this.currentSource.element.removeEventListener("ended", this.currentEndedHandler);
+        this.currentSource.element.removeEventListener(
+          "ended",
+          this.currentEndedHandler,
+        );
         this.currentEndedHandler = null;
       }
 

@@ -116,12 +116,12 @@ async function compressAlbumArt(
       ctx.drawImage(img, 0, 0, width, height);
 
       // Compress to JPEG at 70% quality
-      const compressed = canvas.toDataURL("image/jpeg", 0.70);
+      const compressed = canvas.toDataURL("image/jpeg", 0.7);
 
       console.log(
         `Album art compressed: ${(base64.length / 1024).toFixed(1)}KB → ${(compressed.length / 1024).toFixed(1)}KB`,
       );
-      
+
       // Clean up the canvas to free memory
       canvas.width = 0;
       canvas.height = 0;
@@ -335,6 +335,7 @@ export function pickAudioFiles(): Promise<AudioFile[]> {
                 ".aif",
                 ".aiff",
                 ".ogg",
+                ".flo",
                 "audio/*",
               ],
             },
@@ -438,7 +439,16 @@ export function pickAudioFiles(): Promise<AudioFile[]> {
 function processFiles(files: File[]): AudioFile[] {
   const valid: AudioFile[] = [];
   const audioTest = document.createElement("audio");
-  const allowedExtensions = ["mp3", "wav", "m4a", "flac", "aif", "aiff", "ogg"];
+  const allowedExtensions = [
+    "mp3",
+    "wav",
+    "m4a",
+    "flac",
+    "aif",
+    "aiff",
+    "ogg",
+    "flo",
+  ];
 
   for (const file of files) {
     const ext = file.name.split(".").pop()?.toLowerCase();
@@ -450,13 +460,16 @@ function processFiles(files: File[]): AudioFile[] {
       toast.error(`Skipping non-audio file: ${file.name}`);
       continue;
     }
-    const canPlay = audioTest.canPlayType(file.type);
-    if (canPlay !== "probably" && canPlay !== "maybe") {
-      // TODO: i18n-ize
-      toast.error(
-        `Skipping unsupported audio format by browser: ${file.name} (${file.type})`,
-      );
-      continue;
+    // For .flo files, skip browser canPlayType check (handled by custom decoder)
+    if (ext !== "flo") {
+      const canPlay = audioTest.canPlayType(file.type);
+      if (canPlay !== "probably" && canPlay !== "maybe") {
+        // TODO: i18n-ize
+        toast.error(
+          `Skipping unsupported audio format by browser: ${file.name} (${file.type})`,
+        );
+        continue;
+      }
     }
     valid.push({ file, name: file.name, size: file.size, type: file.type });
   }
@@ -468,11 +481,77 @@ function processFiles(files: File[]): AudioFile[] {
 // ---------------------
 export async function extractAudioMetadata(file: File): Promise<AudioMetadata> {
   setProcessingState(true);
+  const ext = file.name.split(".").pop()?.toLowerCase();
+  // Use FLO-specific extraction for .flo files
+  if (ext === "flo") {
+    try {
+      const arrayBuffer = await file.arrayBuffer();
+      const { getFloMetadata, getFloCoverArt, getFloSyncedLyrics, getFloInfo } =
+        await import("./floProcessor");
+      const [meta, cover, lyrics, info] = await Promise.all([
+        getFloMetadata(arrayBuffer),
+        getFloCoverArt(arrayBuffer),
+        getFloSyncedLyrics(arrayBuffer),
+        getFloInfo(arrayBuffer),
+      ]);
+      let albumArt: string | undefined = undefined;
+      if (cover && cover.data && cover.data.length > 0) {
+        // Animated cover art is supported (webp/gif) and not compressed
+        const blob = new Blob([new Uint8Array(cover.data)], {
+          type: cover.mime_type,
+        });
+        albumArt = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(reader.result as string);
+          reader.onerror = () => reject(new Error("Failed to read album art"));
+          reader.readAsDataURL(blob);
+        });
+      }
+      // Lyrics: convert to EmbeddedLyrics[]
+      let embeddedLyrics = undefined;
+      if (Array.isArray(lyrics)) {
+        embeddedLyrics = [
+          {
+            synced: true,
+            lines: lyrics.map((l) => ({
+              text: l.text,
+              timestamp: l.timestamp_ms,
+            })),
+          },
+        ];
+      }
+      // Info: duration, encoding, etc
+      const duration = info?.duration_secs ?? 0;
+      const encoding: EncodingDetails = {
+        bitrate: undefined,
+        codec: "flo",
+        sampleRate: info?.sample_rate,
+        channels: info?.channels,
+        bitsPerSample: info?.bit_depth,
+        container: "flo",
+        lossless: !info?.is_lossy,
+        profile: info?.is_lossy ? "lossy" : "lossless",
+      };
+      return {
+        title: meta?.title || file.name.replace(/\.[^/.]+$/, ""),
+        artist: meta?.artist || i18n.t("common.unknownArtist"),
+        album: meta?.album || i18n.t("common.unknownAlbum"),
+        duration,
+        albumArt,
+        embeddedLyrics,
+        encoding,
+        gapless: undefined, // TODO: add if FLO supports gapless info
+        metadataWarnings: undefined,
+      };
+    } finally {
+      setProcessingState(false);
+    }
+  }
+  // Fallback to original (music-metadata) for all other formats
   const worker = new Worker(
     new URL("../workers/metadataWorker.ts", import.meta.url),
     { type: "module" },
   );
-
   try {
     const result = await withTimeoutAndRetry(
       new Promise<AudioMetadata>((resolve, reject) => {
@@ -494,7 +573,6 @@ export async function extractAudioMetadata(file: File): Promise<AudioMetadata> {
               albumArt,
               metadataWarnings: Array.isArray(warnings) ? warnings : undefined,
             };
-
             if (Array.isArray(warnings) && warnings.length > 0) {
               for (const warning of warnings) {
                 // Suppress repetitive ID3v2.3 warnings that spam the console

@@ -1,5 +1,10 @@
 import React, { useState } from "react";
-import { DraggableItem, DropZone, DragHandle, DragHandleProps } from "./Draggable";
+import {
+  DraggableItem,
+  DropZone,
+  DragHandle,
+  DragHandleProps,
+} from "./Draggable";
 import { SongActionsDropdown } from "./SongActionsDropdown";
 import { Checkbox } from "./Checkbox";
 import { useRightClickMenu } from "./DropdownMenu";
@@ -71,10 +76,13 @@ const SortableSongItem = React.memo(function SortableSongItem({
 }: SortableSongItemProps) {
   const { t } = useTranslation();
   const { open, setOpen, containerRef } = useRightClickMenu(true);
-  
+
   // Lazy load album art - only loads when component is rendered
   // Use song.albumArt if already loaded (for newly imported songs), otherwise lazy load
-  const lazyAlbumArt = useAlbumArt(song.id, song.hasAlbumArt || !!song.albumArt);
+  const lazyAlbumArt = useAlbumArt(
+    song.id,
+    song.hasAlbumArt || !!song.albumArt,
+  );
   const albumArt = song.albumArt || lazyAlbumArt;
 
   // Use DraggableItem for clean drag functionality, and DropZone if in playlist for reordering

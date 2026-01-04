@@ -28,41 +28,45 @@ const flattenPlaylists = (items: (Playlist | PlaylistFolder)[]): Playlist[] => {
   return result;
 };
 // Song card component with lazy album art loading
-const SongCardItem: React.FC<{ song: Song; onPlay: (song: Song) => void }> = React.memo(({ song, onPlay }) => {
-  const lazyAlbumArt = useAlbumArt(song.id, song.hasAlbumArt || !!song.albumArt);
-  const albumArt = song.albumArt || lazyAlbumArt;
-  
-  return (
-    <button
-      className={styles.songCard}
-      onClick={() => onPlay(song)}
-    >
-      <div className={styles.albumArtSmall}>
-        {albumArt ? (
-          <img src={albumArt} alt={song.title} loading="lazy" />
-        ) : (
-          <Icon name="music" size={16} decorative />
-        )}
-      </div>
-      <div className={styles.songMeta}>
-        <div className={styles.songTitle}>{song.title}</div>
-        <div className={styles.songArtist}>{song.artist}</div>
-      </div>
-      <Icon name="play" size={14} decorative />
-    </button>
-  );
-});
+const SongCardItem: React.FC<{ song: Song; onPlay: (song: Song) => void }> =
+  React.memo(({ song, onPlay }) => {
+    const lazyAlbumArt = useAlbumArt(
+      song.id,
+      song.hasAlbumArt || !!song.albumArt,
+    );
+    const albumArt = song.albumArt || lazyAlbumArt;
+
+    return (
+      <button className={styles.songCard} onClick={() => onPlay(song)}>
+        <div className={styles.albumArtSmall}>
+          {albumArt ? (
+            <img src={albumArt} alt={song.title} loading="lazy" />
+          ) : (
+            <Icon name="music" size={16} decorative />
+          )}
+        </div>
+        <div className={styles.songMeta}>
+          <div className={styles.songTitle}>{song.title}</div>
+          <div className={styles.songArtist}>{song.artist}</div>
+        </div>
+        <Icon name="play" size={14} decorative />
+      </button>
+    );
+  });
 
 // Playlist card component with lazy album art loading for first song
-const PlaylistCardItem: React.FC<{ 
-  playlist: Playlist; 
+const PlaylistCardItem: React.FC<{
+  playlist: Playlist;
   onPlay: (playlist: Playlist) => void;
   countLabel: string;
 }> = React.memo(({ playlist, onPlay, countLabel }) => {
   const firstSong = playlist.songs[0];
-  const lazyAlbumArt = useAlbumArt(firstSong?.id, firstSong?.hasAlbumArt || !!firstSong?.albumArt);
+  const lazyAlbumArt = useAlbumArt(
+    firstSong?.id,
+    firstSong?.hasAlbumArt || !!firstSong?.albumArt,
+  );
   const albumArt = firstSong?.albumArt || lazyAlbumArt;
-  
+
   return (
     <button
       className={styles.playlistCard}
@@ -326,11 +330,7 @@ export const Home: React.FC<HomeProps> = ({ musicPlayerHook, onAddMusic }) => {
         {recentlyAdded.length ? (
           <div className={styles.cardGrid}>
             {recentlyAdded.map((song) => (
-              <SongCardItem
-                key={song.id}
-                song={song}
-                onPlay={handlePlaySong}
-              />
+              <SongCardItem key={song.id} song={song} onPlay={handlePlaySong} />
             ))}
           </div>
         ) : (
@@ -349,7 +349,9 @@ export const Home: React.FC<HomeProps> = ({ musicPlayerHook, onAddMusic }) => {
                 key={playlist.id}
                 playlist={playlist}
                 onPlay={handlePlayPlaylist}
-                countLabel={t("home.playlistCount", { count: playlist.songs.length })}
+                countLabel={t("home.playlistCount", {
+                  count: playlist.songs.length,
+                })}
               />
             ))}
           </div>

@@ -94,12 +94,12 @@ async function compressAlbumArt(
       ctx.drawImage(img, 0, 0, width, height);
 
       // Compress to JPEG at 70% quality
-      const compressed = canvas.toDataURL("image/jpeg", 0.70);
+      const compressed = canvas.toDataURL("image/jpeg", 0.7);
 
       console.log(
         `Album art compressed: ${(base64.length / 1024).toFixed(1)}KB → ${(compressed.length / 1024).toFixed(1)}KB`,
       );
-      
+
       // Clean up the canvas to free memory
       canvas.width = 0;
       canvas.height = 0;

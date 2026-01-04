@@ -1,9 +1,16 @@
 import { toast } from "sonner";
 import { musicIndexedDbHelper } from "./musicIndexedDbHelper";
 import i18n from "i18next";
+import initFlo from "@flo-audio/libflo-audio";
 
 export const createAudioProcessor = () => {
+  let floInitialized = false;
   const processAudioBatch = async (songs: Song[]): Promise<Song[]> => {
+    // Ensure FLO WASM is initialized before any decode
+    if (!floInitialized) {
+      await initFlo();
+      floInitialized = true;
+    }
     const processedSongs: Song[] = [];
     const totalSongs = songs.length;
     let processedCount = 0;
@@ -19,7 +26,18 @@ export const createAudioProcessor = () => {
           // Load the audio data
           const res = await fetch(song.url);
           const buf = await res.arrayBuffer();
-          const mimeType = res.headers.get("content-type") || "audio/mpeg";
+          let mimeType = res.headers.get("content-type") || "audio/mpeg";
+          const ext = song.url.split(".").pop()?.toLowerCase() || "";
+
+          // If FLO file, decode using @flo-audio/libflo-audio (placeholder)
+          if (ext === "flo") {
+            // TODO: Integrate @flo-audio/libflo-audio decoder here
+            // Example:
+            // import { decodeFlo } from '@flo-audio/libflo-audio';
+            // const pcmData = await decodeFlo(buf);
+            // ...convert pcmData to AudioBuffer and store/play as needed...
+            mimeType = "audio/x-flo";
+          }
 
           // Save to IndexedDB audio store
           await musicIndexedDbHelper.saveSongAudio(song.id, {

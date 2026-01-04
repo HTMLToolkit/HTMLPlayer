@@ -10,19 +10,22 @@ interface UpdatePromptProps {
   checkInterval?: number;
 }
 
-export function UpdatePrompt({ checkInterval = 60 * 60 * 1000 }: UpdatePromptProps) {
+export function UpdatePrompt({
+  checkInterval = 60 * 60 * 1000,
+}: UpdatePromptProps) {
   const { t } = useTranslation();
   const [dismissed, setDismissed] = useState(false);
-  
 
-  
   const {
     needRefresh: [needRefresh, setNeedRefresh],
     updateServiceWorker,
   } = useRegisterSW({
-    onRegisteredSW(swUrl: string, registration: ServiceWorkerRegistration | undefined) {
+    onRegisteredSW(
+      swUrl: string,
+      registration: ServiceWorkerRegistration | undefined,
+    ) {
       console.log("SW registered:", swUrl);
-      
+
       // Set up periodic update checks
       if (registration && checkInterval > 0) {
         setInterval(() => {

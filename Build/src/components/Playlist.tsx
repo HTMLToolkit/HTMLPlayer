@@ -103,7 +103,7 @@ export const PlaylistComponent = ({ musicPlayerHook }: PlaylistProps) => {
   // Debounced and batched playlist image generation to prevent RAM spikes
   useEffect(() => {
     let isCancelled = false;
-    
+
     const updatePlaylistImages = async () => {
       const newImages: Record<string, string> = {};
 
@@ -125,16 +125,16 @@ export const PlaylistComponent = ({ musicPlayerHook }: PlaylistProps) => {
       };
 
       const allPlaylists = findAllPlaylists(library.playlists);
-      
+
       // Process playlist images in batches to prevent RAM spikes
       const BATCH_SIZE = 5;
       const BATCH_DELAY = 50; // ms between batches
-      
+
       for (let i = 0; i < allPlaylists.length; i += BATCH_SIZE) {
         if (isCancelled) return;
-        
+
         const batch = allPlaylists.slice(i, i + BATCH_SIZE);
-        
+
         // Process batch in parallel but limited
         await Promise.all(
           batch.map(async (playlist) => {
@@ -145,27 +145,30 @@ export const PlaylistComponent = ({ musicPlayerHook }: PlaylistProps) => {
                   newImages[playlist.id] = image;
                 }
               } catch (error) {
-                console.warn(`Failed to generate image for playlist ${playlist.id}:`, error);
+                console.warn(
+                  `Failed to generate image for playlist ${playlist.id}:`,
+                  error,
+                );
               }
             }
-          })
+          }),
         );
-        
+
         // Update state incrementally to show progress and yield to main thread
         if (!isCancelled) {
-          setPlaylistImages(prev => ({ ...prev, ...newImages }));
+          setPlaylistImages((prev) => ({ ...prev, ...newImages }));
         }
-        
+
         // Yield to main thread between batches
         if (i + BATCH_SIZE < allPlaylists.length) {
-          await new Promise(resolve => setTimeout(resolve, BATCH_DELAY));
+          await new Promise((resolve) => setTimeout(resolve, BATCH_DELAY));
         }
       }
     };
-    
+
     // Delay initial image generation to let the UI render first
     const timeoutId = setTimeout(updatePlaylistImages, 100);
-    
+
     return () => {
       isCancelled = true;
       clearTimeout(timeoutId);
@@ -295,9 +298,7 @@ export const PlaylistComponent = ({ musicPlayerHook }: PlaylistProps) => {
         navigator.share(shareData);
         toast.success(t("playlist.playlistShared"));
       } else {
-        navigator.clipboard.writeText(
-          `${shareData.title}\n${shareData.text}`,
-        );
+        navigator.clipboard.writeText(`${shareData.title}\n${shareData.text}`);
         toast.success(t("playlist.playlistCopied"));
       }
     } catch {

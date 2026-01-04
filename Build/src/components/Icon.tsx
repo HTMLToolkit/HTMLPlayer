@@ -1,4 +1,11 @@
-import React, { useEffect, useMemo, useState, useRef, useCallback, memo } from "react";
+import React, {
+  useEffect,
+  useMemo,
+  useState,
+  useRef,
+  useCallback,
+  memo,
+} from "react";
 import { useTranslation } from "react-i18next";
 import { useIconRegistry } from "../helpers/iconLoader";
 import type { IconLookupOptions, ResolvedIcon } from "../types/icons";
@@ -74,11 +81,11 @@ export const Icon: React.FC<IconProps> = ({
   const [resolvedIcon, setResolvedIcon] = useState<ResolvedIcon | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  
+
   // Store the loadIcon function in a ref to avoid triggering re-renders
   const loadIconRef = useRef(loadIcon);
   loadIconRef.current = loadIcon;
-  
+
   // Track current set ID to only re-fetch when it actually changes
   const currentSetIdRef = useRef<string | null>(null);
   const lastFetchedKeyRef = useRef<string>("");
@@ -93,8 +100,9 @@ export const Icon: React.FC<IconProps> = ({
 
   // Stable load function that doesn't change reference
   const stableLoadIcon = useCallback(
-    (iconName: string, options?: IconLookupOptions) => loadIconRef.current(iconName, options),
-    []
+    (iconName: string, options?: IconLookupOptions) =>
+      loadIconRef.current(iconName, options),
+    [],
   );
 
   // Derive the current set ID for dependency tracking
@@ -103,12 +111,12 @@ export const Icon: React.FC<IconProps> = ({
   useEffect(() => {
     // Create a cache key for this specific icon request
     const cacheKey = `${name}::${setId ?? ""}::${currentSetId ?? ""}::${fallbackOrder?.join(",") ?? ""}`;
-    
+
     // Skip if we already fetched this exact combination
     if (cacheKey === lastFetchedKeyRef.current && resolvedIcon !== null) {
       return;
     }
-    
+
     let cancelled = false;
 
     const fetchIcon = async () => {
@@ -143,7 +151,7 @@ export const Icon: React.FC<IconProps> = ({
 
         const icon = await stableLoadIcon(name, options);
         if (cancelled) return;
-        
+
         lastFetchedKeyRef.current = cacheKey;
         currentSetIdRef.current = currentSetId;
         setResolvedIcon(icon);
@@ -165,7 +173,15 @@ export const Icon: React.FC<IconProps> = ({
     return () => {
       cancelled = true;
     };
-  }, [name, setId, fallbackOrder, currentSetId, stableLoadIcon, t, resolvedIcon]);
+  }, [
+    name,
+    setId,
+    fallbackOrder,
+    currentSetId,
+    stableLoadIcon,
+    t,
+    resolvedIcon,
+  ]);
 
   const ariaProps = useMemo(() => {
     if (decorative) {

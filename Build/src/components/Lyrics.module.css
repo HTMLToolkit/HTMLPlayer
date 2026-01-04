@@ -23,11 +23,13 @@
 .lyricsOverlay[data-state="open"] {
   transform: translateY(100%);
   opacity: 0;
-  animation: slideUpSmooth var(--animation-duration-normal) cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  animation: slideUpSmooth var(--animation-duration-normal)
+    cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
 
 .lyricsOverlay[data-state="closing"] {
-  animation: slideDownSmooth var(--animation-duration-normal) cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  animation: slideDownSmooth var(--animation-duration-normal)
+    cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
 
 /* State for when already visible (no animation needed) */

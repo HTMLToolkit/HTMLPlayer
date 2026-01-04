@@ -53,6 +53,7 @@ import {
   RiSlideshowFill,
   RiSparklingFill,
   RiHomeFill,
+  RiRefreshLine,
 } from "react-icons/ri";
 import type {
   IconDefinition,

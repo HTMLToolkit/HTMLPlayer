@@ -1,6 +1,8 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import { VitePWA } from "vite-plugin-pwa";
+import wasm from "vite-plugin-wasm";
+import topLevelAwait from "vite-plugin-top-level-await";
 
 // Detect build target: 'web' (default) or 'desktop' (Tauri)
 const buildTarget = process.env.BUILD_TARGET || "web";
@@ -10,7 +12,7 @@ const isWeb = buildTarget === "web";
 const host = process.env.TAURI_DEV_HOST;
 
 // Conditional plugins based on target
-const plugins = [react()];
+const plugins = [react(), wasm(), topLevelAwait()];
 
 // Only add PWA plugin for web builds
 if (isWeb) {
@@ -116,6 +118,7 @@ if (isWeb) {
         includeHtmlHeadLinks: true,
       },
       workbox: {
+        maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // 5 MB
         runtimeCaching: [
           {
             urlPattern: /.*\.(js|css|ts|tsx|html)$/,
@@ -148,28 +151,32 @@ export default defineConfig({
     },
   },
 
+  optimizeDeps: {
+    exclude: ['@flo-audio/libflo-audio', '@flo-audio/reflo']
+  },
+
   // Platform-specific server config
   server: isDesktop
     ? {
-        port: 1420,
-        strictPort: true,
-        host: host || false,
-        hmr: host
-          ? {
-              protocol: "ws",
-              host,
-              port: 1421,
-            }
-          : undefined,
-        watch: {
-          // Tell vite to ignore watching `src-tauri`
-          ignored: ["**/src-tauri/**"],
-        },
-      }
-    : {
-        open: true,
-        allowedHosts: true,
+      port: 1420,
+      strictPort: true,
+      host: host || false,
+      hmr: host
+        ? {
+          protocol: "ws",
+          host,
+          port: 1421,
+        }
+        : undefined,
+      watch: {
+        // Tell vite to ignore watching `src-tauri`
+        ignored: ["**/src-tauri/**"],
       },
+    }
+    : {
+      open: true,
+      allowedHosts: true,
+    },
 
   // Prevent vite from obscuring rust errors (desktop only)
   clearScreen: isDesktop ? false : undefined,
@@ -210,6 +217,7 @@ export default defineConfig({
             ],
             "vendor-utils": ["lodash", "dompurify", "zustand", "sonner"],
             "vendor-icons": ["lucide-react"],
+            "vendor-flo": ["@flo-audio/libflo-audio", "@flo-audio/reflo"],
 
             // Visualizers chunk - group all visualizers together
             visualizers: [
