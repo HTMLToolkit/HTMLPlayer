@@ -74,8 +74,7 @@ if (isWeb) {
                 "type": "image/png",
                 "purpose": "maskable"
               }
-            ]
-
+            ],
             launch_type: "single-client",
           },
         ],
