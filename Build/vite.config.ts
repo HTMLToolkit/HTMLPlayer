@@ -61,14 +61,21 @@ if (isWeb) {
               "audio/ogg": [".ogg"],
               "audio/opus": [".opus"],
             },
-            // @ts-ignore
-            icons: [
+            "icons": [
               {
-                src: "public/icon-1024.png",
-                sizes: "1024x1024",
-                type: "image/png",
+                "src": "public/icon-any.png",
+                "sizes": "1024x1024",
+                "type": "image/png",
+                "purpose": "any"
               },
-            ],
+              {
+                "src": "public/icon-maskable.png",
+                "sizes": "1280x1280",
+                "type": "image/png",
+                "purpose": "maskable"
+              }
+            ]
+
             launch_type: "single-client",
           },
         ],
