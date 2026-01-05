@@ -481,25 +481,32 @@ function processFiles(files: File[]): AudioFile[] {
 // ---------------------
 export async function extractAudioMetadata(file: File): Promise<AudioMetadata> {
   setProcessingState(true);
+  
   const ext = file.name.split(".").pop()?.toLowerCase();
-  // Use FLO-specific extraction for .flo files
+  
+  // Use flo-specific extraction for .flo files
   if (ext === "flo") {
     try {
       const arrayBuffer = await file.arrayBuffer();
-      const { getFloMetadata, getFloCoverArt, getFloSyncedLyrics, getFloInfo } =
-        await import("./floProcessor");
+      const { 
+        getFloMetadata, 
+        getFloCoverArt, 
+        getFloSyncedLyrics, 
+        getFloInfo 
+      } = await import("./floProcessor");
+      
+      // Get all flo data in parallel
       const [meta, cover, lyrics, info] = await Promise.all([
         getFloMetadata(arrayBuffer),
         getFloCoverArt(arrayBuffer),
         getFloSyncedLyrics(arrayBuffer),
         getFloInfo(arrayBuffer),
       ]);
+
+      // Process album art if available
       let albumArt: string | undefined = undefined;
       if (cover && cover.data && cover.data.length > 0) {
-        // Animated cover art is supported (webp/gif) and not compressed
-        const blob = new Blob([new Uint8Array(cover.data)], {
-          type: cover.mime_type,
-        });
+        const blob = new Blob([cover.data], { type: cover.mime_type });
         albumArt = await new Promise<string>((resolve, reject) => {
           const reader = new FileReader();
           reader.onloadend = () => resolve(reader.result as string);
@@ -507,23 +514,24 @@ export async function extractAudioMetadata(file: File): Promise<AudioMetadata> {
           reader.readAsDataURL(blob);
         });
       }
-      // Lyrics: convert to EmbeddedLyrics[]
-      let embeddedLyrics = undefined;
-      if (Array.isArray(lyrics)) {
+
+      // Convert synced lyrics to EmbeddedLyrics format
+      let embeddedLyrics: EmbeddedLyrics[] | undefined = undefined;
+      if (Array.isArray(lyrics) && lyrics.length > 0) {
         embeddedLyrics = [
           {
             synced: true,
             lines: lyrics.map((l) => ({
               text: l.text,
-              timestamp: l.timestamp_ms,
+              timestamp: l.timestamp_ms / 1000, // Convert ms to seconds
             })),
           },
         ];
       }
-      // Info: duration, encoding, etc
-      const duration = info?.duration_secs ?? 0;
+
+      // Build encoding details from info
       const encoding: EncodingDetails = {
-        bitrate: undefined,
+        bitrate: undefined, // flo doesn't provide bitrate directly
         codec: "flo",
         sampleRate: info?.sample_rate,
         channels: info?.channels,
@@ -532,16 +540,33 @@ export async function extractAudioMetadata(file: File): Promise<AudioMetadata> {
         lossless: !info?.is_lossy,
         profile: info?.is_lossy ? "lossy" : "lossless",
       };
+
       return {
         title: meta?.title || file.name.replace(/\.[^/.]+$/, ""),
         artist: meta?.artist || i18n.t("common.unknownArtist"),
         album: meta?.album || i18n.t("common.unknownAlbum"),
-        duration,
+        duration: info?.duration_secs || 0,
         albumArt,
         embeddedLyrics,
         encoding,
-        gapless: undefined, // TODO: add if FLO supports gapless info
+        gapless: undefined, // flo doesn't expose gapless info currently
         metadataWarnings: undefined,
+      };
+    } catch (error) {
+      console.error("Failed to extract flo metadata:", error);
+      // Fallback to basic file info
+      return {
+        title: file.name.replace(/\.[^/.]+$/, ""),
+        artist: i18n.t("common.unknownArtist"),
+        album: i18n.t("common.unknownAlbum"),
+        duration: 0,
+        albumArt: undefined,
+        embeddedLyrics: undefined,
+        encoding: {
+          codec: "flo",
+          container: "flo",
+        },
+        gapless: undefined,
       };
     } finally {
       setProcessingState(false);

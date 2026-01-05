@@ -6,7 +6,7 @@ import initFlo from "@flo-audio/libflo-audio";
 export const createAudioProcessor = () => {
   let floInitialized = false;
   const processAudioBatch = async (songs: Song[]): Promise<Song[]> => {
-    // Ensure FLO WASM is initialized before any decode
+    // Ensure flo WASM is initialized before any decode
     if (!floInitialized) {
       await initFlo();
       floInitialized = true;
@@ -29,7 +29,7 @@ export const createAudioProcessor = () => {
           let mimeType = res.headers.get("content-type") || "audio/mpeg";
           const ext = song.url.split(".").pop()?.toLowerCase() || "";
 
-          // If FLO file, decode using @flo-audio/libflo-audio (placeholder)
+          // If flo file, decode using @flo-audio/libflo-audio (placeholder)
           if (ext === "flo") {
             // TODO: Integrate @flo-audio/libflo-audio decoder here
             // Example:
