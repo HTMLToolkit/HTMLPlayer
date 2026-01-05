@@ -75,63 +75,61 @@ if (isWeb) {
         ],
         icons: [
           {
-            src: "public/icon-any.png",
+            src: "icon-any.png",
             sizes: "1024x1024",
             type: "image/png",
             purpose: "any",
           },
           {
-            src: "public/icon-maskable.png",
+            src: "icon-maskable.png",
             sizes: "1280x1280",
             type: "image/png",
             purpose: "maskable",
           },
         ],
         launch_type: "single-client",
+        screenshots: [
+          {
+            src: "./screenshots/MainUI.png",
+            sizes: "1854x926",
+            type: "image/png",
+            label: "Main Player UI",
+          },
+          {
+            src: "./screenshots/CustomizedUI.png",
+            sizes: "1854x926",
+            type: "image/png",
+            label: "Customized with the Nebula theme and Phosphor icons",
+          },
+          {
+            src: "./screenshots/LyricsandVisualizer.png",
+            sizes: "1854x926",
+            type: "image/png",
+            label: "Lyrics and Visualizer View",
+          },
+          {
+            src: "./screenshots/MainUI-Mobile.png",
+            sizes: "624x927",
+            type: "image/png",
+            label: "Main Player UI on Mobile",
+          },
+          {
+            src: "./screenshots/CustomizedUI-Mobile.png",
+            sizes: "624x927",
+            type: "image/png",
+            label:
+              "Customized with the Nebula theme and Phosphor icons on Mobile",
+          },
+          {
+            src: "./screenshots/LyricsandVisualizer-Mobile.png",
+            sizes: "624x927",
+            type: "image/png",
+            label: "Lyrics and Visualizer View on Mobile",
+          },
+        ],
       },
-      screenshots: [
-        {
-          src: "./screenshots/MainUI.png",
-          sizes: "1854x926",
-          type: "image/png",
-          label: "Main Player UI",
-        },
-        {
-          src: "./screenshots/CustomizedUI.png",
-          sizes: "1854x926",
-          type: "image/png",
-          label: "Customized with the Nebula theme and Phosphor icons",
-        },
-        {
-          src: "./screenshots/LyricsandVisualizer.png",
-          sizes: "1854x926",
-          type: "image/png",
-          label: "Lyrics and Visualizer View",
-        },
-        {
-          src: "./screenshots/MainUI-Mobile.png",
-          sizes: "624x927",
-          type: "image/png",
-          label: "Main Player UI on Mobile",
-        },
-        {
-          src: "./screenshots/CustomizedUI-Mobile.png",
-          sizes: "624x927",
-          type: "image/png",
-          label:
-            "Customized with the Nebula theme and Phosphor icons on Mobile",
-        },
-        {
-          src: "./screenshots/LyricsandVisualizer-Mobile.png",
-          sizes: "624x927",
-          type: "image/png",
-          label: "Lyrics and Visualizer View on Mobile",
-        },
-      ],
       pwaAssets: {
-        image: "public/icon-any.png",
-        preset: "minimal-2023",
-        includeHtmlHeadLinks: true,
+        config:true,
       },
       workbox: {
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // 5 MB
@@ -174,25 +172,25 @@ export default defineConfig({
   // Platform-specific server config
   server: isDesktop
     ? {
-        port: 1420,
-        strictPort: true,
-        host: host || false,
-        hmr: host
-          ? {
-              protocol: "ws",
-              host,
-              port: 1421,
-            }
-          : undefined,
-        watch: {
-          // Tell vite to ignore watching `src-tauri`
-          ignored: ["**/src-tauri/**"],
-        },
-      }
-    : {
-        open: true,
-        allowedHosts: true,
+      port: 1420,
+      strictPort: true,
+      host: host || false,
+      hmr: host
+        ? {
+          protocol: "ws",
+          host,
+          port: 1421,
+        }
+        : undefined,
+      watch: {
+        // Tell vite to ignore watching `src-tauri`
+        ignored: ["**/src-tauri/**"],
       },
+    }
+    : {
+      open: true,
+      allowedHosts: true,
+    },
 
   // Prevent vite from obscuring rust errors (desktop only)
   clearScreen: isDesktop ? false : undefined,
