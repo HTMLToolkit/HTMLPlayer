@@ -44,10 +44,20 @@ if (isWeb) {
             files: [
               {
                 name: "audio",
-                accept: ["audio/*", ".mp3", ".wav", ".flac", ".m4a", ".aif", ".aiff", ".ogg", ".opus"]
-              }
-            ]
-          }
+                accept: [
+                  "audio/*",
+                  ".mp3",
+                  ".wav",
+                  ".flac",
+                  ".m4a",
+                  ".aif",
+                  ".aiff",
+                  ".ogg",
+                  ".opus",
+                ],
+              },
+            ],
+          },
         },
         file_handlers: [
           {
@@ -61,65 +71,65 @@ if (isWeb) {
               "audio/ogg": [".ogg"],
               "audio/opus": [".opus"],
             },
-            "icons": [
-              {
-                "src": "public/icon-any.png",
-                "sizes": "1024x1024",
-                "type": "image/png",
-                "purpose": "any"
-              },
-              {
-                "src": "public/icon-maskable.png",
-                "sizes": "1280x1280",
-                "type": "image/png",
-                "purpose": "maskable"
-              }
-            ],
-            launch_type: "single-client",
           },
         ],
-        screenshots: [
+        icons: [
           {
-            src: "./screenshots/MainUI.png",
-            sizes: "1854x926",
+            src: "public/icon-any.png",
+            sizes: "1024x1024",
             type: "image/png",
-            label: "Main Player UI",
+            purpose: "any",
           },
           {
-            src: "./screenshots/CustomizedUI.png",
-            sizes: "1854x926",
+            src: "public/icon-maskable.png",
+            sizes: "1280x1280",
             type: "image/png",
-            label: "Customized with the Nebula theme and Phosphor icons",
-          },
-          {
-            src: "./screenshots/LyricsandVisualizer.png",
-            sizes: "1854x926",
-            type: "image/png",
-            label: "Lyrics and Visualizer View",
-          },
-          {
-            src: "./screenshots/MainUI-Mobile.png",
-            sizes: "624x927",
-            type: "image/png",
-            label: "Main Player UI on Mobile",
-          },
-          {
-            src: "./screenshots/CustomizedUI-Mobile.png",
-            sizes: "624x927",
-            type: "image/png",
-            label:
-              "Customized with the Nebula theme and Phosphor icons on Mobile",
-          },
-          {
-            src: "./screenshots/LyricsandVisualizer-Mobile.png",
-            sizes: "624x927",
-            type: "image/png",
-            label: "Lyrics and Visualizer View on Mobile",
+            purpose: "maskable",
           },
         ],
+        launch_type: "single-client",
       },
+      screenshots: [
+        {
+          src: "./screenshots/MainUI.png",
+          sizes: "1854x926",
+          type: "image/png",
+          label: "Main Player UI",
+        },
+        {
+          src: "./screenshots/CustomizedUI.png",
+          sizes: "1854x926",
+          type: "image/png",
+          label: "Customized with the Nebula theme and Phosphor icons",
+        },
+        {
+          src: "./screenshots/LyricsandVisualizer.png",
+          sizes: "1854x926",
+          type: "image/png",
+          label: "Lyrics and Visualizer View",
+        },
+        {
+          src: "./screenshots/MainUI-Mobile.png",
+          sizes: "624x927",
+          type: "image/png",
+          label: "Main Player UI on Mobile",
+        },
+        {
+          src: "./screenshots/CustomizedUI-Mobile.png",
+          sizes: "624x927",
+          type: "image/png",
+          label:
+            "Customized with the Nebula theme and Phosphor icons on Mobile",
+        },
+        {
+          src: "./screenshots/LyricsandVisualizer-Mobile.png",
+          sizes: "624x927",
+          type: "image/png",
+          label: "Lyrics and Visualizer View on Mobile",
+        },
+      ],
       pwaAssets: {
-        image: "public/icon-1024.png",
+        image: "public/icon-any.png",
         preset: "minimal-2023",
         includeHtmlHeadLinks: true,
       },
@@ -158,31 +168,31 @@ export default defineConfig({
   },
 
   optimizeDeps: {
-    exclude: ['@flo-audio/libflo-audio', '@flo-audio/reflo']
+    exclude: ["@flo-audio/libflo-audio", "@flo-audio/reflo"],
   },
 
   // Platform-specific server config
   server: isDesktop
     ? {
-      port: 1420,
-      strictPort: true,
-      host: host || false,
-      hmr: host
-        ? {
-          protocol: "ws",
-          host,
-          port: 1421,
-        }
-        : undefined,
-      watch: {
-        // Tell vite to ignore watching `src-tauri`
-        ignored: ["**/src-tauri/**"],
-      },
-    }
+        port: 1420,
+        strictPort: true,
+        host: host || false,
+        hmr: host
+          ? {
+              protocol: "ws",
+              host,
+              port: 1421,
+            }
+          : undefined,
+        watch: {
+          // Tell vite to ignore watching `src-tauri`
+          ignored: ["**/src-tauri/**"],
+        },
+      }
     : {
-      open: true,
-      allowedHosts: true,
-    },
+        open: true,
+        allowedHosts: true,
+      },
 
   // Prevent vite from obscuring rust errors (desktop only)
   clearScreen: isDesktop ? false : undefined,
