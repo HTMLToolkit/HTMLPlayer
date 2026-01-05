@@ -73,21 +73,6 @@ if (isWeb) {
             },
           },
         ],
-        icons: [
-          {
-            src: "icon-any.png",
-            sizes: "1024x1024",
-            type: "image/png",
-            purpose: "any",
-          },
-          {
-            src: "icon-maskable.png",
-            sizes: "1280x1280",
-            type: "image/png",
-            purpose: "maskable",
-          },
-        ],
-        launch_type: "single-client",
         screenshots: [
           {
             src: "./screenshots/MainUI.png",
