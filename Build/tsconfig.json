@@ -23,8 +23,7 @@
     "types": [
       "vite",
       "vite/client",
-      "node",
-      "node_modules/@vitejs/plugin-react/dist/index.d.ts"
+      "node"
     ]
   },
   "include": [

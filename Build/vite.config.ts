@@ -1,4 +1,5 @@
 import { defineConfig } from "vite";
+//@ts-ignore
 import react from "@vitejs/plugin-react";
 import { VitePWA } from "vite-plugin-pwa";
 import wasm from "vite-plugin-wasm";
@@ -12,7 +13,7 @@ const isWeb = buildTarget === "web";
 const host = process.env.TAURI_DEV_HOST;
 
 // Conditional plugins based on target
-const plugins = [react(), wasm(), topLevelAwait()];
+const plugins = [react(), wasm()];
 
 // Only add PWA plugin for web builds
 if (isWeb) {
@@ -20,6 +21,16 @@ if (isWeb) {
     VitePWA({
       registerType: "prompt",
       includeAssets: ["robots.txt"],
+
+      strategies: "injectManifest",
+      srcDir: 'src/workers',
+      filename: 'sw.ts',
+      injectRegister: 'script',
+      injectManifest: {
+        maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // 5 MB
+        swSrc: "./src/workers/sw.ts",
+      },
+
       manifest: {
         id: "htmlplayer",
         name: "HTMLPlayer (beta)",
@@ -46,6 +57,7 @@ if (isWeb) {
                 name: "audio",
                 accept: [
                   "audio/*",
+                  ".flo",
                   ".mp3",
                   ".wav",
                   ".flac",
@@ -63,6 +75,7 @@ if (isWeb) {
           {
             action: "/beta/HTMLPlayer/",
             accept: {
+              "application/octet-stream": [".flo"],
               "audio/mpeg": [".mp3"],
               "audio/wav": [".wav"],
               "audio/flac": [".flac"],
@@ -114,10 +127,9 @@ if (isWeb) {
         ],
       },
       pwaAssets: {
-        config:true,
+        config: true,
       },
       workbox: {
-        maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // 5 MB
         runtimeCaching: [
           {
             urlPattern: /.*\.(js|css|ts|tsx|html)$/,
@@ -131,10 +143,11 @@ if (isWeb) {
           },
         ],
       },
-      // Enable PWA in development mode for testing
       devOptions: {
         enabled: true,
         type: "module",
+        navigateFallback: 'index.html',
+        navigateFallbackAllowlist: [/^\/beta\/HTMLPlayer/],
       },
     })
   );
@@ -142,7 +155,8 @@ if (isWeb) {
 
 export default defineConfig({
   root: isDesktop ? "" : "./",
-  base: "./",
+  appType: 'spa',
+  base: "/beta/HTMLPlayer/",
   plugins,
   resolve: {
     alias: {

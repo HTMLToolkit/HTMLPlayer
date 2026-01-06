@@ -840,24 +840,57 @@ export function useShareTarget(
   const hasProcessedRef = useRef(false);
 
   useEffect(() => {
-    // Only process share target data once per page load
     if (hasProcessedRef.current) return;
 
-    const shareResult = handleShareTarget();
-    if (shareResult && shareResult.type !== "none") {
-      hasProcessedRef.current = true;
-      onShareReceived(shareResult);
+    async function processShare() {
+      const urlParams = new URLSearchParams(window.location.search);
+      
+      // Check for files in Cache (sent from Service Worker)
+      if (urlParams.get("share-received") === "true") {
+        try {
+          const cache = await caches.open('incoming-shares');
+          const response = await cache.match('/shared-file');
+          
+          if (response) {
+            const blob = await response.blob();
+            // Try to recover the filename from headers or default to "shared-audio"
+            const filename = response.headers.get('x-file-name') || "shared-audio.mp3";
+            const file = new File([blob], filename, { type: blob.type });
 
-      // Clear share target parameters from URL after processing
-      const url = new URL(window.location.href);
-      const paramsToRemove = ["title", "text", "url"];
-      paramsToRemove.forEach((param) => url.searchParams.delete(param));
+            hasProcessedRef.current = true;
+            onShareReceived({
+              files: [file],
+              type: "files",
+            });
 
-      // Update URL without triggering a page reload
-      window.history.replaceState({}, "", url.toString());
+            // Cleanup
+            await cache.delete('/shared-file');
+            const cleanUrl = new URL(window.location.href);
+            cleanUrl.searchParams.delete("share-received");
+            window.history.replaceState({}, "", cleanUrl.toString());
+            return; // Exit early if we handled files
+          }
+        } catch (e) {
+          console.error("Failed to retrieve shared file from cache", e);
+        }
+      }
+
+      // Fallback to standard Text/URL share handling
+      const shareResult = handleShareTarget();
+      if (shareResult && shareResult.type !== "none") {
+        hasProcessedRef.current = true;
+        onShareReceived(shareResult);
+
+        const url = new URL(window.location.href);
+        ["title", "text", "url"].forEach((p) => url.searchParams.delete(p));
+        window.history.replaceState({}, "", url.toString());
+      }
     }
+
+    processShare();
   }, [onShareReceived]);
 }
+
 export function useFileHandler(
   addSong: (song: Song) => Promise<void>,
   t: any,
