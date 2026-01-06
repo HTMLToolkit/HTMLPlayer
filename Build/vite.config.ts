@@ -1,22 +1,62 @@
 import { defineConfig } from "vite";
+import fs from "fs";
+import path from "path";
+
 //@ts-ignore
 import react from "@vitejs/plugin-react";
 import { VitePWA } from "vite-plugin-pwa";
+import { viteSingleFile } from "vite-plugin-singlefile";
 import wasm from "vite-plugin-wasm";
-import topLevelAwait from "vite-plugin-top-level-await";
 
-// Detect build target: 'web' (default) or 'desktop' (Tauri)
+// Moved from index.html for single file builds
+import enMessages from "./public/locales/en/loading-messages-en.json";
+import frMessages from "./public/locales/fr/loading-messages-fr.json";
+
+
+// Check various env things
+const host = process.env.TAURI_DEV_HOST;
 const buildTarget = process.env.BUILD_TARGET || "web";
+
+const isSingleFile = process.env.SINGLE_FILE === 'true';
 const isDesktop = buildTarget === "desktop";
 const isWeb = buildTarget === "web";
+const isStackBlitz =
+  process.env.STACKBLITZ === 'true' ||
+  !!process.env.SHELL?.includes('jsh') ||
+  !!process.env.VITE_URL?.includes('stackblitz');
 
-const host = process.env.TAURI_DEV_HOST;
+const iconBase64 = isSingleFile
+  ? `data:image/png;base64,${fs.readFileSync(path.resolve(__dirname, 'public/icon-any.png')).toString('base64')}`
+  : null;
 
 // Conditional plugins based on target
-const plugins = [react(), wasm()];
+const plugins = [
+  react(),
+  wasm(),
+  isSingleFile && viteSingleFile({
+    useRecommendedBuildConfig: true,
+    removeViteModuleLoader: true,
+  }),
+  {
+    name: 'html-transform',
+    transformIndexHtml(html) {
+      return html
+        .replace(/__IS_SINGLE_FILE__/g, isSingleFile.toString())
+        .replace(/__INLINED_ICON__/g, JSON.stringify(iconBase64))
+        .replace(/__INLINED_MESSAGES__/g, isSingleFile 
+          ? JSON.stringify({ en: enMessages, fr: frMessages }) 
+          : 'null');
+    },
+  },
+].filter(Boolean);
 
-// Only add PWA plugin for web builds
-if (isWeb) {
+if (!isStackBlitz) {
+  const topLevelAwait = (await import("vite-plugin-top-level-await")).default;
+  plugins.push(topLevelAwait());
+}
+
+// Only add PWA plugin for web builds and also not for single file builds for obvious reasons
+if (isWeb && !isSingleFile) {
   plugins.push(
     VitePWA({
       registerType: "prompt",
@@ -158,12 +198,18 @@ export default defineConfig({
   appType: 'spa',
   base: "/beta/HTMLPlayer/",
   plugins,
+  
   resolve: {
     alias: {
       "@": "/src",
     },
   },
-
+  define: {
+    __ENABLE_PWA_LOGIC__: isWeb && !isSingleFile,
+    __IS_SINGLE_FILE__: isSingleFile,
+    __INLINED_MESSAGES__: isSingleFile ? { en: enMessages, fr: frMessages } : null,
+    __INLINED_ICON__: JSON.stringify(iconBase64),
+  },
   optimizeDeps: {
     exclude: ["@flo-audio/libflo-audio", "@flo-audio/reflo"],
   },
@@ -200,7 +246,7 @@ export default defineConfig({
     emptyOutDir: true,
     // Web builds need chunk splitting for better caching
     // Desktop builds can be simpler since it's all bundled
-    ...(isWeb && {
+    ...(isWeb && !isSingleFile && {
       chunkSizeWarningLimit: 1000, // Increase warning limit to 1000kb
       rollupOptions: {
         output: {
@@ -303,8 +349,32 @@ export default defineConfig({
         },
       },
     }),
+    ...(isSingleFile && {
+      assetsInlineLimit: 100000000, // force all assets to inline
+      chunkSizeWarningLimit: 100000,
+      rollupOptions: {
+        output: {
+          inlineDynamicImports: true,
+          manualChunks: undefined,
+        },
+      },
+    }),
   },
-  worker: {
-    format: "es",
-  },
+  ...(!isSingleFile && {
+    worker: {
+      format: "es",
+
+    },
+  }),
+  ...(isSingleFile && {
+    worker: {
+      format: 'iife',
+      plugins: () => [wasm()], // Futureproofing
+      rollupOptions: {
+        output: {
+          inlineDynamicImports: true,
+        },
+      },
+    },
+  })
 });

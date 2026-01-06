@@ -1,5 +1,7 @@
 # Bugs
 
+- [ ] Add tour to inline
+
 - [ ] Either comment out or implement missing features:
   - [ ] Compact mode
   - [ ] Show Lyrics

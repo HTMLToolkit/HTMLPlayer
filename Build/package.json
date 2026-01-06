@@ -8,6 +8,7 @@
     "dev:web": "cross-env BUILD_TARGET=web vite",
     "dev:desktop": "cross-env BUILD_TARGET=desktop tauri dev",
     "build": "cross-env BUILD_TARGET=web vite build",
+    "build:single": "cross-env SINGLE_FILE=true npm run build:web",
     "build:web": "cross-env BUILD_TARGET=web vite build",
     "build:desktop": "cross-env BUILD_TARGET=desktop tauri build",
     "tauri": "tauri",
@@ -62,6 +63,7 @@
     "react-i18next": "^16.5.0",
     "react-icons": "^5.5.0",
     "sonner": "^2.0.7",
+    "vite-plugin-singlefile": "^2.3.0",
     "zustand": "^5.0.9"
   },
   "devDependencies": {

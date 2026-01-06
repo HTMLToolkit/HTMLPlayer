@@ -14,27 +14,36 @@ import LanguageDetector from "i18next-browser-languagedetector";
 import { languageNames } from "../types/supportedLanguages";
 import { useThemeLoader } from "../helpers/themeLoader";
 import { useIconRegistry } from "../helpers/iconLoader";
+import { bundledResources } from "../helpers/i18nManual";
 
-i18n
-  .use(HttpApi)
+const isSingleFile = __IS_SINGLE_FILE__;
+const i18nInstance = i18n;
+
+// Only use HttpApi if NOT a single file build
+if (!isSingleFile) {
+  i18nInstance.use(HttpApi);
+}
+
+i18nInstance
   .use(LanguageDetector)
   .use(initReactI18next)
   .init({
     fallbackLng: "en",
     debug: true,
     supportedLngs: Object.keys(languageNames), // <-- dynamically from file
-    backend: {
+    resources: isSingleFile ? bundledResources : undefined,
+    backend: !isSingleFile ? {
       loadPath: "./locales/{{lng}}/translation.json",
-    },
+    } : undefined,
     detection: {
-      order: ["queryString", "cookie"],
-      caches: ["cookie"],
+      order: ["queryString", "cookie", "localStorage", "navigator"],
+      caches: ["cookie", "localStorage"],
     },
     interpolation: {
       escapeValue: false,
     },
   });
-
+  
 function LoadingGate({ children }: { children: React.ReactNode }) {
   const { isLoading: themeLoading } = useThemeLoader();
   const { iconsReady } = useIconRegistry();

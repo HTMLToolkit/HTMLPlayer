@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, lazy, Suspense } from "react";
 import { Sidebar } from "../components/Sidebar";
 import { MainContent } from "../components/MainContent";
 import { Player, PlayerRef } from "../components/Player";
@@ -19,7 +19,10 @@ import { useFileHandler, useShareTarget } from "../helpers/filePickerHelper";
 import { importAudioFiles } from "../helpers/importAudioFiles";
 import { HelpGuideProvider } from "../components/HelpGuide";
 import WallpaperRenderer from "../components/Wallpaper";
-import { UpdatePrompt } from "../components/UpdatePrompt";
+
+const UpdatePrompt = __ENABLE_PWA_LOGIC__
+  ? lazy(() => import("../components/UpdatePrompt"))
+  : () => null;
 
 export default function IndexPage() {
   const { t } = useTranslation();
@@ -366,7 +369,11 @@ export default function IndexPage() {
             />
           </div>
         </div>
-        <UpdatePrompt />
+        {__ENABLE_PWA_LOGIC__ && (
+          <Suspense fallback={null}>
+            <UpdatePrompt />
+          </Suspense>
+        )}
       </DraggableProvider>
     </HelpGuideProvider>
   );

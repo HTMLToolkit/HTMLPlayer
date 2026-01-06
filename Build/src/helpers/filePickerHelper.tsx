@@ -16,6 +16,7 @@ import { useTranslation } from "react-i18next";
 import i18n from "i18next";
 import { IconRegistryProvider } from "./iconLoader";
 import { importAudioFiles } from "./importAudioFiles";
+import MetadataWorker from "../workers/metadataWorker.ts?worker&inline";
 
 // Extend Window interface for File Handling API
 declare global {
@@ -573,10 +574,8 @@ export async function extractAudioMetadata(file: File): Promise<AudioMetadata> {
     }
   }
   // Fallback to original (music-metadata) for all other formats
-  const worker = new Worker(
-    new URL("../workers/metadataWorker.ts", import.meta.url),
-    { type: "module" },
-  );
+  const worker = new MetadataWorker();
+
   try {
     const result = await withTimeoutAndRetry(
       new Promise<AudioMetadata>((resolve, reject) => {
