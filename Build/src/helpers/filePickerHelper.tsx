@@ -16,7 +16,6 @@ import { useTranslation } from "react-i18next";
 import i18n from "i18next";
 import { IconRegistryProvider } from "./iconLoader";
 import { importAudioFiles } from "./importAudioFiles";
-import MetadataWorker from "../workers/metadataWorker.ts?worker&inline";
 
 // Extend Window interface for File Handling API
 declare global {
@@ -484,7 +483,7 @@ export async function extractAudioMetadata(file: File): Promise<AudioMetadata> {
   setProcessingState(true);
   
   const ext = file.name.split(".").pop()?.toLowerCase();
-  
+
   // Use flo-specific extraction for .flo files
   if (ext === "flo") {
     try {
@@ -574,7 +573,13 @@ export async function extractAudioMetadata(file: File): Promise<AudioMetadata> {
     }
   }
   // Fallback to original (music-metadata) for all other formats
-  const worker = new MetadataWorker();
+  let MetadataWorkerType: typeof Worker;
+  if ((typeof __IS_SINGLE_FILE__ !== "undefined") && __IS_SINGLE_FILE__) {
+    MetadataWorkerType = (await import("../workers/metadataWorker.ts?worker&inline")).default;
+  } else {
+    MetadataWorkerType = (await import("../workers/metadataWorker.ts?worker")).default;
+  }
+  const worker = new MetadataWorkerType();
 
   try {
     const result = await withTimeoutAndRetry(
