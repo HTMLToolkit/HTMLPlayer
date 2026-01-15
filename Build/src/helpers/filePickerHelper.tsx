@@ -856,9 +856,10 @@ export function useShareTarget(
 
           if (response) {
             const blob = await response.blob();
-            // Try to recover the filename from headers or default to "shared-audio"
-            const filename =
-              response.headers.get("x-file-name") || "shared-audio.mp3";
+            const filenameRaw = response.headers.get("x-file-name");
+            const filename = filenameRaw
+              ? decodeURIComponent(filenameRaw)
+              : "shared-audio.mp3";
             const file = new File([blob], filename, { type: blob.type });
 
             hasProcessedRef.current = true;

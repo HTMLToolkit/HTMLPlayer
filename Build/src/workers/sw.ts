@@ -18,18 +18,46 @@ registerRoute(
     try {
       const formData = await event.request.formData();
       const file = formData.get("audio");
-      if (file) {
+      if (
+        file &&
+        typeof file === "object" &&
+        "name" in file &&
+        typeof file.name === "string"
+      ) {
         const cache = await caches.open("incoming-shares");
-        await cache.put("/shared-file", new Response(file));
+        await cache.put(
+          "/shared-file",
+          new Response(file, {
+            headers: {
+              "x-file-name": encodeURIComponent(
+                file.name || "shared-audio.mp3"
+              ),
+              "content-type": file.type || "application/octet-stream",
+            },
+          })
+        );
+      } else if (file) {
+        // Fallback if not a File object
+        const cache = await caches.open("incoming-shares");
+        await cache.put(
+          "/shared-file",
+          new Response(file, {
+            headers: {
+              "x-file-name": "shared-audio.mp3",
+              "content-type": file.type || "application/octet-stream",
+            },
+          })
+        );
       }
       const redirectUrl = new URL(
         "/beta/HTMLPlayer/?share-received=true",
         self.location.origin
       );
       return Response.redirect(redirectUrl.href, 303);
-    } catch (e) {
-      // always return a response even on error
-      return new Response("Failed to process share", { status: 400 });
+    } catch (e: any) {
+      return new Response("Failed to process share: " + (e?.message || e), {
+        status: 400,
+      });
     }
   },
   "POST"
