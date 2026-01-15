@@ -481,20 +481,20 @@ function processFiles(files: File[]): AudioFile[] {
 // ---------------------
 export async function extractAudioMetadata(file: File): Promise<AudioMetadata> {
   setProcessingState(true);
-  
+
   const ext = file.name.split(".").pop()?.toLowerCase();
 
   // Use flo-specific extraction for .flo files
   if (ext === "flo") {
     try {
       const arrayBuffer = await file.arrayBuffer();
-      const { 
-        getFloMetadata, 
-        getFloCoverArt, 
-        getFloSyncedLyrics, 
-        getFloInfo 
+      const {
+        getFloMetadata,
+        getFloCoverArt,
+        getFloSyncedLyrics,
+        getFloInfo
       } = await import("./floProcessor");
-      
+
       // Get all flo data in parallel
       const [meta, cover, lyrics, info] = await Promise.all([
         getFloMetadata(arrayBuffer),
@@ -725,7 +725,7 @@ export function setupFileHandler(
     typeof window.launchQueue.setConsumer !== "function"
   ) {
     console.warn("File Handling API not supported in this browser");
-    return () => {}; // Return empty cleanup function
+    return () => { }; // Return empty cleanup function
   }
 
   const consumer = async (launchParams: any) => {
@@ -790,7 +790,7 @@ export function setupFileHandler(
       typeof window.launchQueue.setConsumer === "function"
     ) {
       try {
-        window.launchQueue.setConsumer(() => {});
+        window.launchQueue.setConsumer(() => { });
       } catch (e) {
         console.warn("Could not clear file handler consumer:", e);
       }
@@ -810,21 +810,17 @@ export interface ShareTargetResult {
 }
 
 export function handleShareTarget(): ShareTargetResult | null {
-  // Share targets can send data via URL parameters or launch queue
   if (typeof window === "undefined") {
     return null;
   }
 
-  // Check URL parameters for share data
   const urlParams = new URLSearchParams(window.location.search);
   const title = urlParams.get("title") || undefined;
   const text = urlParams.get("text") || undefined;
   const url = urlParams.get("url") || undefined;
 
-  // Determine what type of share this is
-  // Files would typically come through launch queue or POST request
-  if (title || text) {
-    // Text-based share - could be song info to search for
+  if (title || text || url) {
+    // Handle text sharing
     return {
       files: [],
       title,
@@ -834,12 +830,12 @@ export function handleShareTarget(): ShareTargetResult | null {
     };
   }
 
-  return null;
+  // Handle files shared via Cache API
+  return null; // Will be handled in useShareTarget
 }
 
-// Hook to handle share targets and file shares
 export function useShareTarget(
-  onShareReceived: (result: ShareTargetResult) => void,
+  onShareReceived: (result: ShareTargetResult) => void
 ) {
   const hasProcessedRef = useRef(false);
 
@@ -848,46 +844,47 @@ export function useShareTarget(
 
     async function processShare() {
       const urlParams = new URLSearchParams(window.location.search);
-      
-      // Check for files in Cache (sent from Service Worker)
+
       if (urlParams.get("share-received") === "true") {
         try {
-          const cache = await caches.open('incoming-shares');
-          const response = await cache.match('/shared-file');
-          
-          if (response) {
-            const blob = await response.blob();
-            // Try to recover the filename from headers or default to "shared-audio"
-            const filename = response.headers.get('x-file-name') || "shared-audio.mp3";
-            const file = new File([blob], filename, { type: blob.type });
+          const cache = await caches.open("incoming-shares");
+          const keys = await cache.keys();
 
+          const files: File[] = [];
+          for (const key of keys) {
+            if (key.url.includes("/shared-file-")) {
+              const response = await cache.match(key);
+              const blob = await response?.blob();
+              const fileName =
+                response?.headers.get("x-file-name") || "unknown-file";
+              files.push(new File([blob!], fileName, { type: blob?.type }));
+            }
+          }
+
+          if (files.length > 0) {
             hasProcessedRef.current = true;
-            onShareReceived({
-              files: [file],
-              type: "files",
-            });
+            onShareReceived({ files, type: "files" });
 
-            // Cleanup
-            await cache.delete('/shared-file');
+            // Cleanup the cache after processing
+            for (const key of keys) {
+              await cache.delete(key);
+            }
+
             const cleanUrl = new URL(window.location.href);
             cleanUrl.searchParams.delete("share-received");
             window.history.replaceState({}, "", cleanUrl.toString());
-            return; // Exit early if we handled files
+            return;
           }
-        } catch (e) {
-          console.error("Failed to retrieve shared file from cache", e);
+        } catch (error) {
+          console.error("Failed to retrieve shared files:", error);
         }
       }
 
-      // Fallback to standard Text/URL share handling
+      // Fallback to text sharing (e.g., query parameters)
       const shareResult = handleShareTarget();
-      if (shareResult && shareResult.type !== "none") {
+      if (shareResult) {
         hasProcessedRef.current = true;
         onShareReceived(shareResult);
-
-        const url = new URL(window.location.href);
-        ["title", "text", "url"].forEach((p) => url.searchParams.delete(p));
-        window.history.replaceState({}, "", url.toString());
       }
     }
 
