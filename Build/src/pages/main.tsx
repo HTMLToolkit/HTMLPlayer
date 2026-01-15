@@ -32,9 +32,11 @@ i18nInstance
     debug: true,
     supportedLngs: Object.keys(languageNames), // <-- dynamically from file
     resources: isSingleFile ? bundledResources : undefined,
-    backend: !isSingleFile ? {
-      loadPath: "./locales/{{lng}}/translation.json",
-    } : undefined,
+    backend: !isSingleFile
+      ? {
+          loadPath: "./locales/{{lng}}/translation.json",
+        }
+      : undefined,
     detection: {
       order: ["queryString", "cookie", "localStorage", "navigator"],
       caches: ["cookie", "localStorage"],
@@ -43,7 +45,7 @@ i18nInstance
       escapeValue: false,
     },
   });
-  
+
 function LoadingGate({ children }: { children: React.ReactNode }) {
   const { isLoading: themeLoading } = useThemeLoader();
   const { iconsReady } = useIconRegistry();

@@ -26,16 +26,22 @@ registerRoute(
       for (const [key, value] of formData.entries()) {
         if (value instanceof File) {
           files.push({ file: value, key });
-          await cache.put(`/shared-file-${value.name}`, new Response(value, {
-            headers: { "x-file-name": value.name, "content-type": value.type },
-          }));
+          await cache.put(
+            `/shared-file-${value.name}`,
+            new Response(value, {
+              headers: {
+                "x-file-name": value.name,
+                "content-type": value.type,
+              },
+            }),
+          );
         }
       }
 
       // Redirect to the app with an indicator for file sharing
       const redirectUrl = new URL(
         `/beta/HTMLPlayer/?share-received=true&files=${files.length}`,
-        self.location.origin
+        self.location.origin,
       );
       return Response.redirect(redirectUrl.href, 303);
     } catch (e) {
@@ -43,5 +49,5 @@ registerRoute(
       return new Response("Failed to process file share", { status: 400 });
     }
   },
-  "POST"
+  "POST",
 );

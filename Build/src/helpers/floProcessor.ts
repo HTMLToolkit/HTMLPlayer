@@ -16,26 +16,26 @@ export async function decodeFloToAudioBuffer(
   audioContext: AudioContext,
 ): Promise<AudioBuffer> {
   await ensureFloInitialized();
-  
+
   const uint8Flo = new Uint8Array(floData);
-  
+
   // Decode flo to interleaved Float32Array samples
   const samples = flo.decode(uint8Flo);
-  
+
   // Get file info for audio properties
   const fileInfo = flo.info(uint8Flo);
   const { channels, sample_rate } = fileInfo;
-  
+
   // Calculate number of frames
   const frameCount = samples.length / channels;
-  
+
   // Create AudioBuffer
   const audioBuffer = audioContext.createBuffer(
     channels,
     frameCount,
-    sample_rate
+    sample_rate,
   );
-  
+
   // Deinterleave samples into separate channels
   for (let ch = 0; ch < channels; ch++) {
     const channelData = audioBuffer.getChannelData(ch);
@@ -43,7 +43,7 @@ export async function decodeFloToAudioBuffer(
       channelData[i] = samples[i * channels + ch];
     }
   }
-  
+
   return audioBuffer;
 }
 
@@ -69,9 +69,7 @@ export async function validateFlo(floData: ArrayBuffer): Promise<boolean> {
 }
 
 // Extract metadata as JS object (returns null if no metadata)
-export async function getFloMetadata(
-  floData: ArrayBuffer,
-): Promise<{
+export async function getFloMetadata(floData: ArrayBuffer): Promise<{
   title?: string;
   artist?: string;
   album?: string;

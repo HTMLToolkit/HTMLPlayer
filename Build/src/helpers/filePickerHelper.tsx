@@ -488,12 +488,8 @@ export async function extractAudioMetadata(file: File): Promise<AudioMetadata> {
   if (ext === "flo") {
     try {
       const arrayBuffer = await file.arrayBuffer();
-      const {
-        getFloMetadata,
-        getFloCoverArt,
-        getFloSyncedLyrics,
-        getFloInfo
-      } = await import("./floProcessor");
+      const { getFloMetadata, getFloCoverArt, getFloSyncedLyrics, getFloInfo } =
+        await import("./floProcessor");
 
       // Get all flo data in parallel
       const [meta, cover, lyrics, info] = await Promise.all([
@@ -574,10 +570,13 @@ export async function extractAudioMetadata(file: File): Promise<AudioMetadata> {
   }
   // Fallback to original (music-metadata) for all other formats
   let MetadataWorkerType: typeof Worker;
-  if ((typeof __IS_SINGLE_FILE__ !== "undefined") && __IS_SINGLE_FILE__) {
-    MetadataWorkerType = (await import("../workers/metadataWorker.ts?worker&inline")).default;
+  if (typeof __IS_SINGLE_FILE__ !== "undefined" && __IS_SINGLE_FILE__) {
+    MetadataWorkerType = (
+      await import("../workers/metadataWorker.ts?worker&inline")
+    ).default;
   } else {
-    MetadataWorkerType = (await import("../workers/metadataWorker.ts?worker")).default;
+    MetadataWorkerType = (await import("../workers/metadataWorker.ts?worker"))
+      .default;
   }
   const worker = new MetadataWorkerType();
 
@@ -725,7 +724,7 @@ export function setupFileHandler(
     typeof window.launchQueue.setConsumer !== "function"
   ) {
     console.warn("File Handling API not supported in this browser");
-    return () => { }; // Return empty cleanup function
+    return () => {}; // Return empty cleanup function
   }
 
   const consumer = async (launchParams: any) => {
@@ -790,7 +789,7 @@ export function setupFileHandler(
       typeof window.launchQueue.setConsumer === "function"
     ) {
       try {
-        window.launchQueue.setConsumer(() => { });
+        window.launchQueue.setConsumer(() => {});
       } catch (e) {
         console.warn("Could not clear file handler consumer:", e);
       }
@@ -835,7 +834,7 @@ export function handleShareTarget(): ShareTargetResult | null {
 }
 
 export function useShareTarget(
-  onShareReceived: (result: ShareTargetResult) => void
+  onShareReceived: (result: ShareTargetResult) => void,
 ) {
   const hasProcessedRef = useRef(false);
 
@@ -862,12 +861,35 @@ export function useShareTarget(
           }
 
           if (files.length > 0) {
-            hasProcessedRef.current = true;
-            onShareReceived({ files, type: "files" });
+            // Filter out already processed files
+            const processedFiles = JSON.parse(
+              sessionStorage.getItem("processedFiles") || "[]",
+            );
+            const newFiles = files.filter((file) => {
+              const fileId = `${file.name}-${file.size}-${file.lastModified}`;
+              return !processedFiles.includes(fileId);
+            });
 
-            // Cleanup the cache after processing
-            for (const key of keys) {
-              await cache.delete(key);
+            if (newFiles.length > 0) {
+              hasProcessedRef.current = true;
+              onShareReceived({ files: newFiles, type: "files" });
+
+              // Mark files as processed
+              const updatedProcessed = [
+                ...processedFiles,
+                ...newFiles.map(
+                  (file) => `${file.name}-${file.size}-${file.lastModified}`,
+                ),
+              ];
+              sessionStorage.setItem(
+                "processedFiles",
+                JSON.stringify(updatedProcessed),
+              );
+
+              // Cleanup the cache after processing
+              for (const key of keys) {
+                await cache.delete(key);
+              }
             }
 
             const cleanUrl = new URL(window.location.href);
@@ -880,7 +902,7 @@ export function useShareTarget(
         }
       }
 
-      // Fallback to text sharing (e.g., query parameters)
+      // Fallback to text sharing
       const shareResult = handleShareTarget();
       if (shareResult) {
         hasProcessedRef.current = true;

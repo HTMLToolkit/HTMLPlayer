@@ -401,13 +401,13 @@ export const useMusicPlayer = () => {
               (p: any) => p.id === "all-songs",
             )
               ? validLibrary.playlists.map((p: any) =>
-                p.id === "all-songs"
-                  ? {
-                    ...p,
-                    songs: preparedSongs, // Reuse already prepared songs
-                  }
-                  : p,
-              )
+                  p.id === "all-songs"
+                    ? {
+                        ...p,
+                        songs: preparedSongs, // Reuse already prepared songs
+                      }
+                    : p,
+                )
               : [allSongsPlaylist, ...validLibrary.playlists],
           };
 
@@ -827,16 +827,19 @@ export const useMusicPlayer = () => {
         playerStateRef.current.currentSong &&
         playerStateRef.current.currentSong.id !== song.id
       ) {
-        updatePlayHistory(playHistoryRef, playerStateRef.current.currentSong.id);
+        updatePlayHistory(
+          playHistoryRef,
+          playerStateRef.current.currentSong.id,
+        );
       }
 
       // Check if this is a pre-decoded WAV (Safari path)
-      const isFloWav = song.mimeType === "audio/wav" && song.encoding?.codec === "flo";
+      const isFloWav =
+        song.mimeType === "audio/wav" && song.encoding?.codec === "flo";
 
       // Check if this is pre-decoded PCM (non-Safari path)
       const isFloPcm =
-        song.mimeType === "audio/pcm" ||
-        song.encoding?.codec === "pcm-float32";
+        song.mimeType === "audio/pcm" || song.encoding?.codec === "pcm-float32";
 
       // Check if this is original flo
       const isFloOriginal =
@@ -906,7 +909,7 @@ export const useMusicPlayer = () => {
           if (floBufferSourceRef.current) {
             try {
               floBufferSourceRef.current.stop();
-            } catch { }
+            } catch {}
             floBufferSourceRef.current.disconnect();
             floBufferSourceRef.current = null;
           }
@@ -917,7 +920,11 @@ export const useMusicPlayer = () => {
           const pcmData = new Float32Array(pcmBuffer);
           const frameCount = pcmData.length / channels;
 
-          const audioBuffer = ctx.createBuffer(channels, frameCount, sampleRate);
+          const audioBuffer = ctx.createBuffer(
+            channels,
+            frameCount,
+            sampleRate,
+          );
 
           // Deinterleave
           for (let ch = 0; ch < channels; ch++) {
@@ -989,7 +996,8 @@ export const useMusicPlayer = () => {
           }
 
           // Decode flo to AudioBuffer
-          const { decodeFloToAudioBuffer } = await import("../helpers/floProcessor");
+          const { decodeFloToAudioBuffer } =
+            await import("../helpers/floProcessor");
           if (!audioContextRef.current) setupAudioContext();
           const ctx = audioContextRef.current;
           if (!ctx) throw new Error("AudioContext not available");
@@ -1000,7 +1008,7 @@ export const useMusicPlayer = () => {
           if (floBufferSourceRef.current) {
             try {
               floBufferSourceRef.current.stop();
-            } catch { }
+            } catch {}
             floBufferSourceRef.current.disconnect();
             floBufferSourceRef.current = null;
           }
@@ -1505,7 +1513,7 @@ export const useMusicPlayer = () => {
         // Pause: stop source, record pausedAt
         try {
           floBufferSourceRef.current?.stop();
-        } catch { }
+        } catch {}
         floPausedAtRef.current = ctx.currentTime - floStartTimeRef.current;
         floIsPlayingRef.current = false;
         setPlayerState((prev) => ({ ...prev, isPlaying: false }));
@@ -1738,7 +1746,7 @@ export const useMusicPlayer = () => {
       if (floBufferSourceRef.current) {
         try {
           floBufferSourceRef.current.stop();
-        } catch { }
+        } catch {}
         floBufferSourceRef.current.disconnect();
       }
       // Create new source
@@ -1841,7 +1849,12 @@ export const useMusicPlayer = () => {
           setLibrary((prev) => {
             const newSongs = prev.songs.map((s) =>
               s.id === song.id
-                ? { ...s, hasStoredAudio: true, url: `indexeddb://${song.id}`, mimeType }
+                ? {
+                    ...s,
+                    hasStoredAudio: true,
+                    url: `indexeddb://${song.id}`,
+                    mimeType,
+                  }
                 : s,
             );
             return {

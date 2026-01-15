@@ -44,19 +44,22 @@ export default function IndexPage() {
   useShareTarget((result) => {
     if (result.files.length > 0) {
       toast.success(
-        t("shareTarget.filesReceived", { count: result.files.length })
+        t("shareTarget.filesReceived", { count: result.files.length }),
       );
       importAudioFiles(result.files, musicPlayerHook.addSong, t);
     }
-  
-    if (result.type === "search" && (result.title || result.text || result.url)) {
+
+    if (
+      result.type === "search" &&
+      (result.title || result.text || result.url)
+    ) {
       const sharedContent = result.title || result.text || result.url;
       if (sharedContent) {
         musicPlayerHook.setSearchQuery(sharedContent);
         toast.info(t("shareTarget.searchQuery", { query: sharedContent }));
         setTimeout(() => {
           const searchInput = document.querySelector(
-            'input[type="search"], input[placeholder*="search" i]'
+            'input[type="search"], input[placeholder*="search" i]',
           ) as HTMLInputElement;
           if (searchInput) {
             searchInput.focus();
