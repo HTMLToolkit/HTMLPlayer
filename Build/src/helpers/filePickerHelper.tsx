@@ -834,9 +834,10 @@ export function handleShareTarget(): ShareTargetResult | null {
   return null; // Will be handled in useShareTarget
 }
 
-export function useShareTarget(onShareReceived: (result: ShareTargetResult) => void) {
+export function useShareTarget(
+  onShareReceived: (result: ShareTargetResult) => void
+) {
   const hasProcessedRef = useRef(false);
-  const processedFilesRef = useRef<Set<string>>(new Set()); // Track processed file IDs
 
   useEffect(() => {
     if (hasProcessedRef.current) return;
@@ -854,14 +855,9 @@ export function useShareTarget(onShareReceived: (result: ShareTargetResult) => v
             if (key.url.includes("/shared-file-")) {
               const response = await cache.match(key);
               const blob = await response?.blob();
-              const fileName = response?.headers.get("x-file-name") || "unknown-file";
-
-              // Generate a unique ID for each file (name + size + lastModified)
-              const id = `${fileName}-${blob?.size}`;
-              if (!processedFilesRef.current.has(id)) {
-                processedFilesRef.current.add(id); // Mark as processed
-                files.push(new File([blob!], fileName, { type: blob?.type }));
-              }
+              const fileName =
+                response?.headers.get("x-file-name") || "unknown-file";
+              files.push(new File([blob!], fileName, { type: blob?.type }));
             }
           }
 
@@ -884,6 +880,7 @@ export function useShareTarget(onShareReceived: (result: ShareTargetResult) => v
         }
       }
 
+      // Fallback to text sharing (e.g., query parameters)
       const shareResult = handleShareTarget();
       if (shareResult) {
         hasProcessedRef.current = true;
