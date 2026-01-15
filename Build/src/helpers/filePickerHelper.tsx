@@ -24,7 +24,7 @@ declare global {
       setConsumer: (
         consumer: (launchParams: {
           files: FileSystemFileHandle[] | File[];
-        }) => void
+        }) => void,
       ) => void;
     };
   }
@@ -71,7 +71,7 @@ export interface GaplessInfo {
  */
 async function compressAlbumArt(
   base64: string,
-  maxSize = 200
+  maxSize = 200,
 ): Promise<string> {
   // Check if it's an animated format
   const isAnimatedFormat =
@@ -119,7 +119,7 @@ async function compressAlbumArt(
       const compressed = canvas.toDataURL("image/jpeg", 0.7);
 
       console.log(
-        `Album art compressed: ${(base64.length / 1024).toFixed(1)}KB → ${(compressed.length / 1024).toFixed(1)}KB`
+        `Album art compressed: ${(base64.length / 1024).toFixed(1)}KB → ${(compressed.length / 1024).toFixed(1)}KB`,
       );
 
       // Clean up the canvas to free memory
@@ -293,7 +293,7 @@ async function withTimeoutAndRetry<T>(
   promise: Promise<T>,
   timeoutMs: number,
   retries: number,
-  errorMessage: string
+  errorMessage: string,
 ): Promise<T> {
   let lastError: Error | null = null;
   for (let attempt = 1; attempt <= retries; attempt++) {
@@ -301,7 +301,7 @@ async function withTimeoutAndRetry<T>(
       const timeoutPromise = new Promise<T>((_, reject) => {
         setTimeout(
           () => reject(new Error(`Timeout: ${errorMessage}`)),
-          timeoutMs
+          timeoutMs,
         );
       });
       return await Promise.race([promise, timeoutPromise]);
@@ -339,12 +339,12 @@ export function pickAudioFiles(): Promise<AudioFile[]> {
                 "audio/*",
               ],
             },
-          })
+          }),
       );
 
       const [open, setOpen] = useState(true); // modal open state
       const [theme, setTheme] = useState<"light" | "dark">(
-        document.documentElement.classList.contains("dark") ? "dark" : "light"
+        document.documentElement.classList.contains("dark") ? "dark" : "light",
       );
 
       // Watch for theme changes
@@ -466,7 +466,7 @@ function processFiles(files: File[]): AudioFile[] {
       if (canPlay !== "probably" && canPlay !== "maybe") {
         // TODO: i18n-ize
         toast.error(
-          `Skipping unsupported audio format by browser: ${file.name} (${file.type})`
+          `Skipping unsupported audio format by browser: ${file.name} (${file.type})`,
         );
         continue;
       }
@@ -622,7 +622,7 @@ export async function extractAudioMetadata(file: File): Promise<AudioMetadata> {
       }),
       15000,
       3,
-      `Metadata extraction for ${file.name}`
+      `Metadata extraction for ${file.name}`,
     );
     return result;
   } catch (e) {
@@ -641,7 +641,7 @@ export async function extractAudioMetadata(file: File): Promise<AudioMetadata> {
         parseBlob(file, { skipCovers: false, duration: true }),
         15000,
         3,
-        `Fallback metadata parsing for ${file.name}`
+        `Fallback metadata parsing for ${file.name}`,
       );
 
       if (metadata.common) {
@@ -716,7 +716,7 @@ export interface FileHandlerResult {
 }
 
 export function setupFileHandler(
-  onFilesReceived: (result: FileHandlerResult) => void
+  onFilesReceived: (result: FileHandlerResult) => void,
 ): () => void {
   if (
     !("launchQueue" in window) ||
@@ -750,7 +750,7 @@ export function setupFileHandler(
 
         // Check sessionStorage for processed files
         const processedFiles = JSON.parse(
-          sessionStorage.getItem("processedFiles") || "[]"
+          sessionStorage.getItem("processedFiles") || "[]",
         );
         if (processedFiles.includes(fileId)) {
           console.log("Skipping duplicate file:", file.name);
@@ -763,7 +763,7 @@ export function setupFileHandler(
           processedFiles.push(fileId);
           sessionStorage.setItem(
             "processedFiles",
-            JSON.stringify(processedFiles)
+            JSON.stringify(processedFiles),
           );
           successCount++;
         } else {
@@ -808,6 +808,32 @@ export interface ShareTargetResult {
   type: "files" | "search" | "none";
 }
 
+const SHARE_HANDLED_KEY = "last-shared-files";
+
+// Helper functions for duplicate tracking
+function getHandledShares(): Set<string> {
+  try {
+    return new Set(
+      JSON.parse(sessionStorage.getItem(SHARE_HANDLED_KEY) || "[]"),
+    );
+  } catch {
+    return new Set();
+  }
+}
+
+function markHandled(files: File[]) {
+  const handled = getHandledShares();
+  files.forEach((f) => handled.add(`${f.name}:${f.size}`));
+  sessionStorage.setItem(
+    SHARE_HANDLED_KEY,
+    JSON.stringify(Array.from(handled)),
+  );
+}
+
+export function clearHandledShares() {
+  sessionStorage.removeItem(SHARE_HANDLED_KEY);
+}
+
 export function handleShareTarget(): ShareTargetResult | null {
   // Share targets can send data via URL parameters or launch queue
   if (typeof window === "undefined") {
@@ -838,7 +864,7 @@ export function handleShareTarget(): ShareTargetResult | null {
 
 // Hook to handle share targets and file shares
 export function useShareTarget(
-  onShareReceived: (result: ShareTargetResult) => void
+  onShareReceived: (result: ShareTargetResult) => void,
 ) {
   const hasProcessedRef = useRef(false);
 
@@ -848,32 +874,48 @@ export function useShareTarget(
     async function processShare() {
       const urlParams = new URLSearchParams(window.location.search);
 
-      // Check for files in Cache (sent from Service Worker)
+      // Multi-file support: attempt to load from cache with indexes
       if (urlParams.get("share-received") === "true") {
         try {
           const cache = await caches.open("incoming-shares");
-          const response = await cache.match("/shared-file");
-
-          if (response) {
+          const files: File[] = [];
+          // read /shared-file, /shared-file-1, /shared-file-2, etc
+          let i = 0,
+            foundAny = false;
+          while (true) {
+            const key = i === 0 ? "/shared-file" : `/shared-file-${i}`;
+            const response = await cache.match(key);
+            if (!response) break;
             const blob = await response.blob();
             const filenameRaw = response.headers.get("x-file-name");
             const filename = filenameRaw
               ? decodeURIComponent(filenameRaw)
-              : "shared-audio.mp3";
-            const file = new File([blob], filename, { type: blob.type });
+              : `shared-audio${i ? "-" + i : ""}.mp3`;
+            files.push(new File([blob], filename, { type: blob.type }));
+            await cache.delete(key);
+            foundAny = true;
+            i++;
+          }
+
+          if (foundAny) {
+            const handled = getHandledShares();
+            const newFiles = files.filter(
+              (f) => !handled.has(`${f.name}:${f.size}`),
+            );
+            if (newFiles.length === 0) {
+              // all were previously handled
+              return;
+            }
+            markHandled(newFiles);
 
             hasProcessedRef.current = true;
-            onShareReceived({
-              files: [file],
-              type: "files",
-            });
+            onShareReceived({ files: newFiles, type: "files" });
 
-            // Cleanup
-            await cache.delete("/shared-file");
+            // cleanup share-received param
             const cleanUrl = new URL(window.location.href);
             cleanUrl.searchParams.delete("share-received");
             window.history.replaceState({}, "", cleanUrl.toString());
-            return; // Exit early if we handled files
+            return;
           }
         } catch (e) {
           console.error("Failed to retrieve shared file from cache", e);
@@ -899,7 +941,7 @@ export function useShareTarget(
 export function useFileHandler(
   addSong: (song: Song) => Promise<void>,
   t: any,
-  isInitialized?: boolean
+  isInitialized?: boolean,
 ) {
   const [isSupported, setIsSupported] = useState(false);
   const processedFilesRef = useRef(new Set<string>());
@@ -922,7 +964,7 @@ export function useFileHandler(
         // If library is not initialized yet, queue the files
         if (isInitialized === false) {
           console.log(
-            "Library not initialized, queuing files for later processing"
+            "Library not initialized, queuing files for later processing",
           );
           pendingFilesRef.current.push(...result.files);
           return;
@@ -930,7 +972,7 @@ export function useFileHandler(
 
         hasProcessedFilesRef.current = true;
         toast.success(
-          t("fileHandler.filesReceived", { count: result.successCount })
+          t("fileHandler.filesReceived", { count: result.successCount }),
         );
         await importAudioFiles(result.files, addSong, t);
         // Clear processed files after successful import to allow re-importing the same files
@@ -938,7 +980,7 @@ export function useFileHandler(
       }
       if (result.errorCount > 0) {
         toast.error(
-          t("fileHandler.filesSkipped", { count: result.errorCount })
+          t("fileHandler.filesSkipped", { count: result.errorCount }),
         );
       }
     });
@@ -959,13 +1001,13 @@ export function useFileHandler(
           hasProcessedFilesRef.current = true;
           processedFilesRef.current.clear();
           toast.success(
-            t("fileHandler.filesReceived", { count: filesToProcess.length })
+            t("fileHandler.filesReceived", { count: filesToProcess.length }),
           );
         })
         .catch((error) => {
           console.error("Failed to process queued files:", error);
           toast.error(
-            t("filePicker.failedImport", { count: filesToProcess.length })
+            t("filePicker.failedImport", { count: filesToProcess.length }),
           );
         });
     }

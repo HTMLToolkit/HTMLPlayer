@@ -19,6 +19,7 @@ import { useFileHandler, useShareTarget } from "../helpers/filePickerHelper";
 import { importAudioFiles } from "../helpers/importAudioFiles";
 import { HelpGuideProvider } from "../components/HelpGuide";
 import WallpaperRenderer from "../components/Wallpaper";
+import { clearHandledShares } from "../helpers/filePickerHelper"; // new import
 
 const UpdatePrompt = __ENABLE_PWA_LOGIC__
   ? lazy(() => import("../components/UpdatePrompt"))
@@ -37,16 +38,19 @@ export default function IndexPage() {
   const { isSupported: fileHandlerSupported } = useFileHandler(
     musicPlayerHook.addSong,
     t,
-    musicPlayerHook.isInitialized
+    musicPlayerHook.isInitialized,
   );
 
   // Initialize share target handler
   useShareTarget((result) => {
     if (result.files.length > 0) {
       toast.success(
-        t("shareTarget.filesReceived", { count: result.files.length })
+        t("shareTarget.filesReceived", { count: result.files.length }),
       );
-      importAudioFiles(result.files, musicPlayerHook.addSong, t);
+      importAudioFiles(result.files, musicPlayerHook.addSong, t).then(() => {
+        // Clear handled shares after import completes
+        clearHandledShares();
+      });
     }
     if (result.title || result.text || result.url) {
       const sharedContent = result.title || result.text || result.url;
@@ -58,7 +62,7 @@ export default function IndexPage() {
         // Focus search input after a short delay to ensure UI is ready
         setTimeout(() => {
           const searchInput = document.querySelector(
-            'input[type="search"], input[placeholder*="search" i]'
+            'input[type="search"], input[placeholder*="search" i]',
           ) as HTMLInputElement;
           if (searchInput) {
             searchInput.focus();
@@ -84,7 +88,7 @@ export default function IndexPage() {
       const song = musicPlayerHook.library.songs.find((s) => s.id === songId);
       const findPlaylistById = (
         items: (Playlist | PlaylistFolder)[],
-        id: string
+        id: string,
       ): Playlist | null => {
         for (const item of items) {
           if (item.id === id && "songs" in item) {
@@ -99,7 +103,7 @@ export default function IndexPage() {
       };
       const targetPlaylist = findPlaylistById(
         musicPlayerHook.library.playlists,
-        targetPlaylistId
+        targetPlaylistId,
       );
 
       // Check if song is already in the playlist
@@ -109,7 +113,7 @@ export default function IndexPage() {
             t("songAlreadyInPlaylist", {
               song: song.title,
               playlist: targetPlaylist.name,
-            })
+            }),
           );
         }
         return;
@@ -127,7 +131,7 @@ export default function IndexPage() {
           }),
           {
             duration: 3000,
-          }
+          },
         );
       }
       return;
@@ -166,7 +170,7 @@ export default function IndexPage() {
       const findParentFolder = (
         items: (Playlist | PlaylistFolder)[],
         targetId: string,
-        parentId: string | null = null
+        parentId: string | null = null,
       ): string | null | undefined => {
         for (const item of items) {
           if (item.id === targetId) {
@@ -182,7 +186,7 @@ export default function IndexPage() {
 
       const targetParentFolderId = findParentFolder(
         musicPlayerHook.library.playlists,
-        targetPlaylistId
+        targetPlaylistId,
       );
       const draggedPlaylist = dragItem.data;
 
@@ -190,13 +194,13 @@ export default function IndexPage() {
       musicPlayerHook.moveToFolder(
         playlistId,
         targetParentFolderId ?? null,
-        targetPlaylistId
+        targetPlaylistId,
       );
 
       toast.success(
         t("playlist.reordered", {
           item: draggedPlaylist?.name || "Playlist",
-        }) || `Moved "${draggedPlaylist?.name || "Playlist"}" playlist`
+        }) || `Moved "${draggedPlaylist?.name || "Playlist"}" playlist`,
       );
       return;
     }
@@ -211,7 +215,7 @@ export default function IndexPage() {
         t("playlist.movedToFolder", {
           item: dragItem.data?.name || "Playlist",
           folder: dropZone.data?.name || "Folder",
-        })
+        }),
       );
       return;
     }
@@ -230,7 +234,7 @@ export default function IndexPage() {
       const findParentFolder = (
         items: (Playlist | PlaylistFolder)[],
         targetId: string,
-        parentId: string | null = null
+        parentId: string | null = null,
       ): string | null | undefined => {
         for (const item of items) {
           if (item.id === targetId) {
@@ -246,20 +250,20 @@ export default function IndexPage() {
 
       const targetParentFolderId = findParentFolder(
         musicPlayerHook.library.playlists,
-        targetFolderId
+        targetFolderId,
       );
 
       // Move the folder to be before the target folder, in the same parent folder
       musicPlayerHook.moveToFolder(
         folderId,
         targetParentFolderId ?? null,
-        targetFolderId
+        targetFolderId,
       );
 
       toast.success(
         t("playlist.reordered", {
           item: dragItem.data?.name || "Folder",
-        }) || `Reordered "${dragItem.data?.name || "Folder"}" folder`
+        }) || `Reordered "${dragItem.data?.name || "Folder"}" folder`,
       );
       return;
     }
@@ -285,7 +289,7 @@ export default function IndexPage() {
     onSearch: () => {
       // Focus search input if it exists
       const searchInput = document.querySelector(
-        'input[type="search"], input[placeholder*="search" i]'
+        'input[type="search"], input[placeholder*="search" i]',
       ) as HTMLInputElement;
       if (searchInput) {
         searchInput.focus();

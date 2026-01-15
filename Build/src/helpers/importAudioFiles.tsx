@@ -6,7 +6,7 @@ import { setAlbumArtInCache } from "../hooks/useAlbumArt";
 export async function importAudioFiles(
   audioFiles: Array<{ file: File } | File>,
   addSong: (song: Song, file: File) => Promise<void>,
-  t: any
+  t: any,
 ) {
   if (!audioFiles || audioFiles.length === 0) return;
 
@@ -39,7 +39,7 @@ export async function importAudioFiles(
           try {
             const arrayBuffer = await file.arrayBuffer();
             const isSafari = /^((?!chrome|android).)*safari/i.test(
-              navigator.userAgent
+              navigator.userAgent,
             );
 
             if (isSafari) {
@@ -50,7 +50,7 @@ export async function importAudioFiles(
               processedFile = new File(
                 [wavBlob],
                 file.name.replace(/\.flo$/i, ".wav"),
-                { type: "audio/wav" }
+                { type: "audio/wav" },
               );
               processedMimeType = "audio/wav";
               console.log(`Pre-decoded flo to WAV for Safari: ${file.name}`);
@@ -60,7 +60,7 @@ export async function importAudioFiles(
               const audioContext = new AudioContext();
               const audioBuffer = await decodeFloToAudioBuffer(
                 arrayBuffer,
-                audioContext
+                audioContext,
               );
 
               // Store as interleaved Float32Array PCM
@@ -80,7 +80,7 @@ export async function importAudioFiles(
               processedFile = new File(
                 [pcmBlob],
                 file.name.replace(/\.flo$/i, ".pcm"),
-                { type: "audio/pcm" }
+                { type: "audio/pcm" },
               );
               processedMimeType = "audio/pcm";
 
@@ -101,7 +101,7 @@ export async function importAudioFiles(
           } catch (error) {
             console.warn(
               "Failed to pre-decode flo file, storing original:",
-              error
+              error,
             );
             // Keep original file if pre-decoding fails
             processedMimeType = "audio/x-flo";
