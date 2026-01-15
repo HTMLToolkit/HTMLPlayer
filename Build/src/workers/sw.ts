@@ -15,17 +15,19 @@ registerRoute(
         return url.pathname === '/beta/HTMLPlayer/' && request.method === 'POST';
     },
     async ({ event }) => {
-        const formData = await event.request.formData();
-        const file = formData.get('audio');
-
-        if (file) {
-            const cache = await caches.open('incoming-shares');
-            await cache.put('/shared-file', new Response(file));
+        try {
+            const formData = await event.request.formData();
+            const file = formData.get('audio');
+            if (file) {
+                const cache = await caches.open('incoming-shares');
+                await cache.put('/shared-file', new Response(file));
+            }
+            const redirectUrl = new URL('/beta/HTMLPlayer/?share-received=true', self.location.origin);
+            return Response.redirect(redirectUrl.href, 303);
+        } catch (e) {
+            // always return a response even on error
+            return new Response('Failed to process share', { status: 400 });
         }
-
-        // Use self.location.origin to force a stable absolute URL
-        const redirectUrl = new URL('/beta/HTMLPlayer/?share-received=true', self.location.origin);
-        return Response.redirect(redirectUrl.href, 303);
     },
     'POST'
 );
