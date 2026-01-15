@@ -6,24 +6,41 @@ import { setAlbumArtInCache } from "../hooks/useAlbumArt";
 export async function importAudioFiles(
   audioFiles: Array<{ file: File } | File>,
   addSong: (song: Song, file: File) => Promise<void>,
-  t: any,
+  t: any
 ) {
   if (!audioFiles || audioFiles.length === 0) return;
 
   const BATCH_SIZE = 10;
   let successCount = 0;
   let errorCount = 0;
+  let skippedCount = 0; // Count skipped duplicates
   let currentBatch = 1;
   const totalBatches = Math.ceil(audioFiles.length / BATCH_SIZE);
 
+  // Track unique files to avoid duplicate imports in this session
+  const processedFileIds = new Set<string>();
+
   for (let i = 0; i < audioFiles.length; i += BATCH_SIZE) {
     const batch = audioFiles.slice(i, i + BATCH_SIZE);
-    toast.loading(t("batch.processing", { currentBatch, totalBatches }));
+    toast.loading(
+      t("batch.processing", { currentBatch, totalBatches, successCount })
+    );
 
     // Process sequentially to reduce memory pressure
     for (const audioFile of batch) {
       try {
         const file: File = (audioFile as any).file || (audioFile as File);
+
+        // Unique ID based on file metadata (name, size, lastModified)
+        const fileId = `${file.name}-${file.size}-${file.lastModified}`;
+        if (processedFileIds.has(fileId)) {
+          // Skip duplicates detected via unique ID
+          console.log(`Skipping duplicate file: ${file.name}`);
+          skippedCount++;
+          continue;
+        }
+        processedFileIds.add(fileId); // Mark the file as processed
+
         const metadata = await extractAudioMetadata(file);
         const songId = generateUniqueId();
 
@@ -32,31 +49,36 @@ export async function importAudioFiles(
         let processedMimeType = file.type;
 
         const isFlo =
-          file.name.toLowerCase().endsWith('.flo') ||
-          metadata.encoding?.codec === 'flo';
+          file.name.toLowerCase().endsWith(".flo") ||
+          metadata.encoding?.codec === "flo";
 
         if (isFlo) {
           try {
             const arrayBuffer = await file.arrayBuffer();
-            const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+            const isSafari = /^((?!chrome|android).)*safari/i.test(
+              navigator.userAgent
+            );
 
             if (isSafari) {
               // Safari: Pre-decode to WAV for compatibility
               const { decodeFloToWav } = await import("./refloWavHelper");
               const wavBytes = await decodeFloToWav(arrayBuffer);
-              const wavBlob = new Blob([wavBytes], { type: 'audio/wav' });
+              const wavBlob = new Blob([wavBytes], { type: "audio/wav" });
               processedFile = new File(
                 [wavBlob],
-                file.name.replace(/\.flo$/i, '.wav'),
-                { type: 'audio/wav' }
+                file.name.replace(/\.flo$/i, ".wav"),
+                { type: "audio/wav" }
               );
-              processedMimeType = 'audio/wav';
+              processedMimeType = "audio/wav";
               console.log(`Pre-decoded flo to WAV for Safari: ${file.name}`);
             } else {
               // Non-Safari: Pre-decode to PCM for Web Audio API
               const { decodeFloToAudioBuffer } = await import("./floProcessor");
               const audioContext = new AudioContext();
-              const audioBuffer = await decodeFloToAudioBuffer(arrayBuffer, audioContext);
+              const audioBuffer = await decodeFloToAudioBuffer(
+                arrayBuffer,
+                audioContext
+              );
 
               // Store as interleaved Float32Array PCM
               const frameCount = audioBuffer.length;
@@ -66,17 +88,19 @@ export async function importAudioFiles(
               // Interleave channels
               for (let i = 0; i < frameCount; i++) {
                 for (let ch = 0; ch < channels; ch++) {
-                  pcmData[i * channels + ch] = audioBuffer.getChannelData(ch)[i];
+                  pcmData[i * channels + ch] = audioBuffer.getChannelData(ch)[
+                    i
+                  ];
                 }
               }
 
-              const pcmBlob = new Blob([pcmData.buffer], { type: 'audio/pcm' });
+              const pcmBlob = new Blob([pcmData.buffer], { type: "audio/pcm" });
               processedFile = new File(
                 [pcmBlob],
-                file.name.replace(/\.flo$/i, '.pcm'),
-                { type: 'audio/pcm' }
+                file.name.replace(/\.flo$/i, ".pcm"),
+                { type: "audio/pcm" }
               );
-              processedMimeType = 'audio/pcm';
+              processedMimeType = "audio/pcm";
 
               // Store AudioBuffer properties for reconstruction
               metadata.encoding = {
@@ -84,7 +108,7 @@ export async function importAudioFiles(
                 sampleRate: audioBuffer.sampleRate,
                 channels: audioBuffer.numberOfChannels,
                 bitsPerSample: 32, // Float32
-                codec: 'pcm-float32',
+                codec: "pcm-float32",
               };
 
               // Close the temporary AudioContext
@@ -95,14 +119,17 @@ export async function importAudioFiles(
           } catch (error) {
             console.warn("Failed to pre-decode flo file, storing original:", error);
             // Keep original file if pre-decoding fails
-            processedMimeType = 'audio/x-flo';
+            processedMimeType = "audio/x-flo";
           }
         }
 
         // Save album art separately if present
         const hasAlbumArt = !!metadata.albumArt;
         if (hasAlbumArt && metadata.albumArt) {
-          await musicIndexedDbHelper.saveAlbumArt(songId, metadata.albumArt);
+          await musicIndexedDbHelper.saveAlbumArt(
+            songId,
+            metadata.albumArt
+          );
           setAlbumArtInCache(songId, metadata.albumArt);
         }
 
@@ -110,7 +137,9 @@ export async function importAudioFiles(
           id: songId,
           title: metadata.title,
           artist: metadata.artist,
-          album: metadata.album || t("songInfo.album", { title: t("common.unknownAlbum") }),
+          album:
+            metadata.album ||
+            t("songInfo.album", { title: t("common.unknownAlbum") }),
           duration: metadata.duration,
           url: "", // Will be set by addSong
           albumArt: metadata.albumArt, // Keep for immediate display
@@ -142,8 +171,14 @@ export async function importAudioFiles(
   }
 
   toast.dismiss();
+  // Show accurate results with skipped files count
   if (successCount > 0) {
-    toast.success(t("filePicker.successImport", { count: successCount }));
+    toast.success(
+      t("filePicker.successImport", {
+        count: successCount,
+        skipped: skippedCount,
+      })
+    );
   }
   if (errorCount > 0) {
     toast.error(t("filePicker.failedImport", { count: errorCount }));
