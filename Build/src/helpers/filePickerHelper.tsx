@@ -491,9 +491,6 @@ export async function extractAudioMetadata(file: File): Promise<AudioMetadata> {
       const { getFloMetadata, getFloCoverArt, getFloSyncedLyrics, getFloInfo } =
         await import("./floProcessor");
 
-      const { getFloMetadata, getFloCoverArt, getFloSyncedLyrics, getFloInfo } =
-        await import("./floProcessor");
-
       // Get all flo data in parallel
       const [meta, cover, lyrics, info] = await Promise.all([
         getFloMetadata(arrayBuffer),
@@ -855,28 +852,23 @@ export function useShareTarget(
       if (urlParams.get("share-received") === "true") {
         try {
           const cache = await caches.open("incoming-shares");
-          const keys = await cache.keys();
+          const response = await cache.match("/shared-file");
 
-          const files: File[] = [];
-          for (const key of keys) {
-            if (key.url.includes("/shared-file-")) {
-              const response = await cache.match(key);
-              const blob = await response?.blob();
-              const fileName =
-                response?.headers.get("x-file-name") || "unknown-file";
-              files.push(new File([blob!], fileName, { type: blob?.type }));
-            }
-          }
+          if (response) {
+            const blob = await response.blob();
+            // Try to recover the filename from headers or default to "shared-audio"
+            const filename =
+              response.headers.get("x-file-name") || "shared-audio.mp3";
+            const file = new File([blob], filename, { type: blob.type });
 
-          if (files.length > 0) {
             hasProcessedRef.current = true;
-            onShareReceived({ files, type: "files" });
+            onShareReceived({
+              files: [file],
+              type: "files",
+            });
 
-            // Cleanup the cache after processing
-            for (const key of keys) {
-              await cache.delete(key);
-            }
-
+            // Cleanup
+            await cache.delete("/shared-file");
             const cleanUrl = new URL(window.location.href);
             cleanUrl.searchParams.delete("share-received");
             window.history.replaceState({}, "", cleanUrl.toString());
@@ -887,7 +879,7 @@ export function useShareTarget(
         }
       }
 
-      // Fallback to text sharing (e.g., query parameters)
+      // Fallback to standard Text/URL share handling
       const shareResult = handleShareTarget();
       if (shareResult && shareResult.type !== "none") {
         hasProcessedRef.current = true;
