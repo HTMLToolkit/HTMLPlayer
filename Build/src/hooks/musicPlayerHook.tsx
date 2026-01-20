@@ -800,12 +800,25 @@ export const useMusicPlayer = () => {
         ? { ...song, url: `indexeddb://${song.id}` }
         : song;
 
-      // Cache the song
+      // Cache song
       await cacheSong(songToPlay);
       const cachedSong = getCachedSong(song.id);
       if (!cachedSong) {
         console.error("Failed to play song: could not cache");
         return;
+      }
+
+      // Load album art for current song if it exists
+      let songWithArt = song;
+      if (song.hasAlbumArt && !song.albumArt) {
+        try {
+          const albumArt = await musicIndexedDbHelper.loadAlbumArt(song.id);
+          if (albumArt) {
+            songWithArt = { ...song, albumArt };
+          }
+        } catch (error) {
+          console.warn("Failed to load album art for current song:", error);
+        }
       }
 
       // Prepare playlist
@@ -816,7 +829,7 @@ export const useMusicPlayer = () => {
 
       setPlayerState((prev) => ({
         ...prev,
-        currentSong: song,
+        currentSong: songWithArt,
         currentPlaylist: preparedPlaylist,
         isPlaying: true,
         currentTime: 0,

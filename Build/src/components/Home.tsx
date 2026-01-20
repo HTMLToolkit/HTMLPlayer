@@ -190,6 +190,12 @@ export const Home: React.FC<HomeProps> = ({ musicPlayerHook, onAddMusic }) => {
   );
 
   const heroSong = playerState.currentSong || recentlyAdded[0] || null;
+
+  // Load album art for hero song if it's not the current song (which already has loaded album art)
+  const heroSongAlbumArt = useAlbumArt(
+    heroSong?.id,
+    heroSong?.hasAlbumArt && !heroSong?.albumArt,
+  );
   const hasLibraryContent = library.songs.length > 0;
 
   const stats = [
@@ -246,9 +252,9 @@ export const Home: React.FC<HomeProps> = ({ musicPlayerHook, onAddMusic }) => {
     <div className={styles.home}>
       <section className={`${styles.panel} ${styles.hero}`}>
         <div className={styles.heroArt}>
-          {heroSong?.albumArt ? (
+          {heroSong?.albumArt || heroSongAlbumArt ? (
             <img
-              src={heroSong.albumArt}
+              src={heroSong?.albumArt || heroSongAlbumArt}
               alt={t("player.albumArtAlt", { title: heroSong.title })}
             />
           ) : (
