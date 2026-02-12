@@ -67,7 +67,7 @@ HTMLPlayer started as a single HTML file in v1.0. Version 2.0 is a ground-up rew
 * The `Home` experience surfaces favorites, statistics, recently added songs, and quick actions (smart start, browse library, favorites, upload).
 * The lyrics drawer (`components/Lyrics.tsx`) shows embedded text first and falls back to `lyrics.ovh` with metadata sanitizers from `@web-scrobbler/metadata-filter`.
 * A `Document Picture-in-Picture` mini player (`components/Miniplayer.tsx`) mirrors theming and listens to BroadcastChannel updates via `hooks/useAudioSync.ts`.
-* Guided onboarding uses `components/HelpGuide.tsx`, which loads localized `public/locales/*/tour.json` files so the tooltip copy is translated right alongside the UI text.
+* Guided onboarding uses `components/HelpGuide.tsx`, which loads localized `src/locales/*/tour.json` files so the tooltip copy is translated right alongside the UI text.
 
 ### Personalization
 
@@ -101,7 +101,7 @@ HTMLPlayer started as a single HTML file in v1.0. Version 2.0 is a ground-up rew
 | `Build/src/hooks/` | Hooks for playback (`useMusicPlayer`), keyboard shortcuts, dialog visibility, and window-to-window audio sync. |
 | `Build/src/workers/` | `metadataWorker.ts` parses ID3 tags, lyrics, and cover art off the main thread. |
 | `Build/src/visualizers/` | 60+ visualizer definitions that follow the `VisualizerType` contract. |
-| `Build/public/locales/` | i18n payloads plus tour definitions (`tour.json`) for each supported language (English and French today). |
+| `Build/src/locales/` | i18n payloads plus tour definitions (`tour.json`) for each supported language (English and French today). |
 | `Build/src-tauri/` | Rust bootstrap with dialog, notification, FS, and opener plugins for the desktop build. |
 | `Backend/` | Express server used for Discord OAuth and presence updates. |
 | `Example Audio Files/` | Small sample tracks for manual or automated tests. |
@@ -214,7 +214,7 @@ All switches immediately persist through `helpers/musicIndexedDbHelper.ts`, so r
 
 ## Accessibility, Internationalization, and Guidance
 
-* English (`en`) and French (`fr`) translations ship in `public/locales`. Add more locales by duplicating the folder, updating `supportedLanguages.ts`, and running `npm run i18n-check`.
+* English (`en`) and French (`fr`) translations ship in `src/locales`. Add more locales by duplicating the folder, updating `supportedLanguages.ts`, and running `npm run i18n-check`.
 * Keyboard navigation is available across menu buttons, select boxes, and dialogs via the Radix primitives used in `DropdownMenu`, `Select`, and `Dialog`.
 * Toasts use `sonner` so screen readers announce them automatically.
 * The guided tour (`components/HelpGuide.tsx`) reads from translated `tour.json` files and uses data attributes like `data-tour="player-controls"` to highlight UI landmarks.

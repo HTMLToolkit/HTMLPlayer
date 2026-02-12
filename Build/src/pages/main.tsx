@@ -31,12 +31,8 @@ i18nInstance
     fallbackLng: "en",
     debug: true,
     supportedLngs: Object.keys(languageNames), // <-- dynamically from file
-    resources: isSingleFile ? bundledResources : undefined,
-    backend: !isSingleFile
-      ? {
-          loadPath: "./locales/{{lng}}/translation.json",
-        }
-      : undefined,
+    resources: bundledResources,
+
     detection: {
       order: ["queryString", "cookie", "localStorage", "navigator"],
       caches: ["cookie", "localStorage"],

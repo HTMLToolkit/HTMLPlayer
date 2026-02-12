@@ -9,8 +9,8 @@ import { viteSingleFile } from "vite-plugin-singlefile";
 import wasm from "vite-plugin-wasm";
 
 // Moved from index.html for single file builds
-import enMessages from "./public/locales/en/loading-messages-en.json";
-import frMessages from "./public/locales/fr/loading-messages-fr.json";
+import enMessages from "./src/locales/en/loading-messages-en.json";
+import frMessages from "./src/locales/fr/loading-messages-fr.json";
 
 // Check various env things
 const host = process.env.TAURI_DEV_HOST;
