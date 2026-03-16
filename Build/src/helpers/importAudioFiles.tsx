@@ -46,7 +46,8 @@ export async function importAudioFiles(
               // Safari: Pre-decode to WAV for compatibility
               const { decodeFloToWav } = await import("./refloWavHelper");
               const wavBytes = await decodeFloToWav(arrayBuffer);
-              const wavBlob = new Blob([wavBytes], { type: "audio/wav" });
+              const wavArray = new Uint8Array(wavBytes);
+              const wavBlob = new Blob([wavArray], { type: "audio/wav" });
               processedFile = new File(
                 [wavBlob],
                 file.name.replace(/\.flo$/i, ".wav"),

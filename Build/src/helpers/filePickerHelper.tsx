@@ -502,7 +502,8 @@ export async function extractAudioMetadata(file: File): Promise<AudioMetadata> {
       // Process album art if available
       let albumArt: string | undefined = undefined;
       if (cover && cover.data && cover.data.length > 0) {
-        const blob = new Blob([cover.data], { type: cover.mime_type });
+        const uint8Array = new Uint8Array(cover.data);
+        const blob = new Blob([uint8Array], { type: cover.mime_type });
         albumArt = await new Promise<string>((resolve, reject) => {
           const reader = new FileReader();
           reader.onloadend = () => resolve(reader.result as string);
@@ -569,14 +570,14 @@ export async function extractAudioMetadata(file: File): Promise<AudioMetadata> {
     }
   }
   // Fallback to original (music-metadata) for all other formats
-  let MetadataWorkerType: typeof Worker;
+  let MetadataWorkerType: new () => Worker;
   if (typeof __IS_SINGLE_FILE__ !== "undefined" && __IS_SINGLE_FILE__) {
     MetadataWorkerType = (
       await import("../workers/metadataWorker.ts?worker&inline")
-    ).default;
+    ).default as new () => Worker;
   } else {
-    MetadataWorkerType = (await import("../workers/metadataWorker.ts?worker"))
-      .default;
+    MetadataWorkerType = ((await import("../workers/metadataWorker.ts?worker"))
+      .default as new () => Worker);
   }
   const worker = new MetadataWorkerType();
 
