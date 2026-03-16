@@ -4,7 +4,7 @@
   "version": "2.0.0",
   "identifier": "com.nellowtcs.htmlplayer",
   "build": {
-    "beforeDevCommand": "BUILD_TARGET=desktop npm run dev:desktop",
+    "beforeDevCommand": "BUILD_TARGET=desktop vite",
     "devUrl": "http://localhost:1420",
     "beforeBuildCommand": "BUILD_TARGET=desktop vite build",
     "frontendDist": "../dist"

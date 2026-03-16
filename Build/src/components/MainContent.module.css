@@ -28,7 +28,7 @@
   justify-content: space-between;
   gap: var(--spacing-4);
   border-radius: 0 0 1.25rem 1.25rem;
-  outline: 2px solid var(--themecolor2-transparent);
+  box-shadow: 0 0 0 2px var(--themecolor2-transparent);
 }
 
 .titleArea {

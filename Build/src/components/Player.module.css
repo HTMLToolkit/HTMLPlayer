@@ -21,7 +21,7 @@
   transition:
     height var(--animation-duration-fast) ease-in-out,
     padding var(--animation-duration-fast) ease-in-out;
-  outline: 2px solid var(--themecolor2-transparent);
+  box-shadow: 0 0 0 2px var(--themecolor2-transparent);
 }
 
 /* Compact player for home view */

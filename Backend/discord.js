@@ -78,12 +78,25 @@ export async function setActivity(token, { details, state }) {
     }
     console.log("Discord status updated successfully");
   } catch (error) {
+    const status = error.response?.status;
+    const data = error.response?.data;
+
     console.error("Failed to update Discord status:", {
-      status: error.response?.status,
-      statusText: error.response?.statusText,
-      data: error.response?.data,
-      message: error.message
+      status,
+      data,
+      message: error.message,
     });
-    throw error;
+
+    // Re-throw with details so the caller can present it to the client
+    const e = new Error(
+      `Discord status update failed: ${status || "unknown"} - ${
+        data ? JSON.stringify(data) : error.message
+      }`,
+    );
+    // @ts-ignore
+    e.status = status;
+    // @ts-ignore
+    e.responseData = data;
+    throw e;
   }
 }

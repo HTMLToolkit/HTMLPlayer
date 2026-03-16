@@ -4,6 +4,7 @@ import { Button } from "./Button";
 import { Icon } from "./Icon";
 import styles from "./HelpGuide.module.css";
 import { useEffect, useState, createContext, useContext } from "react";
+import tourEn from "../locales/en/tour.json";
 
 interface HelpGuideProps {
   children: React.ReactNode;
@@ -27,26 +28,15 @@ export const HelpGuideProvider = ({ children }: HelpGuideProps) => {
     const [tourStepsConfig, setTourStepsConfig] = useState<any[]>([]);
 
     useEffect(() => {
-      const loadTourConfig = async () => {
-        try {
-          const lang = i18n.language?.split("-")[0] || "en";
-          const response = await fetch(
-            `${import.meta.env.BASE_URL}/locales/${lang}/tour.json`,
-          );
-          if (!response.ok) {
-            throw new Error(
-              `HTTP ${response.status}: Failed to fetch tour configuration`,
-            );
-          }
-          const config = await response.json();
-          setTourStepsConfig(config);
-        } catch (error) {
-          console.error("Failed to load tour configuration:", error);
-          setTourStepsConfig([]);
-        }
+      const lang = i18n.language?.split("-")[0] || "en";
+      const configMap: Record<string, any[]> = {
+        en: tourEn,
       };
-      loadTourConfig();
+
+      // Fall back to English if the selected language doesn't have a tour config.
+      setTourStepsConfig(configMap[lang] ?? configMap.en);
     }, [i18n.language]);
+
     return tourStepsConfig;
   }
 

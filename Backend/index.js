@@ -70,8 +70,18 @@ app.post("/presence", async (req, res) => {
     await setActivity(accessToken, { details, state });
     res.json({ message: "Presence updated" });
   } catch (err) {
-    console.error("Presence Error:", err.response?.data || err.message);
-    res.status(500).send("Failed to update presence");
+    const status = err.response?.status || 500;
+    const data = err.response?.data || err.message || "Unknown error";
+
+    console.error("Presence Error:", {
+      status,
+      data,
+    });
+
+    res.status(status).json({
+      error: "Failed to update presence",
+      details: data,
+    });
   }
 });
 

@@ -39,7 +39,7 @@ const plugins = [
     }),
   {
     name: "html-transform",
-    transformIndexHtml(html) {
+    transformIndexHtml(html: string) {
       return html
         .replace(/__IS_SINGLE_FILE__/g, isSingleFile.toString())
         .replace(/__INLINED_ICON__/g, JSON.stringify(iconBase64))
@@ -200,12 +200,23 @@ if (isWeb && !isSingleFile) {
 export default defineConfig({
   root: isDesktop ? "" : "./",
   appType: "spa",
-  base: "/beta/HTMLPlayer/",
+  base: isDesktop ? "/" : "/beta/HTMLPlayer/",
   plugins,
 
   resolve: {
     alias: {
       "@": "/src",
+      // For builds where the PWA plugin is disabled (desktop/single-file),
+      // make `virtual:pwa-register/react` resolve to a no-op stub so Vite
+      // can still bundle the code without the service worker dependency.
+      ...(isWeb && !isSingleFile
+        ? {}
+        : {
+            "virtual:pwa-register/react": path.resolve(
+              __dirname,
+              "src/stubs/virtual-pwa-register-react.ts",
+            ),
+          }),
     },
   },
   define: {
@@ -216,7 +227,15 @@ export default defineConfig({
       : null,
     __INLINED_ICON__: JSON.stringify(iconBase64),
   },
+
+  esbuild: {
+    target: isDesktop ? "es2021" : "esnext",
+  },
+
   optimizeDeps: {
+    esbuildOptions: {
+      target: isDesktop ? "es2021" : "esnext",
+    },
     exclude: ["@flo-audio/libflo-audio", "@flo-audio/reflo"],
   },
 
@@ -247,6 +266,7 @@ export default defineConfig({
   clearScreen: isDesktop ? false : undefined,
 
   build: {
+    target: isDesktop ? "es2021" : "esnext",
     sourcemap: true,
     outDir: "./dist",
     emptyOutDir: true,

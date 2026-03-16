@@ -845,7 +845,7 @@ export const Settings = ({
                   toast.success(t("discord.disconnected"));
                 } else {
                   const discordOAuthUrl =
-                    "https://discord.com/oauth2/authorize?client_id=1419480226970341476&response_type=code&redirect_uri=https%3A%2F%2Fhtmlplayer-backend.onrender.com%2Foauth%2Fcallback&scope=identify%20rpc.activities.write";
+                    "https://discord.com/oauth2/authorize?client_id=1419480226970341476&response_type=code&redirect_uri=https%3A%2F%2Fhtmlplayer-backend.onrender.com%2Foauth%2Fcallback&scope=identify";
                   window.open(discordOAuthUrl, "_blank");
                   toast.info(t("discord.completeAuth"));
                 }
