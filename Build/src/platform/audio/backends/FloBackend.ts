@@ -1,6 +1,6 @@
 import { BaseAudioBackend } from "./BaseBackend";
 
-export class WebAudioBackend extends BaseAudioBackend {
+export class FloBackend extends BaseAudioBackend {
   private audioContext: AudioContext | null = null;
   private chain: {
     source: AudioBufferSourceNode | null;
@@ -9,8 +9,10 @@ export class WebAudioBackend extends BaseAudioBackend {
     startTime: number;
     pausedAt: number;
   };
-  private timeUpdateInterval: number | null = null;
   private duration = 0;
+  private floInitialized = false;
+  private floDecoder: typeof import("@flo-audio/libflo-audio") | null = null;
+  private timeUpdateInterval: number | null = null;
 
   constructor() {
     super();
@@ -38,7 +40,21 @@ export class WebAudioBackend extends BaseAudioBackend {
     return this.audioContext;
   }
 
+  private async ensureFloInitialized(): Promise<void> {
+    if (this.floInitialized && this.floDecoder) return;
+
+    try {
+      const flo = await import("@flo-audio/libflo-audio");
+      await flo.default();
+      this.floDecoder = flo;
+      this.floInitialized = true;
+    } catch (error) {
+      this.emitError(new Error(`Failed to initialize flo decoder: ${(error as Error).message}`));
+    }
+  }
+
   async load(url: string): Promise<void> {
+    await this.ensureFloInitialized();
     const ctx = this.ensureContext();
 
     try {
@@ -48,18 +64,39 @@ export class WebAudioBackend extends BaseAudioBackend {
       }
 
       const arrayBuffer = await response.arrayBuffer();
-      this.chain.audioBuffer = await ctx.decodeAudioData(arrayBuffer);
-      this.duration = this.chain.audioBuffer.duration;
+      const uint8Flo = new Uint8Array(arrayBuffer);
+
+      const decodedSamples = this.floDecoder!.decode(uint8Flo);
+      const fileInfo = this.floDecoder!.info(uint8Flo);
+
+      const { channels, sample_rate } = fileInfo;
+      const frameCount = decodedSamples.length / channels;
+
+      const audioBuffer = ctx.createBuffer(channels, frameCount, sample_rate);
+
+      for (let ch = 0; ch < channels; ch++) {
+        const channelData = audioBuffer.getChannelData(ch);
+        for (let i = 0; i < frameCount; i++) {
+          channelData[i] = decodedSamples[i * channels + ch];
+        }
+      }
+
+      this.chain.audioBuffer = audioBuffer;
+      this.duration = audioBuffer.duration;
     } catch (error) {
-      throw new Error(`Failed to load audio: ${(error as Error).message}`);
+      this.emitError(new Error(`Failed to load flo: ${(error as Error).message}`));
     }
   }
 
   async play(): Promise<void> {
     if (!this.chain.audioBuffer || !this.audioContext) return;
 
-    if (this.timeUpdateInterval) {
-      this.stop();
+    if (this.chain.source) {
+      try {
+        this.chain.source.stop();
+      } catch {
+        // ignore
+      }
     }
 
     const ctx = this.audioContext;
@@ -69,10 +106,8 @@ export class WebAudioBackend extends BaseAudioBackend {
     this.chain.gainNode.connect(ctx.destination);
 
     source.onended = () => {
-      if (this.timeUpdateInterval) {
-        this.stopTimeUpdates();
-        this.emitEnded();
-      }
+      this.stopTimeUpdates();
+      this.emitEnded();
     };
 
     const offset = this.chain.pausedAt;
@@ -183,6 +218,6 @@ export class WebAudioBackend extends BaseAudioBackend {
   }
 }
 
-export function createWebAudioBackend(): WebAudioBackend {
-  return new WebAudioBackend();
+export function createFloBackend(): FloBackend {
+  return new FloBackend();
 }

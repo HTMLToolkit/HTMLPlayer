@@ -9,8 +9,11 @@ export interface IAudioBackend {
   getCurrentTime(): number;
   getDuration(): number;
   onTimeUpdate(callback: (time: number) => void): void;
+  offTimeUpdate(callback: (time: number) => void): void;
   onEnded(callback: () => void): void;
+  offEnded(callback: () => void): void;
   onError(callback: (error: Error) => void): void;
+  offError(callback: (error: Error) => void): void;
   dispose(): void;
 }
 

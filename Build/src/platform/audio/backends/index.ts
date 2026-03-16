@@ -2,6 +2,8 @@ import type { IAudioBackend, AudioBackendOptions } from "../index";
 import { createHTMLBackend, HTMLAudioBackend } from "./HTMLBackend";
 import { createWebAudioBackend, WebAudioBackend } from "./WebAudioBackend";
 import { createPitchBackend, PitchBackend } from "./PitchBackend";
+import { createFloBackend, FloBackend } from "./FloBackend";
+import { createHybridBackend, HybridBackend } from "./HybridBackend";
 import type { Track } from "../../../core/engine/types";
 
 const FLO_MIME_TYPES = [
@@ -10,7 +12,7 @@ const FLO_MIME_TYPES = [
   "audio/wav",
 ];
 
-const isFloTrack = (track: Track): boolean => {
+export const isFloTrack = (track: Track): boolean => {
   if (track.mimeType && FLO_MIME_TYPES.includes(track.mimeType)) {
     return true;
   }
@@ -20,7 +22,11 @@ const isFloTrack = (track: Track): boolean => {
   return false;
 };
 
-const needsWebAudio = (track: Track): boolean => {
+export const needsFloBackend = (track: Track): boolean => {
+  return isFloTrack(track);
+};
+
+export const needsWebAudio = (track: Track): boolean => {
   return isFloTrack(track);
 };
 
@@ -98,6 +104,5 @@ export function createBackendManager(
   } as AudioBackendOptions);
 }
 
-export { HTMLAudioBackend, WebAudioBackend, PitchBackend };
-export { createHTMLBackend, createWebAudioBackend, createPitchBackend };
-export { isFloTrack, needsWebAudio };
+export { HTMLAudioBackend, WebAudioBackend, PitchBackend, FloBackend, HybridBackend };
+export { createHTMLBackend, createWebAudioBackend, createPitchBackend, createFloBackend, createHybridBackend };

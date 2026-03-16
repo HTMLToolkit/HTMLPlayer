@@ -9,24 +9,9 @@ import type {
 } from "./types";
 import { KomorebiEvents } from "./events";
 import { StateMachine } from "./state";
-import { QueueManager } from "./queue";
-import { Scheduler, CrossfadeScheduler, GaplessScheduler } from "./scheduler";
-
-export interface IAudioBackend {
-  load(url: string): Promise<void>;
-  play(): Promise<void>;
-  pause(): void;
-  stop(): void;
-  seek(time: number): void;
-  setVolume(volume: number): void;
-  setPlaybackRate(rate: number): void;
-  getCurrentTime(): number;
-  getDuration(): number;
-  onTimeUpdate(callback: (time: number) => void): void;
-  onEnded(callback: () => void): void;
-  onError(callback: (error: Error) => void): void;
-  dispose(): void;
-}
+import { QueueManager, type WeightedRandomizer, type ShuffleMode } from "./queue";
+import { Scheduler } from "./scheduler";
+import type { IAudioBackend } from "../../platform/audio";
 
 export interface IAudioEngineConfig {
   crossfade: {
@@ -111,6 +96,22 @@ export class KomorebiEngine {
     this.backend.onError((error) => {
       this.handleError(error);
     });
+  }
+
+  setWeightedRandomizer(randomizer: WeightedRandomizer | null): void {
+    this.queue.setWeightedRandomizer(randomizer);
+    if (this.settings.smartShuffle) {
+      this.queue.setShuffleMode("smart");
+    }
+  }
+
+  setShuffleMode(mode: ShuffleMode): void {
+    this.queue.setShuffleMode(mode);
+    this.settings.smartShuffle = mode === "smart";
+  }
+
+  getShuffleMode(): ShuffleMode {
+    return this.queue.getShuffleMode();
   }
 
   load(track: Track, playlist?: Playlist): void {
@@ -390,14 +391,14 @@ export class KomorebiEngine {
 
   private async loadAndPlay(track: Track): Promise<void> {
     return new Promise((resolve, reject) => {
-      const onLoad = () => {
-        this.backend?.off("ended", onLoad);
+      const onEndedHandler = () => {
+        this.backend?.offEnded(onEndedHandler);
         this.play()
           .then(resolve)
           .catch(reject);
       };
 
-      this.backend?.on("ended", onLoad);
+      this.backend?.onEnded(onEndedHandler);
       this.load(track);
     });
   }
@@ -452,7 +453,7 @@ export class KomorebiEngine {
     }
   }
 
-  private scheduleTransition(track: Track): void {
+  private scheduleTransition(_track: Track): void {
     if (this.scheduledTransitionId !== null) return;
 
     this.stateMachine.transition("transitioning");

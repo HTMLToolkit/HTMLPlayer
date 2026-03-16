@@ -1,5 +1,3 @@
-import type { Track } from "../../core/engine/types";
-
 export interface SongScore {
   trackId: string;
   score: number;
@@ -44,7 +42,6 @@ const DEFAULT_CONFIG: ScoringConfig = {
 export class PointPerSongEngine {
   private scores: Map<string, SongScore> = new Map();
   private config: ScoringConfig = DEFAULT_CONFIG;
-  private currentTrackId: string | null = null;
 
   constructor(config?: Partial<ScoringConfig>) {
     if (config) {
@@ -96,10 +93,6 @@ export class PointPerSongEngine {
       existing.manualBoost = Math.max(-10, Math.min(10, boost));
       this.recalculate(trackId);
     }
-  }
-
-  setCurrentTrack(trackId: string): void {
-    this.currentTrackId = trackId;
   }
 
   getWeightedRandomTrack(trackIds: string[]): string | null {

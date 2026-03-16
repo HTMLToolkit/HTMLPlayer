@@ -1,5 +1,11 @@
 import type { Track, Playlist, QueueState, PlayHistory } from "../types";
 
+export type ShuffleMode = "random" | "smart";
+
+export interface WeightedRandomizer {
+  getWeightedRandomTrack(trackIds: string[]): string | null;
+}
+
 export class QueueManager {
   private state: QueueState = {
     tracks: [],
@@ -10,6 +16,20 @@ export class QueueManager {
 
   private history: Map<string, PlayHistory> = new Map();
   private maxHistorySize = 1000;
+  private weightedRandomizer: WeightedRandomizer | null = null;
+  private shuffleMode: ShuffleMode = "random";
+
+  setWeightedRandomizer(randomizer: WeightedRandomizer | null): void {
+    this.weightedRandomizer = randomizer;
+  }
+
+  getShuffleMode(): ShuffleMode {
+    return this.shuffleMode;
+  }
+
+  setShuffleMode(mode: ShuffleMode): void {
+    this.shuffleMode = mode;
+  }
 
   setPlaylist(playlist: Playlist | null, preserveCurrent = true): void {
     if (!playlist) {
@@ -59,7 +79,7 @@ export class QueueManager {
     return [...this.state.shuffleOrder];
   }
 
-  getNextIndex(smartShuffle: boolean): number {
+  getNextIndex(_smartShuffle: boolean): number {
     const order = this.getPlayOrder();
     const currentPos = order.indexOf(this.state.currentIndex);
 
@@ -75,7 +95,7 @@ export class QueueManager {
     return order[nextPos];
   }
 
-  getPreviousIndex(smartShuffle: boolean): number {
+  getPreviousIndex(_smartShuffle: boolean): number {
     const order = this.getPlayOrder();
     const currentPos = order.indexOf(this.state.currentIndex);
 
@@ -109,10 +129,53 @@ export class QueueManager {
 
   shuffle(preserveCurrent = true): void {
     this.state.shuffled = true;
-    this.state.shuffleOrder = this.generateShuffleOrder(
-      this.state.tracks.length,
-      preserveCurrent ? this.state.currentIndex : -1
-    );
+    
+    if (this.shuffleMode === "smart" && this.weightedRandomizer) {
+      this.state.shuffleOrder = this.generateSmartShuffleOrder(
+        this.state.tracks.length,
+        preserveCurrent ? this.state.currentIndex : -1
+      );
+    } else {
+      this.state.shuffleOrder = this.generateShuffleOrder(
+        this.state.tracks.length,
+        preserveCurrent ? this.state.currentIndex : -1
+      );
+    }
+  }
+
+  private generateSmartShuffleOrder(length: number, preserveIndex: number): number[] {
+    if (length === 0) return [];
+
+    const trackIds = this.state.tracks.map((t) => t.id);
+    const selectedIds: string[] = [];
+    const availableIndices = Array.from({ length }, (_, i) => i);
+
+    while (availableIndices.length > 0) {
+      const availableTrackIds = availableIndices.map((i) => trackIds[i]);
+      const selectedId = this.weightedRandomizer!.getWeightedRandomTrack(availableTrackIds);
+      
+      if (!selectedId) break;
+      
+      const selectedIndex = trackIds.indexOf(selectedId);
+      if (selectedIndex === -1) break;
+      
+      const actualIndex = availableIndices.indexOf(selectedIndex);
+      if (actualIndex === -1) break;
+      
+      selectedIds.push(selectedId);
+      availableIndices.splice(actualIndex, 1);
+    }
+
+    if (preserveIndex >= 0 && preserveIndex < length) {
+      const preserveId = trackIds[preserveIndex];
+      const idxInSelected = selectedIds.indexOf(preserveId);
+      if (idxInSelected > 0) {
+        selectedIds.splice(idxInSelected, 1);
+        selectedIds.unshift(preserveId);
+      }
+    }
+
+    return selectedIds.map((id) => trackIds.indexOf(id)).filter((i) => i >= 0);
   }
 
   unshuffle(): void {

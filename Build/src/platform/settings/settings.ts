@@ -135,8 +135,8 @@ export class SettingsManager implements SettingsActions {
 
     for (const [key, value] of Object.entries(updates)) {
       if (value !== undefined && key in this.settings) {
-        (this.settings as Record<string, unknown>)[key] = value;
-        (validUpdates as Record<string, unknown>)[key] = value;
+        (this.settings as unknown as Record<string, unknown>)[key] = value;
+        (validUpdates as unknown as Record<string, unknown>)[key] = value;
       }
     }
 
@@ -152,7 +152,7 @@ export class SettingsManager implements SettingsActions {
     const changes: Partial<SettingsState> = {};
     for (const key of Object.keys(DEFAULT_SETTINGS) as Array<keyof SettingsState>) {
       if (previousSettings[key] !== DEFAULT_SETTINGS[key]) {
-        changes[key] = DEFAULT_SETTINGS[key];
+        (changes as unknown as Record<string, unknown>)[key] = DEFAULT_SETTINGS[key];
       }
     }
 

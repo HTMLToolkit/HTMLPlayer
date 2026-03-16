@@ -1,10 +1,7 @@
-import type { IAudioBackend } from "../index";
+import { BaseAudioBackend } from "./BaseBackend";
 
-export class HTMLAudioBackend implements IAudioBackend {
+export class HTMLAudioBackend extends BaseAudioBackend {
   private audio: HTMLAudioElement;
-  private timeUpdateCallback: ((time: number) => void) | null = null;
-  private endedCallback: (() => void) | null = null;
-  private errorCallback: ((error: Error) => void) | null = null;
   private boundOnTimeUpdate: () => void;
   private boundOnEnded: () => void;
   private boundOnError: () => void;
@@ -12,6 +9,7 @@ export class HTMLAudioBackend implements IAudioBackend {
   private duration = 0;
 
   constructor() {
+    super();
     this.audio = new Audio();
     this.audio.preload = "auto";
 
@@ -93,18 +91,6 @@ export class HTMLAudioBackend implements IAudioBackend {
     return this.duration || this.audio.duration || 0;
   }
 
-  onTimeUpdate(callback: (time: number) => void): void {
-    this.timeUpdateCallback = callback;
-  }
-
-  onEnded(callback: () => void): void {
-    this.endedCallback = callback;
-  }
-
-  onError(callback: (error: Error) => void): void {
-    this.errorCallback = callback;
-  }
-
   dispose(): void {
     this.audio.removeEventListener("timeupdate", this.boundOnTimeUpdate);
     this.audio.removeEventListener("ended", this.boundOnEnded);
@@ -115,30 +101,20 @@ export class HTMLAudioBackend implements IAudioBackend {
     this.audio.src = "";
     this.audio.load();
 
-    this.timeUpdateCallback = null;
-    this.endedCallback = null;
-    this.errorCallback = null;
+    
   }
 
   private handleTimeUpdate(): void {
-    if (this.timeUpdateCallback) {
-      this.timeUpdateCallback(this.audio.currentTime);
-    }
+    this.emitTimeUpdate(this.audio.currentTime);
   }
 
   private handleEnded(): void {
-    if (this.endedCallback) {
-      this.endedCallback();
-    }
+    this.emitEnded();
   }
 
   private handleError(): void {
     const error = this.audio.error;
-    if (this.errorCallback) {
-      this.errorCallback(
-        new Error(error?.message ?? "Unknown audio error")
-      );
-    }
+    this.emitError(new Error(error?.message ?? "Unknown audio error"));
   }
 
   private handleLoadedMetadata(): void {
@@ -146,6 +122,6 @@ export class HTMLAudioBackend implements IAudioBackend {
   }
 }
 
-export function createHTMLBackend(): IAudioBackend {
+export function createHTMLBackend(): HTMLAudioBackend {
   return new HTMLAudioBackend();
 }

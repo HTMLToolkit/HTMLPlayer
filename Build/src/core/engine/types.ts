@@ -12,6 +12,7 @@ export interface Track {
   embeddedLyrics?: EmbeddedLyrics[];
   encoding?: EncodingDetails;
   gapless?: GaplessInfo;
+  replayGain?: ReplayGainInfo;
 }
 
 export interface EmbeddedLyrics {
@@ -41,6 +42,14 @@ export interface EncodingDetails {
 export interface GaplessInfo {
   encoderDelay?: number;
   encoderPadding?: number;
+}
+
+export interface ReplayGainInfo {
+  trackGain?: number;
+  trackPeak?: number;
+  albumGain?: number;
+  albumPeak?: number;
+  referenceLoudness?: number;
 }
 
 export interface Playlist {

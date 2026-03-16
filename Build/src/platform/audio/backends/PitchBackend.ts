@@ -1,13 +1,7 @@
 import type { IAudioBackend } from "../index";
 
-interface TonePlayerInstance {
-  pitch: number;
-  playbackRate: number;
-  dispose: () => void;
-}
-
 let Tone: typeof import("tone") | null = null;
-let playerInstance: TonePlayerInstance | null = null;
+let pitchShift: import("tone").PitchShift | null = null;
 
 async function loadTone(): Promise<typeof import("tone")> {
   if (!Tone) {
@@ -19,7 +13,7 @@ async function loadTone(): Promise<typeof import("tone")> {
 
 export class PitchBackend implements IAudioBackend {
   private inner: IAudioBackend | null = null;
-  private pitchShift: import("tone").PitchShift | null = null;
+  private currentPitch = 0;
   private isToneLoaded = false;
   private pendingLoad: (() => Promise<void>) | null = null;
 
@@ -46,7 +40,7 @@ export class PitchBackend implements IAudioBackend {
   async play(): Promise<void> {
     if (!this.inner) return;
 
-    if (!this.isToneLoaded) {
+    if (!this.isToneLoaded && this.currentPitch !== 0) {
       await this.initializeTone();
     }
 
@@ -70,19 +64,18 @@ export class PitchBackend implements IAudioBackend {
   }
 
   setPlaybackRate(rate: number): void {
-    if (playerInstance) {
-      playerInstance.playbackRate = rate;
-    }
     this.inner?.setPlaybackRate(rate);
   }
 
   async setPitch(semitones: number): Promise<void> {
-    if (!this.isToneLoaded) {
+    this.currentPitch = semitones;
+
+    if (semitones !== 0 && !this.isToneLoaded) {
       await this.initializeTone();
     }
 
-    if (playerInstance) {
-      playerInstance.pitch = semitones;
+    if (pitchShift) {
+      pitchShift.pitch = semitones;
     }
   }
 
@@ -98,44 +91,46 @@ export class PitchBackend implements IAudioBackend {
     this.inner?.onTimeUpdate(callback);
   }
 
+  offTimeUpdate(_callback: (time: number) => void): void {
+  }
+
   onEnded(callback: () => void): void {
     this.inner?.onEnded(callback);
+  }
+
+  offEnded(_callback: () => void): void {
   }
 
   onError(callback: (error: Error) => void): void {
     this.inner?.onError(callback);
   }
 
-  dispose(): void {
-    if (playerInstance) {
-      playerInstance.dispose();
-      playerInstance = null;
-    }
+  offError(_callback: (error: Error) => void): void {
+  }
 
-    if (this.pitchShift) {
-      this.pitchShift.dispose();
-      this.pitchShift = null;
+  dispose(): void {
+    if (pitchShift) {
+      pitchShift.dispose();
+      pitchShift = null;
     }
 
     this.inner?.dispose();
     this.inner = null;
+    this.isToneLoaded = false;
   }
 
   private async initializeTone(): Promise<void> {
     const tone = await loadTone();
     this.isToneLoaded = true;
 
-    const player = new tone.Player().toDestination();
-    playerInstance = player;
-
-    this.pitchShift = new tone.PitchShift({
-      pitch: 0,
+    pitchShift = new tone.PitchShift({
+      pitch: this.currentPitch,
       windowSize: 0.1,
     });
   }
 
-  getTonePlayer(): TonePlayerInstance | null {
-    return playerInstance;
+  getPitchShift(): import("tone").PitchShift | null {
+    return pitchShift;
   }
 }
 
