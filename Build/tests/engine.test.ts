@@ -30,8 +30,11 @@ const createMockBackend = (): IAudioBackend => ({
   getCurrentTime: () => 0,
   getDuration: () => 180,
   onTimeUpdate: jest.fn(),
+  offTimeUpdate: jest.fn(),
   onEnded: jest.fn(),
+  offEnded: jest.fn(),
   onError: jest.fn(),
+  offError: jest.fn(),
   dispose: jest.fn(),
 });
 
@@ -67,6 +70,8 @@ describe("StateMachine", () => {
   it("should report playing state correctly", () => {
     const sm = new StateMachine();
     expect(sm.isPlaying()).toBe(false);
+    sm.transition("loading");
+    sm.transition("ready");
     sm.transition("playing");
     expect(sm.isPlaying()).toBe(true);
   });
@@ -278,15 +283,17 @@ describe("KomorebiEngine", () => {
     expect(engine.getState().state).toBe("idle");
   });
 
-  it("should load track and transition to ready", () => {
+  it("should load track and transition to ready", async () => {
     const track = createMockTrack("test-1");
     engine.load(track);
+    await new Promise((r) => setTimeout(r, 10));
     expect(engine.getState().state).toBe("ready");
   });
 
   it("should play track", async () => {
     const track = createMockTrack("test-1");
     engine.load(track);
+    await new Promise((r) => setTimeout(r, 10));
     await engine.play();
     expect(engine.getState().state).toBe("playing");
   });
@@ -294,6 +301,7 @@ describe("KomorebiEngine", () => {
   it("should pause track", async () => {
     const track = createMockTrack("test-1");
     engine.load(track);
+    await new Promise((r) => setTimeout(r, 10));
     await engine.play();
     engine.pause();
     expect(engine.getState().state).toBe("paused");
@@ -305,6 +313,7 @@ describe("KomorebiEngine", () => {
 
     const track = createMockTrack("test-1");
     engine.load(track);
+    await new Promise((r) => setTimeout(r, 10));
     await engine.play();
     engine.pause();
 
@@ -374,9 +383,10 @@ describe("KomorebiEngine", () => {
     expect(engine.getState().settings.repeat).toBe("off");
   });
 
-  it("should seek to position", () => {
+  it("should seek to position", async () => {
     const track = createMockTrack("test-1", 300);
     engine.load(track);
+    await new Promise((r) => setTimeout(r, 10));
     engine.seek(60);
     expect(backend.seek).toHaveBeenCalledWith(60);
   });
@@ -392,9 +402,12 @@ describe("KomorebiEngine", () => {
     expect(engine.getState().settings.gaplessPlayback).toBe(false);
   });
 
-  it("should get current track", () => {
+  it("should get current track", async () => {
     const track = createMockTrack("test-1");
+    const playlist = createMockPlaylist(["test-1"]);
+    engine.setPlaylist(playlist);
     engine.load(track);
+    await new Promise((r) => setTimeout(r, 10));
     expect(engine.getCurrentTrack()?.id).toBe("test-1");
   });
 

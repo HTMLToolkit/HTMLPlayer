@@ -1,5 +1,5 @@
 module.exports = {
-  testEnvironment: "node",
+  testEnvironment: "jsdom",
   roots: ["<rootDir>/tests"],
   testMatch: ["**/*.test.ts", "**/*.spec.ts"],
   moduleFileExtensions: ["ts", "tsx", "js", "jsx", "json"],
@@ -10,6 +10,7 @@ module.exports = {
     "^@core/(.*)$": "<rootDir>/src/core/$1",
     "^@platform/(.*)$": "<rootDir>/src/platform/$1",
   },
+  setupFiles: ["<rootDir>/tests/__mocks__/browser.ts"],
   collectCoverageFrom: [
     "src/core/engine/**/*.ts",
     "src/platform/audio/**/*.ts",

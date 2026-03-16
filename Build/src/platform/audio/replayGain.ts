@@ -122,30 +122,33 @@ export function createReplayGainAnalyzer(config?: Partial<ReplayGainConfig>): Re
 
 export function parseReplayGainTags(tags: Record<string, string>): ReplayGainInfo | null {
   const result: ReplayGainInfo = {};
-  
+
   const trackGain = tags["REPLAYGAIN_TRACK_GAIN"];
   if (trackGain) {
-    result.trackGain = parseFloat(trackGain.replace(/[-+]?[\d.]+\s*dB/, ""));
+    const match = trackGain.match(/([-+]?[\d.]+)\s*dB/i);
+    if (match) result.trackGain = parseFloat(match[1]);
   }
 
   const trackPeak = tags["REPLAYGAIN_TRACK_PEAK"];
   if (trackPeak) {
-    result.trackPeak = parseFloat(trackPeak.replace(/[-+]?[\d.]+/, ""));
+    result.trackPeak = parseFloat(trackPeak);
   }
 
   const albumGain = tags["REPLAYGAIN_ALBUM_GAIN"];
   if (albumGain) {
-    result.albumGain = parseFloat(albumGain.replace(/[-+]?[\d.]+\s*dB/, ""));
+    const match = albumGain.match(/([-+]?[\d.]+)\s*dB/i);
+    if (match) result.albumGain = parseFloat(match[1]);
   }
 
   const albumPeak = tags["REPLAYGAIN_ALBUM_PEAK"];
   if (albumPeak) {
-    result.albumPeak = parseFloat(albumPeak.replace(/[-+]?[\d.]+/, ""));
+    result.albumPeak = parseFloat(albumPeak);
   }
 
   const refLevel = tags["REPLAYGAIN_REFERENCE_LOUDNESS"];
   if (refLevel) {
-    result.referenceLoudness = parseFloat(refLevel.replace(/[-+]?[\d.]+\s*dB/, ""));
+    const match = refLevel.match(/([-+]?[\d.]+)\s*dB/i);
+    if (match) result.referenceLoudness = parseFloat(match[1]);
   }
 
   return Object.keys(result).length > 0 ? result : null;

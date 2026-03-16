@@ -138,13 +138,15 @@ describe("SmartPlaylistEngine", () => {
       ];
 
       scoringEngine.recordPlay("1");
+      scoringEngine.recordPlay("1");
 
       const result = playlistEngine.generatePlaylist(tracks, {
         name: "Less played",
-        rules: [{ type: "playcount", operator: "lessThan", value: 3 }],
+        rules: [{ type: "playcount", operator: "lessThan", value: 2 }],
       });
 
       expect(result).toHaveLength(1);
+      expect(result[0].id).toBe("2");
     });
   });
 

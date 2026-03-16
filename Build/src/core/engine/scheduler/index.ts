@@ -34,7 +34,10 @@ export class CrossfadeScheduler {
   calculateTriggerTime(trackDuration: number, currentTime: number): number | null {
     if (!this.isEnabled()) return null;
 
-    const triggerTime = trackDuration - this.config.duration;
+    const durationSeconds = this.config.duration / 1000;
+    if (trackDuration <= durationSeconds) return null;
+
+    const triggerTime = trackDuration - durationSeconds;
     if (currentTime >= triggerTime) {
       return triggerTime;
     }

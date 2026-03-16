@@ -204,7 +204,7 @@ describe("SettingsManager", () => {
       
       const result = settings.getSettings();
       expect(result.volume).toBe(1);
-      expect(result.colorTheme).toBe("Obsidian");
+      expect(result.colorTheme).toBe("Blue");
       expect(result.pitch).toBe(0);
       expect(result.smartShuffle).toBe(true);
     });
