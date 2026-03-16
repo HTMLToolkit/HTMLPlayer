@@ -693,21 +693,35 @@ export const useMusicPlayer = () => {
   // Discord presence update function
   const updateDiscordPresence = useCallback(
     async (song: Song | null, isPlaying: boolean) => {
-      const discordService = DiscordService.getInstance();
+      if (!settings.discordEnabled) return;
 
-      if (!settings.discordEnabled || !settings.discordUserId) {
-        return;
-      }
+      // Prefer Tauri RPC (desktop) if available
+      const isTauri = (await import("@tauri-apps/api/core")).isTauri();
 
       try {
         if (song && isPlaying) {
-          await discordService.updatePresence({
-            userId: settings.discordUserId,
-            details: song.title,
-            state: song.artist,
-          });
+          if (isTauri) {
+            const { invoke } = await import("@tauri-apps/api/core");
+            await invoke("set_discord_presence", {
+              details: song.title,
+              state: song.artist,
+            });
+          } else if (settings.discordUserId) {
+            const discordService = DiscordService.getInstance();
+            await discordService.updatePresence({
+              userId: settings.discordUserId,
+              details: song.title,
+              state: song.artist,
+            });
+          }
         } else {
-          await discordService.clearPresence(settings.discordUserId);
+          if (isTauri) {
+            const { invoke } = await import("@tauri-apps/api/core");
+            await invoke("clear_discord_presence");
+          } else if (settings.discordUserId) {
+            const discordService = DiscordService.getInstance();
+            await discordService.clearPresence(settings.discordUserId);
+          }
         }
       } catch (error) {
         console.error("Failed to update Discord presence:", error);

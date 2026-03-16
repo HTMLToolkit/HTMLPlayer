@@ -587,7 +587,13 @@
     "errorParsingCallback": "Erreur d'analyse du callback Discord :",
     "failedToUpdatePresence": "Échec de mise à jour de la présence Discord :",
     "errorUpdatingPresence": "Erreur lors de la mise à jour de la présence Discord :",
-    "errorClearingPresence": "Erreur lors de l'effacement de la présence Discord :"
+    "errorClearingPresence": "Erreur lors de l'effacement de la présence Discord :",
+    "status": "Statut RPC Discord",
+    "statusUnknown": "Inconnu (vérifiez la disponibilité)",
+    "statusAvailable": "Discord est en cours d'exécution (RPC disponible)",
+    "statusUnavailable": "Discord n'est pas en cours d'exécution",
+    "statusUnsupported": "RPC Discord non pris en charge dans cet environnement",
+    "refreshStatus": "Rafraîchir le statut"
   },
   "accessibility": {
     "scrollingText": "Texte défilant"

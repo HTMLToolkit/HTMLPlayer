@@ -29,6 +29,7 @@ import { useTranslation } from "react-i18next";
 import { languageNames } from "../types/supportedLanguages";
 import { isSafari } from "../helpers/safariHelper";
 import { Icon } from "./Icon";
+import { isTauri } from "@tauri-apps/api/core";
 
 import { resetAllDialogPreferences } from "../helpers/musicIndexedDbHelper";
 import {
@@ -179,6 +180,36 @@ export const Settings = ({
       toast.error(t("settings.cacheClearedError"));
     }
   };
+
+  const [discordRpcStatus, setDiscordRpcStatus] = useState<
+    "unknown" | "available" | "unavailable" | "unsupported"
+  >("unknown");
+
+  const isTauriEnv = isTauri();
+
+  const checkDiscordRpcStatus = async () => {
+    if (!isTauriEnv) {
+      setDiscordRpcStatus("unsupported");
+      return;
+    }
+
+    try {
+      const { invoke } = await import("@tauri-apps/api/core");
+      const available = await invoke("is_discord_running");
+      setDiscordRpcStatus(available ? "available" : "unavailable");
+    } catch (error) {
+      console.error("Failed to check Discord RPC status:", error);
+      setDiscordRpcStatus("unavailable");
+    }
+  };
+
+  useEffect(() => {
+    if (settings.discordEnabled) {
+      checkDiscordRpcStatus();
+    } else {
+      setDiscordRpcStatus("unknown");
+    }
+  }, [settings.discordEnabled]);
 
   // Dynamic Eruda loading/unloading functions
   const loadEruda = () => {
@@ -910,6 +941,28 @@ export const Settings = ({
               </div>
             </div>
           )}
+
+          <div className={styles.settingItem}>
+            <div className={styles.settingInfo}>
+              <label>{t("discord.status")}</label>
+              <p className={styles.settingDescription}>
+                {discordRpcStatus === "unknown" && t("discord.statusUnknown")}
+                {discordRpcStatus === "unsupported" &&
+                  t("discord.statusUnsupported")}
+                {discordRpcStatus === "available" &&
+                  t("discord.statusAvailable")}
+                {discordRpcStatus === "unavailable" &&
+                  t("discord.statusUnavailable")}
+              </p>
+            </div>
+            <Button
+              variant="outline"
+              onClick={checkDiscordRpcStatus}
+              disabled={!isTauriEnv}
+            >
+              {t("discord.refreshStatus")}
+            </Button>
+          </div>
         </>
       )}
 

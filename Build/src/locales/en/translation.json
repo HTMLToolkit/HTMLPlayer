@@ -620,7 +620,13 @@
     "errorParsingCallback": "Error parsing Discord callback:",
     "failedToUpdatePresence": "Failed to update Discord presence:",
     "errorUpdatingPresence": "Error updating Discord presence:",
-    "errorClearingPresence": "Error clearing Discord presence:"
+    "errorClearingPresence": "Error clearing Discord presence:",
+    "status": "Discord RPC Status",
+    "statusUnknown": "Unknown (check availability)",
+    "statusAvailable": "Discord is running (RPC available)",
+    "statusUnavailable": "Discord is not running",
+    "statusUnsupported": "Discord RPC not supported in this environment",
+    "refreshStatus": "Refresh status"
   },
   "accessibility": {
     "scrollingText": "Scrolling text"
