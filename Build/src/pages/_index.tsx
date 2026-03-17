@@ -9,7 +9,7 @@ import {
   switchToDarkMode,
   switchToLightMode,
   ThemeMode,
-} from "../helpers/themeMode";
+} from "../ui/themeMode";
 import { musicIndexedDbHelper } from "../helpers/musicIndexedDbHelper";
 import styles from "./_index.module.css";
 import { useTranslation } from "react-i18next";

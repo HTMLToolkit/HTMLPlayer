@@ -52,7 +52,7 @@ import type {
   IconLibraryMap,
   IconLibraryConfigMap,
   IconPropTransformer,
-} from "../../../types/icons";
+} from "../../../../../types/icons";
 
 export const libraries: IconLibraryMap = {
   simpleline: {

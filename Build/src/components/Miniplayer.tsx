@@ -2,10 +2,10 @@ import { createRoot } from "react-dom/client";
 import { useTranslation } from "react-i18next";
 import { Button } from "./Button";
 import { Icon } from "./Icon";
-import { getCurrentThemeCSS } from "../helpers/themeMode";
+import { getCurrentThemeCSS } from "../ui/themeMode";
 import styles from "./Miniplayer.module.css";
 import { useAudioStore } from "../contexts/audioStore";
-import { IconRegistryProvider } from "../helpers/iconLoader";
+import { IconRegistryProvider } from "../ui/iconLoader";
 
 interface MiniplayerControls {
   togglePlayPause: () => void;

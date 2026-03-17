@@ -54,7 +54,7 @@ import type {
   IconLibraryMap,
   IconLibraryConfigMap,
   IconPropTransformer,
-} from "../../../types/icons";
+} from "../../../../../types/icons";
 
 const cssggIcons = {
   CgPlayButton,

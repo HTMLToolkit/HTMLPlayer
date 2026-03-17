@@ -127,20 +127,26 @@ export type EngineEvent =
   | "statechange"
   | "trackchange"
   | "timeupdate"
+  | "durationchange"
   | "volumechange"
   | "queuechange"
   | "settingschange"
   | "ended"
+  | "loading"
+  | "ready"
   | "error";
 
 export interface EngineEventMap {
   statechange: { oldState: PlayerState; newState: PlayerState };
   trackchange: { from: Track | null; to: Track | null };
   timeupdate: { currentTime: number; duration: number };
+  durationchange: { duration: number };
   volumechange: { volume: number };
   queuechange: { queue: QueueState };
   settingschange: { settings: Partial<EngineSettings> };
   ended: { track: Track };
+  loading: { track: Track };
+  ready: { track: Track };
   error: { error: EngineError };
 }
 

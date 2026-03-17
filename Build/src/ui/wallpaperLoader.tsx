@@ -51,7 +51,7 @@ let globalWallpapers: WallpaperMetadata[] = [];
 // Import wallpaper components
 // ----------------------
 const wallpaperComponentFiles = import.meta.glob(
-  "../themes/Wallpapers/**/*.wallpaper.tsx",
+  "../resources/themes/Wallpapers/**/*.wallpaper.tsx",
   { eager: false },
 );
 

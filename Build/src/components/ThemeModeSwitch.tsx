@@ -12,7 +12,7 @@ import {
   switchToDarkMode,
   switchToLightMode,
   switchToAutoMode,
-} from "../helpers/themeMode";
+} from "../ui/themeMode";
 import styles from "./ThemeModeSwitch.module.css";
 
 export interface ThemeModeSwitchProps {

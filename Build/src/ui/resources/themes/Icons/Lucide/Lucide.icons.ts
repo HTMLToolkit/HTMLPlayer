@@ -4,7 +4,7 @@ import type {
   IconLibraryMap,
   IconLibraryConfigMap,
   IconPropTransformer,
-} from "../../../types/icons";
+} from "../../../../../types/icons";
 
 // Dynamic library loader - only imports when actually needed
 export const libraries: IconLibraryMap = {};

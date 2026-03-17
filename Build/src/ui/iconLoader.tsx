@@ -61,7 +61,7 @@ interface IconRegistryProviderProps {
   children: React.ReactNode;
 }
 
-const iconModuleLoaders = import.meta.glob("../themes/**/*.icons.{ts,tsx}");
+const iconModuleLoaders = import.meta.glob("../resources/themes/Icons/**/*.icons.{ts,tsx}");
 
 const builtinLibraryLoaders: Record<
   string,

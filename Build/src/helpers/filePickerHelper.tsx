@@ -14,7 +14,7 @@ import {
 import ReactDOM from "react-dom/client";
 import { useTranslation } from "react-i18next";
 import i18n from "i18next";
-import { IconRegistryProvider } from "./iconLoader";
+import { IconRegistryProvider } from "../ui/iconLoader";
 import { importAudioFiles } from "./importAudioFiles";
 
 // Extend Window interface for File Handling API

@@ -4,7 +4,7 @@
  */
 
 // Import all theme JSON files eagerly
-const themeJsonFiles = import.meta.glob("../themes/**/*.theme.json", {
+const themeJsonFiles = import.meta.glob("../resources/themes/**/*.theme.json", {
   eager: true,
 });
 
@@ -13,7 +13,7 @@ const themeJsonCache = new Map<string, any>();
 
 /**
  * Load and parse a theme JSON file by path
- * @param themePath - The path to the theme JSON file (e.g., '../themes/Blue/Blue.theme.json')
+ * @param themePath - The path to the theme JSON file (e.g., '../resources/themes/Palettes/Blue/Blue.theme.json')
  * @returns The parsed JSON object or null if not found/invalid
  */
 export async function loadThemeJson(themePath: string): Promise<any> {
@@ -45,16 +45,16 @@ export async function loadThemeJson(themePath: string): Promise<any> {
 
 /**
  * Load theme JSON by converting an icon/theme file path to its corresponding JSON path
- * @param sourcePath - Path to an icon or theme file (e.g., '../themes/Blue/Blue.icons.ts')
+ * @param sourcePath - Path to an icon or theme file (e.g., '../resources/themes/Icons/Lucide/Lucide.icons.ts')
  * @returns The parsed JSON object or null if not found/invalid
  */
 export async function loadThemeJsonFromSourcePath(
   sourcePath: string,
 ): Promise<any> {
   // Convert icons/theme/wallpaper path to theme.json path
-  // e.g., ../themes/Blue/Blue.icons.ts -> ../themes/Blue/Blue.theme.json
-  // e.g., ../themes/Blue/Blue.theme.css -> ../themes/Blue/Blue.theme.json
-  // e.g., ../themes/Wallpapers/Static/Static.wallpaper.tsx -> ../themes/Wallpapers/Static/Static.theme.json
+  // e.g., ../resources/themes/Icons/Lucide/Lucide.icons.ts -> ../resources/themes/Icons/Lucide/Lucide.theme.json
+  // e.g., ../resources/themes/Palettes/Blue/Blue.theme.css -> ../resources/themes/Palettes/Blue/Blue.theme.json
+  // e.g., ../resources/themes/Wallpapers/Static/Static.wallpaper.tsx -> ../resources/themes/Wallpapers/Static/Static.theme.json
   const themePath = sourcePath
     .replace(/\.icons\.(ts|tsx)$/, ".theme.json")
     .replace(/\.theme\.(css|scss|sass)$/, ".theme.json")

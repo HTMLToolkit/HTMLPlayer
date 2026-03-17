@@ -1,5 +1,5 @@
 import React, { Suspense, useEffect, useRef } from "react";
-import { useWallpaperLoader } from "../helpers/wallpaperLoader";
+import { useWallpaperLoader } from "../ui/wallpaperLoader";
 
 // WallpaperRenderer Component
 interface WallpaperRendererProps {

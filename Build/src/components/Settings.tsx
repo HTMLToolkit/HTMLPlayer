@@ -20,9 +20,9 @@ import {
 import { ThemeModeSwitch } from "./ThemeModeSwitch";
 import { ShortcutConfig } from "./ShortcutConfig";
 import styles from "./Settings.module.css";
-import { useThemeLoader } from "../helpers/themeLoader";
-import { useIconRegistry } from "../helpers/iconLoader";
-import { useWallpaperLoader } from "../helpers/wallpaperLoader";
+import { useThemeLoader } from "../ui/themeLoader";
+import { useIconRegistry } from "../ui/iconLoader";
+import { useWallpaperLoader } from "../ui/wallpaperLoader";
 import { toast } from "sonner";
 import { useRef, useState, useEffect, JSX } from "react";
 import { useTranslation } from "react-i18next";

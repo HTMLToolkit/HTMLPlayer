@@ -7,7 +7,7 @@ import React, {
   memo,
 } from "react";
 import { useTranslation } from "react-i18next";
-import { useIconRegistry } from "../helpers/iconLoader";
+import { useIconRegistry } from "../ui/iconLoader";
 import type { IconLookupOptions, ResolvedIcon } from "../types/icons";
 
 interface IconFallbackState {

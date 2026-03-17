@@ -49,13 +49,13 @@ let globalThemes: ThemeMetadata[] = [];
 // ----------------------
 // Import theme CSS and images
 // ----------------------
-const themeCssFiles = import.meta.glob("../themes/**/*.theme.css", {
+const themeCssFiles = import.meta.glob("../resources/themes/Palettes/**/*.theme.css", {
   query: "?raw",
   import: "default",
   eager: false,
 });
 const themeImageFiles = import.meta.glob(
-  "../themes/**/*.{jpg,jpeg,png,gif,webp,svg}",
+  "../resources/themes/**/*.{jpg,jpeg,png,gif,webp,svg}",
   { eager: true },
 );
 

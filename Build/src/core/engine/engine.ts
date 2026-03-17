@@ -130,12 +130,15 @@ export class KomorebiEngine {
 
     this.stateMachine.transition("loading");
     this.currentError = null;
+    this.events.emit("loading", { track });
 
     this.backend
       .load(track.url)
       .then(() => {
         this.duration = this.backend?.getDuration() ?? track.duration;
         this.stateMachine.transition("ready");
+        this.events.emit("durationchange", { duration: this.duration });
+        this.events.emit("ready", { track });
         this.emitStateChange();
       })
       .catch((error) => {

@@ -2,6 +2,7 @@ import { BaseAudioBackend } from "./BaseBackend";
 
 export class WebAudioBackend extends BaseAudioBackend {
   private audioContext: AudioContext | null = null;
+  private analyserNode: AnalyserNode | null = null;
   private chain: {
     source: AudioBufferSourceNode | null;
     gainNode: GainNode;
@@ -34,8 +35,23 @@ export class WebAudioBackend extends BaseAudioBackend {
     if (!this.audioContext) {
       this.audioContext = new AudioContext();
       this.chain.gainNode = this.audioContext.createGain();
+      this.analyserNode = this.audioContext.createAnalyser();
+      this.analyserNode.fftSize = 2048;
     }
     return this.audioContext;
+  }
+
+  getAnalyser(): AnalyserNode | null {
+    this.ensureContext();
+    return this.analyserNode;
+  }
+
+  private ensureAnalyser(): AnalyserNode {
+    if (!this.analyserNode) {
+      this.analyserNode = this.audioContext!.createAnalyser();
+      this.analyserNode.fftSize = 2048;
+    }
+    return this.analyserNode;
   }
 
   async load(url: string): Promise<void> {
@@ -66,7 +82,10 @@ export class WebAudioBackend extends BaseAudioBackend {
     const source = ctx.createBufferSource();
     source.buffer = this.chain.audioBuffer;
     source.connect(this.chain.gainNode);
-    this.chain.gainNode.connect(ctx.destination);
+    
+    const analyser = this.ensureAnalyser();
+    this.chain.gainNode.connect(analyser);
+    analyser.connect(ctx.destination);
 
     source.onended = () => {
       if (this.timeUpdateInterval) {
