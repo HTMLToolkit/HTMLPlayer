@@ -456,6 +456,7 @@ export class KomorebiEngine {
     }
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   private scheduleTransition(_track: Track): void {
     if (this.scheduledTransitionId !== null) return;
 

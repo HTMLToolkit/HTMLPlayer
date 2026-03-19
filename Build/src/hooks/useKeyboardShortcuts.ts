@@ -3,25 +3,11 @@ import {
   shortcutsDb,
   ShortcutConfig,
   KeyboardShortcut,
-} from "../helpers/shortcutsIndexedDbHelper";
-
-interface MusicPlayerHook {
-  togglePlayPause: () => void;
-  playNext: () => void;
-  playPrevious: () => void;
-  setVolume: (volume: number) => void;
-  toggleShuffle: () => void;
-  toggleRepeat: () => void;
-  playerState: {
-    volume: number;
-    shuffle: boolean;
-    repeat: "off" | "one" | "all";
-    isMuted?: boolean;
-  };
-}
+} from "../platform/storage/shortcuts";
+import type { UseKomorebiReturn } from "./useKomorebi";
 
 interface UseKeyboardShortcutsProps {
-  musicPlayerHook: MusicPlayerHook;
+  komorebi: UseKomorebiReturn;
   onOpenSettings?: () => void;
   onToggleLyrics?: () => void;
   onToggleVisualizer?: () => void;
@@ -29,7 +15,7 @@ interface UseKeyboardShortcutsProps {
 }
 
 export const useKeyboardShortcuts = ({
-  musicPlayerHook,
+  komorebi,
   onOpenSettings,
   onToggleLyrics,
   onToggleVisualizer,
@@ -96,60 +82,39 @@ export const useKeyboardShortcuts = ({
       // Execute the appropriate action
       switch (matchingShortcut.action) {
         case "playPause":
-          musicPlayerHook.togglePlayPause();
+          komorebi.togglePlayPause();
           break;
         case "nextSong":
-          musicPlayerHook.playNext();
+          komorebi.next();
           break;
         case "previousSong":
-          musicPlayerHook.playPrevious();
+          komorebi.previous();
           break;
         case "volumeUp":
-          const newVolumeUp = Math.min(
-            1,
-            musicPlayerHook.playerState.volume + 0.05,
-          );
-          console.log(
-            "Volume up:",
-            musicPlayerHook.playerState.volume,
-            "->",
-            newVolumeUp,
-          );
-          musicPlayerHook.setVolume(newVolumeUp);
+          const newVolumeUp = Math.min(1, komorebi.volume + 0.05);
+          komorebi.setVolume(newVolumeUp);
           break;
         case "volumeDown":
-          const newVolumeDown = Math.max(
-            0,
-            musicPlayerHook.playerState.volume - 0.05,
-          );
-          console.log(
-            "Volume down:",
-            musicPlayerHook.playerState.volume,
-            "->",
-            newVolumeDown,
-          );
-          musicPlayerHook.setVolume(newVolumeDown);
+          const newVolumeDown = Math.max(0, komorebi.volume - 0.05);
+          komorebi.setVolume(newVolumeDown);
           break;
         case "mute":
-          // Toggle mute by setting volume to 0 or restoring it
-          const currentVolume = musicPlayerHook.playerState.volume;
+          const currentVolume = komorebi.volume;
           if (currentVolume > 0) {
-            // Store current volume and mute
             sessionStorage.setItem("previousVolume", currentVolume.toString());
-            musicPlayerHook.setVolume(0);
+            komorebi.setVolume(0);
           } else {
-            // Restore previous volume or default to 0.7
             const previousVolume = parseFloat(
               sessionStorage.getItem("previousVolume") || "0.7",
             );
-            musicPlayerHook.setVolume(previousVolume);
+            komorebi.setVolume(previousVolume);
           }
           break;
         case "toggleShuffle":
-          musicPlayerHook.toggleShuffle();
+          komorebi.toggleShuffle();
           break;
         case "toggleRepeat":
-          musicPlayerHook.toggleRepeat();
+          komorebi.toggleRepeat();
           break;
         case "toggleLyrics":
           onToggleLyrics?.();
@@ -168,7 +133,7 @@ export const useKeyboardShortcuts = ({
     [
       shortcuts,
       matchesShortcut,
-      musicPlayerHook,
+      komorebi,
       onToggleLyrics,
       onToggleVisualizer,
       onSearch,

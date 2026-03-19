@@ -10,11 +10,10 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from "../components/Dialog";
+} from "../ui/components/primitives/Dialog";
 import ReactDOM from "react-dom/client";
 import { useTranslation } from "react-i18next";
 import i18n from "i18next";
-import { IconRegistryProvider } from "../ui/iconLoader";
 import { importAudioFiles } from "./importAudioFiles";
 
 // Extend Window interface for File Handling API
@@ -392,8 +391,7 @@ export function pickAudioFiles(): Promise<AudioFile[]> {
       }, [uppy]);
 
       return (
-        <IconRegistryProvider defaultSetId="lucide">
-          <Dialog
+        <Dialog
             open={open}
             onOpenChange={(newOpen) => {
               setOpen(newOpen);
@@ -421,7 +419,6 @@ export function pickAudioFiles(): Promise<AudioFile[]> {
               </div>
             </DialogContent>
           </Dialog>
-        </IconRegistryProvider>
       );
     };
 

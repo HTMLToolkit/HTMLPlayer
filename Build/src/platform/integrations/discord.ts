@@ -1,6 +1,6 @@
 import { BaseIntegration } from "./base";
 import type { Track } from "../../core/engine/types";
-import { DiscordService } from "../../helpers/discordService";
+import { DiscordService } from "./discordService";
 
 export class DiscordIntegration extends BaseIntegration {
   name = "Discord RPC";

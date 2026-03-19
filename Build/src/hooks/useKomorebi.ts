@@ -1,23 +1,70 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { KomorebiEngine } from "../core/engine/engine";
+import type { Track, Playlist, EngineState, QueueState } from "../core/engine/types";
 import type { IAudioBackend } from "../platform/audio";
 import { HTMLAudioBackend } from "../platform/audio/backends/HTMLBackend";
-import type { Track, Playlist, EngineState, EngineSettings, QueueState } from "../core/engine/types";
-import type { EngineEventMap } from "../core/engine/types";
+import { LibraryManager } from "../platform/library/library";
+import { libraryPersistence } from "../platform/library/persistence";
+import { SettingsManager } from "../platform/settings/settings";
 
-const DEFAULT_SETTINGS: EngineSettings = {
-  volume: 1,
-  crossfade: 0,
-  crossfadeBeforeGapless: 3000,
-  autoPlayNext: true,
-  tempo: 1,
-  pitch: 0,
-  gaplessPlayback: true,
-  smartShuffle: false,
-  repeat: "off",
-  defaultShuffle: false,
-  defaultRepeat: "off",
-};
+export interface UseKomorebiOptions {
+  autoPlay?: boolean;
+  persistLibrary?: boolean;
+  persistSettings?: boolean;
+}
+
+export interface UseKomorebiReturn {
+  engine: KomorebiEngine;
+  library: LibraryManager;
+  settings: SettingsManager;
+  
+  isReady: boolean;
+  isLoading: boolean;
+  
+  state: EngineState;
+  currentTrack: Track | null;
+  isPlaying: boolean;
+  currentTime: number;
+  duration: number;
+  volume: number;
+  repeat: "off" | "one" | "all";
+  shuffle: boolean;
+  error: string | null;
+  
+  play: () => Promise<void>;
+  pause: () => void;
+  togglePlayPause: () => Promise<void>;
+  stop: () => void;
+  seek: (time: number) => void;
+  next: () => Promise<void>;
+  previous: () => Promise<void>;
+  setVolume: (volume: number) => void;
+  setPlaybackRate: (rate: number) => void;
+  setPitch: (semitones: number) => void;
+  toggleShuffle: () => void;
+  toggleRepeat: () => void;
+  
+  load: (track: Track, playlist?: Playlist) => void;
+  playSong: (song: Track, playlist?: Playlist) => Promise<void>;
+  setPlaylist: (playlist: Playlist) => void;
+  getQueue: () => Track[];
+  
+  addSong: (song: Track) => void;
+  removeSong: (songId: string) => void;
+  getSong: (songId: string) => Track | undefined;
+  
+  addPlaylist: (playlist: Playlist) => void;
+  removePlaylist: (playlistId: string) => void;
+  getPlaylist: (playlistId: string) => Playlist | undefined;
+  
+  toggleFavorite: (songId: string) => void;
+  isFavorite: (songId: string) => boolean;
+  getFavorites: () => Track[];
+  
+  search: (query: string) => Track[];
+  getSongsByArtist: (artist: string) => Track[];
+  getSongsByAlbum: (album: string) => Track[];
+}
 
 const DEFAULT_QUEUE: QueueState = {
   tracks: [],
@@ -32,7 +79,19 @@ function createInitialState(): EngineState {
     currentTrack: null,
     currentPlaylist: null,
     queue: DEFAULT_QUEUE,
-    settings: DEFAULT_SETTINGS,
+    settings: {
+      volume: 1,
+      crossfade: 0,
+      crossfadeBeforeGapless: 3000,
+      autoPlayNext: true,
+      tempo: 1,
+      pitch: 0,
+      gaplessPlayback: true,
+      smartShuffle: false,
+      repeat: "off",
+      defaultShuffle: false,
+      defaultRepeat: "off",
+    },
     currentTime: 0,
     duration: 0,
     volume: 1,
@@ -41,136 +100,131 @@ function createInitialState(): EngineState {
   };
 }
 
-export interface UseKomorebiOptions {
-  autoPlay?: boolean;
-  crossfade?: {
-    enabled: boolean;
-    duration: number;
-    shape: "none" | "linear" | "equalpower";
-  };
-  gapless?: {
-    enabled: boolean;
-  };
-  smartShuffle?: boolean;
-}
-
-export interface UseKomorebiReturn {
-  state: EngineState;
-  currentTrack: Track | null;
-  isPlaying: boolean;
-  currentTime: number;
-  duration: number;
-  volume: number;
-  isLoading: boolean;
-  error: string | null;
-  
-  load: (track: Track, playlist?: Playlist) => void;
-  play: () => Promise<void>;
-  pause: () => void;
-  stop: () => void;
-  seek: (time: number) => void;
-  next: () => Promise<void>;
-  previous: () => Promise<void>;
-  setVolume: (volume: number) => void;
-  setPlaybackRate: (rate: number) => void;
-  
-  setPlaylist: (playlist: Playlist) => void;
-  getQueue: () => Track[];
-  
-  engine: KomorebiEngine;
-}
-
 export function useKomorebi(options: UseKomorebiOptions = {}): UseKomorebiReturn {
   const engineRef = useRef<KomorebiEngine | null>(null);
+  const libraryRef = useRef<LibraryManager | null>(null);
+  const settingsRef = useRef<SettingsManager | null>(null);
+  
+  const [isReady, setIsReady] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  
   const [state, setState] = useState<EngineState>(createInitialState);
   const [currentTrack, setCurrentTrack] = useState<Track | null>(null);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const callbacksRef = useRef<{
-    statechange: ((data: EngineEventMap["statechange"]) => void) | null;
-    trackchange: ((data: EngineEventMap["trackchange"]) => void) | null;
-    timeupdate: ((data: EngineEventMap["timeupdate"]) => void) | null;
-    durationchange: ((data: EngineEventMap["durationchange"]) => void) | null;
-    ended: ((data: EngineEventMap["ended"]) => void) | null;
-    error: ((data: EngineEventMap["error"]) => void) | null;
-    loading: ((data: EngineEventMap["loading"]) => void) | null;
-    ready: ((data: EngineEventMap["ready"]) => void) | null;
-  }>({
-    statechange: null,
-    trackchange: null,
-    timeupdate: null,
-    durationchange: null,
-    ended: null,
-    error: null,
-    loading: null,
-    ready: null,
-  });
 
   useEffect(() => {
     const backend: IAudioBackend = new HTMLAudioBackend();
     const engine = new KomorebiEngine({
-      crossfade: options.crossfade ?? { enabled: false, duration: 0, shape: "linear" },
-      gapless: options.gapless ?? { enabled: true },
-      smartShuffle: options.smartShuffle ?? true,
+      crossfade: { enabled: false, duration: 0, shape: "linear" },
+      gapless: { enabled: true },
+      smartShuffle: true,
       autoPlayNext: options.autoPlay ?? false,
     });
-    
     engine.setBackend(backend);
     engineRef.current = engine;
 
-    callbacksRef.current.statechange = () => {
+    const library = new LibraryManager();
+    libraryRef.current = library;
+
+    const settings = new SettingsManager();
+    settingsRef.current = settings;
+
+    const handleStateChange = () => {
       setState(engine.getState());
     };
-    callbacksRef.current.trackchange = (e) => {
+    const handleTrackChange = (e: { from: Track | null; to: Track | null }) => {
       setCurrentTrack(e.to);
     };
-    callbacksRef.current.timeupdate = (e) => {
+    const handleTimeUpdate = (e: { currentTime: number; duration: number }) => {
       setCurrentTime(e.currentTime);
-    };
-    callbacksRef.current.durationchange = (e) => {
       setDuration(e.duration);
     };
-    callbacksRef.current.ended = async () => {
-      if (state.settings.autoPlayNext) {
+    const handleEnded = async () => {
+      const currentState = engine.getState();
+      if (currentState.settings.autoPlayNext) {
         await engine.next();
       }
     };
-    callbacksRef.current.error = (e) => {
+    const handleError = (e: { error: { message: string } }) => {
       setError(e.error.message);
     };
-    callbacksRef.current.loading = () => {
-      setIsLoading(true);
-    };
-    callbacksRef.current.ready = () => {
-      setIsLoading(false);
+    const handleLoading = () => setIsLoading(true);
+    const handleReady = () => setIsLoading(false);
+
+    engine.on("statechange", handleStateChange);
+    engine.on("trackchange", handleTrackChange);
+    engine.on("timeupdate", handleTimeUpdate);
+    engine.on("ended", handleEnded);
+    engine.on("error", handleError);
+    engine.on("loading", handleLoading);
+    engine.on("ready", handleReady);
+
+    const loadLibrary = async () => {
+      try {
+        const savedLibrary = await libraryPersistence.loadFullLibrary();
+        if (savedLibrary) {
+          savedLibrary.songs.forEach(song => library.addSong(song));
+          savedLibrary.playlists.forEach(playlist => {
+            if ("songs" in playlist) {
+              library.addPlaylist(playlist);
+            }
+          });
+          savedLibrary.favorites.forEach(id => {
+            const song = library.getSong(id);
+            if (song) library.toggleFavorite(id);
+          });
+        }
+      } catch (err) {
+        console.error("Failed to load library:", err);
+      }
     };
 
-    engine.on("statechange", callbacksRef.current.statechange);
-    engine.on("trackchange", callbacksRef.current.trackchange);
-    engine.on("timeupdate", callbacksRef.current.timeupdate);
-    engine.on("durationchange", callbacksRef.current.durationchange);
-    engine.on("ended", callbacksRef.current.ended);
-    engine.on("error", callbacksRef.current.error);
-    engine.on("loading", callbacksRef.current.loading);
-    engine.on("ready", callbacksRef.current.ready);
-
-    setState(engine.getState());
+    loadLibrary().then(() => {
+      setIsReady(true);
+      setState(engine.getState());
+    });
 
     return () => {
-      if (callbacksRef.current.statechange) engine.off("statechange", callbacksRef.current.statechange);
-      if (callbacksRef.current.trackchange) engine.off("trackchange", callbacksRef.current.trackchange);
-      if (callbacksRef.current.timeupdate) engine.off("timeupdate", callbacksRef.current.timeupdate);
-      if (callbacksRef.current.durationchange) engine.off("durationchange", callbacksRef.current.durationchange);
-      if (callbacksRef.current.ended) engine.off("ended", callbacksRef.current.ended);
-      if (callbacksRef.current.error) engine.off("error", callbacksRef.current.error);
-      if (callbacksRef.current.loading) engine.off("loading", callbacksRef.current.loading);
-      if (callbacksRef.current.ready) engine.off("ready", callbacksRef.current.ready);
+      engine.off("statechange", handleStateChange);
+      engine.off("trackchange", handleTrackChange);
+      engine.off("timeupdate", handleTimeUpdate);
+      engine.off("ended", handleEnded);
+      engine.off("error", handleError);
+      engine.off("loading", handleLoading);
+      engine.off("ready", handleReady);
       backend.dispose();
     };
   }, []);
+
+  useEffect(() => {
+    if (!options.persistLibrary || !libraryRef.current || !isReady) return;
+
+    const handleSongAdded = (song: Track) => {
+      libraryPersistence.saveSong(song);
+    };
+    const handleSongRemoved = (songId: string) => {
+      libraryPersistence.deleteSong(songId);
+    };
+    const handleFavoritesChange = () => {
+      const library = libraryRef.current;
+      if (library) {
+        libraryPersistence.saveFavorites(library.getState().favorites);
+      }
+    };
+
+    const library = libraryRef.current;
+    library.on("songadded", handleSongAdded as Parameters<typeof library.on>[1]);
+    library.on("songremoved", handleSongRemoved as Parameters<typeof library.on>[1]);
+    library.on("favoritechanged", handleFavoritesChange as Parameters<typeof library.on>[1]);
+
+    return () => {
+      library.off("songadded", handleSongAdded as Parameters<typeof library.on>[1]);
+      library.off("songremoved", handleSongRemoved as Parameters<typeof library.on>[1]);
+      library.off("favoritechanged", handleFavoritesChange as Parameters<typeof library.on>[1]);
+    };
+  }, [options.persistLibrary, isReady]);
 
   const play = useCallback(async () => {
     await engineRef.current?.play();
@@ -180,6 +234,16 @@ export function useKomorebi(options: UseKomorebiOptions = {}): UseKomorebiReturn
     engineRef.current?.pause();
   }, []);
 
+  const togglePlayPause = useCallback(async () => {
+    const engine = engineRef.current;
+    if (!engine) return;
+    if (engine.getState().state === "playing") {
+      engine.pause();
+    } else {
+      await engine.play();
+    }
+  }, []);
+
   const stop = useCallback(() => {
     engineRef.current?.stop();
   }, []);
@@ -187,6 +251,18 @@ export function useKomorebi(options: UseKomorebiOptions = {}): UseKomorebiReturn
   const load = useCallback((track: Track, playlist?: Playlist) => {
     setError(null);
     engineRef.current?.load(track, playlist);
+  }, []);
+
+  const playSong = useCallback(async (song: Track, playlist?: Playlist) => {
+    setError(null);
+    const engine = engineRef.current;
+    if (!engine) return;
+    
+    if (playlist) {
+      engine.setPlaylist(playlist);
+    }
+    engine.load(song, playlist);
+    await engine.play();
   }, []);
 
   const seek = useCallback((time: number) => {
@@ -203,10 +279,25 @@ export function useKomorebi(options: UseKomorebiOptions = {}): UseKomorebiReturn
 
   const setVolume = useCallback((volume: number) => {
     engineRef.current?.setVolume(volume);
+    settingsRef.current?.setVolume(volume);
   }, []);
 
   const setPlaybackRate = useCallback((rate: number) => {
     engineRef.current?.setTempo(rate);
+    settingsRef.current?.setTempo(rate);
+  }, []);
+
+  const setPitch = useCallback((semitones: number) => {
+    engineRef.current?.setPitch(semitones);
+    settingsRef.current?.setPitch(semitones);
+  }, []);
+
+  const toggleShuffle = useCallback(() => {
+    engineRef.current?.toggleShuffle();
+  }, []);
+
+  const toggleRepeat = useCallback(() => {
+    engineRef.current?.toggleRepeat();
   }, []);
 
   const setPlaylist = useCallback((playlist: Playlist) => {
@@ -217,29 +308,177 @@ export function useKomorebi(options: UseKomorebiOptions = {}): UseKomorebiReturn
     return engineRef.current?.getQueue().getTracks() ?? [];
   }, []);
 
-  const isPlaying = state.state === "playing";
+  const addSong = useCallback((song: Track) => {
+    libraryRef.current?.addSong(song);
+  }, []);
+
+  const removeSong = useCallback((songId: string) => {
+    libraryRef.current?.removeSong(songId);
+  }, []);
+
+  const getSong = useCallback((songId: string) => {
+    return libraryRef.current?.getSong(songId);
+  }, []);
+
+  const addPlaylist = useCallback((playlist: Playlist) => {
+    libraryRef.current?.addPlaylist(playlist);
+  }, []);
+
+  const removePlaylist = useCallback((playlistId: string) => {
+    libraryRef.current?.removePlaylist(playlistId);
+  }, []);
+
+  const getPlaylist = useCallback((playlistId: string) => {
+    return libraryRef.current?.getPlaylist(playlistId);
+  }, []);
+
+  const toggleFavorite = useCallback((songId: string) => {
+    libraryRef.current?.toggleFavorite(songId);
+  }, []);
+
+  const isFavorite = useCallback((songId: string) => {
+    return libraryRef.current?.isFavorite(songId) ?? false;
+  }, []);
+
+  const getFavorites = useCallback(() => {
+    return libraryRef.current?.getFavoriteSongs() ?? [];
+  }, []);
+
+  const search = useCallback((query: string) => {
+    return libraryRef.current?.search(query) ?? [];
+  }, []);
+
+  const getSongsByArtist = useCallback((artist: string) => {
+    return libraryRef.current?.getSongsByArtist(artist) ?? [];
+  }, []);
+
+const DEFAULT_LIBRARY_STATE = {
+  songs: [],
+  playlists: [],
+  favorites: [],
+  searchQuery: "",
+  recentArtists: [],
+};
+
+function createNullSafeLibrary(library: LibraryManager | null): LibraryManager {
+  if (!library) {
+    return {
+      getState: () => DEFAULT_LIBRARY_STATE as any,
+      on: () => {},
+      off: () => {},
+      addSong: () => {},
+      removeSong: () => {},
+      getSong: () => undefined,
+      updateSong: () => {},
+      addPlaylist: () => {},
+      removePlaylist: () => {},
+      getPlaylist: () => undefined,
+      updatePlaylist: () => {},
+      toggleFavorite: () => {},
+      isFavorite: () => false,
+      getFavoriteSongs: () => [],
+      search: () => [],
+      getSongsByArtist: () => [],
+      getSongsByAlbum: () => [],
+      getAllArtists: () => [],
+      getAllAlbums: () => [],
+      setSearchQuery: () => {},
+      clearLibrary: () => {},
+    } as unknown as LibraryManager;
+  }
+  return library;
+}
+
+function createNullSafeSettings(settings: SettingsManager | null): SettingsManager {
+  if (!settings) {
+    return {
+      getSettings: () => ({
+        volume: 1,
+        crossfade: 0,
+        crossfadeBeforeGapless: 3000,
+        autoPlayNext: true,
+        tempo: 1,
+        pitch: 0,
+        gaplessPlayback: true,
+        smartShuffle: false,
+        repeat: "off",
+        defaultShuffle: false,
+        defaultRepeat: "off",
+        theme: "auto",
+        themeColor: "blue",
+        wallpaper: null,
+        compactMode: false,
+        showAlbumArt: true,
+        showLyrics: false,
+        sessionRestore: true,
+        language: "en",
+        lastPlayedSong: null,
+        lastPlayedPlaylist: null,
+        discordEnabled: false,
+        discordUserId: null,
+      }),
+      on: () => {},
+      off: () => {},
+    } as unknown as SettingsManager;
+  }
+  return settings;
+}
+
+  const getSongsByAlbum = useCallback((album: string) => {
+    return libraryRef.current?.getSongsByAlbum(album) ?? [];
+  }, []);
 
   return {
+    engine: engineRef.current!,
+    library: createNullSafeLibrary(libraryRef.current),
+    settings: createNullSafeSettings(settingsRef.current),
+    
+    isReady,
+    isLoading,
+    
     state,
     currentTrack,
-    isPlaying,
+    isPlaying: state.state === "playing",
     currentTime,
     duration,
     volume: state.settings.volume,
-    isLoading,
+    repeat: state.settings.repeat,
+    shuffle: state.queue.shuffled,
     error,
-    load,
+    
     play,
     pause,
+    togglePlayPause,
     stop,
     seek,
     next,
     previous,
     setVolume,
     setPlaybackRate,
+    setPitch,
+    toggleShuffle,
+    toggleRepeat,
+    
+    load,
+    playSong,
     setPlaylist,
     getQueue,
-    engine: engineRef.current!,
+    
+    addSong,
+    removeSong,
+    getSong,
+    
+    addPlaylist,
+    removePlaylist,
+    getPlaylist,
+    
+    toggleFavorite,
+    isFavorite,
+    getFavorites,
+    
+    search,
+    getSongsByArtist,
+    getSongsByAlbum,
   };
 }
 

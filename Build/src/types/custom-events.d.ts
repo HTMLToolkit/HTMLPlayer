@@ -1,28 +1,17 @@
 /// <reference lib="dom" />
 
-interface NavigateDetail {
-  view: "artist" | "album";
-  value: string;
+export type NavigationView = "home" | "songs" | "artist" | "album" | "playlist" | "search" | "favorites";
+
+export interface NavigateDetail {
+  view: NavigationView;
+  artist?: string;
+  album?: string;
+  playlistId?: string;
+  searchQuery?: string;
 }
 
-// Define the custom event interface
-interface NavigateCustomEvent extends CustomEvent<NavigateDetail> {}
+export type NavigateCustomEvent = CustomEvent<NavigateDetail>;
 
-// Augment the Window interface to include the custom event
-interface Window {
-  addEventListener<K extends keyof WindowEventMap>(
-    type: K,
-    listener: (this: Window, ev: WindowEventMap[K]) => any,
-    options?: boolean,
-  ): void;
-  removeEventListener<K extends keyof WindowEventMap>(
-    type: K,
-    listener: (this: Window, ev: WindowEventMap[K]) => any,
-    options?: boolean,
-  ): void;
-}
-
-// Declare the custom event type for the 'navigate' event
-interface WindowEventMap {
+export interface NavigateEventMap {
   navigate: NavigateCustomEvent;
 }

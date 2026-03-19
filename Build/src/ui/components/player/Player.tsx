@@ -1,0 +1,551 @@
+import React, {
+  useEffect,
+  useRef,
+  useState,
+  useCallback,
+  useImperativeHandle,
+  forwardRef,
+} from "react";
+import { Button } from "../primitives/Button";
+import { Visualizer } from "./Visualizer";
+import { Lyrics } from "./Lyrics";
+import styles from "./Player.module.css";
+import { SongActionsDropdown } from "../shared/SongActionsDropdown";
+import { useTranslation } from "react-i18next";
+import { toggleMiniplayer, isMiniplayerSupported } from "./Miniplayer";
+import { ScrollText } from "../shared/ScrollText";
+import { isSafari } from "../../../platform/utils/safari";
+import { Icon } from "../shared/Icon";
+import { useAlbumArt } from "../../../hooks/useAlbumArt";
+import { useNavigation } from "../../navigation";
+import type { UseKomorebiReturn } from "../../../hooks/useKomorebi";
+
+interface PlayerProps {
+  komorebi: UseKomorebiReturn;
+}
+
+export interface PlayerRef {
+  toggleVisualizer: () => void;
+  toggleLyrics: () => void;
+}
+
+export const Player = forwardRef<PlayerRef, PlayerProps>(
+  ({ komorebi }, ref) => {
+    const { t } = useTranslation();
+    const settings = komorebi.settings;
+    const settingsState = settings.getSettings();
+
+    const progressRef = useRef<HTMLDivElement>(null);
+    const volumeRef = useRef<HTMLDivElement>(null);
+
+    const {
+      currentTrack,
+      isPlaying,
+      currentTime,
+      volume,
+      shuffle,
+      repeat,
+      seek,
+      next,
+      previous,
+      setVolume,
+      toggleShuffle,
+      toggleRepeat,
+      togglePlayPause,
+      library,
+    } = komorebi;
+
+    const { state: navState } = useNavigation();
+    const currentSong = currentTrack;
+    const libraryState = library.getState();
+
+    const lazyAlbumArt = useAlbumArt(
+      currentSong?.id,
+      currentSong?.hasAlbumArt || !!currentSong?.albumArt,
+    );
+    const currentAlbumArt = currentSong?.albumArt || lazyAlbumArt;
+
+    const [showVisualizer, setShowVisualizer] = useState(false);
+    const [showLyrics, setShowLyrics] = useState(false);
+    const [isVisualizerClosing, setIsVisualizerClosing] = useState(false);
+    const [isLyricsClosing, setIsLyricsClosing] = useState(false);
+    const [hasVisualizerAnimatedIn, setHasVisualizerAnimatedIn] =
+      useState(false);
+    const [isDraggingProgress, setIsDraggingProgress] = useState(false);
+    const [isDraggingVolume, setIsDraggingVolume] = useState(false);
+
+    // Track when visualizer open animation completes
+    useEffect(() => {
+      if (showVisualizer && !isVisualizerClosing && !hasVisualizerAnimatedIn) {
+        const timer = setTimeout(() => setHasVisualizerAnimatedIn(true), 250);
+        return () => clearTimeout(timer);
+      }
+      if (!showVisualizer) {
+        setHasVisualizerAnimatedIn(false);
+      }
+    }, [showVisualizer, isVisualizerClosing, hasVisualizerAnimatedIn]);
+
+    const formatTime = (seconds: number) => {
+      const totalSeconds = Math.round(seconds);
+      const shouldShowHours = currentSong && currentSong.duration >= 3600;
+
+      if (shouldShowHours) {
+        const hours = Math.floor(totalSeconds / 3600);
+        const mins = Math.floor((totalSeconds % 3600) / 60);
+        const secs = totalSeconds % 60;
+        return `${hours}:${mins.toString().padStart(2, "0")}:${secs
+          .toString()
+          .padStart(2, "0")}`;
+      } else {
+        const mins = Math.floor(totalSeconds / 60);
+        const secs = totalSeconds % 60;
+        return `${mins}:${secs.toString().padStart(2, "0")}`;
+      }
+    };
+
+    const updateProgress = useCallback(
+      (clientX: number) => {
+        if (!progressRef.current || !currentSong) return;
+        const rect = progressRef.current.getBoundingClientRect();
+        const clickX = clientX - rect.left;
+        const percentage = Math.max(0, Math.min(1, clickX / rect.width));
+        const newTime = percentage * currentSong.duration;
+        seek(newTime);
+      },
+      [currentSong, seek],
+    );
+
+    const updateVolume = useCallback(
+      (clientX: number) => {
+        if (!volumeRef.current) return;
+        const rect = volumeRef.current.getBoundingClientRect();
+        const clickX = clientX - rect.left;
+        const percentage = Math.max(0, Math.min(1, clickX / rect.width));
+        setVolume(percentage);
+      },
+      [setVolume],
+    );
+
+    const handleProgressClick = (e: React.MouseEvent<HTMLDivElement>) => {
+      if (isDraggingProgress) return;
+      updateProgress(e.clientX);
+    };
+
+    const handleVolumeClick = (e: React.MouseEvent<HTMLDivElement>) => {
+      if (isDraggingVolume) return;
+      updateVolume(e.clientX);
+    };
+
+    const handleProgressMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+      setIsDraggingProgress(true);
+      updateProgress(e.clientX);
+    };
+
+    const handleProgressTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
+      setIsDraggingProgress(true);
+      updateProgress(e.touches[0].clientX);
+    };
+
+    const handleVolumeMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+      setIsDraggingVolume(true);
+      updateVolume(e.clientX);
+    };
+
+    const handleVolumeTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
+      setIsDraggingVolume(true);
+      updateVolume(e.touches[0].clientX);
+    };
+
+    useEffect(() => {
+      const handleMouseMove = (e: MouseEvent) => {
+        if (isDraggingProgress) updateProgress(e.clientX);
+        else if (isDraggingVolume) updateVolume(e.clientX);
+      };
+
+      const handleTouchMove = (e: TouchEvent) => {
+        if (isDraggingProgress) {
+          e.preventDefault();
+          updateProgress(e.touches[0].clientX);
+        } else if (isDraggingVolume) {
+          e.preventDefault();
+          updateVolume(e.touches[0].clientX);
+        }
+      };
+
+      const handleMouseUp = () => {
+        setIsDraggingProgress(false);
+        setIsDraggingVolume(false);
+      };
+
+      const handleTouchEnd = () => {
+        setIsDraggingProgress(false);
+        setIsDraggingVolume(false);
+      };
+
+      if (isDraggingProgress || isDraggingVolume) {
+        document.addEventListener("mousemove", handleMouseMove);
+        document.addEventListener("mouseup", handleMouseUp);
+        document.addEventListener("touchmove", handleTouchMove, {
+          passive: false,
+        });
+        document.addEventListener("touchend", handleTouchEnd);
+      }
+
+      return () => {
+        document.removeEventListener("mousemove", handleMouseMove);
+        document.removeEventListener("mouseup", handleMouseUp);
+        document.removeEventListener("touchmove", handleTouchMove);
+        document.removeEventListener("touchend", handleTouchEnd);
+      };
+    }, [isDraggingProgress, isDraggingVolume, updateProgress, updateVolume]);
+
+    const handleVolumeToggle = () => {
+      setVolume(volume === 0 ? 0.7 : 0);
+    };
+
+    const handleFavorite = () => {
+      if (!currentSong) return;
+      komorebi.toggleFavorite(currentSong.id);
+    };
+
+    const handleVisualizerToggle = useCallback(() => {
+      if (showVisualizer || isVisualizerClosing) {
+        // Close with animation
+        setIsVisualizerClosing(true);
+        setTimeout(() => {
+          setIsVisualizerClosing(false);
+          setShowVisualizer(false);
+        }, 250); // Match animation duration
+      } else {
+        setShowVisualizer(true);
+      }
+    }, [showVisualizer, isVisualizerClosing]);
+
+    const handleLyricsToggle = useCallback(() => {
+      if (showLyrics || isLyricsClosing) {
+        // Close with animation
+        setIsLyricsClosing(true);
+        setTimeout(() => {
+          setIsLyricsClosing(false);
+          setShowLyrics(false);
+        }, 250); // Match animation duration
+      } else {
+        setShowLyrics(true);
+      }
+    }, [showLyrics, isLyricsClosing]);
+
+    // Expose toggle methods via ref for keyboard shortcuts
+    useImperativeHandle(
+      ref,
+      () => ({
+        toggleVisualizer: handleVisualizerToggle,
+        toggleLyrics: handleLyricsToggle,
+      }),
+      [handleVisualizerToggle, handleLyricsToggle],
+    );
+
+    const getVolumeIcon = () => {
+      if (volume === 0) return <Icon name="volumeOff" size={16} decorative />;
+      if (volume < 0.3) return <Icon name="volumeX" size={16} decorative />;
+      if (volume < 0.7) return <Icon name="volume1" size={16} decorative />;
+      return <Icon name="volume2" size={16} decorative />;
+    };
+
+    const getRepeatTitle = () => {
+      switch (repeat) {
+        case "one":
+          return t("player.repeatTrack");
+        case "all":
+          return t("player.repeatAll");
+        default:
+          return t("player.repeatOff");
+      }
+    };
+
+    useEffect(() => {
+      if (currentSong && settingsState.showLyrics) setShowLyrics(true);
+    }, [currentSong, settingsState.showLyrics]);
+
+    // Check if running on Safari
+    const isOnSafari = isSafari();
+
+    const progressPercentage = currentSong
+      ? (currentTime / currentSong.duration) * 100
+      : 0;
+    const volumePercentage = volume * 100;
+    const isHomeView = navState.view === "home";
+
+    if (!currentSong) {
+      return (
+        <div
+          className={`${styles.player} ${isHomeView ? styles.playerCompact : ""}`}
+        >
+          <div className={styles.noSong}>
+            <span>{t("player.selectSong")}</span>
+          </div>
+        </div>
+      );
+    }
+
+    const isFavorite = libraryState.favorites.includes(currentSong.id);
+
+    // Determine visualizer data-state: closing, open (initial animation), or visible (no animation)
+    const visualizerDataState = isVisualizerClosing
+      ? "closing"
+      : hasVisualizerAnimatedIn
+        ? "visible"
+        : "open";
+
+    return (
+      <>
+        {(showVisualizer || isVisualizerClosing) && (
+          <div
+            className={styles.visualizerOverlay}
+            data-tour="visualizer"
+            data-state={visualizerDataState}
+          >
+            <Visualizer
+              isPlaying={isPlaying}
+              className={styles.visualizer}
+            />
+          </div>
+        )}
+        <div
+          className={`${styles.player} ${isHomeView ? styles.playerCompact : ""}`}
+        >
+          <div className={styles.currentSong}>
+            <div className={styles.albumArt}>
+              {currentAlbumArt && (
+                <img
+                  src={currentAlbumArt}
+                  alt={t("player.albumArtAlt", { title: currentSong.title })}
+                  loading="lazy"
+                  style={{
+                    width: "100%",
+                    height: "100%",
+                    objectFit: "cover",
+                    borderRadius: "inherit",
+                  }}
+                />
+              )}
+            </div>
+            <div className={styles.songInfo}>
+              <div className={styles.songTitleWrapper}>
+                <ScrollText
+                  text={currentSong?.title || t("common.loading")}
+                  textClassName={styles.songTitle}
+                  textStyle={{ opacity: currentSong?.title ? 1 : 0 }}
+                  allowHTML
+                  pauseOnHover
+                />
+              </div>
+              <div className={styles.artistName}>{currentSong.artist}</div>
+            </div>
+          </div>
+
+          <div className={styles.controls} data-tour="player-controls">
+            <div className={styles.playbackButtons}>
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                className={`${styles.controlButton} ${shuffle ? styles.active : ""}`}
+                onClick={toggleShuffle}
+                title={shuffle ? t("player.shuffleOn") : t("player.shuffleOff")}
+              >
+                <Icon name="shuffle" size={16} decorative />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon-md"
+                className={styles.controlButton}
+                onClick={previous}
+                title={t("player.previous")}
+              >
+                <Icon name="skipBack" size={18} decorative />
+              </Button>
+              <Button
+                variant="primary"
+                size="icon-lg"
+                className={styles.playButton}
+                onClick={togglePlayPause}
+                title={isPlaying ? t("player.pause") : t("player.play")}
+              >
+                {isPlaying ? (
+                  <Icon name="pause" size={20} decorative />
+                ) : (
+                  <Icon name="play" size={20} decorative />
+                )}
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon-md"
+                className={styles.controlButton}
+                onClick={next}
+                title={t("player.next")}
+              >
+                <Icon name="skipForward" size={18} decorative />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                className={`${styles.controlButton} ${repeat !== "off" ? styles.active : ""} ${repeat === "one" ? styles.repeatOne : ""}`}
+                onClick={toggleRepeat}
+                title={getRepeatTitle()}
+              >
+                <Icon name="repeat" size={16} decorative />
+              </Button>
+            </div>
+
+            <div className={styles.progressSection}>
+              <span className={styles.timeDisplay}>
+                {formatTime(currentTime)}
+              </span>
+              <div
+                className={`${styles.progressBar} ${isDraggingProgress ? styles.dragging : ""}`}
+                ref={progressRef}
+                onClick={handleProgressClick}
+                onMouseDown={handleProgressMouseDown}
+                onTouchStart={handleProgressTouchStart}
+                title={t("player.seek")}
+              >
+                <div
+                  className={styles.progressFill}
+                  style={{ width: `${progressPercentage}%` }}
+                ></div>
+              </div>
+              <span className={styles.timeDisplay}>
+                {formatTime(currentSong.duration)}
+              </span>
+            </div>
+          </div>
+
+          <div className={styles.rightSection}>
+            <div className={styles.volumeControls}>
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                className={styles.volumeButton}
+                onClick={handleVolumeToggle}
+                title={volume === 0 ? t("player.unmute") : t("player.mute")}
+              >
+                {getVolumeIcon()}
+              </Button>
+              <div
+                className={`${styles.volumeBar} ${isDraggingVolume ? styles.dragging : ""}`}
+                ref={volumeRef}
+                onClick={handleVolumeClick}
+                onMouseDown={handleVolumeMouseDown}
+                onTouchStart={handleVolumeTouchStart}
+                title={t("player.volume")}
+              >
+                <div
+                  className={styles.volumeFill}
+                  style={{ width: `${volumePercentage}%` }}
+                ></div>
+              </div>
+            </div>
+
+            <div className={styles.secondaryControls}>
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                className={`${styles.favoriteButton} ${isFavorite ? styles.favorited : ""}`}
+                onClick={handleFavorite}
+                title={
+                  isFavorite
+                    ? t("player.removeFavorite")
+                    : t("player.addFavorite")
+                }
+              >
+                <Icon name="heart" size={16} decorative />
+              </Button>
+              {!isOnSafari && (
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  className={`${styles.secondaryButton} ${showVisualizer ? styles.active : ""}`}
+                  onClick={handleVisualizerToggle}
+                  title={t("player.visualizer")}
+                  data-tour="visualizer-button"
+                >
+                  <Icon name="barChart3" size={16} decorative />
+                </Button>
+              )}
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                className={`${styles.secondaryButton} ${showLyrics ? styles.active : ""}`}
+                onClick={handleLyricsToggle}
+                title={t("player.lyrics")}
+                data-tour="lyrics-button"
+              >
+                <Icon name="type" size={16} decorative />
+              </Button>
+              {isMiniplayerSupported() && (
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  className={styles.secondaryButton}
+                  onClick={() => {
+                    toggleMiniplayer({
+                      playerState: {
+                        currentSong,
+                        isPlaying,
+                      },
+                      togglePlayPause,
+                      next,
+                      previous,
+                    });
+                  }}
+                  title="Picture-in-Picture"
+                >
+                  <Icon name="pictureInPicture2" size={16} decorative />
+                </Button>
+              )}
+            </div>
+
+            <SongActionsDropdown
+              song={currentSong}
+              library={libraryState}
+              onCreatePlaylist={(name: string, songs: any[]) => {
+                const playlist = { id: `playlist-${Date.now()}`, name, songs };
+                library.addPlaylist(playlist);
+                return playlist;
+              }}
+              onAddToPlaylist={(playlistId: string, songId: string) => {
+                const playlist = library.getPlaylist(playlistId);
+                if (playlist) {
+                  const song = library.getSong(songId);
+                  if (song) {
+                    playlist.songs.push(song);
+                    library.updatePlaylist(playlistId, { songs: playlist.songs });
+                  }
+                }
+              }}
+              onAddToFavorites={(songId: string) => komorebi.toggleFavorite(songId)}
+              isFavorited={(songId: string) => komorebi.isFavorite(songId)}
+              onPlaySong={(song: any, playlist?: any) => komorebi.playSong(song, playlist)}
+              onRemoveSong={(songId: string) => komorebi.removeSong(songId)}
+              size={16}
+              className={styles.moreButton}
+            />
+          </div>
+
+          {(showLyrics || isLyricsClosing) && currentSong && (
+            <Lyrics
+              artist={currentSong.artist}
+              title={currentSong.title}
+              visible={showLyrics && !isLyricsClosing}
+              onClose={handleLyricsToggle}
+              embeddedLyrics={currentSong.embeddedLyrics}
+              currentTime={currentTime}
+              isClosing={isLyricsClosing}
+            />
+          )}
+        </div>
+      </>
+    );
+  },
+);
+
+Player.displayName = "Player";
