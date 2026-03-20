@@ -12,7 +12,7 @@ import { ThemeModeSwitch } from "../shared/ThemeModeSwitch";
 import { Icon } from "../shared/Icon";
 import { usePalette, useIconSet, useWallpaper } from "../../theming/hooks";
 import { languageNames } from "../../../types/supportedLanguages";
-import { dialogStorage } from "../../../platform/storage";
+import { dialogStorage, clearAllCaches } from "../../../platform/storage";
 import { toast } from "sonner";
 import { useState } from "react";
 import {
@@ -59,12 +59,7 @@ export function SettingsInterface({
 
   const handleClearCache = async () => {
     try {
-      if ("caches" in window) {
-        const cacheNames = await caches.keys();
-        await Promise.all(
-          cacheNames.map((cacheName) => caches.delete(cacheName)),
-        );
-      }
+      await clearAllCaches();
       if (i18n.services.resourceStore) {
         Object.keys(i18n.services.resourceStore.data).forEach((lang) => {
           i18n.services.resourceStore.data[lang] = {};

@@ -21,16 +21,17 @@ import { AddToPopover } from "./AddToPopover";
 import { useTranslation } from "react-i18next";
 import { Icon } from "./Icon";
 import { dialogStorage } from "../../../platform/storage";
+import type { Track, Playlist } from "../../../core/engine/types";
 
 interface SongActionsDropdownProps {
-  song: Song;
+  song: Track;
   library: MusicLibrary;
-  onCreatePlaylist: (name: string, songs: Song[]) => Playlist;
+  onCreatePlaylist: (name: string, songs: Track[]) => Playlist;
   onAddToPlaylist: (playlistId: string, songId: string) => void;
   onAddToFavorites?: (songId: string) => void;
   isFavorited?: (songId: string) => boolean;
   onRemoveSong: (songId: string) => void;
-  onPlaySong: (song: Song, playlist?: Playlist) => void;
+  onPlaySong: (song: Track, playlist?: Playlist) => void;
   size?: number;
   className?: string;
   open?: boolean;

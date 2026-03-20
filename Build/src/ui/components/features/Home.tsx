@@ -5,29 +5,14 @@ import { Button } from "../primitives/Button";
 import { Icon } from "../shared/Icon";
 import { useAlbumArt } from "../../../hooks/useAlbumArt";
 import { useNavigation } from "../../navigation";
-import type {
-  Track,
-  Playlist,
-  PlaylistFolder,
-} from "../../../core/engine/types";
+import type { Track, Playlist } from "../../../core/engine/types";
 import type { UseKomorebiReturn } from "../../../hooks/useKomorebi";
+import { flattenPlaylists } from "../../../platform/library";
 
 interface HomeProps {
   komorebi: UseKomorebiReturn;
   onAddMusic: () => Promise<void>;
 }
-
-const flattenPlaylists = (items: (Playlist | PlaylistFolder)[]): Playlist[] => {
-  const result: Playlist[] = [];
-  for (const item of items) {
-    if ("songs" in item) {
-      result.push(item);
-    } else if (item.children?.length) {
-      result.push(...flattenPlaylists(item.children));
-    }
-  }
-  return result;
-};
 
 const SongCardItem = React.memo<{ song: Track; onPlay: (song: Track) => void }>(
   ({ song, onPlay }) => {

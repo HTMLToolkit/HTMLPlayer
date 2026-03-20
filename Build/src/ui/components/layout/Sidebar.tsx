@@ -11,7 +11,7 @@ import {
   DialogDescription,
   DialogFooter,
 } from "../primitives/Dialog";
-import { PlaylistComponent } from "../features/Playlist";
+import { PlaylistComponent } from "../features/Playlist/index";
 import styles from "./Sidebar.module.css";
 import { Icon } from "../shared/Icon";
 import { HelpGuideButton } from "../shared/HelpGuide";

@@ -3,28 +3,12 @@ import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import type { DragItem, DropZone } from "../components/primitives/Draggable";
 import type { UseKomorebiReturn } from "../../hooks/useKomorebi";
-import type { Playlist, PlaylistFolder } from "../../core/engine/types";
+import { findPlaylistById, findParentFolderId } from "../../platform/library";
 
 export function useDragHandler(komorebi: UseKomorebiReturn) {
   const { t } = useTranslation();
   const library = komorebi.library;
   const libraryState = library.getState();
-
-  const findPlaylistById = useCallback(
-    (items: (Playlist | PlaylistFolder)[], id: string): Playlist | null => {
-      for (const item of items) {
-        if (item.id === id && "songs" in item) {
-          return item as Playlist;
-        }
-        if ("children" in item) {
-          const found = findPlaylistById(item.children, id);
-          if (found) return found;
-        }
-      }
-      return null;
-    },
-    [],
-  );
 
   const handleDragOperation = useCallback(
     (dragItem: DragItem, dropZone: DropZone) => {
@@ -87,24 +71,7 @@ export function useDragHandler(komorebi: UseKomorebiReturn) {
         const targetFolderId = dropZone.id;
         const folderId = dragItem.id;
 
-        const findParentFolder = (
-          items: (Playlist | PlaylistFolder)[],
-          id: string,
-        ): string | null => {
-          for (const item of items) {
-            if (item.id === id) return null;
-            if ("children" in item) {
-              for (const child of item.children) {
-                if (child.id === id) return item.id;
-                const found = findParentFolder(item.children, id);
-                if (found) return found;
-              }
-            }
-          }
-          return null;
-        };
-
-        const targetParentFolderId = findParentFolder(
+        const targetParentFolderId = findParentFolderId(
           libraryState.playlists,
           targetFolderId,
         );
@@ -124,7 +91,6 @@ export function useDragHandler(komorebi: UseKomorebiReturn) {
     [
       komorebi.state.currentPlaylist,
       libraryState,
-      findPlaylistById,
       library,
       t,
     ],

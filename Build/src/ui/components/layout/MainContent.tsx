@@ -36,7 +36,7 @@ import type { Track, Playlist } from "../../../core/engine/types";
 import type { UseKomorebiReturn } from "../../../hooks/useKomorebi";
 
 interface SortableSongItemProps {
-  song: Song;
+  song: Track;
   isCurrent: boolean;
   isSelected: boolean;
   onClick: () => void;
@@ -52,9 +52,9 @@ interface SortableSongItemProps {
   library: MusicLibrary;
   createPlaylist: (name: string) => void;
   addToPlaylist: (playlistId: string, songId: string) => void;
-  playSong: (song: Song, playlist?: Playlist) => void;
+  playSong: (song: Track, playlist?: Playlist) => void;
   removeSong: (songId: string) => void;
-  isInPlaylist: boolean; // New prop to determine drag behavior
+  isInPlaylist: boolean;
 }
 const SortableSongItem = React.memo(function SortableSongItem({
   song,
@@ -239,7 +239,7 @@ export const MainContent = ({
     Record<string, "thumbs-up" | "thumbs-down" | "none">
   >({});
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const [songToDelete, setSongToDelete] = useState<Song | null>(null);
+  const [songToDelete, setSongToDelete] = useState<Track | null>(null);
 
   const [selectedSongs, setSelectedSongs] = useState<string[]>([]);
   const [isSelectSongsActive, setIsSelectSongsActive] = useState(false);
@@ -307,7 +307,7 @@ export const MainContent = ({
     const query = songSearchQuery.toLowerCase();
     if (!query) return songsToDisplay;
     return songsToDisplay.filter(
-      (song: Song) =>
+      (song: Track) =>
         song.title.toLowerCase().includes(query) ||
         song.artist.toLowerCase().includes(query),
     );
@@ -359,7 +359,7 @@ export const MainContent = ({
 
   const handleSongSearch = (query: string) => setSongSearchQuery(query);
 
-  const handleSongClick = (song: Song) => {
+  const handleSongClick = (song: Track) => {
     playSong(song, engineState.currentPlaylist || undefined);
   };
 
@@ -748,7 +748,7 @@ export const MainContent = ({
               </span>
               <span className={styles.columnHeader}>{t("actions.addTo")}</span>
             </div>
-            {sortedSongs.map((song: Song) => (
+            {sortedSongs.map((song: Track) => (
               <SortableSongItem
                 key={song.id}
                 song={song}
@@ -814,7 +814,7 @@ export const MainContent = ({
       <AddToPopover
         songs={selectedSongs
           .map((id) => libraryState.songs.find((s) => s.id === id))
-          .filter((s): s is Song => s !== undefined)}
+          .filter((s): s is Track => s !== undefined)}
         library={libraryState}
         onCreatePlaylist={createPlaylist}
         onAddToPlaylist={addToPlaylist}

@@ -275,3 +275,50 @@ export class LibraryManager implements LibraryActions {
     return `lib-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
   }
 }
+
+export function flattenPlaylists(items: (Playlist | PlaylistFolder)[]): Playlist[] {
+  const result: Playlist[] = [];
+  for (const item of items) {
+    if ("songs" in item) {
+      result.push(item);
+    } else if (item.children?.length) {
+      result.push(...flattenPlaylists(item.children));
+    }
+  }
+  return result;
+}
+
+export function findPlaylistById(
+  items: (Playlist | PlaylistFolder)[],
+  id: string,
+): Playlist | null {
+  for (const item of items) {
+    if (item.id === id && "songs" in item) {
+      return item;
+    }
+    if ("children" in item) {
+      const found = findPlaylistById(item.children, id);
+      if (found) return found;
+    }
+  }
+  return null;
+}
+
+export function findParentFolderId(
+  items: (Playlist | PlaylistFolder)[],
+  id: string,
+): string | null {
+  for (const item of items) {
+    if (item.id === id) return null;
+    if ("children" in item) {
+      for (const child of item.children) {
+        if (child.id === id) return item.id;
+        if ("children" in child) {
+          const found = findParentFolderId(item.children, id);
+          if (found) return found;
+        }
+      }
+    }
+  }
+  return null;
+}

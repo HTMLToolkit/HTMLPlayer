@@ -12,11 +12,12 @@ import {
 import modalStyles from "../primitives/Dialog.module.css";
 import { useTranslation } from "react-i18next";
 import { Icon } from "./Icon";
+import type { Track, Playlist, PlaylistFolder } from "../../../core/engine/types";
 
 interface AddToPopoverProps {
-  songs: Song[]; // Support single or multiple songs
+  songs: Track[];
   library: MusicLibrary;
-  onCreatePlaylist: (name: string, songs: Song[]) => Playlist;
+  onCreatePlaylist: (name: string, songs: Track[]) => Playlist;
   onAddToPlaylist: (playlistId: string, songId: string) => void;
   onAddToFavorites?: (songId: string) => void;
   isFavorited?: (songId: string) => boolean;
