@@ -75,6 +75,10 @@ body {
   overflow: hidden;
 }
 
+html {
+  overflow-y: auto;
+}
+
 /* html {
   background: var(--themegradient);
 } */

@@ -4,17 +4,17 @@ import type { ThemingEvents } from "../events";
 const PALETTE_STORAGE_KEY = "selected-color-theme";
 
 const paletteJsonFiles = import.meta.glob(
-  "../resources/themes/Palettes/**/*.theme.json",
+  "../../resources/themes/Palettes/**/*.theme.json",
   { eager: true },
 );
 
 const paletteCssFiles = import.meta.glob(
-  "../resources/themes/Palettes/**/*.theme.css",
+  "../../resources/themes/Palettes/**/*.theme.css",
   { query: "?raw", import: "default", eager: false },
 );
 
 const paletteImageFiles = import.meta.glob(
-  "../resources/themes/Palettes/**/*.{jpg,jpeg,png,gif,webp,svg}",
+  "../../resources/themes/Palettes/**/*.{jpg,jpeg,png,gif,webp,svg}",
   { eager: true },
 );
 

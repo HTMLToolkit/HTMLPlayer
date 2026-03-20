@@ -14,7 +14,7 @@ import { NavigationProvider, useNavigation } from "./navigation";
 import { useDragHandler } from "./hooks/useDragHandler";
 import { useKeyboardShortcuts } from "../hooks/useKeyboardShortcuts";
 import { musicIndexedDbHelper } from "../helpers/musicIndexedDbHelper";
-import { useFileHandler, useShareTarget, clearHandledShares } from "../helpers/filePickerHelper";
+import { useFileHandler, useShareTarget, clearHandledShares } from "../hooks/useFilePicker";
 import { importAudioFiles } from "../helpers/importAudioFiles";
 import {
   switchToAutoMode,
@@ -43,7 +43,7 @@ function AppShellContent({ komorebi }: AppShellProps) {
     komorebi.addSong(song);
   };
 
-  useFileHandler(handleAddSong, t, komorebi.isReady);
+  useFileHandler(handleAddSong, t, importAudioFiles, komorebi.isReady);
   
   useShareTarget((result) => {
     if (result.files.length > 0) {

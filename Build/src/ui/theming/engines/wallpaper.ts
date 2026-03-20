@@ -11,12 +11,12 @@ interface WallpaperModule {
 }
 
 const wallpaperJsonFiles = import.meta.glob(
-  "../resources/themes/Wallpapers/**/*.theme.json",
+  "../../resources/themes/Wallpapers/**/*.theme.json",
   { eager: true },
 );
 
 const wallpaperComponentFiles = import.meta.glob(
-  "../resources/themes/Wallpapers/**/*.wallpaper.tsx",
+  "../../resources/themes/Wallpapers/**/*.wallpaper.tsx",
   { eager: false },
 );
 

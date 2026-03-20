@@ -101,9 +101,11 @@ function createInitialState(): EngineState {
 }
 
 export function useKomorebi(options: UseKomorebiOptions = {}): UseKomorebiReturn {
+  const backendRef = useRef<IAudioBackend | null>(null);
   const engineRef = useRef<KomorebiEngine | null>(null);
   const libraryRef = useRef<LibraryManager | null>(null);
   const settingsRef = useRef<SettingsManager | null>(null);
+  const initializedRef = useRef(false);
   
   const [isReady, setIsReady] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -114,8 +116,8 @@ export function useKomorebi(options: UseKomorebiOptions = {}): UseKomorebiReturn
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
 
-  useEffect(() => {
-    const backend: IAudioBackend = new HTMLAudioBackend();
+  if (!initializedRef.current) {
+    const backend = new HTMLAudioBackend();
     const engine = new KomorebiEngine({
       crossfade: { enabled: false, duration: 0, shape: "linear" },
       gapless: { enabled: true },
@@ -124,12 +126,17 @@ export function useKomorebi(options: UseKomorebiOptions = {}): UseKomorebiReturn
     });
     engine.setBackend(backend);
     engineRef.current = engine;
+    backendRef.current = backend;
 
-    const library = new LibraryManager();
-    libraryRef.current = library;
+    libraryRef.current = new LibraryManager();
+    settingsRef.current = new SettingsManager();
+    initializedRef.current = true;
+  }
 
-    const settings = new SettingsManager();
-    settingsRef.current = settings;
+  useEffect(() => {
+    const engine = engineRef.current;
+    const library = libraryRef.current;
+    if (!engine || !library) return;
 
     const handleStateChange = () => {
       setState(engine.getState());
@@ -194,7 +201,7 @@ export function useKomorebi(options: UseKomorebiOptions = {}): UseKomorebiReturn
       engine.off("error", handleError);
       engine.off("loading", handleLoading);
       engine.off("ready", handleReady);
-      backend.dispose();
+      backendRef.current?.dispose();
     };
   }, []);
 
@@ -352,86 +359,14 @@ export function useKomorebi(options: UseKomorebiOptions = {}): UseKomorebiReturn
     return libraryRef.current?.getSongsByArtist(artist) ?? [];
   }, []);
 
-const DEFAULT_LIBRARY_STATE = {
-  songs: [],
-  playlists: [],
-  favorites: [],
-  searchQuery: "",
-  recentArtists: [],
-};
-
-function createNullSafeLibrary(library: LibraryManager | null): LibraryManager {
-  if (!library) {
-    return {
-      getState: () => DEFAULT_LIBRARY_STATE as any,
-      on: () => {},
-      off: () => {},
-      addSong: () => {},
-      removeSong: () => {},
-      getSong: () => undefined,
-      updateSong: () => {},
-      addPlaylist: () => {},
-      removePlaylist: () => {},
-      getPlaylist: () => undefined,
-      updatePlaylist: () => {},
-      toggleFavorite: () => {},
-      isFavorite: () => false,
-      getFavoriteSongs: () => [],
-      search: () => [],
-      getSongsByArtist: () => [],
-      getSongsByAlbum: () => [],
-      getAllArtists: () => [],
-      getAllAlbums: () => [],
-      setSearchQuery: () => {},
-      clearLibrary: () => {},
-    } as unknown as LibraryManager;
-  }
-  return library;
-}
-
-function createNullSafeSettings(settings: SettingsManager | null): SettingsManager {
-  if (!settings) {
-    return {
-      getSettings: () => ({
-        volume: 1,
-        crossfade: 0,
-        crossfadeBeforeGapless: 3000,
-        autoPlayNext: true,
-        tempo: 1,
-        pitch: 0,
-        gaplessPlayback: true,
-        smartShuffle: false,
-        repeat: "off",
-        defaultShuffle: false,
-        defaultRepeat: "off",
-        theme: "auto",
-        themeColor: "blue",
-        wallpaper: null,
-        compactMode: false,
-        showAlbumArt: true,
-        showLyrics: false,
-        sessionRestore: true,
-        language: "en",
-        lastPlayedSong: null,
-        lastPlayedPlaylist: null,
-        discordEnabled: false,
-        discordUserId: null,
-      }),
-      on: () => {},
-      off: () => {},
-    } as unknown as SettingsManager;
-  }
-  return settings;
-}
-
   const getSongsByAlbum = useCallback((album: string) => {
     return libraryRef.current?.getSongsByAlbum(album) ?? [];
   }, []);
 
   return {
     engine: engineRef.current!,
-    library: createNullSafeLibrary(libraryRef.current),
-    settings: createNullSafeSettings(settingsRef.current),
+    library: libraryRef.current!,
+    settings: settingsRef.current!,
     
     isReady,
     isLoading,

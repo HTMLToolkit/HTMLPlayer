@@ -15,12 +15,12 @@ interface IconSetModule {
 }
 
 const iconJsonFiles = import.meta.glob(
-  "../resources/themes/Icons/**/*.theme.json",
+  "../../resources/themes/Icons/**/*.theme.json",
   { eager: true },
 );
 
 const iconModuleFiles = import.meta.glob(
-  "../resources/themes/Icons/**/*.icons.{ts,tsx}",
+  "../../resources/themes/Icons/**/*.icons.{ts,tsx}",
   { eager: false },
 );
 

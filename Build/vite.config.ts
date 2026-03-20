@@ -276,6 +276,11 @@ export default defineConfig({
       !isSingleFile && {
         chunkSizeWarningLimit: 1000, // Increase warning limit to 1000kb
         rollupOptions: {
+          input: {
+            main: "./index.html",
+            privacy: "./privacy.html",
+            terms: "./terms.html",
+          },
           output: {
             manualChunks: {
               // Vendor chunks for large libraries

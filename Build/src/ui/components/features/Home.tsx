@@ -27,7 +27,8 @@ const flattenPlaylists = (items: (Playlist | PlaylistFolder)[]): Playlist[] => {
 
 const SongCardItem = React.memo<{ song: Track; onPlay: (song: Track) => void }>(
   ({ song, onPlay }) => {
-    const albumArt = song.albumArt || useAlbumArt(song.id, song.hasAlbumArt || !!song.albumArt);
+    const lazyAlbumArt = useAlbumArt(song.id, song.hasAlbumArt || !!song.albumArt);
+    const albumArt = song.albumArt || lazyAlbumArt;
 
     return (
       <button className={styles.songCard} onClick={() => onPlay(song)}>
@@ -54,7 +55,8 @@ const PlaylistCardItem = React.memo<{
   countLabel: string;
 }>(({ playlist, onPlay, countLabel }) => {
   const firstSong = playlist.songs[0];
-  const albumArt = firstSong?.albumArt || useAlbumArt(firstSong?.id, firstSong?.hasAlbumArt || !!firstSong?.albumArt);
+  const lazyAlbumArt = useAlbumArt(firstSong?.id, firstSong?.hasAlbumArt || !!firstSong?.albumArt);
+  const albumArt = firstSong?.albumArt || lazyAlbumArt;
 
   return (
     <button className={styles.playlistCard} onClick={() => onPlay(playlist)} type="button">
@@ -128,7 +130,8 @@ export const Home: React.FC<HomeProps> = ({ komorebi, onAddMusic }) => {
   }, [playSong, goToSongs]);
 
   const heroSong = currentTrack || recentlyAdded[0] || null;
-  const heroArt = heroSong?.albumArt || useAlbumArt(heroSong?.id, heroSong?.hasAlbumArt || !!heroSong?.albumArt);
+  const lazyHeroArt = useAlbumArt(heroSong?.id, heroSong?.hasAlbumArt || !!heroSong?.albumArt);
+  const heroArt = heroSong?.albumArt || lazyHeroArt;
   const hasContent = songs.length > 0;
 
   const stats = [

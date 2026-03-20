@@ -231,14 +231,14 @@ export const Sidebar = memo(
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => window.open("/privacy.html", "_blank")}
+                    onClick={() => window.open("/beta/HTMLPlayer/privacy.html", "_blank")}
                   >
                     {t("about.privacy")}
                   </Button>
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => window.open("/tos.html", "_blank")}
+                    onClick={() => window.open("/beta/HTMLPlayer/terms.html", "_blank")}
                   >
                     {t("about.terms")}
                   </Button>

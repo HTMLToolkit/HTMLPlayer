@@ -1,9 +1,7 @@
 {
-  "icons": {
-    "id": "tabler-icons",
-    "label": "Tabler Icons",
-    "author": "NellowTCS",
-    "description": "Icons from Tabler Icons.",
-    "version": "1.0.0"
-  }
+  "id": "tabler-icons",
+  "label": "Tabler Icons",
+  "author": "NellowTCS",
+  "description": "Icons from Tabler Icons.",
+  "version": "1.0.0"
 }

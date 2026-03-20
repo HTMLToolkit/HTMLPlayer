@@ -30,7 +30,7 @@ export class ThemeEngine {
     this.config = {
       defaultPalette: config?.defaultPalette || "Blue",
       defaultIconSet: config?.defaultIconSet || "lucide",
-      defaultWallpaper: config?.defaultWallpaper || "StaticBackground",
+      defaultWallpaper: config?.defaultWallpaper || "None",
       defaultMode: config?.defaultMode || "auto",
     };
 

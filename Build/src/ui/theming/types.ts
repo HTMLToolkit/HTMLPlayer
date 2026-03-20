@@ -83,6 +83,6 @@ export interface ThemingSettings {
 export const DEFAULT_THEMING_SETTINGS: ThemingSettings = {
   palette: "Blue",
   iconSet: "lucide",
-  wallpaper: "StaticBackground",
+  wallpaper: "None",
   mode: "auto",
 };

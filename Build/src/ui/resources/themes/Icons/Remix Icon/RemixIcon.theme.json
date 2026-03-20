@@ -1,9 +1,7 @@
 {
-  "icons": {
-    "id": "remix-icons",
-    "label": "Remix Icons",
-    "author": "NellowTCS",
-    "description": "Icons from Remix Icons.",
-    "version": "1.0.0"
-  }
+  "id": "remix-icon",
+  "label": "Remix Icon",
+  "author": "NellowTCS",
+  "description": "Icons from Remix Icon.",
+  "version": "1.0.0"
 }
