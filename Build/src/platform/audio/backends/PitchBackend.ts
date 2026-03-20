@@ -91,22 +91,19 @@ export class PitchBackend implements IAudioBackend {
     this.inner?.onTimeUpdate(callback);
   }
 
-  offTimeUpdate(_callback: (time: number) => void): void {
-  }
+  offTimeUpdate(_callback: (time: number) => void): void {}
 
   onEnded(callback: () => void): void {
     this.inner?.onEnded(callback);
   }
 
-  offEnded(_callback: () => void): void {
-  }
+  offEnded(_callback: () => void): void {}
 
   onError(callback: (error: Error) => void): void {
     this.inner?.onError(callback);
   }
 
-  offError(_callback: (error: Error) => void): void {
-  }
+  offError(_callback: (error: Error) => void): void {}
 
   dispose(): void {
     if (pitchShift) {

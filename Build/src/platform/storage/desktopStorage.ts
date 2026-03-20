@@ -12,7 +12,21 @@ export class DesktopStorageBackend extends BaseStorageBackend {
       const { open } = await import("@tauri-apps/plugin-dialog");
       const result = await open({
         multiple: true,
-        filters: [{ name: "Audio", extensions: ["mp3", "flac", "ogg", "wav", "m4a", "aac", "wma", "flo"] }],
+        filters: [
+          {
+            name: "Audio",
+            extensions: [
+              "mp3",
+              "flac",
+              "ogg",
+              "wav",
+              "m4a",
+              "aac",
+              "wma",
+              "flo",
+            ],
+          },
+        ],
       });
 
       if (!result) return [];
@@ -25,7 +39,9 @@ export class DesktopStorageBackend extends BaseStorageBackend {
         try {
           const data = await readFile(path);
           const blob = new Blob([data], { type: this.getMimeType(path) });
-          const file = new File([blob], path.split(/[/\\]/).pop() || "audio", { type: this.getMimeType(path) });
+          const file = new File([blob], path.split(/[/\\]/).pop() || "audio", {
+            type: this.getMimeType(path),
+          });
           files.push(file);
         } catch (err) {
           console.error(`Failed to read ${path}:`, err);
@@ -52,12 +68,17 @@ export class DesktopStorageBackend extends BaseStorageBackend {
       const files: File[] = [];
       for (const entry of entries) {
         const e = entry as { name?: string; isFile?: boolean };
-        if (e.isFile && e.name?.match(/\.(mp3|flac|ogg|wav|m4a|aac|wma|flo)$/i)) {
+        if (
+          e.isFile &&
+          e.name?.match(/\.(mp3|flac|ogg|wav|m4a|aac|wma|flo)$/i)
+        ) {
           try {
             const { readFile } = await import("@tauri-apps/plugin-fs");
             const data = await readFile(`${result}/${e.name}`);
             const blob = new Blob([data], { type: this.getMimeType(e.name) });
-            const file = new File([blob], e.name, { type: this.getMimeType(e.name) });
+            const file = new File([blob], e.name, {
+              type: this.getMimeType(e.name),
+            });
             files.push(file);
           } catch (err) {
             console.error(`Failed to read ${e.name}:`, err);

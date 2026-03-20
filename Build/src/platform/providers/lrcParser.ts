@@ -4,7 +4,9 @@ import type { Lyrics, LyricsLine, LyricsProvider } from "./lyricsTypes";
 export class LRCLyricsProvider extends BaseProvider implements LyricsProvider {
   name = "LRC Parser";
 
-  async fetchLyrics(_query: SearchQuery): Promise<ProviderResult<Lyrics> | null> {
+  async fetchLyrics(
+    _query: SearchQuery,
+  ): Promise<ProviderResult<Lyrics> | null> {
     return null;
   }
 

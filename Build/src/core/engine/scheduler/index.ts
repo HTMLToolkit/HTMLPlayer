@@ -31,7 +31,10 @@ export class CrossfadeScheduler {
     return this.config.enabled && this.config.duration > 0;
   }
 
-  calculateTriggerTime(trackDuration: number, currentTime: number): number | null {
+  calculateTriggerTime(
+    trackDuration: number,
+    currentTime: number,
+  ): number | null {
     if (!this.isEnabled()) return null;
 
     const durationSeconds = this.config.duration / 1000;
@@ -64,8 +67,8 @@ export class CrossfadeScheduler {
 
     switch (shape) {
       case "equalpower":
-        fromVolume = Math.cos(p * Math.PI / 2);
-        toVolume = Math.sin(p * Math.PI / 2);
+        fromVolume = Math.cos((p * Math.PI) / 2);
+        toVolume = Math.sin((p * Math.PI) / 2);
         break;
       case "linear":
         fromVolume = 1 - p;
@@ -79,7 +82,11 @@ export class CrossfadeScheduler {
     return { fromVolume, toVolume };
   }
 
-  createTransition(fromTrack: Track, toTrack: Track, duration: number): ScheduledTransition {
+  createTransition(
+    fromTrack: Track,
+    toTrack: Track,
+    duration: number,
+  ): ScheduledTransition {
     return {
       type: "crossfade",
       fromTrack,
@@ -195,13 +202,19 @@ export class Scheduler {
     }
   }
 
-  getTransitionParams(currentTime: number, track: Track): {
+  getTransitionParams(
+    currentTime: number,
+    track: Track,
+  ): {
     triggerTime: number;
     duration: number;
   } | null {
     switch (this.currentMode) {
       case "crossfade":
-        const triggerTime = this.crossfade.calculateTriggerTime(track.duration, currentTime);
+        const triggerTime = this.crossfade.calculateTriggerTime(
+          track.duration,
+          currentTime,
+        );
         return triggerTime !== null
           ? { triggerTime, duration: this.crossfade.getConfig().duration }
           : null;

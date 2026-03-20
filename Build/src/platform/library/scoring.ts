@@ -175,6 +175,8 @@ export class PointPerSongEngine {
   }
 }
 
-export function createPointPerSongEngine(config?: Partial<ScoringConfig>): PointPerSongEngine {
+export function createPointPerSongEngine(
+  config?: Partial<ScoringConfig>,
+): PointPerSongEngine {
   return new PointPerSongEngine(config);
 }

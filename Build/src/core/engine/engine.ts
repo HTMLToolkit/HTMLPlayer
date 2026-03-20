@@ -9,7 +9,11 @@ import type {
 } from "./types";
 import { KomorebiEvents } from "./events";
 import { StateMachine } from "./state";
-import { QueueManager, type WeightedRandomizer, type ShuffleMode } from "./queue";
+import {
+  QueueManager,
+  type WeightedRandomizer,
+  type ShuffleMode,
+} from "./queue";
 import { Scheduler } from "./scheduler";
 import type { IAudioBackend } from "../../platform/audio";
 
@@ -125,7 +129,7 @@ export class KomorebiEngine {
     }
 
     this.queue.setCurrentIndex(
-      this.queue.getTracks().findIndex((t) => t.id === track.id)
+      this.queue.getTracks().findIndex((t) => t.id === track.id),
     );
 
     this.stateMachine.transition("loading");
@@ -209,7 +213,9 @@ export class KomorebiEngine {
     const nextTrack = this.queue.getNextTrack(this.settings.smartShuffle);
     if (nextTrack) {
       const currentTrack = this.queue.getCurrentTrack();
-      this.queue.setCurrentIndex(this.queue.getNextIndex(this.settings.smartShuffle));
+      this.queue.setCurrentIndex(
+        this.queue.getNextIndex(this.settings.smartShuffle),
+      );
 
       if (this.stateMachine.isPlaying()) {
         this.loadAndPlay(nextTrack);
@@ -239,7 +245,9 @@ export class KomorebiEngine {
     const prevTrack = this.queue.getPreviousTrack(this.settings.smartShuffle);
     if (prevTrack) {
       const currentTrack = this.queue.getCurrentTrack();
-      this.queue.setCurrentIndex(this.queue.getPreviousIndex(this.settings.smartShuffle));
+      this.queue.setCurrentIndex(
+        this.queue.getPreviousIndex(this.settings.smartShuffle),
+      );
 
       if (this.stateMachine.isPlaying()) {
         this.loadAndPlay(prevTrack);
@@ -300,8 +308,11 @@ export class KomorebiEngine {
 
   toggleRepeat(): void {
     const current = this.settings.repeat;
-    this.settings.repeat = current === "off" ? "all" : current === "all" ? "one" : "off";
-    this.events.emit("settingschange", { settings: { repeat: this.settings.repeat } });
+    this.settings.repeat =
+      current === "off" ? "all" : current === "all" ? "one" : "off";
+    this.events.emit("settingschange", {
+      settings: { repeat: this.settings.repeat },
+    });
   }
 
   setCrossfade(duration: number): void {
@@ -313,7 +324,9 @@ export class KomorebiEngine {
   setGapless(enabled: boolean): void {
     this.settings.gaplessPlayback = enabled;
     this.scheduler.setGaplessConfig({ enabled });
-    this.events.emit("settingschange", { settings: { gaplessPlayback: enabled } });
+    this.events.emit("settingschange", {
+      settings: { gaplessPlayback: enabled },
+    });
   }
 
   updateSettings(newSettings: Partial<EngineSettings>): void {
@@ -372,14 +385,14 @@ export class KomorebiEngine {
 
   on<E extends keyof EngineEventMap>(
     event: E,
-    callback: (data: EngineEventMap[E]) => void
+    callback: (data: EngineEventMap[E]) => void,
   ): void {
     this.events.on(event, callback);
   }
 
   off<E extends keyof EngineEventMap>(
     event: E,
-    callback: (data: EngineEventMap[E]) => void
+    callback: (data: EngineEventMap[E]) => void,
   ): void {
     this.events.off(event, callback);
   }
@@ -396,9 +409,7 @@ export class KomorebiEngine {
     return new Promise((resolve, reject) => {
       const onEndedHandler = () => {
         this.backend?.offEnded(onEndedHandler);
-        this.play()
-          .then(resolve)
-          .catch(reject);
+        this.play().then(resolve).catch(reject);
       };
 
       this.backend?.onEnded(onEndedHandler);
@@ -406,7 +417,10 @@ export class KomorebiEngine {
     });
   }
 
-  private async waitForState(targetState: PlayerState, timeout = 5000): Promise<void> {
+  private async waitForState(
+    targetState: PlayerState,
+    timeout = 5000,
+  ): Promise<void> {
     return new Promise((resolve, reject) => {
       const checkState = () => {
         if (this.stateMachine.getState() === targetState) {
@@ -465,7 +479,8 @@ export class KomorebiEngine {
     const nextTrack = this.queue.getNextTrack(this.settings.smartShuffle);
     if (!nextTrack) return;
 
-    const delay = this.scheduler.getMode() === "gapless" ? 100 : this.settings.crossfade;
+    const delay =
+      this.scheduler.getMode() === "gapless" ? 100 : this.settings.crossfade;
 
     this.scheduledTransitionId = window.setTimeout(() => {
       this.scheduledTransitionId = null;
@@ -475,7 +490,9 @@ export class KomorebiEngine {
 
   private executeTransition(nextTrack: Track): void {
     const currentTrack = this.queue.getCurrentTrack();
-    this.queue.setCurrentIndex(this.queue.getNextIndex(this.settings.smartShuffle));
+    this.queue.setCurrentIndex(
+      this.queue.getNextIndex(this.settings.smartShuffle),
+    );
 
     this.load(nextTrack);
     this.play();
@@ -544,7 +561,10 @@ export class KomorebiEngine {
   private emitStateChange(): void {
     const prevState = this.stateMachine.getPreviousState();
     const newState = this.stateMachine.getState();
-    this.events.emit("statechange", { oldState: prevState ?? "idle", newState });
+    this.events.emit("statechange", {
+      oldState: prevState ?? "idle",
+      newState,
+    });
   }
 
   private emitTrackChange(from: Track | null, to: Track | null): void {
@@ -552,7 +572,10 @@ export class KomorebiEngine {
   }
 
   private emitTimeUpdate(): void {
-    this.events.emit("timeupdate", { currentTime: this.currentTime, duration: this.duration });
+    this.events.emit("timeupdate", {
+      currentTime: this.currentTime,
+      duration: this.duration,
+    });
   }
 
   private emitError(code: string, message: string, track?: Track): void {

@@ -24,12 +24,19 @@ export class MiniplayerEngine {
   }
 
   isSupported(): boolean {
-    return "documentPictureInPicture" in window && !!window.documentPictureInPicture;
+    return (
+      "documentPictureInPicture" in window && !!window.documentPictureInPicture
+    );
   }
 
-  async open(_controls: MiniplayerControls, renderContent: () => ReactNode): Promise<boolean> {
+  async open(
+    _controls: MiniplayerControls,
+    renderContent: () => ReactNode,
+  ): Promise<boolean> {
     if (!this.isSupported()) {
-      this.events.emit("error", { error: "Document Picture-in-Picture not supported" });
+      this.events.emit("error", {
+        error: "Document Picture-in-Picture not supported",
+      });
       return false;
     }
 
@@ -40,7 +47,9 @@ export class MiniplayerEngine {
     try {
       const pip = window.documentPictureInPicture;
       if (!pip) {
-        this.events.emit("error", { error: "Document Picture-in-Picture not available" });
+        this.events.emit("error", {
+          error: "Document Picture-in-Picture not available",
+        });
         return false;
       }
 
@@ -98,7 +107,9 @@ export class MiniplayerEngine {
     try {
       [...document.styleSheets].forEach((styleSheet) => {
         try {
-          const cssRules = [...styleSheet.cssRules].map((rule) => rule.cssText).join("");
+          const cssRules = [...styleSheet.cssRules]
+            .map((rule) => rule.cssText)
+            .join("");
           if (cssRules) {
             const style = pipWindow.document.createElement("style");
             style.textContent = cssRules;
@@ -124,15 +135,33 @@ export class MiniplayerEngine {
     } else {
       const rootStyle = getComputedStyle(document.documentElement);
       const themeVars = [
-        "--themecolor", "--themecolor2", "--themecolor3", "--themecolor4",
-        "--themegradient", "--themecolor-transparent", "--themecolor2-transparent",
-        "--themecolor3-transparent", "--foreground", "--foreground-strong",
-        "--foreground-stronger", "--foreground-muted", "--foreground-subtle",
-        "--background", "--surface", "--surface-foreground",
-        "--surface-transparent-05", "--surface-transparent-1", "--surface-transparent-2",
-        "--primary", "--primary-foreground", "--primary-transparent",
-        "--primary-border", "--primary-border-strong", "--secondary",
-        "--secondary-foreground", "--menu-background",
+        "--themecolor",
+        "--themecolor2",
+        "--themecolor3",
+        "--themecolor4",
+        "--themegradient",
+        "--themecolor-transparent",
+        "--themecolor2-transparent",
+        "--themecolor3-transparent",
+        "--foreground",
+        "--foreground-strong",
+        "--foreground-stronger",
+        "--foreground-muted",
+        "--foreground-subtle",
+        "--background",
+        "--surface",
+        "--surface-foreground",
+        "--surface-transparent-05",
+        "--surface-transparent-1",
+        "--surface-transparent-2",
+        "--primary",
+        "--primary-foreground",
+        "--primary-transparent",
+        "--primary-border",
+        "--primary-border-strong",
+        "--secondary",
+        "--secondary-foreground",
+        "--menu-background",
       ];
 
       const variables: string[] = [];
@@ -167,7 +196,11 @@ export class MiniplayerEngine {
           pipWindow.document.documentElement.classList.remove("dark");
         }
 
-        pipWindow.document.querySelectorAll('style[data-theme-variables], style[data-fallback-theme-variables]').forEach((s) => s.remove());
+        pipWindow.document
+          .querySelectorAll(
+            "style[data-theme-variables], style[data-fallback-theme-variables]",
+          )
+          .forEach((s) => s.remove());
 
         const styleElement = pipWindow.document.createElement("style");
         styleElement.textContent = event.data.css;

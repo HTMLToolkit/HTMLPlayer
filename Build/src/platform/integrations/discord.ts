@@ -21,7 +21,10 @@ export class DiscordIntegration extends BaseIntegration {
     this.clearPresence();
   }
 
-  async updatePresence(track: Track | null, _isPlaying: boolean): Promise<void> {
+  async updatePresence(
+    track: Track | null,
+    _isPlaying: boolean,
+  ): Promise<void> {
     this.currentTrack = track;
     if (!track || !this.isAvailable()) return;
 

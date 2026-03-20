@@ -3,9 +3,20 @@ import { ThemeEngine } from "./ThemeEngine";
 export { ThemeEngine } from "./ThemeEngine";
 export { ThemeProvider, useThemingContext } from "./ThemeProvider";
 
-export { useTheming, usePalette, useIconSet, useWallpaper, useThemeMode } from "./hooks";
+export {
+  useTheming,
+  usePalette,
+  useIconSet,
+  useWallpaper,
+  useThemeMode,
+} from "./hooks";
 
-export { ThemingEvents, type ThemingEvent, type ThemingEventMap, type ThemeMode } from "./events";
+export {
+  ThemingEvents,
+  type ThemingEvent,
+  type ThemingEventMap,
+  type ThemeMode,
+} from "./events";
 export type {
   Palette,
   IconSet,

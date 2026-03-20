@@ -5,14 +5,16 @@ export class LyricsOvhProvider extends BaseProvider implements LyricsProvider {
   name = "Lyrics.ovh";
   private baseUrl = "https://api.lyrics.ovh/v1";
 
-  async fetchLyrics(query: SearchQuery): Promise<ProviderResult<Lyrics> | null> {
+  async fetchLyrics(
+    query: SearchQuery,
+  ): Promise<ProviderResult<Lyrics> | null> {
     if (!query.artist || !query.title) {
       return null;
     }
 
     try {
       const response = await fetch(
-        `${this.baseUrl}/${encodeURIComponent(query.artist)}/${encodeURIComponent(query.title)}`
+        `${this.baseUrl}/${encodeURIComponent(query.artist)}/${encodeURIComponent(query.title)}`,
       );
 
       if (!response.ok) {

@@ -62,7 +62,9 @@ export class PaletteEngine {
     const required = ["name", "author", "description", "version", "cssFile"];
     for (const field of required) {
       if (!data[field] || typeof data[field] !== "string") {
-        console.warn(`Palette file ${path}: Missing or invalid field "${field}"`);
+        console.warn(
+          `Palette file ${path}: Missing or invalid field "${field}"`,
+        );
         return null;
       }
     }
@@ -102,7 +104,9 @@ export class PaletteEngine {
 
     this.removeAllPaletteStyles();
 
-    const cssModule = await (paletteCssFiles[cssPath] as () => Promise<string>)();
+    const cssModule = await (
+      paletteCssFiles[cssPath] as () => Promise<string>
+    )();
     const processedCss = this.processCssImages(cssModule, cssPath);
 
     const styleElement = document.createElement("style");
@@ -174,7 +178,9 @@ export class PaletteEngine {
       .getPropertyValue("--themecolor2")
       .trim();
 
-    let meta = document.querySelector('meta[name="theme-color"]') as HTMLMetaElement | null;
+    let meta = document.querySelector(
+      'meta[name="theme-color"]',
+    ) as HTMLMetaElement | null;
     if (!meta) {
       meta = document.createElement("meta");
       meta.name = "theme-color";

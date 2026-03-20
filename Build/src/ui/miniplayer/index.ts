@@ -1,2 +1,6 @@
 export { MiniplayerEngine } from "./MiniplayerEngine";
-export { MiniplayerEvents, type MiniplayerEvent, type MiniplayerEventMap } from "./events";
+export {
+  MiniplayerEvents,
+  type MiniplayerEvent,
+  type MiniplayerEventMap,
+} from "./events";

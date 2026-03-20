@@ -163,6 +163,8 @@ export class PreloadManager {
   }
 }
 
-export function createPreloadManager(config?: Partial<PreloadConfig>): PreloadManager {
+export function createPreloadManager(
+  config?: Partial<PreloadConfig>,
+): PreloadManager {
   return new PreloadManager(config);
 }

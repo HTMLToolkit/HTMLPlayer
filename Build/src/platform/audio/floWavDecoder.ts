@@ -9,7 +9,9 @@ async function ensureInitialized() {
   }
 }
 
-export async function decodeFloToWav(floData: ArrayBuffer): Promise<Uint8Array> {
+export async function decodeFloToWav(
+  floData: ArrayBuffer,
+): Promise<Uint8Array> {
   await ensureInitialized();
   const uint8Flo = new Uint8Array(floData);
   return reflo.decode_flo_to_wav(uint8Flo);

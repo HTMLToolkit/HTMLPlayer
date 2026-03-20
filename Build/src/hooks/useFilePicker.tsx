@@ -6,7 +6,12 @@ import "@uppy/core/css/style.min.css";
 import "@uppy/dashboard/css/style.min.css";
 import ReactDOM from "react-dom/client";
 import { useTranslation } from "react-i18next";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../ui/components/primitives/Dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "../ui/components/primitives/Dialog";
 import { ThemeProvider } from "../ui/theming";
 import type { Track } from "../core/engine/types";
 
@@ -14,7 +19,9 @@ declare global {
   interface Window {
     launchQueue?: {
       setConsumer: (
-        consumer: (launchParams: { files: FileSystemFileHandle[] | File[] }) => void,
+        consumer: (launchParams: {
+          files: FileSystemFileHandle[] | File[];
+        }) => void,
       ) => void;
     };
   }
@@ -48,7 +55,16 @@ export function setProcessingState(processing: boolean) {
 function processFiles(files: File[]): AudioFile[] {
   const valid: AudioFile[] = [];
   const audioTest = document.createElement("audio");
-  const allowedExtensions = ["mp3", "wav", "m4a", "flac", "aif", "aiff", "ogg", "flo"];
+  const allowedExtensions = [
+    "mp3",
+    "wav",
+    "m4a",
+    "flac",
+    "aif",
+    "aiff",
+    "ogg",
+    "flo",
+  ];
 
   for (const file of files) {
     const ext = file.name.split(".").pop()?.toLowerCase();
@@ -84,7 +100,14 @@ export function pickAudioFiles(): Promise<AudioFile[]> {
             restrictions: {
               maxNumberOfFiles: null,
               allowedFileTypes: [
-                ".mp3", ".wav", ".m4a", ".flac", ".aif", ".aiff", ".ogg", ".flo",
+                ".mp3",
+                ".wav",
+                ".m4a",
+                ".flac",
+                ".aif",
+                ".aiff",
+                ".ogg",
+                ".flo",
                 "audio/*",
               ],
             },
@@ -139,13 +162,16 @@ export function pickAudioFiles(): Promise<AudioFile[]> {
       }, [uppy]);
 
       return (
-        <Dialog open={open} onOpenChange={(newOpen) => {
-          setOpen(newOpen);
-          if (!newOpen) {
-            uppy.cancelAll();
-            resolve([]);
-          }
-        }}>
+        <Dialog
+          open={open}
+          onOpenChange={(newOpen) => {
+            setOpen(newOpen);
+            if (!newOpen) {
+              uppy.cancelAll();
+              resolve([]);
+            }
+          }}
+        >
           <DialogContent>
             <DialogHeader>
               <DialogTitle>{t("filePicker.selectAudioFiles")}</DialogTitle>
@@ -168,7 +194,11 @@ export function pickAudioFiles(): Promise<AudioFile[]> {
     const container = document.createElement("div");
     document.body.appendChild(container);
     const root = ReactDOM.createRoot(container);
-    root.render(<ThemeProvider><ReactUppyWrapper /></ThemeProvider>);
+    root.render(
+      <ThemeProvider>
+        <ReactUppyWrapper />
+      </ThemeProvider>,
+    );
   });
 }
 
@@ -388,7 +418,11 @@ export function useShareTarget(
 export function useFileHandler(
   addSong: (song: Track) => Promise<void>,
   t: any,
-  importFiles: (files: File[], addSong: (song: Track) => Promise<void>, t: any) => Promise<void>,
+  importFiles: (
+    files: File[],
+    addSong: (song: Track) => Promise<void>,
+    t: any,
+  ) => Promise<void>,
   isInitialized?: boolean,
 ) {
   const [isSupported, setIsSupported] = useState(false);

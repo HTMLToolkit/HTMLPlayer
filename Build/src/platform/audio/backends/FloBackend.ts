@@ -49,7 +49,11 @@ export class FloBackend extends BaseAudioBackend {
       this.floDecoder = flo;
       this.floInitialized = true;
     } catch (error) {
-      this.emitError(new Error(`Failed to initialize flo decoder: ${(error as Error).message}`));
+      this.emitError(
+        new Error(
+          `Failed to initialize flo decoder: ${(error as Error).message}`,
+        ),
+      );
     }
   }
 
@@ -84,7 +88,9 @@ export class FloBackend extends BaseAudioBackend {
       this.chain.audioBuffer = audioBuffer;
       this.duration = audioBuffer.duration;
     } catch (error) {
-      this.emitError(new Error(`Failed to load flo: ${(error as Error).message}`));
+      this.emitError(
+        new Error(`Failed to load flo: ${(error as Error).message}`),
+      );
     }
   }
 
@@ -198,8 +204,6 @@ export class FloBackend extends BaseAudioBackend {
       this.audioContext.close();
       this.audioContext = null;
     }
-
-    
   }
 
   private startTimeUpdates(): void {

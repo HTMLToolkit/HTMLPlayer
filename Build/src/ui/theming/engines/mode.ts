@@ -50,7 +50,7 @@ export class ThemeModeEngine {
 
   private setupAutoMode(): void {
     const prefersDark = window.matchMedia("(prefers-color-scheme: dark)");
-    
+
     const listener = (e: MediaQueryListEvent) => {
       if (e.matches) {
         document.documentElement.classList.add("dark");
@@ -85,7 +85,9 @@ export class ThemeModeEngine {
         .getPropertyValue("--themecolor2")
         .trim();
 
-      let meta = document.querySelector('meta[name="theme-color"]') as HTMLMetaElement | null;
+      let meta = document.querySelector(
+        'meta[name="theme-color"]',
+      ) as HTMLMetaElement | null;
       if (!meta) {
         meta = document.createElement("meta");
         meta.name = "theme-color";

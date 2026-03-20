@@ -29,12 +29,23 @@ export class WebStorageBackend extends BaseStorageBackend {
   async loadDirectory(): Promise<FileList | null> {
     if ("showDirectoryPicker" in window) {
       try {
-        const dirHandle = await (window as unknown as { showDirectoryPicker: () => Promise<unknown> }).showDirectoryPicker();
+        const dirHandle = await (
+          window as unknown as { showDirectoryPicker: () => Promise<unknown> }
+        ).showDirectoryPicker();
         const files: File[] = [];
 
-        for await (const entry of (dirHandle as unknown as { values: () => AsyncIterable<unknown> }).values()) {
-          const e = entry as { kind?: string; name?: string; getFile?: () => Promise<File> };
-          if (e.kind === "file" && e.name?.match(/\.(mp3|flac|ogg|wav|m4a|aac|wma|flo)$/i)) {
+        for await (const entry of (
+          dirHandle as unknown as { values: () => AsyncIterable<unknown> }
+        ).values()) {
+          const e = entry as {
+            kind?: string;
+            name?: string;
+            getFile?: () => Promise<File>;
+          };
+          if (
+            e.kind === "file" &&
+            e.name?.match(/\.(mp3|flac|ogg|wav|m4a|aac|wma|flo)$/i)
+          ) {
             const file = await e.getFile?.();
             if (file) files.push(file);
           }

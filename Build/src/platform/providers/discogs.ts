@@ -10,7 +10,9 @@ export class DiscogsProvider extends BaseProvider implements AlbumArtProvider {
     this.token = token;
   }
 
-  async fetchAlbumArt(query: SearchQuery): Promise<ProviderResult<AlbumArtResult[]> | null> {
+  async fetchAlbumArt(
+    query: SearchQuery,
+  ): Promise<ProviderResult<AlbumArtResult[]> | null> {
     if (!query.artist || !query.album) {
       return null;
     }
@@ -26,7 +28,7 @@ export class DiscogsProvider extends BaseProvider implements AlbumArtProvider {
 
       const response = await fetch(
         `${this.baseUrl}/database/search?q=${encodeURIComponent(query.artist)} ${encodeURIComponent(query.album)}&type=release&per_page=5`,
-        { headers }
+        { headers },
       );
 
       if (!response.ok) {
@@ -34,7 +36,12 @@ export class DiscogsProvider extends BaseProvider implements AlbumArtProvider {
       }
 
       const data = (await response.json()) as {
-        results?: { id: number; title: string; cover_image: string; thumb: string }[];
+        results?: {
+          id: number;
+          title: string;
+          cover_image: string;
+          thumb: string;
+        }[];
       };
 
       if (!data.results || data.results.length === 0) {
@@ -62,7 +69,9 @@ export class DiscogsProvider extends BaseProvider implements AlbumArtProvider {
     }
   }
 
-  async fetchArtistImage(_artist: string): Promise<ProviderResult<string> | null> {
+  async fetchArtistImage(
+    _artist: string,
+  ): Promise<ProviderResult<string> | null> {
     return null;
   }
 }

@@ -1,4 +1,7 @@
-import { VisualizerType, visualizerStates } from "../../../platform/visualizers";
+import {
+  VisualizerType,
+  visualizerStates,
+} from "../../../platform/visualizers";
 
 const topwaterSpectrogram: VisualizerType = {
   name: "Top-Down Water Spectrogram",

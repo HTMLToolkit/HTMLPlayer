@@ -1,6 +1,11 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { KomorebiEngine } from "../core/engine/engine";
-import type { Track, Playlist, EngineState, QueueState } from "../core/engine/types";
+import type {
+  Track,
+  Playlist,
+  EngineState,
+  QueueState,
+} from "../core/engine/types";
 import type { IAudioBackend } from "../platform/audio";
 import { HTMLAudioBackend } from "../platform/audio/backends/HTMLBackend";
 import { LibraryManager } from "../platform/library/library";
@@ -17,10 +22,10 @@ export interface UseKomorebiReturn {
   engine: KomorebiEngine;
   library: LibraryManager;
   settings: SettingsManager;
-  
+
   isReady: boolean;
   isLoading: boolean;
-  
+
   state: EngineState;
   currentTrack: Track | null;
   isPlaying: boolean;
@@ -30,7 +35,7 @@ export interface UseKomorebiReturn {
   repeat: "off" | "one" | "all";
   shuffle: boolean;
   error: string | null;
-  
+
   play: () => Promise<void>;
   pause: () => void;
   togglePlayPause: () => Promise<void>;
@@ -43,24 +48,24 @@ export interface UseKomorebiReturn {
   setPitch: (semitones: number) => void;
   toggleShuffle: () => void;
   toggleRepeat: () => void;
-  
+
   load: (track: Track, playlist?: Playlist) => void;
   playSong: (song: Track, playlist?: Playlist) => Promise<void>;
   setPlaylist: (playlist: Playlist) => void;
   getQueue: () => Track[];
-  
+
   addSong: (song: Track) => void;
   removeSong: (songId: string) => void;
   getSong: (songId: string) => Track | undefined;
-  
+
   addPlaylist: (playlist: Playlist) => void;
   removePlaylist: (playlistId: string) => void;
   getPlaylist: (playlistId: string) => Playlist | undefined;
-  
+
   toggleFavorite: (songId: string) => void;
   isFavorite: (songId: string) => boolean;
   getFavorites: () => Track[];
-  
+
   search: (query: string) => Track[];
   getSongsByArtist: (artist: string) => Track[];
   getSongsByAlbum: (album: string) => Track[];
@@ -100,17 +105,19 @@ function createInitialState(): EngineState {
   };
 }
 
-export function useKomorebi(options: UseKomorebiOptions = {}): UseKomorebiReturn {
+export function useKomorebi(
+  options: UseKomorebiOptions = {},
+): UseKomorebiReturn {
   const backendRef = useRef<IAudioBackend | null>(null);
   const engineRef = useRef<KomorebiEngine | null>(null);
   const libraryRef = useRef<LibraryManager | null>(null);
   const settingsRef = useRef<SettingsManager | null>(null);
   const initializedRef = useRef(false);
-  
+
   const [isReady, setIsReady] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
+
   const [state, setState] = useState<EngineState>(createInitialState);
   const [currentTrack, setCurrentTrack] = useState<Track | null>(null);
   const [currentTime, setCurrentTime] = useState(0);
@@ -172,13 +179,13 @@ export function useKomorebi(options: UseKomorebiOptions = {}): UseKomorebiReturn
       try {
         const savedLibrary = await libraryPersistence.loadFullLibrary();
         if (savedLibrary) {
-          savedLibrary.songs.forEach(song => library.addSong(song));
-          savedLibrary.playlists.forEach(playlist => {
+          savedLibrary.songs.forEach((song) => library.addSong(song));
+          savedLibrary.playlists.forEach((playlist) => {
             if ("songs" in playlist) {
               library.addPlaylist(playlist);
             }
           });
-          savedLibrary.favorites.forEach(id => {
+          savedLibrary.favorites.forEach((id) => {
             const song = library.getSong(id);
             if (song) library.toggleFavorite(id);
           });
@@ -222,14 +229,32 @@ export function useKomorebi(options: UseKomorebiOptions = {}): UseKomorebiReturn
     };
 
     const library = libraryRef.current;
-    library.on("songadded", handleSongAdded as Parameters<typeof library.on>[1]);
-    library.on("songremoved", handleSongRemoved as Parameters<typeof library.on>[1]);
-    library.on("favoritechanged", handleFavoritesChange as Parameters<typeof library.on>[1]);
+    library.on(
+      "songadded",
+      handleSongAdded as Parameters<typeof library.on>[1],
+    );
+    library.on(
+      "songremoved",
+      handleSongRemoved as Parameters<typeof library.on>[1],
+    );
+    library.on(
+      "favoritechanged",
+      handleFavoritesChange as Parameters<typeof library.on>[1],
+    );
 
     return () => {
-      library.off("songadded", handleSongAdded as Parameters<typeof library.on>[1]);
-      library.off("songremoved", handleSongRemoved as Parameters<typeof library.on>[1]);
-      library.off("favoritechanged", handleFavoritesChange as Parameters<typeof library.on>[1]);
+      library.off(
+        "songadded",
+        handleSongAdded as Parameters<typeof library.on>[1],
+      );
+      library.off(
+        "songremoved",
+        handleSongRemoved as Parameters<typeof library.on>[1],
+      );
+      library.off(
+        "favoritechanged",
+        handleFavoritesChange as Parameters<typeof library.on>[1],
+      );
     };
   }, [options.persistLibrary, isReady]);
 
@@ -264,7 +289,7 @@ export function useKomorebi(options: UseKomorebiOptions = {}): UseKomorebiReturn
     setError(null);
     const engine = engineRef.current;
     if (!engine) return;
-    
+
     if (playlist) {
       engine.setPlaylist(playlist);
     }
@@ -367,10 +392,10 @@ export function useKomorebi(options: UseKomorebiOptions = {}): UseKomorebiReturn
     engine: engineRef.current!,
     library: libraryRef.current!,
     settings: settingsRef.current!,
-    
+
     isReady,
     isLoading,
-    
+
     state,
     currentTrack,
     isPlaying: state.state === "playing",
@@ -380,7 +405,7 @@ export function useKomorebi(options: UseKomorebiOptions = {}): UseKomorebiReturn
     repeat: state.settings.repeat,
     shuffle: state.queue.shuffled,
     error,
-    
+
     play,
     pause,
     togglePlayPause,
@@ -393,24 +418,24 @@ export function useKomorebi(options: UseKomorebiOptions = {}): UseKomorebiReturn
     setPitch,
     toggleShuffle,
     toggleRepeat,
-    
+
     load,
     playSong,
     setPlaylist,
     getQueue,
-    
+
     addSong,
     removeSong,
     getSong,
-    
+
     addPlaylist,
     removePlaylist,
     getPlaylist,
-    
+
     toggleFavorite,
     isFavorite,
     getFavorites,
-    
+
     search,
     getSongsByArtist,
     getSongsByAlbum,

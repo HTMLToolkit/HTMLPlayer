@@ -9,16 +9,23 @@ export type VisualizerEventMap = {
 type EventCallback<T> = (data: T) => void;
 
 export class VisualizerEvents {
-  private listeners: Map<VisualizerEvent, Set<EventCallback<unknown>>> = new Map();
+  private listeners: Map<VisualizerEvent, Set<EventCallback<unknown>>> =
+    new Map();
 
-  on<E extends VisualizerEvent>(event: E, callback: EventCallback<VisualizerEventMap[E]>): void {
+  on<E extends VisualizerEvent>(
+    event: E,
+    callback: EventCallback<VisualizerEventMap[E]>,
+  ): void {
     if (!this.listeners.has(event)) {
       this.listeners.set(event, new Set());
     }
     this.listeners.get(event)!.add(callback as EventCallback<unknown>);
   }
 
-  off<E extends VisualizerEvent>(event: E, callback: EventCallback<VisualizerEventMap[E]>): void {
+  off<E extends VisualizerEvent>(
+    event: E,
+    callback: EventCallback<VisualizerEventMap[E]>,
+  ): void {
     const callbacks = this.listeners.get(event);
     if (callbacks) {
       callbacks.delete(callback as EventCallback<unknown>);

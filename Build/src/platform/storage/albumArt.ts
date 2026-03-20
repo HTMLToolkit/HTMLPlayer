@@ -32,7 +32,9 @@ export const albumArtStorage = {
       const tx = db.transaction([STORE], "readonly");
       const store = tx.objectStore(STORE);
 
-      const result = await new Promise<{ songId: string; albumArt: string } | undefined>((resolve, reject) => {
+      const result = await new Promise<
+        { songId: string; albumArt: string } | undefined
+      >((resolve, reject) => {
         const req = store.get(songId);
         req.onsuccess = () => resolve(req.result);
         req.onerror = () => reject(req.error);
@@ -73,13 +75,16 @@ export const albumArtStorage = {
       const store = tx.objectStore(STORE);
 
       const loaded = await Promise.all(
-        toLoad.map((songId) =>
-          new Promise<{ songId: string; albumArt: string } | null>((resolve, reject) => {
-            const req = store.get(songId);
-            req.onsuccess = () => resolve(req.result || null);
-            req.onerror = () => reject(req.error);
-          })
-        )
+        toLoad.map(
+          (songId) =>
+            new Promise<{ songId: string; albumArt: string } | null>(
+              (resolve, reject) => {
+                const req = store.get(songId);
+                req.onsuccess = () => resolve(req.result || null);
+                req.onerror = () => reject(req.error);
+              },
+            ),
+        ),
       );
 
       db.close();

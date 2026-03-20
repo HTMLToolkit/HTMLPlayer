@@ -6,11 +6,7 @@ import { createFloBackend, FloBackend } from "./FloBackend";
 import { createHybridBackend, HybridBackend } from "./HybridBackend";
 import type { Track } from "../../../core/engine/types";
 
-const FLO_MIME_TYPES = [
-  "audio/x-flo",
-  "audio/flac",
-  "audio/wav",
-];
+const FLO_MIME_TYPES = ["audio/x-flo", "audio/flac", "audio/wav"];
 
 export const isFloTrack = (track: Track): boolean => {
   if (track.mimeType && FLO_MIME_TYPES.includes(track.mimeType)) {
@@ -96,7 +92,7 @@ export class AudioBackendManager {
 }
 
 export function createBackendManager(
-  options?: Partial<AudioBackendOptions>
+  options?: Partial<AudioBackendOptions>,
 ): AudioBackendManager {
   return new AudioBackendManager({
     type: "hybrid",
@@ -104,5 +100,17 @@ export function createBackendManager(
   } as AudioBackendOptions);
 }
 
-export { HTMLAudioBackend, WebAudioBackend, PitchBackend, FloBackend, HybridBackend };
-export { createHTMLBackend, createWebAudioBackend, createPitchBackend, createFloBackend, createHybridBackend };
+export {
+  HTMLAudioBackend,
+  WebAudioBackend,
+  PitchBackend,
+  FloBackend,
+  HybridBackend,
+};
+export {
+  createHTMLBackend,
+  createWebAudioBackend,
+  createPitchBackend,
+  createFloBackend,
+  createHybridBackend,
+};

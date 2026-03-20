@@ -34,12 +34,18 @@ export const dialogStorage = {
       db.close();
       return result?.data?.dontShowAgain !== true;
     } catch (error) {
-      console.error(`Failed to check dialog preference for ${dialogKey}:`, error);
+      console.error(
+        `Failed to check dialog preference for ${dialogKey}:`,
+        error,
+      );
       return true;
     }
   },
 
-  async setPreference(dialogKey: string, dontShowAgain: boolean): Promise<void> {
+  async setPreference(
+    dialogKey: string,
+    dontShowAgain: boolean,
+  ): Promise<void> {
     try {
       const db = await openDatabase();
       const tx = db.transaction([STORE], "readwrite");
@@ -56,7 +62,10 @@ export const dialogStorage = {
 
       db.close();
     } catch (error) {
-      console.error(`Failed to save dialog preference for ${dialogKey}:`, error);
+      console.error(
+        `Failed to save dialog preference for ${dialogKey}:`,
+        error,
+      );
       throw error;
     }
   },
@@ -76,13 +85,14 @@ export const dialogStorage = {
       await Promise.all(
         keys
           .filter((key) => key.startsWith("dialog-"))
-          .map((key) =>
-            new Promise<void>((resolve, reject) => {
-              const req = store.delete(key);
-              req.onsuccess = () => resolve();
-              req.onerror = () => reject(req.error);
-            })
-          )
+          .map(
+            (key) =>
+              new Promise<void>((resolve, reject) => {
+                const req = store.delete(key);
+                req.onsuccess = () => resolve();
+                req.onerror = () => reject(req.error);
+              }),
+          ),
       );
 
       db.close();

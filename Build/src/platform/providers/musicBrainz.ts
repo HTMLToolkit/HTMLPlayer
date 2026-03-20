@@ -1,11 +1,16 @@
 import { BaseProvider, type SearchQuery, type ProviderResult } from "./base";
 import type { AlbumArtProvider, AlbumArtResult } from "./albumArtTypes";
 
-export class MusicBrainzProvider extends BaseProvider implements AlbumArtProvider {
+export class MusicBrainzProvider
+  extends BaseProvider
+  implements AlbumArtProvider
+{
   name = "MusicBrainz";
   private userAgent = "HTMLPlayer/2.0 (nellowtcs@gmail.com)";
 
-  async fetchAlbumArt(query: SearchQuery): Promise<ProviderResult<AlbumArtResult[]> | null> {
+  async fetchAlbumArt(
+    query: SearchQuery,
+  ): Promise<ProviderResult<AlbumArtResult[]> | null> {
     if (!query.artist || !query.album) {
       return null;
     }
@@ -13,7 +18,7 @@ export class MusicBrainzProvider extends BaseProvider implements AlbumArtProvide
     try {
       const searchResponse = await fetch(
         `https://musicbrainz.org/ws/2/release-group/?query=artist:${encodeURIComponent(query.artist)}%20AND%20release:${encodeURIComponent(query.album)}&fmt=json&limit=5`,
-        { headers: { "User-Agent": this.userAgent } }
+        { headers: { "User-Agent": this.userAgent } },
       );
 
       if (!searchResponse.ok) {
@@ -24,7 +29,10 @@ export class MusicBrainzProvider extends BaseProvider implements AlbumArtProvide
         release_groups?: { id: string; title: string }[];
       };
 
-      if (!searchData.release_groups || searchData.release_groups.length === 0) {
+      if (
+        !searchData.release_groups ||
+        searchData.release_groups.length === 0
+      ) {
         return null;
       }
 
@@ -51,7 +59,9 @@ export class MusicBrainzProvider extends BaseProvider implements AlbumArtProvide
     }
   }
 
-  async fetchArtistImage(artist: string): Promise<ProviderResult<string> | null> {
+  async fetchArtistImage(
+    artist: string,
+  ): Promise<ProviderResult<string> | null> {
     if (!artist) {
       return null;
     }
@@ -59,7 +69,7 @@ export class MusicBrainzProvider extends BaseProvider implements AlbumArtProvide
     try {
       const searchResponse = await fetch(
         `https://musicbrainz.org/ws/2/artist/?query=${encodeURIComponent(artist)}&fmt=json&limit=1`,
-        { headers: { "User-Agent": this.userAgent } }
+        { headers: { "User-Agent": this.userAgent } },
       );
 
       if (!searchResponse.ok) {
@@ -78,7 +88,7 @@ export class MusicBrainzProvider extends BaseProvider implements AlbumArtProvide
 
       const relResponse = await fetch(
         `https://musicbrainz.org/ws/2/artist/${artistMbid}?inc=url-rels&fmt=json`,
-        { headers: { "User-Agent": this.userAgent } }
+        { headers: { "User-Agent": this.userAgent } },
       );
 
       if (!relResponse.ok) {
@@ -90,7 +100,7 @@ export class MusicBrainzProvider extends BaseProvider implements AlbumArtProvide
       };
 
       const imageRel = relData.relations?.find(
-        (r) => r.type === "image" && r.url?.resource
+        (r) => r.type === "image" && r.url?.resource,
       );
 
       if (imageRel?.url?.resource) {

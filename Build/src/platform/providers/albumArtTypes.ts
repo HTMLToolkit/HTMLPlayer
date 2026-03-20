@@ -10,6 +10,8 @@ export interface AlbumArtResult {
 
 export interface AlbumArtProvider {
   name: string;
-  fetchAlbumArt(query: SearchQuery): Promise<ProviderResult<AlbumArtResult[]> | null>;
+  fetchAlbumArt(
+    query: SearchQuery,
+  ): Promise<ProviderResult<AlbumArtResult[]> | null>;
   fetchArtistImage(artist: string): Promise<ProviderResult<string> | null>;
 }

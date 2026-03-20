@@ -38,8 +38,11 @@ export class WallpaperEngine {
       const jsonModule = wallpaperJsonFiles[jsonPath];
 
       if (jsonModule) {
-        const json = (jsonModule as { default?: { wallpaper?: Record<string, string> } }).default || jsonModule;
-        const wallpaperMeta = (json as { wallpaper?: Record<string, string> }).wallpaper;
+        const json =
+          (jsonModule as { default?: { wallpaper?: Record<string, string> } })
+            .default || jsonModule;
+        const wallpaperMeta = (json as { wallpaper?: Record<string, string> })
+          .wallpaper;
 
         if (wallpaperMeta) {
           const wallpaper: Wallpaper = {
@@ -94,7 +97,9 @@ export class WallpaperEngine {
     }
 
     try {
-      const module = await wallpaperComponentFiles[wallpaper.componentFile]() as WallpaperModule;
+      const module = (await wallpaperComponentFiles[
+        wallpaper.componentFile
+      ]()) as WallpaperModule;
       this.currentComponent = module.default;
     } catch (error) {
       const errorMsg = `Failed to load wallpaper: ${(error as Error).message}`;

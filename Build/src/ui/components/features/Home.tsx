@@ -5,7 +5,11 @@ import { Button } from "../primitives/Button";
 import { Icon } from "../shared/Icon";
 import { useAlbumArt } from "../../../hooks/useAlbumArt";
 import { useNavigation } from "../../navigation";
-import type { Track, Playlist, PlaylistFolder } from "../../../core/engine/types";
+import type {
+  Track,
+  Playlist,
+  PlaylistFolder,
+} from "../../../core/engine/types";
 import type { UseKomorebiReturn } from "../../../hooks/useKomorebi";
 
 interface HomeProps {
@@ -27,7 +31,10 @@ const flattenPlaylists = (items: (Playlist | PlaylistFolder)[]): Playlist[] => {
 
 const SongCardItem = React.memo<{ song: Track; onPlay: (song: Track) => void }>(
   ({ song, onPlay }) => {
-    const lazyAlbumArt = useAlbumArt(song.id, song.hasAlbumArt || !!song.albumArt);
+    const lazyAlbumArt = useAlbumArt(
+      song.id,
+      song.hasAlbumArt || !!song.albumArt,
+    );
     const albumArt = song.albumArt || lazyAlbumArt;
 
     return (
@@ -46,7 +53,7 @@ const SongCardItem = React.memo<{ song: Track; onPlay: (song: Track) => void }>(
         <Icon name="play" size={14} decorative />
       </button>
     );
-  }
+  },
 );
 
 const PlaylistCardItem = React.memo<{
@@ -55,14 +62,26 @@ const PlaylistCardItem = React.memo<{
   countLabel: string;
 }>(({ playlist, onPlay, countLabel }) => {
   const firstSong = playlist.songs[0];
-  const lazyAlbumArt = useAlbumArt(firstSong?.id, firstSong?.hasAlbumArt || !!firstSong?.albumArt);
+  const lazyAlbumArt = useAlbumArt(
+    firstSong?.id,
+    firstSong?.hasAlbumArt || !!firstSong?.albumArt,
+  );
   const albumArt = firstSong?.albumArt || lazyAlbumArt;
 
   return (
-    <button className={styles.playlistCard} onClick={() => onPlay(playlist)} type="button">
+    <button
+      className={styles.playlistCard}
+      onClick={() => onPlay(playlist)}
+      type="button"
+    >
       <div className={styles.playlistArt}>
         {albumArt ? (
-          <img src={albumArt} alt="" loading="lazy" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+          <img
+            src={albumArt}
+            alt=""
+            loading="lazy"
+            style={{ width: "100%", height: "100%", objectFit: "cover" }}
+          />
         ) : (
           <Icon name="list" size={20} decorative />
         )}
@@ -86,9 +105,15 @@ export const Home: React.FC<HomeProps> = ({ komorebi, onAddMusic }) => {
   const playlists = libraryState.playlists;
   const favorites = libraryState.favorites;
 
-  const favoriteSongs = useMemo(() => getFavorites(), [getFavorites, favorites]);
+  const favoriteSongs = useMemo(
+    () => getFavorites(),
+    [getFavorites, favorites],
+  );
   const flatPlaylists = useMemo(() => flattenPlaylists(playlists), [playlists]);
-  const spotlightPlaylists = useMemo(() => flatPlaylists.filter((p) => p.id !== "all-songs"), [flatPlaylists]);
+  const spotlightPlaylists = useMemo(
+    () => flatPlaylists.filter((p) => p.id !== "all-songs"),
+    [flatPlaylists],
+  );
   const recentlyAdded = useMemo(() => songs.slice(-6).reverse(), [songs]);
 
   const totalHours = useMemo(() => {
@@ -97,9 +122,13 @@ export const Home: React.FC<HomeProps> = ({ komorebi, onAddMusic }) => {
     return seconds / 3600;
   }, [songs]);
 
-  const formatHours = (v: number) => v < 1 ? `${Math.round(v * 60)}m` : `${v.toFixed(1)}h`;
+  const formatHours = (v: number) =>
+    v < 1 ? `${Math.round(v * 60)}m` : `${v.toFixed(1)}h`;
 
-  const handlePlaySong = useCallback((song: Track) => playSong(song), [playSong]);
+  const handlePlaySong = useCallback(
+    (song: Track) => playSong(song),
+    [playSong],
+  );
 
   const handleSmartStart = useCallback(() => {
     if (!songs.length) {
@@ -109,43 +138,92 @@ export const Home: React.FC<HomeProps> = ({ komorebi, onAddMusic }) => {
     const pool = favoriteSongs.length ? favoriteSongs : songs;
     const randomSong = pool[Math.floor(Math.random() * pool.length)];
     const playlist = favoriteSongs.length
-      ? { id: "favorites-quickstart", name: t("favorites.favorites"), songs: favoriteSongs }
+      ? {
+          id: "favorites-quickstart",
+          name: t("favorites.favorites"),
+          songs: favoriteSongs,
+        }
       : null;
     playSong(randomSong, playlist || undefined);
   }, [songs, favoriteSongs, playSong, onAddMusic, t]);
 
   const handlePlayFavorites = useCallback(() => {
     if (favoriteSongs.length) {
-      playSong(favoriteSongs[0], { id: "favorites-home", name: t("favorites.favorites"), songs: favoriteSongs });
+      playSong(favoriteSongs[0], {
+        id: "favorites-home",
+        name: t("favorites.favorites"),
+        songs: favoriteSongs,
+      });
     } else {
       goToSongs();
     }
   }, [favoriteSongs, playSong, goToSongs, t]);
 
-  const handlePlayPlaylist = useCallback((playlist: Playlist) => {
-    if (playlist.songs.length) {
-      playSong(playlist.songs[0], playlist);
-      goToSongs();
-    }
-  }, [playSong, goToSongs]);
+  const handlePlayPlaylist = useCallback(
+    (playlist: Playlist) => {
+      if (playlist.songs.length) {
+        playSong(playlist.songs[0], playlist);
+        goToSongs();
+      }
+    },
+    [playSong, goToSongs],
+  );
 
   const heroSong = currentTrack || recentlyAdded[0] || null;
-  const lazyHeroArt = useAlbumArt(heroSong?.id, heroSong?.hasAlbumArt || !!heroSong?.albumArt);
+  const lazyHeroArt = useAlbumArt(
+    heroSong?.id,
+    heroSong?.hasAlbumArt || !!heroSong?.albumArt,
+  );
   const heroArt = heroSong?.albumArt || lazyHeroArt;
   const hasContent = songs.length > 0;
 
   const stats = [
     { label: t("home.stats.songs"), value: songs.length.toString() },
-    { label: t("home.stats.playlists"), value: flatPlaylists.filter((p) => p.id !== "all-songs").length.toString() },
-    { label: t("home.stats.favorites"), value: favoriteSongs.length.toString() },
-    { label: t("home.stats.duration"), value: hasContent ? formatHours(totalHours) : "0" },
+    {
+      label: t("home.stats.playlists"),
+      value: flatPlaylists
+        .filter((p) => p.id !== "all-songs")
+        .length.toString(),
+    },
+    {
+      label: t("home.stats.favorites"),
+      value: favoriteSongs.length.toString(),
+    },
+    {
+      label: t("home.stats.duration"),
+      value: hasContent ? formatHours(totalHours) : "0",
+    },
   ];
 
   const quickActions = [
-    { key: "smartStart", icon: "sparkles", label: t("home.smartStart"), description: t("home.smartStartDescription"), action: handleSmartStart },
-    { key: "library", icon: "list", label: t("home.browseLibrary"), description: t("home.libraryDescription"), action: goToSongs },
-    { key: "favorites", icon: "heart", label: t("home.favorites"), description: t("home.favoritesDescription"), action: handlePlayFavorites },
-    { key: "upload", icon: "upload", label: t("home.uploadMusic"), description: t("home.uploadDescription"), action: onAddMusic },
+    {
+      key: "smartStart",
+      icon: "sparkles",
+      label: t("home.smartStart"),
+      description: t("home.smartStartDescription"),
+      action: handleSmartStart,
+    },
+    {
+      key: "library",
+      icon: "list",
+      label: t("home.browseLibrary"),
+      description: t("home.libraryDescription"),
+      action: goToSongs,
+    },
+    {
+      key: "favorites",
+      icon: "heart",
+      label: t("home.favorites"),
+      description: t("home.favoritesDescription"),
+      action: handlePlayFavorites,
+    },
+    {
+      key: "upload",
+      icon: "upload",
+      label: t("home.uploadMusic"),
+      description: t("home.uploadDescription"),
+      action: onAddMusic,
+    },
   ];
 
   return (
@@ -153,15 +231,26 @@ export const Home: React.FC<HomeProps> = ({ komorebi, onAddMusic }) => {
       <section className={`${styles.panel} ${styles.hero}`}>
         <div className={styles.heroArt}>
           {heroArt ? (
-            <img src={heroArt} alt={t("player.albumArtAlt", { title: heroSong?.title || "" })} />
+            <img
+              src={heroArt}
+              alt={t("player.albumArtAlt", { title: heroSong?.title || "" })}
+            />
           ) : (
-            <div className={styles.heroArtPlaceholder}><Icon name="music" size={48} decorative /></div>
+            <div className={styles.heroArtPlaceholder}>
+              <Icon name="music" size={48} decorative />
+            </div>
           )}
         </div>
         <div className={styles.heroContent}>
-          <span className={styles.heroTag}>{heroSong ? t("home.heroNowPlaying") : t("home.heroEmpty")}</span>
-          <h2 className={styles.heroTitle}>{heroSong ? heroSong.title : t("home.subtitle")}</h2>
-          <p className={styles.heroSubtitle}>{heroSong ? heroSong.artist : t("home.heroEmptyDescription")}</p>
+          <span className={styles.heroTag}>
+            {heroSong ? t("home.heroNowPlaying") : t("home.heroEmpty")}
+          </span>
+          <h2 className={styles.heroTitle}>
+            {heroSong ? heroSong.title : t("home.subtitle")}
+          </h2>
+          <p className={styles.heroSubtitle}>
+            {heroSong ? heroSong.artist : t("home.heroEmptyDescription")}
+          </p>
           <div className={styles.heroActions}>
             {heroSong && hasContent ? (
               <>
@@ -175,7 +264,10 @@ export const Home: React.FC<HomeProps> = ({ komorebi, onAddMusic }) => {
                 </Button>
               </>
             ) : (
-              <Button onClick={onAddMusic}><Icon name="upload" size={16} decorative />{t("home.uploadMusic")}</Button>
+              <Button onClick={onAddMusic}>
+                <Icon name="upload" size={16} decorative />
+                {t("home.uploadMusic")}
+              </Button>
             )}
           </div>
         </div>
@@ -190,11 +282,20 @@ export const Home: React.FC<HomeProps> = ({ komorebi, onAddMusic }) => {
         </div>
         <div className={styles.quickActions}>
           {quickActions.map((action) => (
-            <button key={action.key} className={styles.quickAction} onClick={action.action} type="button">
-              <div className={styles.quickActionIcon}><Icon name={action.icon} size={18} decorative /></div>
+            <button
+              key={action.key}
+              className={styles.quickAction}
+              onClick={action.action}
+              type="button"
+            >
+              <div className={styles.quickActionIcon}>
+                <Icon name={action.icon} size={18} decorative />
+              </div>
               <div>
                 <div className={styles.quickActionLabel}>{action.label}</div>
-                <p className={styles.quickActionDescription}>{action.description}</p>
+                <p className={styles.quickActionDescription}>
+                  {action.description}
+                </p>
               </div>
             </button>
           ))}
@@ -204,11 +305,15 @@ export const Home: React.FC<HomeProps> = ({ komorebi, onAddMusic }) => {
       <section className={`${styles.panel} ${styles.section}`}>
         <div className={styles.sectionHeader}>
           <h3 className={styles.sectionTitle}>{t("home.recentlyAdded")}</h3>
-          <Button variant="ghost" size="sm" onClick={goToSongs}>{t("home.viewAll")}</Button>
+          <Button variant="ghost" size="sm" onClick={goToSongs}>
+            {t("home.viewAll")}
+          </Button>
         </div>
         {recentlyAdded.length ? (
           <div className={styles.cardGrid}>
-            {recentlyAdded.map((song) => <SongCardItem key={song.id} song={song} onPlay={handlePlaySong} />)}
+            {recentlyAdded.map((song) => (
+              <SongCardItem key={song.id} song={song} onPlay={handlePlaySong} />
+            ))}
           </div>
         ) : (
           <p className={styles.emptyState}>{t("home.emptyRecent")}</p>
@@ -226,7 +331,9 @@ export const Home: React.FC<HomeProps> = ({ komorebi, onAddMusic }) => {
                 key={playlist.id}
                 playlist={playlist}
                 onPlay={handlePlayPlaylist}
-                countLabel={t("home.playlistCount", { count: playlist.songs.length })}
+                countLabel={t("home.playlistCount", {
+                  count: playlist.songs.length,
+                })}
               />
             ))}
           </div>

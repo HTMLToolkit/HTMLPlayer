@@ -87,7 +87,11 @@ export class SessionManager {
     });
   }
 
-  getLastPlayed(): { songId: string | null; playlistId: string | null; position: number } {
+  getLastPlayed(): {
+    songId: string | null;
+    playlistId: string | null;
+    position: number;
+  } {
     return {
       songId: this.session.lastPlayedSongId,
       playlistId: this.session.lastPlayedPlaylistId,

@@ -61,10 +61,17 @@ export class MediaSessionIntegration extends BaseIntegration {
   }
 
   isAvailable(): boolean {
-    return "mediaSession" in navigator && this.session !== null && super.isAvailable();
+    return (
+      "mediaSession" in navigator &&
+      this.session !== null &&
+      super.isAvailable()
+    );
   }
 
-  async updateMetadata(track: Track | null, _isPlaying: boolean): Promise<void> {
+  async updateMetadata(
+    track: Track | null,
+    _isPlaying: boolean,
+  ): Promise<void> {
     this.currentTrack = track;
 
     if (!this.session || !track) {

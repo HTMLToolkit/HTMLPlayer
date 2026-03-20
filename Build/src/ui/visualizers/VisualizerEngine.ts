@@ -1,4 +1,8 @@
-import type { VisualizerType, VisualizerState, VisualizerConfig } from "./types";
+import type {
+  VisualizerType,
+  VisualizerState,
+  VisualizerConfig,
+} from "./types";
 import { VisualizerEvents } from "./events";
 
 const VISUALIZER_STORAGE_KEY = "selected-visualizer";

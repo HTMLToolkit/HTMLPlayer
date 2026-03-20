@@ -16,7 +16,9 @@ export const EQUALIZER_PRESETS: EqualizerPreset[] = [
   { name: "Pop", gains: [-1, 0, 2, 4, 5, 5, 4, 2, 0, -1] },
 ];
 
-const EQUALIZER_FREQUENCIES = [32, 64, 125, 250, 500, 1000, 2000, 4000, 8000, 16000];
+const EQUALIZER_FREQUENCIES = [
+  32, 64, 125, 250, 500, 1000, 2000, 4000, 8000, 16000,
+];
 
 export class Equalizer {
   private audioContext: AudioContext | null = null;

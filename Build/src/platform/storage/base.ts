@@ -16,7 +16,9 @@ export interface AudioLoader {
   loadTracks(files: File[]): Promise<Track[]>;
 }
 
-export abstract class BaseStorageBackend implements StorageBackend, AudioLoader {
+export abstract class BaseStorageBackend
+  implements StorageBackend, AudioLoader
+{
   abstract name: string;
   abstract platform: PlatformType;
   abstract supportsDirectoryPicker: boolean;

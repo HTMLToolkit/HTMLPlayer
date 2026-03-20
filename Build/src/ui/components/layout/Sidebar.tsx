@@ -231,14 +231,18 @@ export const Sidebar = memo(
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => window.open("/beta/HTMLPlayer/privacy.html", "_blank")}
+                    onClick={() =>
+                      window.open("/beta/HTMLPlayer/privacy.html", "_blank")
+                    }
                   >
                     {t("about.privacy")}
                   </Button>
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => window.open("/beta/HTMLPlayer/terms.html", "_blank")}
+                    onClick={() =>
+                      window.open("/beta/HTMLPlayer/terms.html", "_blank")
+                    }
                   >
                     {t("about.terms")}
                   </Button>
@@ -271,7 +275,8 @@ export const Sidebar = memo(
       prevLibrary.playlists === nextLibrary.playlists &&
       prevLibrary.songs === nextLibrary.songs &&
       prevLibrary.favorites === nextLibrary.favorites &&
-      prevProps.komorebi.settings.getSettings() === nextProps.komorebi.settings.getSettings() &&
+      prevProps.komorebi.settings.getSettings() ===
+        nextProps.komorebi.settings.getSettings() &&
       prevProps.settingsOpen === nextProps.settingsOpen &&
       prevProps.isMobileOpen === nextProps.isMobileOpen
     );

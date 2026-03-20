@@ -1,6 +1,12 @@
 import { useTranslation } from "react-i18next";
 import { Switch } from "../primitives/Switch";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../primitives/Select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../primitives/Select";
 import { Button } from "../primitives/Button";
 import { ThemeModeSwitch } from "../shared/ThemeModeSwitch";
 import { Icon } from "../shared/Icon";
@@ -25,7 +31,10 @@ interface SettingsInterfaceProps {
   settingsState: ReturnType<SettingsManager["getSettings"]>;
 }
 
-export function SettingsInterface({ settings, settingsState }: SettingsInterfaceProps) {
+export function SettingsInterface({
+  settings,
+  settingsState,
+}: SettingsInterfaceProps) {
   const { t, i18n } = useTranslation();
   const { palettes, currentPalette, setPalette } = usePalette();
   const { iconSets, currentIconSet, setIconSet } = useIconSet();
@@ -42,7 +51,9 @@ export function SettingsInterface({ settings, settingsState }: SettingsInterface
   const handleLanguageChange = (lang: string) => {
     i18n.changeLanguage(lang);
     toast.success(
-      t("settings.interface.languageSet", { language: languageNames[lang] || lang }),
+      t("settings.interface.languageSet", {
+        language: languageNames[lang] || lang,
+      }),
     );
   };
 
@@ -50,7 +61,9 @@ export function SettingsInterface({ settings, settingsState }: SettingsInterface
     try {
       if ("caches" in window) {
         const cacheNames = await caches.keys();
-        await Promise.all(cacheNames.map((cacheName) => caches.delete(cacheName)));
+        await Promise.all(
+          cacheNames.map((cacheName) => caches.delete(cacheName)),
+        );
       }
       if (i18n.services.resourceStore) {
         Object.keys(i18n.services.resourceStore.data).forEach((lang) => {
@@ -67,13 +80,20 @@ export function SettingsInterface({ settings, settingsState }: SettingsInterface
   return (
     <section className={styles.section}>
       <div className={styles.sectionHeader}>
-        <Icon name="palette" className={styles.sectionIcon} size="1.25rem" decorative />
+        <Icon
+          name="palette"
+          className={styles.sectionIcon}
+          size="1.25rem"
+          decorative
+        />
         <h3 className={styles.sectionTitle}>{t("settings.interface.title")}</h3>
       </div>
 
       <div className={styles.settingItem}>
         <div className={styles.settingLabel}>
-          <label htmlFor="color-theme">{t("settings.interface.colorTheme")}</label>
+          <label htmlFor="color-theme">
+            {t("settings.interface.colorTheme")}
+          </label>
         </div>
         <Select
           value={currentPalette?.name || settingsState.colorTheme}
@@ -102,7 +122,9 @@ export function SettingsInterface({ settings, settingsState }: SettingsInterface
       <div className={styles.settingItem}>
         <div className={styles.settingLabel}>
           <label htmlFor="icon-set">{t("settings.interface.iconSet")}</label>
-          <p className={styles.settingDescription}>{t("settings.interface.iconSetDesc")}</p>
+          <p className={styles.settingDescription}>
+            {t("settings.interface.iconSetDesc")}
+          </p>
         </div>
         <Select
           value={currentIconSet?.id || "lucide"}
@@ -131,7 +153,9 @@ export function SettingsInterface({ settings, settingsState }: SettingsInterface
       <div className={styles.settingItem}>
         <div className={styles.settingLabel}>
           <label htmlFor="wallpaper">{t("settings.interface.wallpaper")}</label>
-          <p className={styles.settingDescription}>{t("settings.interface.wallpaperDesc")}</p>
+          <p className={styles.settingDescription}>
+            {t("settings.interface.wallpaperDesc")}
+          </p>
         </div>
         <Select
           value={settingsState.wallpaper || "None"}
@@ -148,7 +172,9 @@ export function SettingsInterface({ settings, settingsState }: SettingsInterface
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="None">{t("settings.interface.wallpaperNone", "None")}</SelectItem>
+            <SelectItem value="None">
+              {t("settings.interface.wallpaperNone", "None")}
+            </SelectItem>
             {wallpapers?.map((wallpaper) => (
               <SelectItem key={wallpaper.name} value={wallpaper.name}>
                 {wallpaper.name}
@@ -161,7 +187,9 @@ export function SettingsInterface({ settings, settingsState }: SettingsInterface
       <div className={styles.settingItem}>
         <div className={styles.settingInfo}>
           <label>{t("settings.interface.themeMode")}</label>
-          <p className={styles.settingDescription}>{t("settings.interface.themeModeDesc")}</p>
+          <p className={styles.settingDescription}>
+            {t("settings.interface.themeModeDesc")}
+          </p>
         </div>
         <ThemeModeSwitch
           value={settingsState.themeMode}
@@ -171,8 +199,12 @@ export function SettingsInterface({ settings, settingsState }: SettingsInterface
 
       <div className={styles.settingItem}>
         <div className={styles.settingInfo}>
-          <label htmlFor="compact-mode">{t("settings.interface.compact")}</label>
-          <p className={styles.settingDescription}>{t("settings.interface.compactDesc")}</p>
+          <label htmlFor="compact-mode">
+            {t("settings.interface.compact")}
+          </label>
+          <p className={styles.settingDescription}>
+            {t("settings.interface.compactDesc")}
+          </p>
         </div>
         <Switch
           id="compact-mode"
@@ -183,8 +215,12 @@ export function SettingsInterface({ settings, settingsState }: SettingsInterface
 
       <div className={styles.settingItem}>
         <div className={styles.settingInfo}>
-          <label htmlFor="show-album-art">{t("settings.interface.albumArt")}</label>
-          <p className={styles.settingDescription}>{t("settings.interface.albumArtDesc")}</p>
+          <label htmlFor="show-album-art">
+            {t("settings.interface.albumArt")}
+          </label>
+          <p className={styles.settingDescription}>
+            {t("settings.interface.albumArtDesc")}
+          </p>
         </div>
         <Switch
           id="show-album-art"
@@ -196,7 +232,9 @@ export function SettingsInterface({ settings, settingsState }: SettingsInterface
       <div className={styles.settingItem}>
         <div className={styles.settingInfo}>
           <label htmlFor="show-lyrics">{t("settings.interface.lyrics")}</label>
-          <p className={styles.settingDescription}>{t("settings.interface.lyricsDesc")}</p>
+          <p className={styles.settingDescription}>
+            {t("settings.interface.lyricsDesc")}
+          </p>
         </div>
         <Switch
           id="show-lyrics"
@@ -207,8 +245,12 @@ export function SettingsInterface({ settings, settingsState }: SettingsInterface
 
       <div className={styles.settingItem}>
         <div className={styles.settingLabel}>
-          <label htmlFor="language-selector">{t("settings.interface.language")}</label>
-          <p className={styles.settingDescription}>{t("settings.interface.languageDescription")}</p>
+          <label htmlFor="language-selector">
+            {t("settings.interface.language")}
+          </label>
+          <p className={styles.settingDescription}>
+            {t("settings.interface.languageDescription")}
+          </p>
         </div>
         <Select value={i18n.language} onValueChange={handleLanguageChange}>
           <SelectTrigger id="language-selector">
@@ -229,7 +271,9 @@ export function SettingsInterface({ settings, settingsState }: SettingsInterface
       <div className={styles.settingItem}>
         <div className={styles.settingInfo}>
           <label>{t("settings.interface.clearCache")}</label>
-          <p className={styles.settingDescription}>{t("settings.interface.clearCacheDesc")}</p>
+          <p className={styles.settingDescription}>
+            {t("settings.interface.clearCacheDesc")}
+          </p>
         </div>
         <Button variant="outline" onClick={handleClearCache} size="sm">
           <Icon name="trash2" size={16} decorative />
@@ -240,9 +284,15 @@ export function SettingsInterface({ settings, settingsState }: SettingsInterface
       <div className={styles.settingItem}>
         <div className={styles.settingInfo}>
           <label>{t("settings.resetDialogs")}</label>
-          <p className={styles.settingDescription}>{t("settings.resetDialogsDescription")}</p>
+          <p className={styles.settingDescription}>
+            {t("settings.resetDialogsDescription")}
+          </p>
         </div>
-        <Button variant="outline" size="sm" onClick={() => setDialogResetOpen(true)}>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setDialogResetOpen(true)}
+        >
           <Icon name="rotateCcw" size={16} decorative />
           {t("settings.resetDialogsButton")}
         </Button>
@@ -250,10 +300,16 @@ export function SettingsInterface({ settings, settingsState }: SettingsInterface
           <DialogContent>
             <DialogHeader>
               <DialogTitle>{t("settings.resetDialogsTitle")}</DialogTitle>
-              <DialogDescription>{t("settings.resetDialogsDescription")}</DialogDescription>
+              <DialogDescription>
+                {t("settings.resetDialogsDescription")}
+              </DialogDescription>
             </DialogHeader>
             <DialogFooter>
-              <Button variant="outline" onClick={() => setDialogResetOpen(false)} disabled={dialogResetLoading}>
+              <Button
+                variant="outline"
+                onClick={() => setDialogResetOpen(false)}
+                disabled={dialogResetLoading}
+              >
                 {t("common.cancel")}
               </Button>
               <Button

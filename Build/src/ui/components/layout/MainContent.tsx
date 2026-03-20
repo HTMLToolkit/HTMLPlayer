@@ -231,9 +231,13 @@ export const MainContent = ({
   const libraryState = library.getState();
 
   const [songSearchQuery, setSongSearchQuery] = useState("");
-  const [sortBy, setSortBy] = useState<"name" | "artist" | "album" | "rating" | null>(null);
+  const [sortBy, setSortBy] = useState<
+    "name" | "artist" | "album" | "rating" | null
+  >(null);
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
-  const [ratings, setRatings] = useState<Record<string, "thumbs-up" | "thumbs-down" | "none">>({});
+  const [ratings, setRatings] = useState<
+    Record<string, "thumbs-up" | "thumbs-down" | "none">
+  >({});
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [songToDelete, setSongToDelete] = useState<Song | null>(null);
 
@@ -242,10 +246,20 @@ export const MainContent = ({
   const [showPlaylistDialog, setShowPlaylistDialog] = useState(false);
   const sortDropdownRef = React.useRef<PersistentDropdownMenuRef>(null);
 
-  const { playSong, addSong, removeSong, toggleFavorite, state: engineState } = komorebi;
+  const {
+    playSong,
+    addSong,
+    removeSong,
+    toggleFavorite,
+    state: engineState,
+  } = komorebi;
 
   const createPlaylist = (name: string) => {
-    const playlist: Playlist = { id: `playlist-${Date.now()}`, name, songs: [] };
+    const playlist: Playlist = {
+      id: `playlist-${Date.now()}`,
+      name,
+      songs: [],
+    };
     library.addPlaylist(playlist);
     return playlist;
   };

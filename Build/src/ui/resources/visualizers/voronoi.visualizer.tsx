@@ -1,4 +1,7 @@
-import { VisualizerType, visualizerStates } from "../../../platform/visualizers";
+import {
+  VisualizerType,
+  visualizerStates,
+} from "../../../platform/visualizers";
 
 const voronoiSpectrum: VisualizerType = {
   name: "Voronoi Spectrum",

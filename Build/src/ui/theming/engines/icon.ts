@@ -59,12 +59,13 @@ class LRUCache<K, V> {
   }
 }
 
-const builtinLibraries: Record<string, () => Promise<Record<string, unknown>>> = {
-  lucide: async () => {
-    const lib = await import("lucide-react");
-    return lib;
-  },
-};
+const builtinLibraries: Record<string, () => Promise<Record<string, unknown>>> =
+  {
+    lucide: async () => {
+      const lib = await import("lucide-react");
+      return lib;
+    },
+  };
 
 export class IconEngine {
   private iconSets: IconSet[] = [];
@@ -154,14 +155,22 @@ export class IconEngine {
       if (icons && icons[this.currentSet.id]?.[name]) {
         const icon = icons[this.currentSet.id][name];
         this.loadedIcons.set(cacheKey, icon);
-        return { component: icon as React.ComponentType<{ size?: number; color?: string }> };
+        return {
+          component: icon as React.ComponentType<{
+            size?: number;
+            color?: string;
+          }>,
+        };
       }
 
       for (const [libName, loader] of Object.entries(builtinLibraries)) {
         if (!this.loadedLibraries.has(libName)) {
           this.loadedLibraries.set(libName, await loader());
         }
-        const lib = this.loadedLibraries.get(libName) as Record<string, React.ComponentType<{ size?: number; color?: string }>>;
+        const lib = this.loadedLibraries.get(libName) as Record<
+          string,
+          React.ComponentType<{ size?: number; color?: string }>
+        >;
         if (lib[name]) {
           const resolved = { component: lib[name] };
           this.loadedIcons.set(cacheKey, resolved);

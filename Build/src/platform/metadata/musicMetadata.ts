@@ -23,9 +23,15 @@ export class MusicMetadataExtractor extends BaseMetadataExtractor {
       if (common.lyrics) {
         for (const lyric of common.lyrics) {
           embeddedLyrics.push({
-            synced: (lyric as unknown as Record<string, unknown>).synced as boolean || false,
-            language: (lyric as unknown as Record<string, unknown>).lang as string || undefined,
-            description: (lyric as unknown as Record<string, unknown>).descriptor as string || undefined,
+            synced:
+              ((lyric as unknown as Record<string, unknown>)
+                .synced as boolean) || false,
+            language:
+              ((lyric as unknown as Record<string, unknown>).lang as string) ||
+              undefined,
+            description:
+              ((lyric as unknown as Record<string, unknown>)
+                .descriptor as string) || undefined,
             text: lyric.text,
           });
         }
@@ -43,11 +49,19 @@ export class MusicMetadataExtractor extends BaseMetadataExtractor {
       };
 
       const gapless: GaplessInfo = {};
-      if ((format as unknown as Record<string, unknown>).encoderDelay !== undefined) {
-        gapless.encoderDelay = (format as unknown as Record<string, unknown>).encoderDelay as number;
+      if (
+        (format as unknown as Record<string, unknown>).encoderDelay !==
+        undefined
+      ) {
+        gapless.encoderDelay = (format as unknown as Record<string, unknown>)
+          .encoderDelay as number;
       }
-      if ((format as unknown as Record<string, unknown>).encoderPadding !== undefined) {
-        gapless.encoderPadding = (format as unknown as Record<string, unknown>).encoderPadding as number;
+      if (
+        (format as unknown as Record<string, unknown>).encoderPadding !==
+        undefined
+      ) {
+        gapless.encoderPadding = (format as unknown as Record<string, unknown>)
+          .encoderPadding as number;
       }
 
       return {

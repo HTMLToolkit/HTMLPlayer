@@ -227,10 +227,7 @@ class LibraryPersistence {
 
   async clearAll(): Promise<void> {
     const db = await this.getDB();
-    const transaction = db.transaction(
-      Object.values(STORES),
-      "readwrite"
-    );
+    const transaction = db.transaction(Object.values(STORES), "readwrite");
 
     for (const storeName of Object.values(STORES)) {
       transaction.objectStore(storeName).clear();

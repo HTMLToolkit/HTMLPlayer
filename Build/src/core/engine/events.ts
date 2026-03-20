@@ -5,14 +5,20 @@ type EventCallback<T> = (data: T) => void;
 export class KomorebiEvents {
   private listeners: Map<EngineEvent, Set<EventCallback<unknown>>> = new Map();
 
-  on<E extends EngineEvent>(event: E, callback: EventCallback<EngineEventMap[E]>): void {
+  on<E extends EngineEvent>(
+    event: E,
+    callback: EventCallback<EngineEventMap[E]>,
+  ): void {
     if (!this.listeners.has(event)) {
       this.listeners.set(event, new Set());
     }
     this.listeners.get(event)!.add(callback as EventCallback<unknown>);
   }
 
-  off<E extends EngineEvent>(event: E, callback: EventCallback<EngineEventMap[E]>): void {
+  off<E extends EngineEvent>(
+    event: E,
+    callback: EventCallback<EngineEventMap[E]>,
+  ): void {
     const callbacks = this.listeners.get(event);
     if (callbacks) {
       callbacks.delete(callback as EventCallback<unknown>);
@@ -26,7 +32,10 @@ export class KomorebiEvents {
     }
   }
 
-  once<E extends EngineEvent>(event: E, callback: EventCallback<EngineEventMap[E]>): void {
+  once<E extends EngineEvent>(
+    event: E,
+    callback: EventCallback<EngineEventMap[E]>,
+  ): void {
     const wrapper: EventCallback<EngineEventMap[E]> = (data) => {
       this.off(event, wrapper);
       callback(data);

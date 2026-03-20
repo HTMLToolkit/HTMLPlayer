@@ -13,7 +13,11 @@ import { PlayerRef } from "./components/player/Player";
 import { NavigationProvider, useNavigation } from "./navigation";
 import { useDragHandler } from "./hooks/useDragHandler";
 import { useKeyboardShortcuts } from "../hooks/useKeyboardShortcuts";
-import { useFileHandler, useShareTarget, clearHandledShares } from "../hooks/useFilePicker";
+import {
+  useFileHandler,
+  useShareTarget,
+  clearHandledShares,
+} from "../hooks/useFilePicker";
 import { importAudioFiles } from "../helpers/importAudioFiles";
 import {
   switchToAutoMode,
@@ -24,7 +28,9 @@ import {
 import styles from "../pages/_index.module.css";
 import type { UseKomorebiReturn } from "../hooks/useKomorebi";
 
-const UpdatePromptComponent = lazy(() => import("./components/shared/UpdatePrompt"));
+const UpdatePromptComponent = lazy(
+  () => import("./components/shared/UpdatePrompt"),
+);
 
 interface AppShellProps {
   komorebi: UseKomorebiReturn;
@@ -43,10 +49,12 @@ function AppShellContent({ komorebi }: AppShellProps) {
   };
 
   useFileHandler(handleAddSong, t, importAudioFiles, komorebi.isReady);
-  
+
   useShareTarget((result) => {
     if (result.files.length > 0) {
-      toast.success(t("shareTarget.filesReceived", { count: result.files.length }));
+      toast.success(
+        t("shareTarget.filesReceived", { count: result.files.length }),
+      );
       importAudioFiles(result.files, handleAddSong, t).then(() => {
         clearHandledShares();
       });
@@ -102,9 +110,15 @@ function AppShellContent({ komorebi }: AppShellProps) {
       const mode = komorebi.settings.getSettings().themeMode;
       setThemeMode(mode);
       switch (mode) {
-        case "light": switchToLightMode(); break;
-        case "dark": switchToDarkMode(); break;
-        case "auto": switchToAutoMode(); break;
+        case "light":
+          switchToLightMode();
+          break;
+        case "dark":
+          switchToDarkMode();
+          break;
+        case "auto":
+          switchToAutoMode();
+          break;
       }
     };
     loadThemeMode();
@@ -136,10 +150,7 @@ function AppShellContent({ komorebi }: AppShellProps) {
               komorebi={komorebi}
               onMobileMenuClick={() => setIsMobileSidebarOpen(true)}
             />
-            <Player
-              ref={playerRef}
-              komorebi={komorebi}
-            />
+            <Player ref={playerRef} komorebi={komorebi} />
           </div>
         </div>
         <Suspense fallback={null}>

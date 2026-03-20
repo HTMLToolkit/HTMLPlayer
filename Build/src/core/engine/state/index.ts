@@ -63,7 +63,9 @@ export class StateMachine {
   }
 
   getPreviousState(): PlayerState | null {
-    return this.history.length > 0 ? this.history[this.history.length - 1] : null;
+    return this.history.length > 0
+      ? this.history[this.history.length - 1]
+      : null;
   }
 
   getHistory(): PlayerState[] {

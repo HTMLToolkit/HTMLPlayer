@@ -20,7 +20,10 @@ export class DuplicateDetector {
     return hash.toString(16);
   }
 
-  async computePartialHash(file: Blob, sampleSize = 1024 * 1024): Promise<string> {
+  async computePartialHash(
+    file: Blob,
+    sampleSize = 1024 * 1024,
+  ): Promise<string> {
     const buffer = await file.slice(0, sampleSize).arrayBuffer();
     let hash = 0;
 
@@ -34,7 +37,7 @@ export class DuplicateDetector {
 
   async findDuplicates(
     tracks: Track[],
-    usePartial = true
+    usePartial = true,
   ): Promise<DuplicateGroup[]> {
     const hashToTracks: Map<string, Track[]> = new Map();
 

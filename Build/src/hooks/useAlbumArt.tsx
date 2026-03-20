@@ -33,11 +33,13 @@ export function useAlbumArt(
     const loadPromise = albumArtStorage.load(songId);
     pendingLoads.set(songId, loadPromise);
 
-    loadPromise.then((art) => {
-      if (art) setAlbumArt(art);
-    }).finally(() => {
-      pendingLoads.delete(songId);
-    });
+    loadPromise
+      .then((art) => {
+        if (art) setAlbumArt(art);
+      })
+      .finally(() => {
+        pendingLoads.delete(songId);
+      });
   }, [songId, hasAlbumArt]);
 
   return albumArt;
@@ -53,7 +55,10 @@ export function useAlbumArtBatch(
     if (songs.length === 0) return;
 
     const toLoad = songs.filter(
-      (song) => song.hasAlbumArt && !albumArtStorage.has(song.id) && !loadedRef.current.has(song.id),
+      (song) =>
+        song.hasAlbumArt &&
+        !albumArtStorage.has(song.id) &&
+        !loadedRef.current.has(song.id),
     );
 
     if (toLoad.length === 0) {
@@ -67,7 +72,7 @@ export function useAlbumArtBatch(
     }
 
     toLoad.forEach((song) => loadedRef.current.add(song.id));
-    albumArtStorage.loadBatch(toLoad.map((s) => s.id)).then((loaded) => {
+    albumArtStorage.loadBatch(toLoad.map((s) => s.id)).then(() => {
       const allArts = new Map<string, string>();
       for (const song of songs) {
         const art = albumArtStorage.get(song.id);
@@ -79,4 +84,3 @@ export function useAlbumArtBatch(
 
   return albumArts;
 }
-

@@ -58,7 +58,10 @@ const WallpaperRenderer: React.FC<WallpaperRendererProps> = ({
     );
   }
 
-  const wallpaperComponent = getWallpaperComponent?.() as React.ComponentType<{ currentSong?: unknown; playbackState?: unknown }> | null | undefined;
+  const wallpaperComponent = getWallpaperComponent?.() as
+    | React.ComponentType<{ currentSong?: unknown; playbackState?: unknown }>
+    | null
+    | undefined;
 
   if (!wallpaperComponent) {
     return (
@@ -98,16 +101,12 @@ const WallpaperRenderer: React.FC<WallpaperRendererProps> = ({
         </div>
       }
     >
-      {wallpaperComponent && (
-        React.createElement(
-          wallpaperComponent,
-          {
-            key: `wallpaper-${wallpaperKeyRef.current}`,
-            currentSong,
-            playbackState,
-          }
-        )
-      )}
+      {wallpaperComponent &&
+        React.createElement(wallpaperComponent, {
+          key: `wallpaper-${wallpaperKeyRef.current}`,
+          currentSong,
+          playbackState,
+        })}
     </Suspense>
   );
 };

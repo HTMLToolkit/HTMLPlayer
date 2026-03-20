@@ -18,7 +18,12 @@ export function SettingsAudio({ settings, settingsState }: SettingsAudioProps) {
   return (
     <section className={styles.section}>
       <div className={styles.sectionHeader}>
-        <Icon name="volume2" className={styles.sectionIcon} size="1.25rem" decorative />
+        <Icon
+          name="volume2"
+          className={styles.sectionIcon}
+          size="1.25rem"
+          decorative
+        />
         <h3 className={styles.sectionTitle}>{t("settings.audio.title")}</h3>
       </div>
 
@@ -95,17 +100,22 @@ export function SettingsAudio({ settings, settingsState }: SettingsAudioProps) {
                 {t("settings.audio.crossfade")}
                 {settingsState.gaplessPlayback && (
                   <span className={styles.settingDescription}>
-                    {" "}({t("settings.audio.crossfadeDisabled")})
+                    {" "}
+                    ({t("settings.audio.crossfadeDisabled")})
                   </span>
                 )}
               </label>
               <span className={styles.settingValue}>
-                {settingsState.gaplessPlayback ? "0s" : `${settingsState.crossfade}s`}
+                {settingsState.gaplessPlayback
+                  ? "0s"
+                  : `${settingsState.crossfade}s`}
               </span>
             </div>
             <Slider
               id="crossfade-slider"
-              value={settingsState.gaplessPlayback ? [0] : [settingsState.crossfade]}
+              value={
+                settingsState.gaplessPlayback ? [0] : [settingsState.crossfade]
+              }
               onValueChange={(val) => {
                 if (!settingsState.gaplessPlayback) {
                   settings.setCrossfade(val[0]);
@@ -120,8 +130,12 @@ export function SettingsAudio({ settings, settingsState }: SettingsAudioProps) {
 
           <div className={styles.settingItem}>
             <div className={styles.settingInfo}>
-              <label htmlFor="gapless-playback">{t("settings.playback.gapless")}</label>
-              <p className={styles.settingDescription}>{t("settings.playback.gaplessDesc")}</p>
+              <label htmlFor="gapless-playback">
+                {t("settings.playback.gapless")}
+              </label>
+              <p className={styles.settingDescription}>
+                {t("settings.playback.gaplessDesc")}
+              </p>
             </div>
             <Switch
               id="gapless-playback"

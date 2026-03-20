@@ -93,6 +93,9 @@ export class HybridBackend extends BaseAudioBackend {
   }
 }
 
-export function createHybridBackend(options?: { useWebAudio?: boolean; useHTML5Audio?: boolean }): HybridBackend {
+export function createHybridBackend(options?: {
+  useWebAudio?: boolean;
+  useHTML5Audio?: boolean;
+}): HybridBackend {
   return new HybridBackend(options);
 }

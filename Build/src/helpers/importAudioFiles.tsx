@@ -1,5 +1,10 @@
 import { toast } from "sonner";
-import { createMetadataExtractor, createFloMetadataExtractor, compressAlbumArt, generateUniqueId } from "../platform/metadata";
+import {
+  createMetadataExtractor,
+  createFloMetadataExtractor,
+  compressAlbumArt,
+  generateUniqueId,
+} from "../platform/metadata";
 import { albumArtStorage } from "../platform/storage";
 import type { ExtractedMetadata } from "../platform/metadata";
 import type { Track } from "../core/engine/types";
@@ -12,13 +17,16 @@ function getMetadataExtractor(file: File) {
   return createMetadataExtractor();
 }
 
-async function extractAudioMetadata(file: File, t: any): Promise<{
+async function extractAudioMetadata(
+  file: File,
+  t: any,
+): Promise<{
   metadata: ExtractedMetadata;
   albumArt: string | undefined;
 }> {
   const extractor = getMetadataExtractor(file);
   const metadata = await extractor.extractMetadata(file);
-  
+
   let albumArt = metadata.albumArt;
   if (albumArt) {
     try {
@@ -27,13 +35,19 @@ async function extractAudioMetadata(file: File, t: any): Promise<{
       console.warn("Failed to compress album art:", e);
     }
   }
-  
+
   const translated: ExtractedMetadata = {
     ...metadata,
-    artist: metadata.artist === "Unknown Artist" ? t("common.unknownArtist") : metadata.artist,
-    album: metadata.album === "Unknown Album" ? t("common.unknownAlbum") : metadata.album,
+    artist:
+      metadata.artist === "Unknown Artist"
+        ? t("common.unknownArtist")
+        : metadata.artist,
+    album:
+      metadata.album === "Unknown Album"
+        ? t("common.unknownAlbum")
+        : metadata.album,
   };
-  
+
   return { metadata: translated, albumArt };
 }
 
@@ -58,7 +72,8 @@ export async function importAudioFiles(
     for (const audioFile of batch) {
       try {
         const file: File = (audioFile as any).file || (audioFile as File);
-        const { metadata, albumArt: compressedArt } = await extractAudioMetadata(file, t);
+        const { metadata, albumArt: compressedArt } =
+          await extractAudioMetadata(file, t);
         const songId = generateUniqueId();
 
         // Pre-decode flo files for better performance
@@ -78,7 +93,8 @@ export async function importAudioFiles(
 
             if (isSafari) {
               // Safari: Pre-decode to WAV for compatibility
-              const { decodeFloToWav } = await import("../platform/audio/floWavDecoder");
+              const { decodeFloToWav } =
+                await import("../platform/audio/floWavDecoder");
               const wavBytes = await decodeFloToWav(arrayBuffer);
               const wavArray = new Uint8Array(wavBytes);
               const wavBlob = new Blob([wavArray], { type: "audio/wav" });
@@ -91,7 +107,8 @@ export async function importAudioFiles(
               console.log(`Pre-decoded flo to WAV for Safari: ${file.name}`);
             } else {
               // Non-Safari: Pre-decode to PCM for Web Audio API
-              const { decodeFloToAudioBuffer } = await import("../platform/audio/floDecoder");
+              const { decodeFloToAudioBuffer } =
+                await import("../platform/audio/floDecoder");
               const audioContext = new AudioContext();
               const audioBuffer = await decodeFloToAudioBuffer(
                 arrayBuffer,
@@ -146,7 +163,7 @@ export async function importAudioFiles(
         // Save album art separately if present
         const hasAlbumArt = !!compressedArt;
         if (hasAlbumArt && compressedArt) {
-          await           albumArtStorage.save(songId, compressedArt);
+          await albumArtStorage.save(songId, compressedArt);
         }
 
         const song: Track = {

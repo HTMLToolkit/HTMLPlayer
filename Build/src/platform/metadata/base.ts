@@ -1,4 +1,8 @@
-import type { EmbeddedLyrics, EncodingDetails, GaplessInfo } from "../../core/engine/types";
+import type {
+  EmbeddedLyrics,
+  EncodingDetails,
+  GaplessInfo,
+} from "../../core/engine/types";
 
 export interface ExtractedMetadata {
   title: string;

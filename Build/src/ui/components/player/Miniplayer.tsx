@@ -300,11 +300,7 @@ export const MiniplayerContent: React.FC<MiniplayerProps> = ({ controls }) => {
             <Icon name="play" size={20} decorative />
           )}
         </Button>
-        <Button
-          id="nextBtn"
-          title={t("player.nextTrack")}
-          onClick={handleNext}
-        >
+        <Button id="nextBtn" title={t("player.nextTrack")} onClick={handleNext}>
           <Icon name="skipForward" size={18} decorative />
         </Button>
       </div>

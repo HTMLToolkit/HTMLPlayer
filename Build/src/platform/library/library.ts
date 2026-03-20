@@ -1,9 +1,5 @@
 import type { Track, Playlist, PlaylistFolder } from "../../core/engine/types";
-import type {
-  LibraryState,
-  LibraryEventMap,
-  LibraryActions,
-} from "./types";
+import type { LibraryState, LibraryEventMap, LibraryActions } from "./types";
 
 type EventCallback<T> = (data: T) => void;
 
@@ -15,7 +11,8 @@ export class LibraryManager implements LibraryActions {
     searchQuery: "",
   };
 
-  private listeners: Map<keyof LibraryEventMap, Set<EventCallback<unknown>>> = new Map();
+  private listeners: Map<keyof LibraryEventMap, Set<EventCallback<unknown>>> =
+    new Map();
 
   constructor(initialState?: Partial<LibraryState>) {
     if (initialState) {
@@ -68,7 +65,9 @@ export class LibraryManager implements LibraryActions {
   }
 
   addPlaylist(playlist: Playlist): void {
-    const exists = this.state.playlists.some((p) => "id" in p && p.id === playlist.id);
+    const exists = this.state.playlists.some(
+      (p) => "id" in p && p.id === playlist.id,
+    );
     if (exists) return;
 
     this.state.playlists.push(playlist);
@@ -76,7 +75,9 @@ export class LibraryManager implements LibraryActions {
   }
 
   removePlaylist(playlistId: string): void {
-    const index = this.state.playlists.findIndex((p) => "id" in p && p.id === playlistId);
+    const index = this.state.playlists.findIndex(
+      (p) => "id" in p && p.id === playlistId,
+    );
     if (index === -1) return;
 
     this.state.playlists.splice(index, 1);
@@ -84,7 +85,9 @@ export class LibraryManager implements LibraryActions {
   }
 
   updatePlaylist(playlistId: string, updates: Partial<Playlist>): void {
-    const index = this.state.playlists.findIndex((p) => "id" in p && p.id === playlistId);
+    const index = this.state.playlists.findIndex(
+      (p) => "id" in p && p.id === playlistId,
+    );
     if (index === -1) return;
 
     const playlist = this.state.playlists[index];
@@ -94,7 +97,9 @@ export class LibraryManager implements LibraryActions {
   }
 
   getPlaylist(playlistId: string): Playlist | undefined {
-    const item = this.state.playlists.find((p) => "id" in p && p.id === playlistId);
+    const item = this.state.playlists.find(
+      (p) => "id" in p && p.id === playlistId,
+    );
     if (item && "songs" in item) {
       return item;
     }
@@ -137,7 +142,7 @@ export class LibraryManager implements LibraryActions {
 
   moveToFolder(playlistId: string, folderId: string): void {
     const playlistIndex = this.state.playlists.findIndex(
-      (p) => "id" in p && p.id === playlistId
+      (p) => "id" in p && p.id === playlistId,
     );
     if (playlistIndex === -1) return;
 
@@ -148,7 +153,7 @@ export class LibraryManager implements LibraryActions {
     }
 
     const folderIndex = this.state.playlists.findIndex(
-      (p) => "children" in p && "id" in p && p.id === folderId
+      (p) => "children" in p && "id" in p && p.id === folderId,
     );
     if (folderIndex === -1) return;
 
@@ -188,25 +193,25 @@ export class LibraryManager implements LibraryActions {
       (song) =>
         song.title.toLowerCase().includes(lowerQuery) ||
         song.artist.toLowerCase().includes(lowerQuery) ||
-        song.album.toLowerCase().includes(lowerQuery)
+        song.album.toLowerCase().includes(lowerQuery),
     );
   }
 
   getSongsByArtist(artist: string): Track[] {
     return this.state.songs.filter(
-      (song) => song.artist.toLowerCase() === artist.toLowerCase()
+      (song) => song.artist.toLowerCase() === artist.toLowerCase(),
     );
   }
 
   getSongsByAlbum(album: string): Track[] {
     return this.state.songs.filter(
-      (song) => song.album.toLowerCase() === album.toLowerCase()
+      (song) => song.album.toLowerCase() === album.toLowerCase(),
     );
   }
 
   getFavoriteSongs(): Track[] {
     return this.state.songs.filter((song) =>
-      this.state.favorites.includes(song.id)
+      this.state.favorites.includes(song.id),
     );
   }
 
@@ -238,7 +243,7 @@ export class LibraryManager implements LibraryActions {
 
   on<K extends keyof LibraryEventMap>(
     event: K,
-    callback: EventCallback<LibraryEventMap[K]>
+    callback: EventCallback<LibraryEventMap[K]>,
   ): void {
     if (!this.listeners.has(event)) {
       this.listeners.set(event, new Set());
@@ -248,7 +253,7 @@ export class LibraryManager implements LibraryActions {
 
   off<K extends keyof LibraryEventMap>(
     event: K,
-    callback: EventCallback<LibraryEventMap[K]>
+    callback: EventCallback<LibraryEventMap[K]>,
   ): void {
     const callbacks = this.listeners.get(event);
     if (callbacks) {
@@ -258,7 +263,7 @@ export class LibraryManager implements LibraryActions {
 
   private emit<K extends keyof LibraryEventMap>(
     event: K,
-    data: LibraryEventMap[K]
+    data: LibraryEventMap[K],
   ): void {
     const callbacks = this.listeners.get(event);
     if (callbacks) {

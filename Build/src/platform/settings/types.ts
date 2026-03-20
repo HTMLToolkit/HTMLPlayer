@@ -55,7 +55,10 @@ export interface SettingsActions {
 }
 
 export interface SettingsEvents {
-  on(event: "settingschange", callback: (settings: Partial<SettingsState>) => void): void;
+  on(
+    event: "settingschange",
+    callback: (settings: Partial<SettingsState>) => void,
+  ): void;
   on(event: "themechange", callback: (theme: string) => void): void;
   on(event: "wallpaperchange", callback: (wallpaper: string) => void): void;
 }

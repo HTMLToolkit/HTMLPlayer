@@ -30,12 +30,19 @@ export interface SettingsProps {
 
 type SettingsCategory = "playback" | "interface" | "shortcuts" | "experimental";
 
-export function Settings({ className, open, onOpenChange, komorebi, onShortcutsChanged }: SettingsProps) {
+export function Settings({
+  className,
+  open,
+  onOpenChange,
+  komorebi,
+  onShortcutsChanged,
+}: SettingsProps) {
   const { t } = useTranslation();
   const { setPalette } = usePalette();
   const settings = komorebi.settings;
   const settingsState = settings.getSettings();
-  const [activeCategory, setActiveCategory] = useState<SettingsCategory>("playback");
+  const [activeCategory, setActiveCategory] =
+    useState<SettingsCategory>("playback");
 
   const handleResetSettings = async () => {
     const defaultThemeName = "Blue";
@@ -65,11 +72,48 @@ export function Settings({ className, open, onOpenChange, komorebi, onShortcutsC
     }
   };
 
-  const categoryList: Array<{ id: SettingsCategory; label: string; description: string; icon: string }> = [
-    { id: "playback", label: t("settings.category.playback", "Playback"), description: t("settings.category.playbackDescription", "Audio and playback behavior"), icon: "music" },
-    { id: "interface", label: t("settings.category.interface", "Interface"), description: t("settings.category.interfaceDescription", "Themes, language, and appearance"), icon: "palette" },
-    { id: "shortcuts", label: t("settings.category.shortcuts", "Shortcuts"), description: t("settings.category.shortcutsDescription", "Keyboard shortcut preferences"), icon: "keyboard" },
-    { id: "experimental", label: t("settings.category.experimental", "Beta"), description: t("settings.category.experimentalDescription", "Early and experimental features"), icon: "messageCircle" },
+  const categoryList: Array<{
+    id: SettingsCategory;
+    label: string;
+    description: string;
+    icon: string;
+  }> = [
+    {
+      id: "playback",
+      label: t("settings.category.playback", "Playback"),
+      description: t(
+        "settings.category.playbackDescription",
+        "Audio and playback behavior",
+      ),
+      icon: "music",
+    },
+    {
+      id: "interface",
+      label: t("settings.category.interface", "Interface"),
+      description: t(
+        "settings.category.interfaceDescription",
+        "Themes, language, and appearance",
+      ),
+      icon: "palette",
+    },
+    {
+      id: "shortcuts",
+      label: t("settings.category.shortcuts", "Shortcuts"),
+      description: t(
+        "settings.category.shortcutsDescription",
+        "Keyboard shortcut preferences",
+      ),
+      icon: "keyboard",
+    },
+    {
+      id: "experimental",
+      label: t("settings.category.experimental", "Beta"),
+      description: t(
+        "settings.category.experimentalDescription",
+        "Early and experimental features",
+      ),
+      icon: "messageCircle",
+    },
   ];
 
   return (
@@ -84,7 +128,10 @@ export function Settings({ className, open, onOpenChange, komorebi, onShortcutsC
           <div className={styles.settingsContent}>
             <div className={styles.settingsLayout}>
               <div className={styles.sidebarShell}>
-                <nav className={styles.settingsSidebar} aria-label={t("settings.title")}>
+                <nav
+                  className={styles.settingsSidebar}
+                  aria-label={t("settings.title")}
+                >
                   {categoryList.map((category) => {
                     const isActive = activeCategory === category.id;
                     return (
@@ -95,10 +142,19 @@ export function Settings({ className, open, onOpenChange, komorebi, onShortcutsC
                         onClick={() => setActiveCategory(category.id)}
                         aria-current={isActive ? "page" : undefined}
                       >
-                        <Icon name={category.icon} size="1.25rem" decorative className={styles.sidebarButtonIcon} />
+                        <Icon
+                          name={category.icon}
+                          size="1.25rem"
+                          decorative
+                          className={styles.sidebarButtonIcon}
+                        />
                         <div className={styles.sidebarButtonText}>
-                          <span className={styles.sidebarButtonLabel}>{category.label}</span>
-                          <span className={styles.sidebarButtonDescription}>{category.description}</span>
+                          <span className={styles.sidebarButtonLabel}>
+                            {category.label}
+                          </span>
+                          <span className={styles.sidebarButtonDescription}>
+                            {category.description}
+                          </span>
                         </div>
                       </button>
                     );
@@ -108,31 +164,54 @@ export function Settings({ className, open, onOpenChange, komorebi, onShortcutsC
               <div className={styles.categoryContent}>
                 {activeCategory === "playback" && (
                   <>
-                    <SettingsAudio settings={settings} settingsState={settingsState} />
-                    <SettingsPlayback settings={settings} settingsState={settingsState} />
+                    <SettingsAudio
+                      settings={settings}
+                      settingsState={settingsState}
+                    />
+                    <SettingsPlayback
+                      settings={settings}
+                      settingsState={settingsState}
+                    />
                   </>
                 )}
                 {activeCategory === "interface" && (
-                  <SettingsInterface settings={settings} settingsState={settingsState} />
+                  <SettingsInterface
+                    settings={settings}
+                    settingsState={settingsState}
+                  />
                 )}
                 {activeCategory === "shortcuts" && (
                   <section className={styles.section}>
                     <div className={styles.sectionHeader}>
-                      <Icon name="keyboard" className={styles.sectionIcon} size="1.25rem" decorative />
-                      <h3 className={styles.sectionTitle}>{t("settings.shortcuts.title")}</h3>
+                      <Icon
+                        name="keyboard"
+                        className={styles.sectionIcon}
+                        size="1.25rem"
+                        decorative
+                      />
+                      <h3 className={styles.sectionTitle}>
+                        {t("settings.shortcuts.title")}
+                      </h3>
                     </div>
                     <ShortcutConfig onShortcutsChanged={onShortcutsChanged} />
                   </section>
                 )}
                 {activeCategory === "experimental" && (
-                  <SettingsExperimental settings={settings} settingsState={settingsState} />
+                  <SettingsExperimental
+                    settings={settings}
+                    settingsState={settingsState}
+                  />
                 )}
               </div>
             </div>
           </div>
 
           <SheetFooter>
-            <Button variant="outline" onClick={handleResetSettings} className={styles.resetButton}>
+            <Button
+              variant="outline"
+              onClick={handleResetSettings}
+              className={styles.resetButton}
+            >
               <Icon name="rotateCcw" size={16} decorative />
               {t("settings.reset")}
             </Button>

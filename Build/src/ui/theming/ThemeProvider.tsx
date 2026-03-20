@@ -67,7 +67,8 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
     };
     const handleWallpaperChange = () => {
       const wallpaper = engine.getCurrentWallpaper();
-      if (wallpaper) onThemeChange?.({ type: "wallpaper", value: wallpaper.name });
+      if (wallpaper)
+        onThemeChange?.({ type: "wallpaper", value: wallpaper.name });
       setState(engine.getState());
     };
     const handleModeChange = () => {
@@ -100,25 +101,40 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
     };
   }, [engine, onThemeChange]);
 
-  const setPalette = useCallback(async (name: string) => {
-    await engine.setPalette(name);
-  }, [engine]);
+  const setPalette = useCallback(
+    async (name: string) => {
+      await engine.setPalette(name);
+    },
+    [engine],
+  );
 
-  const setIconSet = useCallback(async (id: string) => {
-    await engine.setIconSet(id);
-  }, [engine]);
+  const setIconSet = useCallback(
+    async (id: string) => {
+      await engine.setIconSet(id);
+    },
+    [engine],
+  );
 
-  const setWallpaper = useCallback(async (name: string) => {
-    await engine.setWallpaper(name);
-  }, [engine]);
+  const setWallpaper = useCallback(
+    async (name: string) => {
+      await engine.setWallpaper(name);
+    },
+    [engine],
+  );
 
-  const setMode = useCallback((mode: ThemeMode) => {
-    engine.setMode(mode);
-  }, [engine]);
+  const setMode = useCallback(
+    (mode: ThemeMode) => {
+      engine.setMode(mode);
+    },
+    [engine],
+  );
 
-  const resolveIcon = useCallback(async (name: string) => {
-    return engine.resolveIcon(name);
-  }, [engine]);
+  const resolveIcon = useCallback(
+    async (name: string) => {
+      return engine.resolveIcon(name);
+    },
+    [engine],
+  );
 
   const getWallpaperComponent = useCallback(() => {
     return engine.getWallpaperComponent();
@@ -138,9 +154,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
   };
 
   return (
-    <ThemingContext.Provider value={value}>
-      {children}
-    </ThemingContext.Provider>
+    <ThemingContext.Provider value={value}>{children}</ThemingContext.Provider>
   );
 };
 

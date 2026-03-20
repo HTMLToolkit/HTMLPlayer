@@ -82,7 +82,7 @@ export class WebAudioBackend extends BaseAudioBackend {
     const source = ctx.createBufferSource();
     source.buffer = this.chain.audioBuffer;
     source.connect(this.chain.gainNode);
-    
+
     const analyser = this.ensureAnalyser();
     this.chain.gainNode.connect(analyser);
     analyser.connect(ctx.destination);
@@ -182,8 +182,6 @@ export class WebAudioBackend extends BaseAudioBackend {
       this.audioContext.close();
       this.audioContext = null;
     }
-
-    
   }
 
   private startTimeUpdates(): void {

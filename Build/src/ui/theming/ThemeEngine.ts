@@ -41,11 +41,17 @@ export class ThemeEngine {
     this.mode.setBroadcastCallback(broadcastFn);
   }
 
-  on<E extends ThemingEvent>(event: E, callback: (data: unknown) => void): void {
+  on<E extends ThemingEvent>(
+    event: E,
+    callback: (data: unknown) => void,
+  ): void {
     this.events.on(event, callback);
   }
 
-  off<E extends ThemingEvent>(event: E, callback: (data: unknown) => void): void {
+  off<E extends ThemingEvent>(
+    event: E,
+    callback: (data: unknown) => void,
+  ): void {
     this.events.off(event, callback);
   }
 
@@ -90,7 +96,9 @@ export class ThemeEngine {
     }
 
     try {
-      await this.wallpaper.apply(storedWallpaper || this.config.defaultWallpaper);
+      await this.wallpaper.apply(
+        storedWallpaper || this.config.defaultWallpaper,
+      );
     } catch {
       await this.wallpaper.apply(this.config.defaultWallpaper);
     }

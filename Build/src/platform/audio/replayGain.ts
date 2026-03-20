@@ -36,18 +36,22 @@ export class ReplayGainAnalyzer {
     }
   }
 
-  async analyzeFromArrayBuffer(buffer: ArrayBuffer): Promise<ReplayGainInfo | null> {
+  async analyzeFromArrayBuffer(
+    buffer: ArrayBuffer,
+  ): Promise<ReplayGainInfo | null> {
     try {
       if (!this.audioContext) {
         this.audioContext = new AudioContext();
       }
 
-      const audioBuffer = await this.audioContext.decodeAudioData(buffer.slice(0));
+      const audioBuffer = await this.audioContext.decodeAudioData(
+        buffer.slice(0),
+      );
       const samples = audioBuffer.getChannelData(0);
-      
+
       const rms = this.calculateRMS(samples);
       const peak = this.calculatePeak(samples);
-      
+
       const db = 20 * Math.log10(rms);
       const gain = this.config.defaultGain - db;
 
@@ -88,7 +92,10 @@ export class ReplayGainAnalyzer {
     return Math.pow(10, gain / 20);
   }
 
-  createGainNode(context: AudioContext, source: AudioBufferSourceNode): GainNode {
+  createGainNode(
+    context: AudioContext,
+    source: AudioBufferSourceNode,
+  ): GainNode {
     this.gainNode = context.createGain();
     source.connect(this.gainNode);
     return this.gainNode;
@@ -116,11 +123,15 @@ export class ReplayGainAnalyzer {
   }
 }
 
-export function createReplayGainAnalyzer(config?: Partial<ReplayGainConfig>): ReplayGainAnalyzer {
+export function createReplayGainAnalyzer(
+  config?: Partial<ReplayGainConfig>,
+): ReplayGainAnalyzer {
   return new ReplayGainAnalyzer(config);
 }
 
-export function parseReplayGainTags(tags: Record<string, string>): ReplayGainInfo | null {
+export function parseReplayGainTags(
+  tags: Record<string, string>,
+): ReplayGainInfo | null {
   const result: ReplayGainInfo = {};
 
   const trackGain = tags["REPLAYGAIN_TRACK_GAIN"];

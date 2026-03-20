@@ -42,7 +42,9 @@ export const audioStorage = {
       }
 
       db.close();
-      return result ? { fileData: result.fileData, mimeType: result.mimeType } : null;
+      return result
+        ? { fileData: result.fileData, mimeType: result.mimeType }
+        : null;
     } catch (error) {
       console.error(`Failed to load audio data for song ${songId}:`, error);
       return null;

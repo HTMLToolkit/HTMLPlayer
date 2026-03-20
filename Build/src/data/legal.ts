@@ -29,7 +29,8 @@ we do not collect personal data unless you interact with external services
     },
     {
       heading: "3. Cookies and Tracking",
-      content: "HTMLPlayer does not use cookies or trackers for analytics or advertising.",
+      content:
+        "HTMLPlayer does not use cookies or trackers for analytics or advertising.",
     },
     {
       heading: "4. Third-Party Services",
@@ -45,11 +46,13 @@ vulnerabilities in your browser or Discord.`,
     },
     {
       heading: "6. Data Sharing",
-      content: "HTMLPlayer does not sell, trade, or share personal information with third parties, except through authorized use of Discord features.",
+      content:
+        "HTMLPlayer does not sell, trade, or share personal information with third parties, except through authorized use of Discord features.",
     },
     {
       heading: "7. Updates to Privacy Policy",
-      content: "We may update this Privacy Policy as HTMLPlayer evolves. Continued use indicates acceptance of the latest policy.",
+      content:
+        "We may update this Privacy Policy as HTMLPlayer evolves. Continued use indicates acceptance of the latest policy.",
     },
     {
       heading: "8. Contact",
@@ -65,7 +68,8 @@ export const termsOfService: LegalDocument = {
   sections: [
     {
       heading: "1. Acceptance of Terms",
-      content: "By using HTMLPlayer (the \"App\"), you agree to these Terms of Service. If you do not agree, do not use the App.",
+      content:
+        'By using HTMLPlayer (the "App"), you agree to these Terms of Service. If you do not agree, do not use the App.',
     },
     {
       heading: "2. Use of the App",
@@ -88,7 +92,8 @@ Discord OAuth. HTMLPlayer does not store your Discord credentials.`,
     },
     {
       heading: "5. Beta Disclaimer",
-      content: "HTMLPlayer is currently in beta. Features may be unstable or incomplete. Use at your own risk.",
+      content:
+        "HTMLPlayer is currently in beta. Features may be unstable or incomplete. Use at your own risk.",
     },
     {
       heading: "6. No Warranty",
@@ -98,11 +103,13 @@ use or inability to use HTMLPlayer.`,
     },
     {
       heading: "7. Limitation of Liability",
-      content: "You use HTMLPlayer entirely at your own risk. Developers are not responsible for any loss, data corruption, or other issues resulting from your use of the App.",
+      content:
+        "You use HTMLPlayer entirely at your own risk. Developers are not responsible for any loss, data corruption, or other issues resulting from your use of the App.",
     },
     {
       heading: "8. Modifications to Terms",
-      content: "We may update these Terms at any time. Continued use constitutes acceptance of the updated Terms.",
+      content:
+        "We may update these Terms at any time. Continued use constitutes acceptance of the updated Terms.",
     },
     {
       heading: "9. Contact",

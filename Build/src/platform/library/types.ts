@@ -33,7 +33,10 @@ export interface LibraryEvents {
   on(event: "songremoved", callback: (songId: string) => void): void;
   on(event: "playlistadded", callback: (playlist: Playlist) => void): void;
   on(event: "playlistremoved", callback: (playlistId: string) => void): void;
-  on(event: "favoritechanged", callback: (songId: string, isFavorite: boolean) => void): void;
+  on(
+    event: "favoritechanged",
+    callback: (songId: string, isFavorite: boolean) => void,
+  ): void;
   on(event: "librarycleared", callback: () => void): void;
 }
 

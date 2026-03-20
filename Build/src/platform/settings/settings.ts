@@ -1,15 +1,12 @@
-import type {
-  SettingsState,
-  SettingsEventMap,
-  SettingsActions,
-} from "./types";
+import type { SettingsState, SettingsEventMap, SettingsActions } from "./types";
 import { DEFAULT_SETTINGS } from "./types";
 
 type EventCallback<T> = (data: T) => void;
 
 export class SettingsManager implements SettingsActions {
   private settings: SettingsState;
-  private listeners: Map<keyof SettingsEventMap, Set<EventCallback<unknown>>> = new Map();
+  private listeners: Map<keyof SettingsEventMap, Set<EventCallback<unknown>>> =
+    new Map();
 
   constructor(initialSettings?: Partial<SettingsState>) {
     this.settings = { ...DEFAULT_SETTINGS, ...initialSettings };
@@ -150,9 +147,12 @@ export class SettingsManager implements SettingsActions {
     this.settings = { ...DEFAULT_SETTINGS };
 
     const changes: Partial<SettingsState> = {};
-    for (const key of Object.keys(DEFAULT_SETTINGS) as Array<keyof SettingsState>) {
+    for (const key of Object.keys(DEFAULT_SETTINGS) as Array<
+      keyof SettingsState
+    >) {
       if (previousSettings[key] !== DEFAULT_SETTINGS[key]) {
-        (changes as unknown as Record<string, unknown>)[key] = DEFAULT_SETTINGS[key];
+        (changes as unknown as Record<string, unknown>)[key] =
+          DEFAULT_SETTINGS[key];
       }
     }
 
@@ -163,7 +163,7 @@ export class SettingsManager implements SettingsActions {
 
   on<K extends keyof SettingsEventMap>(
     event: K,
-    callback: EventCallback<SettingsEventMap[K]>
+    callback: EventCallback<SettingsEventMap[K]>,
   ): void {
     if (!this.listeners.has(event)) {
       this.listeners.set(event, new Set());
@@ -173,7 +173,7 @@ export class SettingsManager implements SettingsActions {
 
   off<K extends keyof SettingsEventMap>(
     event: K,
-    callback: EventCallback<SettingsEventMap[K]>
+    callback: EventCallback<SettingsEventMap[K]>,
   ): void {
     const callbacks = this.listeners.get(event);
     if (callbacks) {
@@ -187,7 +187,7 @@ export class SettingsManager implements SettingsActions {
 
   private emit<K extends keyof SettingsEventMap>(
     event: K,
-    data: SettingsEventMap[K]
+    data: SettingsEventMap[K],
   ): void {
     const callbacks = this.listeners.get(event);
     if (callbacks) {

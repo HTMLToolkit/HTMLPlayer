@@ -1,4 +1,10 @@
-import { createContext, useContext, useState, useCallback, type ReactNode } from "react";
+import {
+  createContext,
+  useContext,
+  useState,
+  useCallback,
+  type ReactNode,
+} from "react";
 import type { NavigationView } from "../../types/custom-events";
 
 export type View = NavigationView;
@@ -35,26 +41,44 @@ export function NavigationProvider({ children }: { children: ReactNode }) {
   const [history, setHistory] = useState<NavigationState[]>([initialState]);
   const [historyIndex, setHistoryIndex] = useState(0);
 
-  const navigate = useCallback((newState: NavigationState) => {
-    setState(newState);
-    setHistory((prev) => {
-      const newHistory = prev.slice(0, historyIndex + 1);
-      newHistory.push(newState);
-      if (newHistory.length > HISTORY_LIMIT) {
-        newHistory.shift();
-      }
-      return newHistory;
-    });
-    setHistoryIndex((prev) => Math.min(prev + 1, HISTORY_LIMIT - 1));
-  }, [historyIndex]);
+  const navigate = useCallback(
+    (newState: NavigationState) => {
+      setState(newState);
+      setHistory((prev) => {
+        const newHistory = prev.slice(0, historyIndex + 1);
+        newHistory.push(newState);
+        if (newHistory.length > HISTORY_LIMIT) {
+          newHistory.shift();
+        }
+        return newHistory;
+      });
+      setHistoryIndex((prev) => Math.min(prev + 1, HISTORY_LIMIT - 1));
+    },
+    [historyIndex],
+  );
 
   const goHome = useCallback(() => navigate({ view: "home" }), [navigate]);
   const goToSongs = useCallback(() => navigate({ view: "songs" }), [navigate]);
-  const goToArtist = useCallback((artist: string) => navigate({ view: "artist", artist }), [navigate]);
-  const goToAlbum = useCallback((album: string) => navigate({ view: "album", album }), [navigate]);
-  const goToPlaylist = useCallback((playlistId: string) => navigate({ view: "playlist", playlistId }), [navigate]);
-  const goToSearch = useCallback((query?: string) => navigate({ view: "search", searchQuery: query }), [navigate]);
-  const goToFavorites = useCallback(() => navigate({ view: "favorites" }), [navigate]);
+  const goToArtist = useCallback(
+    (artist: string) => navigate({ view: "artist", artist }),
+    [navigate],
+  );
+  const goToAlbum = useCallback(
+    (album: string) => navigate({ view: "album", album }),
+    [navigate],
+  );
+  const goToPlaylist = useCallback(
+    (playlistId: string) => navigate({ view: "playlist", playlistId }),
+    [navigate],
+  );
+  const goToSearch = useCallback(
+    (query?: string) => navigate({ view: "search", searchQuery: query }),
+    [navigate],
+  );
+  const goToFavorites = useCallback(
+    () => navigate({ view: "favorites" }),
+    [navigate],
+  );
 
   const goBack = useCallback(() => {
     if (historyIndex > 0) {
@@ -65,18 +89,20 @@ export function NavigationProvider({ children }: { children: ReactNode }) {
   }, [historyIndex, history]);
 
   return (
-    <NavigationContext.Provider value={{
-      state,
-      navigate,
-      goHome,
-      goToSongs,
-      goToArtist,
-      goToAlbum,
-      goToPlaylist,
-      goToSearch,
-      goToFavorites,
-      goBack,
-    }}>
+    <NavigationContext.Provider
+      value={{
+        state,
+        navigate,
+        goHome,
+        goToSongs,
+        goToArtist,
+        goToAlbum,
+        goToPlaylist,
+        goToSearch,
+        goToFavorites,
+        goBack,
+      }}
+    >
       {children}
     </NavigationContext.Provider>
   );

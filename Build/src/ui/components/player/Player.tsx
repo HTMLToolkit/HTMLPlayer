@@ -304,10 +304,7 @@ export const Player = forwardRef<PlayerRef, PlayerProps>(
             data-tour="visualizer"
             data-state={visualizerDataState}
           >
-            <Visualizer
-              isPlaying={isPlaying}
-              className={styles.visualizer}
-            />
+            <Visualizer isPlaying={isPlaying} className={styles.visualizer} />
           </div>
         )}
         <div
@@ -518,13 +515,19 @@ export const Player = forwardRef<PlayerRef, PlayerProps>(
                   const song = library.getSong(songId);
                   if (song) {
                     playlist.songs.push(song);
-                    library.updatePlaylist(playlistId, { songs: playlist.songs });
+                    library.updatePlaylist(playlistId, {
+                      songs: playlist.songs,
+                    });
                   }
                 }
               }}
-              onAddToFavorites={(songId: string) => komorebi.toggleFavorite(songId)}
+              onAddToFavorites={(songId: string) =>
+                komorebi.toggleFavorite(songId)
+              }
               isFavorited={(songId: string) => komorebi.isFavorite(songId)}
-              onPlaySong={(song: any, playlist?: any) => komorebi.playSong(song, playlist)}
+              onPlaySong={(song: any, playlist?: any) =>
+                komorebi.playSong(song, playlist)
+              }
               onRemoveSong={(songId: string) => komorebi.removeSong(songId)}
               size={16}
               className={styles.moreButton}

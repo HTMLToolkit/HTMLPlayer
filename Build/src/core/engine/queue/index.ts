@@ -44,15 +44,23 @@ export class QueueManager {
 
     const tracks = [...playlist.songs];
     const currentTrack = preserveCurrent ? this.getCurrentTrack() : null;
-    const newIndex = currentTrack ? tracks.findIndex((t) => t.id === currentTrack.id) : -1;
+    const newIndex = currentTrack
+      ? tracks.findIndex((t) => t.id === currentTrack.id)
+      : -1;
 
     this.state.tracks = tracks;
-    this.state.shuffleOrder = this.generateShuffleOrder(tracks.length, newIndex);
+    this.state.shuffleOrder = this.generateShuffleOrder(
+      tracks.length,
+      newIndex,
+    );
     this.state.currentIndex = newIndex >= 0 ? newIndex : -1;
   }
 
   getCurrentTrack(): Track | null {
-    if (this.state.currentIndex < 0 || this.state.currentIndex >= this.state.tracks.length) {
+    if (
+      this.state.currentIndex < 0 ||
+      this.state.currentIndex >= this.state.tracks.length
+    ) {
       return null;
     }
     return this.state.tracks[this.state.currentIndex];
@@ -129,21 +137,24 @@ export class QueueManager {
 
   shuffle(preserveCurrent = true): void {
     this.state.shuffled = true;
-    
+
     if (this.shuffleMode === "smart" && this.weightedRandomizer) {
       this.state.shuffleOrder = this.generateSmartShuffleOrder(
         this.state.tracks.length,
-        preserveCurrent ? this.state.currentIndex : -1
+        preserveCurrent ? this.state.currentIndex : -1,
       );
     } else {
       this.state.shuffleOrder = this.generateShuffleOrder(
         this.state.tracks.length,
-        preserveCurrent ? this.state.currentIndex : -1
+        preserveCurrent ? this.state.currentIndex : -1,
       );
     }
   }
 
-  private generateSmartShuffleOrder(length: number, preserveIndex: number): number[] {
+  private generateSmartShuffleOrder(
+    length: number,
+    preserveIndex: number,
+  ): number[] {
     if (length === 0) return [];
 
     const trackIds = this.state.tracks.map((t) => t.id);
@@ -152,16 +163,17 @@ export class QueueManager {
 
     while (availableIndices.length > 0) {
       const availableTrackIds = availableIndices.map((i) => trackIds[i]);
-      const selectedId = this.weightedRandomizer!.getWeightedRandomTrack(availableTrackIds);
-      
+      const selectedId =
+        this.weightedRandomizer!.getWeightedRandomTrack(availableTrackIds);
+
       if (!selectedId) break;
-      
+
       const selectedIndex = trackIds.indexOf(selectedId);
       if (selectedIndex === -1) break;
-      
+
       const actualIndex = availableIndices.indexOf(selectedIndex);
       if (actualIndex === -1) break;
-      
+
       selectedIds.push(selectedId);
       availableIndices.splice(actualIndex, 1);
     }
@@ -187,7 +199,10 @@ export class QueueManager {
     return this.state.shuffled;
   }
 
-  private generateShuffleOrder(length: number, preserveIndex: number): number[] {
+  private generateShuffleOrder(
+    length: number,
+    preserveIndex: number,
+  ): number[] {
     if (length === 0) return [];
 
     const indices = Array.from({ length }, (_, i) => i);
@@ -200,7 +215,10 @@ export class QueueManager {
     if (preserveIndex >= 0 && preserveIndex < length) {
       const currentInShuffle = indices.indexOf(preserveIndex);
       if (currentInShuffle > 0) {
-        [indices[0], indices[currentInShuffle]] = [indices[currentInShuffle], indices[0]];
+        [indices[0], indices[currentInShuffle]] = [
+          indices[currentInShuffle],
+          indices[0],
+        ];
       }
     }
 
@@ -221,8 +239,9 @@ export class QueueManager {
     }
 
     if (this.history.size > this.maxHistorySize) {
-      const sorted = Array.from(this.history.values())
-        .sort((a, b) => a.lastPlayed - b.lastPlayed);
+      const sorted = Array.from(this.history.values()).sort(
+        (a, b) => a.lastPlayed - b.lastPlayed,
+      );
       const toRemove = sorted.slice(0, this.history.size - this.maxHistorySize);
       toRemove.forEach((h) => this.history.delete(h.trackId));
     }
@@ -249,7 +268,8 @@ export class QueueManager {
     if (this.state.shuffled) {
       const newIndex = this.state.tracks.length - 1;
       this.state.shuffleOrder.push(newIndex);
-      const insertPos = Math.floor(Math.random() * (this.state.shuffleOrder.length - 1)) + 1;
+      const insertPos =
+        Math.floor(Math.random() * (this.state.shuffleOrder.length - 1)) + 1;
       this.state.shuffleOrder.splice(insertPos, 0, newIndex);
     }
   }

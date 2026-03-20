@@ -55,9 +55,13 @@ export const PlaylistComponent = ({ komorebi }: PlaylistProps) => {
   const [playlistSearchQuery, setPlaylistSearchQuery] = useState("");
   const [showCreatePlaylist, setShowCreatePlaylist] = useState(false);
   const [newPlaylistName, setNewPlaylistName] = useState("");
-  const [playlistImages, setPlaylistImages] = useState<Record<string, string>>({});
+  const [playlistImages, setPlaylistImages] = useState<Record<string, string>>(
+    {},
+  );
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [playlistToDelete, setPlaylistToDelete] = useState<Playlist | PlaylistFolder | null>(null);
+  const [playlistToDelete, setPlaylistToDelete] = useState<
+    Playlist | PlaylistFolder | null
+  >(null);
   const [openFolders, setOpenFolders] = useState<Set<string>>(new Set());
 
   const toggleFolder = useCallback((folderId: string) => {
@@ -73,77 +77,104 @@ export const PlaylistComponent = ({ komorebi }: PlaylistProps) => {
   }, []);
 
   const [showMoveDialog, setShowMoveDialog] = useState(false);
-  const [itemToMove, setItemToMove] = useState<Playlist | PlaylistFolder | null>(null);
-  const [availableFolders, setAvailableFolders] = useState<{ folder: PlaylistFolder; path: string[] }[]>([]);
+  const [itemToMove, setItemToMove] = useState<
+    Playlist | PlaylistFolder | null
+  >(null);
+  const [availableFolders, setAvailableFolders] = useState<
+    { folder: PlaylistFolder; path: string[] }[]
+  >([]);
   const [showRenameDialog, setShowRenameDialog] = useState(false);
-  const [itemToRename, setItemToRename] = useState<Playlist | PlaylistFolder | null>(null);
+  const [itemToRename, setItemToRename] = useState<
+    Playlist | PlaylistFolder | null
+  >(null);
   const [renameValue, setRenameValue] = useState("");
 
   const [showCreateFolderDialog, setShowCreateFolderDialog] = useState(false);
   const [newFolderName, setNewFolderName] = useState("");
 
   // Convenience wrappers for library methods
-  const createPlaylist = useCallback((name: string) => {
-    const playlist: Playlist = {
-      id: `playlist-${Date.now()}`,
-      name,
-      songs: [],
-    };
-    library.addPlaylist(playlist);
-  }, [library]);
-
-  const createFolder = useCallback((name: string, parentId?: string) => {
-    const folder: PlaylistFolder = {
-      id: `folder-${Date.now()}`,
-      name,
-      children: [],
-      ...(parentId && { parentId }),
-    };
-    libraryState.playlists.push(folder);
-  }, [libraryState.playlists]);
-
-  const removePlaylistFn = useCallback((playlistId: string) => {
-    library.removePlaylist(playlistId);
-  }, [library]);
-
-  const moveToFolder = useCallback((itemId: string, folderId: string | null) => {
-    // Find and remove item from current location
-    const findAndRemove = (items: (Playlist | PlaylistFolder)[], id: string): Playlist | PlaylistFolder | null => {
-      const idx = items.findIndex(item => item.id === id);
-      if (idx !== -1) {
-        return items.splice(idx, 1)[0];
-      }
-      for (const item of items) {
-        if ("children" in item) {
-          const found: Playlist | PlaylistFolder | null = findAndRemove(item.children, id);
-          if (found) return found;
-        }
-      }
-      return null;
-    };
-    const state = library.getState();
-    const item = findAndRemove(state.playlists, itemId);
-    if (!item) return;
-
-    // Add to folder or root
-    if (folderId) {
-      const addToFolder = (items: (Playlist | PlaylistFolder)[], id: string): boolean => {
-        for (const item of items) {
-          if (item.id === id && "children" in item) {
-            item.children.push(item);
-            return true;
-          }
-          if ("children" in item) {
-            if (addToFolder(item.children, id)) return true;
-          }
-        }
-        return false;
+  const createPlaylist = useCallback(
+    (name: string) => {
+      const playlist: Playlist = {
+        id: `playlist-${Date.now()}`,
+        name,
+        songs: [],
       };
-      addToFolder(state.playlists, folderId);
-    } else {
-      state.playlists.push(item);
-    }
-  }, [library]);
+      library.addPlaylist(playlist);
+    },
+    [library],
+  );
+
+  const createFolder = useCallback(
+    (name: string, parentId?: string) => {
+      const folder: PlaylistFolder = {
+        id: `folder-${Date.now()}`,
+        name,
+        children: [],
+        ...(parentId && { parentId }),
+      };
+      libraryState.playlists.push(folder);
+    },
+    [libraryState.playlists],
+  );
+
+  const removePlaylistFn = useCallback(
+    (playlistId: string) => {
+      library.removePlaylist(playlistId);
+    },
+    [library],
+  );
+
+  const moveToFolder = useCallback(
+    (itemId: string, folderId: string | null) => {
+      // Find and remove item from current location
+      const findAndRemove = (
+        items: (Playlist | PlaylistFolder)[],
+        id: string,
+      ): Playlist | PlaylistFolder | null => {
+        const idx = items.findIndex((item) => item.id === id);
+        if (idx !== -1) {
+          return items.splice(idx, 1)[0];
+        }
+        for (const item of items) {
+          if ("children" in item) {
+            const found: Playlist | PlaylistFolder | null = findAndRemove(
+              item.children,
+              id,
+            );
+            if (found) return found;
+          }
+        }
+        return null;
+      };
+      const state = library.getState();
+      const item = findAndRemove(state.playlists, itemId);
+      if (!item) return;
+
+      // Add to folder or root
+      if (folderId) {
+        const addToFolder = (
+          items: (Playlist | PlaylistFolder)[],
+          id: string,
+        ): boolean => {
+          for (const item of items) {
+            if (item.id === id && "children" in item) {
+              item.children.push(item);
+              return true;
+            }
+            if ("children" in item) {
+              if (addToFolder(item.children, id)) return true;
+            }
+          }
+          return false;
+        };
+        addToFolder(state.playlists, folderId);
+      } else {
+        state.playlists.push(item);
+      }
+    },
+    [library],
+  );
 
   // Debounced and batched playlist image generation to prevent RAM spikes
   useEffect(() => {
@@ -248,7 +279,8 @@ export const PlaylistComponent = ({ komorebi }: PlaylistProps) => {
 
   const handlePlaylistSelect = useCallback(
     (playlist: Playlist) => {
-      if (playlist.songs.length > 0) komorebi.playSong(playlist.songs[0], playlist);
+      if (playlist.songs.length > 0)
+        komorebi.playSong(playlist.songs[0], playlist);
     },
     [komorebi],
   );
@@ -355,7 +387,9 @@ export const PlaylistComponent = ({ komorebi }: PlaylistProps) => {
     (playlist: Playlist, format: "json" | "m3u" = "json") => {
       const exportPlaylist = (pl: Playlist, fmt: string) => {
         if (fmt === "json") {
-          const blob = new Blob([JSON.stringify(pl, null, 2)], { type: "application/json" });
+          const blob = new Blob([JSON.stringify(pl, null, 2)], {
+            type: "application/json",
+          });
           const url = URL.createObjectURL(blob);
           const a = document.createElement("a");
           a.href = url;
@@ -363,7 +397,13 @@ export const PlaylistComponent = ({ komorebi }: PlaylistProps) => {
           a.click();
           URL.revokeObjectURL(url);
         } else {
-          const content = ["#EXTM3U", ...pl.songs.map(s => `#EXTINF:${Math.round(s.duration || 0)},${s.artist} - ${s.title}\n${s.url || ""}`)].join("\n");
+          const content = [
+            "#EXTM3U",
+            ...pl.songs.map(
+              (s) =>
+                `#EXTINF:${Math.round(s.duration || 0)},${s.artist} - ${s.title}\n${s.url || ""}`,
+            ),
+          ].join("\n");
           const blob = new Blob([content], { type: "audio/x-mpegurl" });
           const url = URL.createObjectURL(blob);
           const a = document.createElement("a");
@@ -399,14 +439,14 @@ export const PlaylistComponent = ({ komorebi }: PlaylistProps) => {
         try {
           const text = await file.text();
           let playlist: Playlist | null = null;
-          
+
           if (file.name.endsWith(".json")) {
             playlist = JSON.parse(text);
           } else {
             toast.info("M3U import not yet supported");
             return;
           }
-          
+
           if (playlist && playlist.name) {
             playlist.id = `playlist-${Date.now()}`;
             library.addPlaylist(playlist);
@@ -747,10 +787,9 @@ export const PlaylistComponent = ({ komorebi }: PlaylistProps) => {
                 <DropdownMenuItem
                   onClick={async () => {
                     // Check if user has chosen not to show delete confirmation
-                    const shouldShow =
-                      await dialogStorage.shouldShow(
-                        "delete-playlist-confirmation",
-                      );
+                    const shouldShow = await dialogStorage.shouldShow(
+                      "delete-playlist-confirmation",
+                    );
                     if (!shouldShow) {
                       // Delete directly without showing dialog
                       removePlaylistFn(item.id);
@@ -898,7 +937,9 @@ export const PlaylistComponent = ({ komorebi }: PlaylistProps) => {
         >
           <Icon name="heart" size={16} decorative />
           {t("favorites.favorites")}
-          <span className={styles.songCount}>{libraryState.favorites.length}</span>
+          <span className={styles.songCount}>
+            {libraryState.favorites.length}
+          </span>
         </button>
 
         {/* User playlists and folders */}

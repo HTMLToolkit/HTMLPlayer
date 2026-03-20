@@ -14,11 +14,16 @@ interface SettingsExperimentalProps {
   settingsState: ReturnType<SettingsManager["getSettings"]>;
 }
 
-export function SettingsExperimental({ settings, settingsState }: SettingsExperimentalProps) {
+export function SettingsExperimental({
+  settings,
+  settingsState,
+}: SettingsExperimentalProps) {
   const { t } = useTranslation();
   const isTauriEnv = isTauri();
 
-  const [discordRpcStatus, setDiscordRpcStatus] = useState<"unknown" | "available" | "unavailable" | "unsupported">("unknown");
+  const [discordRpcStatus, setDiscordRpcStatus] = useState<
+    "unknown" | "available" | "unavailable" | "unsupported"
+  >("unknown");
 
   const checkDiscordRpcStatus = async () => {
     if (!isTauriEnv) {
@@ -52,7 +57,10 @@ export function SettingsExperimental({ settings, settingsState }: SettingsExperi
       const script = document.createElement("script");
       script.src = "https://cdn.jsdelivr.net/npm/eruda";
       script.crossOrigin = "anonymous";
-      script.onload = () => { (window as any).eruda.init(); resolve(); };
+      script.onload = () => {
+        (window as any).eruda.init();
+        resolve();
+      };
       script.onerror = reject;
       document.head.appendChild(script);
     });
@@ -87,15 +95,23 @@ export function SettingsExperimental({ settings, settingsState }: SettingsExperi
   return (
     <section className={styles.section}>
       <div className={styles.sectionHeader}>
-        <Icon name="messageCircle" className={styles.sectionIcon} size="1.25rem" decorative />
+        <Icon
+          name="messageCircle"
+          className={styles.sectionIcon}
+          size="1.25rem"
+          decorative
+        />
         <h3 className={styles.sectionTitle}>Beta</h3>
       </div>
 
       <div className={styles.settingItem}>
         <div className={styles.settingInfo}>
-          <label htmlFor="discord-enabled">Enable Discord Integration (Broken Beta)</label>
+          <label htmlFor="discord-enabled">
+            Enable Discord Integration (Broken Beta)
+          </label>
           <p className={styles.settingDescription}>
-            Note: Discord&apos;s RPC API requires special approval. Currently logs track info for testing.
+            Note: Discord&apos;s RPC API requires special approval. Currently
+            logs track info for testing.
           </p>
         </div>
         <Switch
@@ -112,7 +128,9 @@ export function SettingsExperimental({ settings, settingsState }: SettingsExperi
               <label>{t("discord.connection")}</label>
               <p className={styles.settingDescription}>
                 {settingsState.discordUserId
-                  ? t("discord.connected", { userId: settingsState.discordUserId })
+                  ? t("discord.connected", {
+                      userId: settingsState.discordUserId,
+                    })
                   : t("discord.notConnected")}
               </p>
             </div>
@@ -131,17 +149,25 @@ export function SettingsExperimental({ settings, settingsState }: SettingsExperi
                 }
               }}
             >
-              {settingsState.discordUserId ? t("discord.disconnect") : t("discord.connect")}
+              {settingsState.discordUserId
+                ? t("discord.disconnect")
+                : t("discord.connect")}
             </Button>
           </div>
 
           {!settingsState.discordUserId && (
             <div className={styles.settingItem}>
               <div className={styles.settingInfo}>
-                <label htmlFor="discord-user-id">{t("discord.manualUserId")}</label>
-                <p className={styles.settingDescription}>{t("discord.manualUserIdDescription")}</p>
+                <label htmlFor="discord-user-id">
+                  {t("discord.manualUserId")}
+                </label>
+                <p className={styles.settingDescription}>
+                  {t("discord.manualUserIdDescription")}
+                </p>
               </div>
-              <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+              <div
+                style={{ display: "flex", gap: "8px", alignItems: "center" }}
+              >
                 <Input
                   id="discord-user-id"
                   type="text"
@@ -160,7 +186,8 @@ export function SettingsExperimental({ settings, settingsState }: SettingsExperi
                 <Button
                   size="sm"
                   onClick={(e) => {
-                    const input = (e.target as HTMLElement).previousElementSibling as HTMLInputElement;
+                    const input = (e.target as HTMLElement)
+                      .previousElementSibling as HTMLInputElement;
                     if (input && input.value.trim()) {
                       settings.setDiscordUserId(input.value.trim());
                       toast.success(t("discord.userIdSaved"));
@@ -179,12 +206,19 @@ export function SettingsExperimental({ settings, settingsState }: SettingsExperi
               <label>{t("discord.status")}</label>
               <p className={styles.settingDescription}>
                 {discordRpcStatus === "unknown" && t("discord.statusUnknown")}
-                {discordRpcStatus === "unsupported" && t("discord.statusUnsupported")}
-                {discordRpcStatus === "available" && t("discord.statusAvailable")}
-                {discordRpcStatus === "unavailable" && t("discord.statusUnavailable")}
+                {discordRpcStatus === "unsupported" &&
+                  t("discord.statusUnsupported")}
+                {discordRpcStatus === "available" &&
+                  t("discord.statusAvailable")}
+                {discordRpcStatus === "unavailable" &&
+                  t("discord.statusUnavailable")}
               </p>
             </div>
-            <Button variant="outline" onClick={checkDiscordRpcStatus} disabled={!isTauriEnv}>
+            <Button
+              variant="outline"
+              onClick={checkDiscordRpcStatus}
+              disabled={!isTauriEnv}
+            >
               {t("discord.refreshStatus")}
             </Button>
           </div>
@@ -195,7 +229,8 @@ export function SettingsExperimental({ settings, settingsState }: SettingsExperi
         <div className={styles.settingInfo}>
           <label htmlFor="eruda-enabled">Enable Eruda Debug Console</label>
           <p className={styles.settingDescription}>
-            Eruda is a debug console for mobile browsers. Takes effect immediately.
+            Eruda is a debug console for mobile browsers. Takes effect
+            immediately.
           </p>
         </div>
         <Switch

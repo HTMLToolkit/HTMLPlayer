@@ -1,4 +1,7 @@
-import { VisualizerType, visualizerStates } from "../../../platform/visualizers";
+import {
+  VisualizerType,
+  visualizerStates,
+} from "../../../platform/visualizers";
 
 const fluidSpectrogram: VisualizerType = {
   name: "Fluid Dynamics",

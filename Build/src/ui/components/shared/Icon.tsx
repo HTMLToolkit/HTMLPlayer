@@ -154,13 +154,7 @@ export const Icon: React.FC<IconProps> = ({
     return () => {
       cancelled = true;
     };
-  }, [
-    name,
-    currentSetId,
-    stableResolveIcon,
-    t,
-    resolvedIcon,
-  ]);
+  }, [name, currentSetId, stableResolveIcon, t, resolvedIcon]);
 
   const ariaProps = useMemo(() => {
     if (decorative) {

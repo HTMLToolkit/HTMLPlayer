@@ -95,13 +95,14 @@ export class HTMLAudioBackend extends BaseAudioBackend {
     this.audio.removeEventListener("timeupdate", this.boundOnTimeUpdate);
     this.audio.removeEventListener("ended", this.boundOnEnded);
     this.audio.removeEventListener("error", this.boundOnError);
-    this.audio.removeEventListener("loadedmetadata", this.boundOnLoadedMetadata);
+    this.audio.removeEventListener(
+      "loadedmetadata",
+      this.boundOnLoadedMetadata,
+    );
 
     this.audio.pause();
     this.audio.src = "";
     this.audio.load();
-
-    
   }
 
   private handleTimeUpdate(): void {

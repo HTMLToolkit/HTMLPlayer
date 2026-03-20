@@ -35,7 +35,8 @@ export const useIconSet = () => {
 };
 
 export const useWallpaper = () => {
-  const { wallpapers, currentWallpaper, setWallpaper, getWallpaperComponent } = useTheming();
+  const { wallpapers, currentWallpaper, setWallpaper, getWallpaperComponent } =
+    useTheming();
   return { wallpapers, currentWallpaper, setWallpaper, getWallpaperComponent };
 };
 

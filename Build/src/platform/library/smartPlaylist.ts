@@ -2,7 +2,15 @@ import type { Track } from "../../core/engine/types";
 import { PointPerSongEngine } from "./scoring";
 
 export interface SmartPlaylistRule {
-  type: "genre" | "artist" | "album" | "year" | "rating" | "playcount" | "recent" | "random";
+  type:
+    | "genre"
+    | "artist"
+    | "album"
+    | "year"
+    | "rating"
+    | "playcount"
+    | "recent"
+    | "random";
   operator?: "equals" | "contains" | "greaterThan" | "lessThan";
   value?: string | number;
 }
@@ -122,7 +130,7 @@ export class SmartPlaylistEngine {
 
   private sortTracks(
     tracks: Track[],
-    sortBy: "shuffle" | "score" | "recent" | "playcount"
+    sortBy: "shuffle" | "score" | "recent" | "playcount",
   ): Track[] {
     switch (sortBy) {
       case "shuffle":
@@ -191,6 +199,8 @@ export class SmartPlaylistEngine {
   }
 }
 
-export function createSmartPlaylistEngine(scoringEngine: PointPerSongEngine): SmartPlaylistEngine {
+export function createSmartPlaylistEngine(
+  scoringEngine: PointPerSongEngine,
+): SmartPlaylistEngine {
   return new SmartPlaylistEngine(scoringEngine);
 }
