@@ -1,25 +1,14 @@
-const DB_NAME = "HTMLPlayerDB";
-const DB_VERSION = 2;
-const STORE = "albumArt";
-
-const openDatabase = (): Promise<IDBDatabase> => {
-  return new Promise((resolve, reject) => {
-    const request = indexedDB.open(DB_NAME, DB_VERSION);
-
-    request.onerror = () => reject(request.error);
-    request.onsuccess = () => resolve(request.result);
-
-    request.onupgradeneeded = (event) => {
-      const db = (event.target as IDBOpenDBRequest).result;
-      if (!db.objectStoreNames.contains(STORE)) {
-        db.createObjectStore(STORE, { keyPath: "songId" });
-      }
-    };
-  });
-};
+import { getDb, STORES } from "./db";
 
 const albumArtCache = new Map<string, string>();
 const MAX_CACHE = 50;
+
+function evictCache() {
+  if (albumArtCache.size >= MAX_CACHE) {
+    const firstKey = albumArtCache.keys().next().value;
+    if (firstKey) albumArtCache.delete(firstKey);
+  }
+}
 
 export const albumArtStorage = {
   async load(songId: string): Promise<string | null> {
@@ -28,19 +17,15 @@ export const albumArtStorage = {
     }
 
     try {
-      const db = await openDatabase();
-      const tx = db.transaction([STORE], "readonly");
-      const store = tx.objectStore(STORE);
+      const db = await getDb();
+      const tx = db.transaction(STORES.ALBUM_ART, "readonly");
+      const store = tx.objectStore(STORES.ALBUM_ART);
 
-      const result = await new Promise<
-        { songId: string; albumArt: string } | undefined
-      >((resolve, reject) => {
+      const result = await new Promise<{ songId: string; albumArt: string } | undefined>((resolve, reject) => {
         const req = store.get(songId);
         req.onsuccess = () => resolve(req.result);
         req.onerror = () => reject(req.error);
       });
-
-      db.close();
 
       if (result?.albumArt) {
         evictCache();
@@ -70,24 +55,19 @@ export const albumArtStorage = {
     if (toLoad.length === 0) return result;
 
     try {
-      const db = await openDatabase();
-      const tx = db.transaction([STORE], "readonly");
-      const store = tx.objectStore(STORE);
+      const db = await getDb();
+      const tx = db.transaction(STORES.ALBUM_ART, "readonly");
+      const store = tx.objectStore(STORES.ALBUM_ART);
 
       const loaded = await Promise.all(
-        toLoad.map(
-          (songId) =>
-            new Promise<{ songId: string; albumArt: string } | null>(
-              (resolve, reject) => {
-                const req = store.get(songId);
-                req.onsuccess = () => resolve(req.result || null);
-                req.onerror = () => reject(req.error);
-              },
-            ),
-        ),
+        toLoad.map((songId) =>
+          new Promise<{ songId: string; albumArt: string } | null>((resolve, reject) => {
+            const req = store.get(songId);
+            req.onsuccess = () => resolve(req.result || null);
+            req.onerror = () => reject(req.error);
+          })
+        )
       );
-
-      db.close();
 
       for (const art of loaded) {
         if (art?.albumArt) {
@@ -106,9 +86,9 @@ export const albumArtStorage = {
 
   async save(songId: string, albumArt: string): Promise<void> {
     try {
-      const db = await openDatabase();
-      const tx = db.transaction([STORE], "readwrite");
-      const store = tx.objectStore(STORE);
+      const db = await getDb();
+      const tx = db.transaction(STORES.ALBUM_ART, "readwrite");
+      const store = tx.objectStore(STORES.ALBUM_ART);
 
       await new Promise<void>((resolve, reject) => {
         const req = store.put({ songId, albumArt });
@@ -116,7 +96,6 @@ export const albumArtStorage = {
         req.onerror = () => reject(req.error);
       });
 
-      db.close();
       evictCache();
       albumArtCache.set(songId, albumArt);
     } catch (error) {
@@ -135,16 +114,4 @@ export const albumArtStorage = {
   get(songId: string): string | undefined {
     return albumArtCache.get(songId);
   },
-
-  set(songId: string, albumArt: string): void {
-    evictCache();
-    albumArtCache.set(songId, albumArt);
-  },
 };
-
-function evictCache() {
-  if (albumArtCache.size >= MAX_CACHE) {
-    const firstKey = albumArtCache.keys().next().value;
-    if (firstKey) albumArtCache.delete(firstKey);
-  }
-}

@@ -11,7 +11,7 @@ import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { DropZone, DraggableItem } from "../primitives/Draggable";
 import styles from "./Playlist.module.css";
-import { generatePlaylistImage } from "../../../platform/utils/image";
+import { generatePlaylistImage } from "../../../platform/utils/playlistImage";
 import modalStyles from "../primitives/Dialog.module.css";
 import { Button } from "../primitives/Button";
 import { Input } from "../primitives/Input";

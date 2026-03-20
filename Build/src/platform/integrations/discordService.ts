@@ -1,7 +1,4 @@
-/**
- * Discord Rich Presence Service
- * Handles sending track updates to the Discord backend API
- */
+// WIP WARNING
 
 export interface DiscordPresenceData {
   userId: string;

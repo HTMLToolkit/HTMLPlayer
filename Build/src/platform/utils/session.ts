@@ -1,6 +1,6 @@
-import type { Track, Playlist } from "../core/engine/types";
-import type { SettingsState } from "./settings/types";
-import type { SongScore } from "./library/scoring";
+import type { Track, Playlist } from "../../core/engine/types";
+import type { SettingsState } from "../settings/types";
+import type { SongScore } from "../library/scoring";
 
 export interface SessionState {
   lastPlayedSongId: string | null;

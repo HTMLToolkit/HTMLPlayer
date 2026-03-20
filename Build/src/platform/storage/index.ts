@@ -5,6 +5,7 @@ import { DesktopStorageBackend } from "./desktopStorage";
 export { albumArtStorage } from "./albumArt";
 export { dialogStorage } from "./dialogs";
 export { audioStorage, type AudioData } from "./audio";
+export { getDb, STORES, closeDb } from "./db";
 
 export function detectPlatform(): PlatformType {
   const ua = navigator.userAgent;
