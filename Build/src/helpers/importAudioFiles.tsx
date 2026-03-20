@@ -1,7 +1,6 @@
 import { toast } from "sonner";
 import { createMetadataExtractor, createFloMetadataExtractor, compressAlbumArt, generateUniqueId } from "../platform/metadata";
 import { albumArtStorage } from "../platform/storage";
-import { setAlbumArtInCache } from "../hooks/useAlbumArt";
 import type { ExtractedMetadata } from "../platform/metadata";
 import type { Track } from "../core/engine/types";
 
@@ -147,8 +146,7 @@ export async function importAudioFiles(
         // Save album art separately if present
         const hasAlbumArt = !!compressedArt;
         if (hasAlbumArt && compressedArt) {
-          await albumArtStorage.save(songId, compressedArt);
-          setAlbumArtInCache(songId, compressedArt);
+          await           albumArtStorage.save(songId, compressedArt);
         }
 
         const song: Track = {

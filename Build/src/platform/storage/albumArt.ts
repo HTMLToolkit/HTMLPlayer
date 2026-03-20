@@ -122,6 +122,19 @@ export const albumArtStorage = {
   clearCache(): void {
     albumArtCache.clear();
   },
+
+  has(songId: string): boolean {
+    return albumArtCache.has(songId);
+  },
+
+  get(songId: string): string | undefined {
+    return albumArtCache.get(songId);
+  },
+
+  set(songId: string, albumArt: string): void {
+    evictCache();
+    albumArtCache.set(songId, albumArt);
+  },
 };
 
 function evictCache() {
