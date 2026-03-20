@@ -343,3 +343,15 @@ export function parseKeyEvent(event: KeyboardEvent): Partial<KeyboardShortcut> {
     shiftKey: event.shiftKey || undefined,
   };
 }
+
+export function matchesShortcut(
+  event: KeyboardEvent,
+  shortcut: KeyboardShortcut,
+): boolean {
+  return (
+    event.key === shortcut.key &&
+    (shortcut.ctrlKey || false) === event.ctrlKey &&
+    (shortcut.altKey || false) === event.altKey &&
+    (shortcut.shiftKey || false) === event.shiftKey
+  );
+}

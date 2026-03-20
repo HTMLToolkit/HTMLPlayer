@@ -13,11 +13,9 @@ import { PlayerRef } from "./components/player/Player";
 import { NavigationProvider, useNavigation } from "./navigation";
 import { useDragHandler } from "./hooks/useDragHandler";
 import { useKeyboardShortcuts } from "../hooks/useKeyboardShortcuts";
-import {
-  useFileHandler,
-  useShareTarget,
-  clearHandledShares,
-} from "../hooks/useFilePicker";
+import { useFileHandler } from "../hooks/useFileHandler";
+import { useShareTarget } from "../hooks/useShareTarget";
+import { clearHandledShares } from "../platform/integrations/shareTarget";
 import { importAudioFiles } from "../helpers/importAudioFiles";
 import {
   switchToAutoMode,
