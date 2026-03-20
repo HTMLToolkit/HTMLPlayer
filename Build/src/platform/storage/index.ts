@@ -2,6 +2,10 @@ import { BaseStorageBackend, PlatformType } from "./base";
 import { WebStorageBackend } from "./webStorage";
 import { DesktopStorageBackend } from "./desktopStorage";
 
+export { albumArtStorage } from "./albumArt";
+export { dialogStorage } from "./dialogs";
+export { audioStorage, type AudioData } from "./audio";
+
 export function detectPlatform(): PlatformType {
   const ua = navigator.userAgent;
   if (/Electron|Tauri/.test(ua)) return "desktop";

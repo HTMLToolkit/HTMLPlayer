@@ -20,7 +20,7 @@ import {
 import { AddToPopover } from "./AddToPopover";
 import { useTranslation } from "react-i18next";
 import { Icon } from "./Icon";
-import { musicIndexedDbHelper } from "../../../helpers/musicIndexedDbHelper";
+import { dialogStorage } from "../../../platform/storage";
 
 interface SongActionsDropdownProps {
   song: Song;
@@ -297,7 +297,7 @@ export const SongActionsDropdown = ({
 
   const handleDeleteSong = async () => {
     // Check if user has chosen not to show delete confirmation
-    const shouldShow = await musicIndexedDbHelper.shouldShowDialog(
+    const shouldShow = await dialogStorage.shouldShow(
       "delete-song-confirmation",
     );
     if (!shouldShow) {

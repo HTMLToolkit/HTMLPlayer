@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import modalStyles from "./Dialog.module.css";
 import { Icon } from "../shared/Icon";
 import { Checkbox } from "./Checkbox";
-import { musicIndexedDbHelper } from "../../../helpers/musicIndexedDbHelper";
+import { dialogStorage } from "../../../platform/storage";
 
 const ModalComponent = ModalPrimitive.Root;
 const ModalActivator = ModalPrimitive.Trigger;
@@ -63,11 +63,7 @@ const ModalContainer = forwardRef<
                   const checked = e.target.checked;
                   setDontShowAgain(checked);
                   if (checked && dontShowAgainKey) {
-                    // Import here to avoid circular dependency
-                    musicIndexedDbHelper.setDialogPreference(
-                      dontShowAgainKey,
-                      true,
-                    );
+                    dialogStorage.setPreference(dontShowAgainKey, true);
                   }
                 }}
               />

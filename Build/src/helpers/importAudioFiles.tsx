@@ -1,6 +1,6 @@
 import { toast } from "sonner";
 import { createMetadataExtractor, createFloMetadataExtractor, compressAlbumArt, generateUniqueId } from "../platform/metadata";
-import { musicIndexedDbHelper } from "./musicIndexedDbHelper";
+import { albumArtStorage } from "../platform/storage";
 import { setAlbumArtInCache } from "../hooks/useAlbumArt";
 import type { ExtractedMetadata } from "../platform/metadata";
 import type { Track } from "../core/engine/types";
@@ -79,7 +79,7 @@ export async function importAudioFiles(
 
             if (isSafari) {
               // Safari: Pre-decode to WAV for compatibility
-              const { decodeFloToWav } = await import("./refloWavHelper");
+              const { decodeFloToWav } = await import("../platform/audio/floWavDecoder");
               const wavBytes = await decodeFloToWav(arrayBuffer);
               const wavArray = new Uint8Array(wavBytes);
               const wavBlob = new Blob([wavArray], { type: "audio/wav" });
@@ -147,7 +147,7 @@ export async function importAudioFiles(
         // Save album art separately if present
         const hasAlbumArt = !!compressedArt;
         if (hasAlbumArt && compressedArt) {
-          await musicIndexedDbHelper.saveAlbumArt(songId, compressedArt);
+          await albumArtStorage.save(songId, compressedArt);
           setAlbumArtInCache(songId, compressedArt);
         }
 

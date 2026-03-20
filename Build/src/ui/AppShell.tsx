@@ -13,7 +13,6 @@ import { PlayerRef } from "./components/player/Player";
 import { NavigationProvider, useNavigation } from "./navigation";
 import { useDragHandler } from "./hooks/useDragHandler";
 import { useKeyboardShortcuts } from "../hooks/useKeyboardShortcuts";
-import { musicIndexedDbHelper } from "../helpers/musicIndexedDbHelper";
 import { useFileHandler, useShareTarget, clearHandledShares } from "../hooks/useFilePicker";
 import { importAudioFiles } from "../helpers/importAudioFiles";
 import {
@@ -99,9 +98,8 @@ function AppShellContent({ komorebi }: AppShellProps) {
       document.head.appendChild(meta);
     }
 
-    const loadThemeMode = async () => {
-      const settings = await musicIndexedDbHelper.loadSettings();
-      const mode = settings?.themeMode || "auto";
+    const loadThemeMode = () => {
+      const mode = komorebi.settings.getSettings().themeMode;
       setThemeMode(mode);
       switch (mode) {
         case "light": switchToLightMode(); break;

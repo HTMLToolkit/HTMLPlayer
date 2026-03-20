@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { musicIndexedDbHelper } from "../helpers/musicIndexedDbHelper";
+import { albumArtStorage } from "../platform/storage";
 
 // Cache to store loaded album arts in memory
 const loadedAlbumArts = new Map<string, string>();
@@ -15,7 +15,6 @@ export function useAlbumArt(
   hasAlbumArt: boolean = false,
 ): string | undefined {
   const [albumArt, setAlbumArt] = useState<string | undefined>(() => {
-    // Check cache immediately for initial render
     if (songId && loadedAlbumArts.has(songId)) {
       return loadedAlbumArts.get(songId);
     }
@@ -28,13 +27,11 @@ export function useAlbumArt(
       return;
     }
 
-    // Check memory cache first
     if (loadedAlbumArts.has(songId)) {
       setAlbumArt(loadedAlbumArts.get(songId));
       return;
     }
 
-    // Check if already loading
     if (pendingLoads.has(songId)) {
       pendingLoads.get(songId)!.then((art) => {
         if (art) setAlbumArt(art);
@@ -42,8 +39,7 @@ export function useAlbumArt(
       return;
     }
 
-    // Start loading
-    const loadPromise = musicIndexedDbHelper.loadAlbumArt(songId);
+    const loadPromise = albumArtStorage.load(songId);
     pendingLoads.set(songId, loadPromise);
 
     loadPromise
@@ -74,7 +70,6 @@ export function useAlbumArtBatch(
   useEffect(() => {
     if (songs.length === 0) return;
 
-    // Find songs that need loading
     const toLoad = songs.filter(
       (song) =>
         song.hasAlbumArt &&
@@ -83,7 +78,6 @@ export function useAlbumArtBatch(
     );
 
     if (toLoad.length === 0) {
-      // All already cached, update state if needed
       const cached = new Map<string, string>();
       for (const song of songs) {
         if (loadedAlbumArts.has(song.id)) {
@@ -96,19 +90,15 @@ export function useAlbumArtBatch(
       return;
     }
 
-    // Mark as loading to prevent duplicate requests
     toLoad.forEach((song) => loadedRef.current.add(song.id));
 
-    // Batch load
-    musicIndexedDbHelper
-      .loadAlbumArtBatch(toLoad.map((s) => s.id))
+    albumArtStorage
+      .loadBatch(toLoad.map((s) => s.id))
       .then((loaded) => {
-        // Update memory cache
         loaded.forEach((art, songId) => {
           loadedAlbumArts.set(songId, art);
         });
 
-        // Update state with all cached arts
         const allArts = new Map<string, string>();
         for (const song of songs) {
           if (loadedAlbumArts.has(song.id)) {
@@ -137,7 +127,7 @@ export async function preloadAlbumArt(songIds: string[]): Promise<void> {
   const toLoad = songIds.filter((id) => !loadedAlbumArts.has(id));
   if (toLoad.length === 0) return;
 
-  const loaded = await musicIndexedDbHelper.loadAlbumArtBatch(toLoad);
+  const loaded = await albumArtStorage.loadBatch(toLoad);
   loaded.forEach((art, songId) => {
     loadedAlbumArts.set(songId, art);
   });
@@ -149,7 +139,7 @@ export async function preloadAlbumArt(songIds: string[]): Promise<void> {
  */
 export function clearAlbumArtCache(): void {
   loadedAlbumArts.clear();
-  musicIndexedDbHelper.clearAlbumArtCache();
+  albumArtStorage.clearCache();
 }
 
 /**

@@ -27,7 +27,7 @@ import PersistentDropdownMenu, {
 import { AddToPopover } from "../shared/AddToPopover";
 import { useTranslation } from "react-i18next";
 import { Icon } from "../shared/Icon";
-import { musicIndexedDbHelper } from "../../../helpers/musicIndexedDbHelper";
+import { dialogStorage } from "../../../platform/storage";
 import { importAudioFiles } from "../../../helpers/importAudioFiles";
 import { Home } from "../features/Home";
 import { useAlbumArt } from "../../../hooks/useAlbumArt";
@@ -382,7 +382,7 @@ export const MainContent = ({
     }
 
     // Check if user has chosen not to show delete confirmation
-    const shouldShow = await musicIndexedDbHelper.shouldShowDialog(
+    const shouldShow = await dialogStorage.shouldShow(
       "delete-song-confirmation",
     );
     if (!shouldShow) {

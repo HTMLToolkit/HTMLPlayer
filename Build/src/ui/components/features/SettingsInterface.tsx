@@ -6,7 +6,7 @@ import { ThemeModeSwitch } from "../shared/ThemeModeSwitch";
 import { Icon } from "../shared/Icon";
 import { usePalette, useIconSet, useWallpaper } from "../../theming/hooks";
 import { languageNames } from "../../../types/supportedLanguages";
-import { resetAllDialogPreferences } from "../../../helpers/musicIndexedDbHelper";
+import { dialogStorage } from "../../../platform/storage";
 import { toast } from "sonner";
 import { useState } from "react";
 import {
@@ -260,7 +260,7 @@ export function SettingsInterface({ settings, settingsState }: SettingsInterface
                 onClick={async () => {
                   setDialogResetLoading(true);
                   try {
-                    await resetAllDialogPreferences();
+                    await dialogStorage.resetAll();
                     toast.success(t("settings.resetDialogsSuccess"));
                     setDialogResetOpen(false);
                   } catch (e: any) {

@@ -11,7 +11,7 @@ import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { DropZone, DraggableItem } from "../primitives/Draggable";
 import styles from "./Playlist.module.css";
-import { generatePlaylistImage } from "../../../helpers/playlistImageHelper";
+import { generatePlaylistImage } from "../../../platform/utils/image";
 import modalStyles from "../primitives/Dialog.module.css";
 import { Button } from "../primitives/Button";
 import { Input } from "../primitives/Input";
@@ -38,7 +38,7 @@ import {
 } from "../primitives/DropdownMenu";
 import { ScrollText } from "../shared/ScrollText";
 import { Icon } from "../shared/Icon";
-import { musicIndexedDbHelper } from "../../../helpers/musicIndexedDbHelper";
+import { dialogStorage } from "../../../platform/storage";
 import { useNavigation } from "../../navigation";
 import type { UseKomorebiReturn } from "../../../hooks/useKomorebi";
 import type { Playlist, PlaylistFolder } from "../../../core/engine/types";
@@ -299,7 +299,7 @@ export const PlaylistComponent = ({ komorebi }: PlaylistProps) => {
 
   const handleDeletePlaylist = async (playlist: Playlist) => {
     // Check if user has chosen not to show delete confirmation
-    const shouldShow = await musicIndexedDbHelper.shouldShowDialog(
+    const shouldShow = await dialogStorage.shouldShow(
       "delete-playlist-confirmation",
     );
     if (!shouldShow) {
@@ -748,7 +748,7 @@ export const PlaylistComponent = ({ komorebi }: PlaylistProps) => {
                   onClick={async () => {
                     // Check if user has chosen not to show delete confirmation
                     const shouldShow =
-                      await musicIndexedDbHelper.shouldShowDialog(
+                      await dialogStorage.shouldShow(
                         "delete-playlist-confirmation",
                       );
                     if (!shouldShow) {
