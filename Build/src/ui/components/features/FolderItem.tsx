@@ -1,14 +1,14 @@
 import React, { memo } from "react";
 import { useTranslation } from "react-i18next";
-import { DropZone, DraggableItem } from "../../primitives/Draggable";
-import { Button } from "../../primitives/Button";
-import { Icon } from "../../shared/Icon";
-import { ScrollText } from "../../shared/ScrollText";
-import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "../../primitives/Collapsible";
-import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator } from "../../primitives/DropdownMenu";
-import { useRightClickMenu } from "../../primitives/DropdownMenu";
+import { DropZone, DraggableItem } from "../primitives/Draggable";
+import { Button } from "../primitives/Button";
+import { Icon } from "../shared/Icon";
+import { ScrollText } from "../shared/ScrollText";
+import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "../primitives/Collapsible";
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator } from "../primitives/DropdownMenu";
+import { useRightClickMenu } from "../primitives/DropdownMenu";
 import styles from "./Playlist.module.css";
-import type { PlaylistFolder, Playlist } from "../../../../core/engine/types";
+import type { PlaylistFolder, Playlist } from "../../../core/engine/types";
 
 interface FolderItemProps {
   item: PlaylistFolder;

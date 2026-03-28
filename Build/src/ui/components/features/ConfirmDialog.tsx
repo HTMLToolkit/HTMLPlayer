@@ -1,10 +1,10 @@
 import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "../../primitives/Dialog";
-import { Button } from "../../primitives/Button";
-import { Input } from "../../primitives/Input";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "../primitives/Dialog";
+import { Button } from "../primitives/Button";
+import { Input } from "../primitives/Input";
 import modalStyles from "../../primitives/Dialog.module.css";
-import type { Playlist, PlaylistFolder } from "../../../../core/engine/types";
+import type { Playlist, PlaylistFolder } from "../../../core/engine/types";
 
 export type DialogType = "createPlaylist" | "createFolder" | "delete" | "rename" | "move" | "confirm";
 

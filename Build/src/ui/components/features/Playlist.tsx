@@ -1,16 +1,16 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef, memo } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { Button } from "../../primitives/Button";
-import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator } from "../../primitives/DropdownMenu";
-import { Icon } from "../../shared/Icon";
-import { generatePlaylistImage } from "../../../../platform/utils/playlistImage";
-import { flattenPlaylists } from "../../../../platform/library";
+import { Button } from "../primitives/Button";
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator } from "../primitives/DropdownMenu";
+import { Icon } from "../shared/Icon";
+import { generatePlaylistImage } from "../../../platform/utils/playlistImage";
+import { flattenPlaylists } from "../../../platform/library";
 import { PlaylistItem } from "./PlaylistItem";
 import { FolderItem } from "./FolderItem";
 import { ConfirmDialog, type DialogType } from "./ConfirmDialog";
-import type { UseKomorebiReturn } from "../../../../hooks/useKomorebi";
-import type { Playlist, PlaylistFolder } from "../../../../core/engine/types";
+import type { UseKomorebiReturn } from "../../../hooks/useKomorebi";
+import type { Playlist, PlaylistFolder } from "../../../core/engine/types";
 import styles from "./Playlist.module.css";
 
 interface PlaylistViewProps {
