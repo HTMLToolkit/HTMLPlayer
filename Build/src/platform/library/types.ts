@@ -1,4 +1,9 @@
-import type { Track, Playlist, PlaylistItem, PlaylistFolder } from "../../core/engine/types";
+import type {
+  Track,
+  Playlist,
+  PlaylistItem,
+  PlaylistFolder,
+} from "../../core/engine/types";
 
 export interface LibraryState {
   songs: Track[];

@@ -1,12 +1,25 @@
 import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "../primitives/Dialog";
-import { Button } from "../primitives/Button";
-import { Input } from "../primitives/Input";
-import modalStyles from "../../primitives/Dialog.module.css";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "./Dialog";
+import { Button } from "./Button";
+import { Input } from "./Input";
+import modalStyles from "./Dialog.module.css";
 import type { Playlist, PlaylistFolder } from "../../../core/engine/types";
 
-export type DialogType = "createPlaylist" | "createFolder" | "delete" | "rename" | "move" | "confirm";
+export type DialogType =
+  | "createPlaylist"
+  | "createFolder"
+  | "delete"
+  | "rename"
+  | "move"
+  | "confirm";
 
 interface ConfirmDialogProps {
   type: DialogType;
@@ -59,8 +72,14 @@ export function ConfirmDialog({
   const titles: Record<DialogType, string> = {
     createPlaylist: t("playlist.createPlaylist"),
     createFolder: t("playlist.createFolder"),
-    delete: item && "songs" in item ? t("playlist.deletePlaylist") : t("playlist.deleteFolder"),
-    rename: item && "songs" in item ? t("playlist.renamePlaylist") : t("playlist.renameFolder"),
+    delete:
+      item && "songs" in item
+        ? t("playlist.deletePlaylist")
+        : t("playlist.deleteFolder"),
+    rename:
+      item && "songs" in item
+        ? t("playlist.renamePlaylist")
+        : t("playlist.renameFolder"),
     move: t("playlist.moveToFolder"),
     confirm: t("common.confirm"),
   };
@@ -76,18 +95,30 @@ export function ConfirmDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent dontShowAgainKey={type === "delete" ? "delete-playlist-confirmation" : undefined}>
+      <DialogContent
+        dontShowAgainKey={
+          type === "delete" ? "delete-playlist-confirmation" : undefined
+        }
+      >
         <DialogHeader>
           <DialogTitle>{titles[type]}</DialogTitle>
           <DialogDescription>{descriptions[type]}</DialogDescription>
         </DialogHeader>
 
-        {(type === "createPlaylist" || type === "createFolder" || type === "rename") && (
+        {(type === "createPlaylist" ||
+          type === "createFolder" ||
+          type === "rename") && (
           <div style={{ margin: "var(--spacing-4) 0" }}>
             <Input
-              placeholder={type === "createPlaylist" ? t("playlist.enterPlaylistName") : t("playlist.folderName")}
+              placeholder={
+                type === "createPlaylist"
+                  ? t("playlist.enterPlaylistName")
+                  : t("playlist.folderName")
+              }
               value={value}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setValue(e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                setValue(e.target.value)
+              }
               onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
                 if (e.key === "Enter" && value.trim()) handleConfirm();
               }}
@@ -119,7 +150,9 @@ export function ConfirmDialog({
                   onOpenChange(false);
                 }}
               >
-                {path.length > 0 ? `${path.join(" / ")} / ${folder.name}` : folder.name}
+                {path.length > 0
+                  ? `${path.join(" / ")} / ${folder.name}`
+                  : folder.name}
               </Button>
             ))}
           </div>
@@ -135,7 +168,11 @@ export function ConfirmDialog({
               disabled={type !== "delete" && !value.trim()}
               variant={type === "delete" ? "destructive" : "primary"}
             >
-              {type === "delete" ? t("common.delete") : type === "rename" ? t("common.save") : t("common.create")}
+              {type === "delete"
+                ? t("common.delete")
+                : type === "rename"
+                  ? t("common.save")
+                  : t("common.create")}
             </Button>
           </DialogFooter>
         )}

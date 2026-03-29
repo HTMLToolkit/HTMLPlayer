@@ -1,6 +1,10 @@
 import { BaseMetadataExtractor } from "./base";
 import type { ExtractedMetadata, MetadataExtractor } from "./base";
-import type { EmbeddedLyrics, EncodingDetails, GaplessInfo } from "../../core/engine/types";
+import type {
+  EmbeddedLyrics,
+  EncodingDetails,
+  GaplessInfo,
+} from "../../core/engine/types";
 
 export class MusicMetadataExtractor extends BaseMetadataExtractor {
   async extractMetadata(file: File | Blob): Promise<ExtractedMetadata> {

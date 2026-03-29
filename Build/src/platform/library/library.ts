@@ -276,7 +276,9 @@ export class LibraryManager implements LibraryActions {
   }
 }
 
-export function flattenPlaylists(items: (Playlist | PlaylistFolder)[]): Playlist[] {
+export function flattenPlaylists(
+  items: (Playlist | PlaylistFolder)[],
+): Playlist[] {
   const result: Playlist[] = [];
   for (const item of items) {
     if ("songs" in item) {

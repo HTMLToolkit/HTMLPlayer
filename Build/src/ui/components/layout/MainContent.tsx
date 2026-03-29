@@ -7,23 +7,11 @@ import {
 } from "../primitives/Draggable";
 import { SongActionsDropdown } from "../shared/SongActionsDropdown";
 import { Checkbox } from "../primitives/Checkbox";
+import { Button } from "../primitives/Button";
 import { useRightClickMenu } from "../primitives/DropdownMenu";
 import { pickAudioFiles } from "../../../hooks/useFilePicker";
 import { toast } from "sonner";
-import { Button } from "../primitives/Button";
-import { Input } from "../primitives/Input";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from "../primitives/Dialog";
 import styles from "./MainContent.module.css";
-import PersistentDropdownMenu, {
-  PersistentDropdownMenuRef,
-} from "../primitives/PersistentDropdownMenu";
 import { AddToPopover } from "../shared/AddToPopover";
 import { useTranslation } from "react-i18next";
 import { Icon } from "../shared/Icon";
@@ -32,8 +20,10 @@ import { importAudioFiles } from "../../../helpers/importAudioFiles";
 import { Home } from "../features/Home";
 import { useAlbumArt } from "../../../hooks/useAlbumArt";
 import { useNavigation } from "../../navigation";
+import { MainContentHeader } from "./MainContentHeader";
 import type { Track, Playlist } from "../../../core/engine/types";
 import type { UseKomorebiReturn } from "../../../hooks/useKomorebi";
+import type { PersistentDropdownMenuRef } from "../primitives/PersistentDropdownMenu";
 
 interface SortableSongItemProps {
   song: Track;
@@ -421,11 +411,6 @@ export const MainContent = ({
     }
   };
 
-  const handleDeleteCancel = () => {
-    setShowDeleteConfirm(false);
-    setSongToDelete(null);
-  };
-
   // Helper to import audio files (used for both manual and share target)
   const handleImportAudioFiles = async (
     audioFiles: Array<{ file: File } | File>,
@@ -457,11 +442,6 @@ export const MainContent = ({
   const handleSelectSongsToggle = () => {
     setIsSelectSongsActive((prev) => !prev);
     setSelectedSongs([]);
-  };
-
-  const handleSelectAll = () => {
-    if (selectedSongs.length === sortedSongs.length) setSelectedSongs([]);
-    else setSelectedSongs(sortedSongs.map((song) => song.id));
   };
 
   const handleAddToPlaylist = () => setShowPlaylistDialog(true);
@@ -504,234 +484,32 @@ export const MainContent = ({
 
   return (
     <div className={styles.mainContentWrapper}>
-      {/* Header */}
-      <div className={styles.header}>
-        <div className={styles.titleArea}>
-          <Button
-            variant="ghost"
-            size="icon-md"
-            className={styles.mobileMenuButton}
-            onClick={onMobileMenuClick}
-            aria-label={t("menu")}
-          >
-            <Icon name="menu" size={24} decorative />
-          </Button>
-          {navState.view === "home" ? (
-            <h1 className={styles.title}>HTMLPlayer</h1>
-          ) : navState.view === "songs" ? (
-            <h1 className={styles.title}>HTMLPlayer</h1>
-          ) : navState.view === "artist" ? (
-            <>
-              <Button
-                variant="link"
-                onClick={goToSongs}
-                className={styles.backLink}
-              >
-                {t("actions.back")}
-              </Button>
-              <h1
-                className={styles.title}
-              >{`${t("common.artist")}: ${navState.artist}`}</h1>
-            </>
-          ) : navState.view === "album" ? (
-            <>
-              <Button
-                variant="link"
-                onClick={goToSongs}
-                className={styles.backLink}
-              >
-                {t("actions.back")}
-              </Button>
-              <h1
-                className={styles.title}
-              >{`${t("common.album")}: ${navState.album}`}</h1>
-            </>
-          ) : null}
-          <div className={styles.mobileOnly} style={{ marginLeft: "auto" }}>
-            {viewSwitcher}
-          </div>
-        </div>
-        {isHomeView && (
-          <div className={`${styles.desktopOnly} ${styles.viewSwitcherRow}`}>
-            {viewSwitcher}
-          </div>
-        )}
-        {!isHomeView && (
-          <div className={styles.actions}>
-            <div className={styles.searchWrapper}>
-              <Icon
-                name="search"
-                className={styles.searchIcon}
-                size={16}
-                decorative
-              />
-              <Input
-                placeholder={t("search.placeholder")}
-                className={styles.searchInput}
-                value={songSearchQuery}
-                onChange={(e: any) => handleSongSearch(e.target.value)}
-                data-tour="search"
-              />
-            </div>
-            <div className={styles.buttonGroup}>
-              <Button
-                variant="outline"
-                size="icon-md"
-                className={styles.actionButton}
-                onClick={handleDeleteSong}
-                aria-label={t("actions.delete")}
-              >
-                <Icon name="trash2" size={16} decorative />
-              </Button>
-              <PersistentDropdownMenu
-                ref={sortDropdownRef}
-                trigger={
-                  <Button
-                    variant="outline"
-                    size="icon-md"
-                    className={styles.actionButton}
-                    aria-label={t("sort.sortBy")}
-                  >
-                    <Icon name="arrowUpDown" size={16} decorative />
-                  </Button>
-                }
-                onClose={() => {}}
-              >
-                <Button
-                  variant="ghost"
-                  onClick={() => setSortBy("name")}
-                  className="w-full justify-start text-sm"
-                >
-                  <Icon name="type" size={16} className="mr-2" decorative />
-                  {t("sort.name")}
-                  {sortBy === "name" && <span className="ml-auto">•</span>}
-                </Button>
-                <Button
-                  variant="ghost"
-                  onClick={() => setSortBy("artist")}
-                  className="w-full justify-start text-sm"
-                >
-                  <Icon name="user" size={16} className="mr-2" decorative />
-                  {t("sort.artist")}
-                  {sortBy === "artist" && <span className="ml-auto">•</span>}
-                </Button>
-                <Button
-                  variant="ghost"
-                  onClick={() => setSortBy("album")}
-                  className="w-full justify-start text-sm"
-                >
-                  <Icon name="disc" size={16} className="mr-2" decorative />
-                  {t("sort.album")}
-                  {sortBy === "album" && <span className="ml-auto">•</span>}
-                </Button>
-                <Button
-                  variant="ghost"
-                  onClick={() => setSortBy("rating")}
-                  className="w-full justify-start text-sm"
-                >
-                  <Icon name="star" size={16} className="mr-2" decorative />
-                  {t("sort.rating")}
-                  {sortBy === "rating" && <span className="ml-auto">•</span>}
-                </Button>
-                <div className="border-t my-1"></div>
-                <Button
-                  variant="ghost"
-                  onClick={() =>
-                    setSortOrder(sortOrder === "asc" ? "desc" : "asc")
-                  }
-                  className="w-full justify-start text-sm"
-                >
-                  {sortOrder === "asc" ? (
-                    <Icon
-                      name="arrowUp"
-                      size={16}
-                      className="mr-2"
-                      decorative
-                    />
-                  ) : (
-                    <Icon
-                      name="arrowDown"
-                      size={16}
-                      className="mr-2"
-                      decorative
-                    />
-                  )}
-                  {sortOrder === "asc"
-                    ? t("sort.ascending")
-                    : t("sort.descending")}
-                </Button>
-                <div className="border-t my-1"></div>
-                <Button
-                  variant="ghost"
-                  onClick={() => {
-                    setSortBy(null);
-                    sortDropdownRef.current?.close();
-                  }}
-                  className="w-full justify-start text-sm"
-                >
-                  <Icon name="close" size={16} className="mr-2" decorative />
-                  {t("sort.clear")}
-                </Button>
-              </PersistentDropdownMenu>
-              <PersistentDropdownMenu
-                trigger={
-                  <Button
-                    variant="outline"
-                    size="icon-md"
-                    className={styles.actionButton}
-                    onClick={handleSelectSongsToggle}
-                    aria-label={t("actions.selectSongs")}
-                  >
-                    <Icon name="listChecks" size={16} decorative />
-                  </Button>
-                }
-                onClose={() => handleSelectSongsToggle()}
-              >
-                <Button variant="ghost" onClick={handleSelectAll}>
-                  <Icon
-                    name="listChecks"
-                    size={16}
-                    style={{ marginRight: 8 }}
-                    decorative
-                  />
-                  {selectedSongs.length === sortedSongs.length
-                    ? t("actions.deselectAll")
-                    : t("actions.selectAll")}
-                </Button>
-                <Button variant="ghost" onClick={handleAddToPlaylist}>
-                  <Icon
-                    name="plus"
-                    size={16}
-                    style={{ marginRight: 8 }}
-                    decorative
-                  />
-                  {t("playlist.addTo")}
-                </Button>
-                <Button variant="ghost" onClick={handleDeleteSelectedSongs}>
-                  <Icon
-                    name="trash2"
-                    size={16}
-                    style={{ marginRight: 8 }}
-                    decorative
-                  />
-                  {t("common.delete")}
-                </Button>
-              </PersistentDropdownMenu>
-              <Button
-                variant="outline"
-                size="icon-md"
-                className={styles.actionButton}
-                onClick={handleAddMusic}
-                aria-label={t("actions.addMusic")}
-                data-tour="upload-music"
-              >
-                <Icon name="plus" size={16} decorative />
-              </Button>
-              <div className={styles.desktopOnly}>{viewSwitcher}</div>
-            </div>
-          </div>
-        )}
-      </div>
+      <MainContentHeader
+        navState={navState}
+        songSearchQuery={songSearchQuery}
+        onSearchChange={handleSongSearch}
+        sortBy={sortBy}
+        sortOrder={sortOrder}
+        onSortByChange={setSortBy}
+        onSortOrderChange={setSortOrder}
+        selectedSongs={selectedSongs}
+        sortedSongsCount={sortedSongs.length}
+        onToggleSelect={handleSelectSongsToggle}
+        onAddToPlaylist={handleAddToPlaylist}
+        onDeleteSelected={handleDeleteSelectedSongs}
+        onDeleteSong={handleDeleteSong}
+        onAddMusic={handleAddMusic}
+        onMobileMenuClick={onMobileMenuClick ?? (() => {})}
+        onBackClick={goToSongs}
+        sortDropdownRef={sortDropdownRef}
+        songToDelete={songToDelete}
+        showDeleteConfirm={showDeleteConfirm}
+        onDeleteConfirm={handleDeleteConfirm}
+        onDeleteConfirmOpenChange={setShowDeleteConfirm}
+        t={t}
+        isHomeView={isHomeView}
+        viewSwitcher={viewSwitcher}
+      />
 
       {/* Main content */}
       {isHomeView ? (
@@ -789,26 +567,6 @@ export const MainContent = ({
           </div>
         </div>
       )}
-
-      {/* Delete Modal */}
-      <Dialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
-        <DialogContent dontShowAgainKey="delete-song-confirmation">
-          <DialogHeader>
-            <DialogTitle>{t("delete.songTitle")}</DialogTitle>
-            <DialogDescription>
-              {t("delete.confirm", { title: songToDelete?.title })}
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button variant="outline" onClick={handleDeleteCancel}>
-              {t("common.cancel")}
-            </Button>
-            <Button variant="destructive" onClick={handleDeleteConfirm}>
-              {t("common.delete")}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
 
       {/* Add To Popover */}
       <AddToPopover

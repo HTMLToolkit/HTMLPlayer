@@ -22,7 +22,9 @@ export const audioStorage = {
         store.put({ ...result, lastAccessed: Date.now() });
       }
 
-      return result ? { fileData: result.fileData, mimeType: result.mimeType } : null;
+      return result
+        ? { fileData: result.fileData, mimeType: result.mimeType }
+        : null;
     } catch (error) {
       console.error(`Failed to load audio data for song ${songId}:`, error);
       return null;

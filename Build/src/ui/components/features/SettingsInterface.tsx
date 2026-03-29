@@ -12,17 +12,10 @@ import { ThemeModeSwitch } from "../shared/ThemeModeSwitch";
 import { Icon } from "../shared/Icon";
 import { usePalette, useIconSet, useWallpaper } from "../../theming/hooks";
 import { languageNames } from "../../../types/supportedLanguages";
-import { dialogStorage, clearAllCaches } from "../../../platform/storage";
+import { clearAllCaches } from "../../../platform/storage";
 import { toast } from "sonner";
 import { useState } from "react";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "../primitives/Dialog";
+import { ResetDialogsDialog } from "../primitives/ResetDialogsDialog";
 import styles from "./Settings.module.css";
 import type { SettingsManager } from "../../../platform/settings/settings";
 
@@ -40,8 +33,7 @@ export function SettingsInterface({
   const { iconSets, currentIconSet, setIconSet } = useIconSet();
   const { wallpapers, setWallpaper } = useWallpaper();
 
-  const [dialogResetOpen, setDialogResetOpen] = useState(false);
-  const [dialogResetLoading, setDialogResetLoading] = useState(false);
+  const [resetDialogOpen, setResetDialogOpen] = useState(false);
 
   let languages: string[] = [];
   if (Array.isArray(i18n.options.supportedLngs)) {
@@ -286,48 +278,15 @@ export function SettingsInterface({
         <Button
           variant="outline"
           size="sm"
-          onClick={() => setDialogResetOpen(true)}
+          onClick={() => setResetDialogOpen(true)}
         >
           <Icon name="rotateCcw" size={16} decorative />
           {t("settings.resetDialogsButton")}
         </Button>
-        <Dialog open={dialogResetOpen} onOpenChange={setDialogResetOpen}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>{t("settings.resetDialogsTitle")}</DialogTitle>
-              <DialogDescription>
-                {t("settings.resetDialogsDescription")}
-              </DialogDescription>
-            </DialogHeader>
-            <DialogFooter>
-              <Button
-                variant="outline"
-                onClick={() => setDialogResetOpen(false)}
-                disabled={dialogResetLoading}
-              >
-                {t("common.cancel")}
-              </Button>
-              <Button
-                onClick={async () => {
-                  setDialogResetLoading(true);
-                  try {
-                    await dialogStorage.resetAll();
-                    toast.success(t("settings.resetDialogsSuccess"));
-                    setDialogResetOpen(false);
-                  } catch (e: any) {
-                    toast.error(e?.message || t("settings.resetError"));
-                  } finally {
-                    setDialogResetLoading(false);
-                  }
-                }}
-                disabled={dialogResetLoading}
-                variant="destructive"
-              >
-                {dialogResetLoading ? t("common.loading") : t("common.reset")}
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+        <ResetDialogsDialog
+          open={resetDialogOpen}
+          onOpenChange={setResetDialogOpen}
+        />
       </div>
     </section>
   );

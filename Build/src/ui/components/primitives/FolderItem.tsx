@@ -1,13 +1,23 @@
 import React, { memo } from "react";
 import { useTranslation } from "react-i18next";
-import { DropZone, DraggableItem } from "../primitives/Draggable";
-import { Button } from "../primitives/Button";
+import { DropZone, DraggableItem } from "./Draggable";
+import { Button } from "./Button";
 import { Icon } from "../shared/Icon";
 import { ScrollText } from "../shared/ScrollText";
-import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "../primitives/Collapsible";
-import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator } from "../primitives/DropdownMenu";
-import { useRightClickMenu } from "../primitives/DropdownMenu";
-import styles from "./Playlist.module.css";
+import {
+  Collapsible,
+  CollapsibleTrigger,
+  CollapsibleContent,
+} from "./Collapsible";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+} from "./DropdownMenu";
+import { useRightClickMenu } from "./DropdownMenu";
+import styles from "../features/Playlist.module.css";
 import type { PlaylistFolder, Playlist } from "../../../core/engine/types";
 
 interface FolderItemProps {
@@ -19,7 +29,10 @@ interface FolderItemProps {
   onMoveToFolder: () => void;
   onMoveToRoot: () => void;
   onDelete: () => void;
-  renderPlaylistItem: (item: Playlist | PlaylistFolder, depth: number) => React.ReactElement | null;
+  renderPlaylistItem: (
+    item: Playlist | PlaylistFolder,
+    depth: number,
+  ) => React.ReactElement | null;
 }
 
 export const FolderItem = memo(function FolderItem({
@@ -46,9 +59,17 @@ export const FolderItem = memo(function FolderItem({
       >
         <div className={styles.playlistItemMain}>
           <DraggableItem id={item.id} type="folder" data={item}>
-            <DropZone id={item.id} type="folder" data={item} className={styles.playlistDropZone}>
+            <DropZone
+              id={item.id}
+              type="folder"
+              data={item}
+              className={styles.playlistDropZone}
+            >
               <CollapsibleTrigger asChild>
-                <button className={`${styles.playlistItem} ${styles.folderItem}`} style={{ width: "100%" }}>
+                <button
+                  className={`${styles.playlistItem} ${styles.folderItem}`}
+                  style={{ width: "100%" }}
+                >
                   <Icon
                     name="chevronDown"
                     size={16}
@@ -67,7 +88,9 @@ export const FolderItem = memo(function FolderItem({
                       allowHTML={false}
                     />
                   </div>
-                  <span className={styles.songCount}>{item.children.length}</span>
+                  <span className={styles.songCount}>
+                    {item.children.length}
+                  </span>
                 </button>
               </CollapsibleTrigger>
             </DropZone>
@@ -76,27 +99,55 @@ export const FolderItem = memo(function FolderItem({
 
         <DropdownMenu open={open} onOpenChange={setOpen}>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon-sm" className={styles.moreButton} title={t("moreOptions")}>
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              className={styles.moreButton}
+              title={t("moreOptions")}
+            >
               <Icon name="moreHorizontal" size={16} decorative />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" sideOffset={8}>
             <DropdownMenuItem onClick={onRename}>
-              <Icon name="edit" size={16} style={{ marginRight: 8 }} decorative />
+              <Icon
+                name="edit"
+                size={16}
+                style={{ marginRight: 8 }}
+                decorative
+              />
               {t("playlist.renameFolder")}
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={onMoveToFolder}>
-              <Icon name="folder" size={16} style={{ marginRight: 8 }} decorative />
+              <Icon
+                name="folder"
+                size={16}
+                style={{ marginRight: 8 }}
+                decorative
+              />
               {t("playlist.moveToFolder")}
             </DropdownMenuItem>
             <DropdownMenuItem onClick={onMoveToRoot}>
-              <Icon name="folderOpen" size={16} style={{ marginRight: 8 }} decorative />
+              <Icon
+                name="folderOpen"
+                size={16}
+                style={{ marginRight: 8 }}
+                decorative
+              />
               {t("playlist.moveToRoot")}
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={onDelete} className={styles.deleteMenuItem}>
-              <Icon name="trash2" size={16} style={{ marginRight: 8 }} decorative />
+            <DropdownMenuItem
+              onClick={onDelete}
+              className={styles.deleteMenuItem}
+            >
+              <Icon
+                name="trash2"
+                size={16}
+                style={{ marginRight: 8 }}
+                decorative
+              />
               {t("playlist.deleteFolder")}
             </DropdownMenuItem>
           </DropdownMenuContent>

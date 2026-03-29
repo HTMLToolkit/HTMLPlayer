@@ -1,11 +1,11 @@
 export { Lyrics } from "./Lyrics";
+export { Miniplayer, MiniplayerContent } from "./Miniplayer";
+export type { MiniplayerControls } from "./Miniplayer";
 export {
-  Miniplayer,
-  MiniplayerContent,
   toggleMiniplayer,
   isMiniplayerSupported,
-  broadcastThemeCSS,
-} from "./Miniplayer";
+} from "../../../platform/pip";
+export { broadcastThemeCSS } from "../../../platform/pip/broadcastTheme";
 export { Player } from "./Player";
 export type { PlayerRef } from "./Player";
 export { Visualizer } from "./Visualizer";

@@ -34,7 +34,9 @@ function openDatabase(): Promise<IDBDatabase> {
         db.createObjectStore(STORES.SETTINGS, { keyPath: "id" });
       }
       if (!db.objectStoreNames.contains(STORES.AUDIO_DATA)) {
-        const store = db.createObjectStore(STORES.AUDIO_DATA, { keyPath: "songId" });
+        const store = db.createObjectStore(STORES.AUDIO_DATA, {
+          keyPath: "songId",
+        });
         store.createIndex("lastAccessed", "lastAccessed", { unique: false });
       }
       if (!db.objectStoreNames.contains(STORES.ALBUM_ART)) {

@@ -88,12 +88,7 @@ export function useDragHandler(komorebi: UseKomorebiReturn) {
 
       console.log("Unhandled drag operation:", { dragItem, dropZone });
     },
-    [
-      komorebi.state.currentPlaylist,
-      libraryState,
-      library,
-      t,
-    ],
+    [komorebi.state.currentPlaylist, libraryState, library, t],
   );
 
   return { handleDragOperation };

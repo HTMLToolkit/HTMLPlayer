@@ -1,4 +1,4 @@
-import React, {
+import {
   useEffect,
   useState,
   useCallback,
@@ -9,14 +9,7 @@ import { useTranslation } from "react-i18next";
 import styles from "./Lyrics.module.css";
 import { Button } from "../primitives/Button";
 import { Icon } from "../shared/Icon";
-import {
-  MetadataFilter,
-  createYouTubeFilter,
-  createSpotifyFilter,
-  createAmazonFilter,
-  createTidalFilter,
-  createRemasteredFilter,
-} from "@web-scrobbler/metadata-filter";
+import { cleanMetadata } from "../../../platform/lyrics";
 
 interface LyricsProps {
   artist: string;
@@ -32,13 +25,12 @@ interface EmbeddedLyrics {
   synced: boolean;
   language?: string;
   description?: string;
-  text?: string; // for unsynchronized lyrics
-  lyrics?: string; // sometimes stored as `lyrics`
-  content?: string; // fallback name
+  text?: string;
+  lyrics?: string;
+  content?: string;
   lines?: Array<{
-    // for synchronized lyrics
     text: string;
-    timestamp: number; // expected ms, but may be seconds in some storage — normalize below
+    timestamp: number;
   }>;
 }
 
@@ -52,51 +44,6 @@ interface LyricsState {
 }
 
 const INITIAL_STATE: LyricsState = { lyrics: "", loading: false, error: null };
-
-// Custom filter to remove "- Topic" and "[...]" suffixes
-const removeExtraSuffixes = (text: string) =>
-  text
-    .replace(/ - Topic$/i, "")
-    .replace(/\s*\[.*?\]$/i, "") // removes any bracketed content at the end
-    .trim();
-
-// Factory filter to remove the artist name from the start of the title
-const removeArtistFromTitle = (artistName: string) => (text: string) => {
-  if (!artistName) return text;
-  const escapedArtist = artistName.replace(/[.*+?^${}()|[\]\\]/g, "");
-  const regex = new RegExp(`^${escapedArtist}\\s*[-:|]?\\s*`, "i");
-  return text.replace(regex, "").trim();
-};
-
-// Function to create master filter for a specific artist
-const createMasterFilter = (artistName: string) =>
-  new MetadataFilter({})
-    .extend(createYouTubeFilter())
-    .extend(createSpotifyFilter())
-    .extend(createAmazonFilter())
-    .extend(createTidalFilter())
-    .extend(createRemasteredFilter())
-    .extend(
-      new MetadataFilter({
-        artist: removeExtraSuffixes,
-        track: [removeExtraSuffixes, removeArtistFromTitle(artistName)],
-      }),
-    );
-
-// Function to clean artist/title using master filter
-const cleanMetadata = (artist: string, title: string) => {
-  const masterFilter = createMasterFilter(artist);
-
-  const cleanedArtist = masterFilter.canFilterField("artist")
-    ? masterFilter.filterField("artist", artist)
-    : artist;
-
-  const cleanedTitle = masterFilter.canFilterField("track")
-    ? masterFilter.filterField("track", title)
-    : title;
-
-  return { artist: cleanedArtist, title: cleanedTitle };
-};
 
 export const Lyrics = ({
   artist,
