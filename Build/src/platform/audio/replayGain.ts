@@ -1,4 +1,7 @@
 import type { ReplayGainInfo } from "../../core/engine/types";
+import { createLogger } from "../../helpers/logger";
+
+const logger = createLogger("replayGain");
 
 export interface ReplayGainConfig {
   preampGain: number;
@@ -31,7 +34,7 @@ export class ReplayGainAnalyzer {
       const arrayBuffer = await response.arrayBuffer();
       return this.analyzeFromArrayBuffer(arrayBuffer);
     } catch (error) {
-      console.error("ReplayGain analysis failed:", error);
+      logger.error("ReplayGain analysis failed:", { error: String(error) });
       return null;
     }
   }
@@ -61,7 +64,7 @@ export class ReplayGainAnalyzer {
         referenceLoudness: this.config.defaultGain,
       };
     } catch (error) {
-      console.error("ReplayGain analysis error:", error);
+      logger.error("ReplayGain analysis error:", { error: String(error) });
       return null;
     }
   }

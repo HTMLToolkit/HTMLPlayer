@@ -10,6 +10,7 @@
   },
   "common": {
     "cancel": "Cancel",
+    "confirm": "Confirm",
     "close": "Close",
     "create": "Create",
     "delete": "Delete",

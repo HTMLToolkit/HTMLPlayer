@@ -1,4 +1,5 @@
 import i18n from "i18next";
+import { throwError } from "../../helpers/logger";
 
 export interface KeyboardShortcut {
   id: string;
@@ -189,13 +190,13 @@ class ShortcutsIndexedDbHelper {
 
     // Validate that shortcut has required properties
     if (!shortcut.id) {
-      throw new Error("Shortcut must have an id property");
+      return throwError("Shortcut must have an id property");
     }
     if (!shortcut.key) {
-      throw new Error("Shortcut must have a key property");
+      return throwError("Shortcut must have a key property");
     }
     if (!shortcut.action) {
-      throw new Error("Shortcut must have an action property");
+      return throwError("Shortcut must have an action property");
     }
 
     return new Promise((resolve, reject) => {

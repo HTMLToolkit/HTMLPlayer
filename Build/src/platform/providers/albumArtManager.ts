@@ -1,5 +1,8 @@
 import type { SearchQuery } from "./base";
 import type { AlbumArtProvider, AlbumArtResult } from "./albumArtTypes";
+import { createLogger } from "../../helpers/logger";
+
+const logger = createLogger("albumArtManager");
 
 export class AlbumArtManager {
   private providers: AlbumArtProvider[] = [];
@@ -25,7 +28,7 @@ export class AlbumArtManager {
           return best;
         }
       } catch (error) {
-        console.error(`Provider ${provider.name} failed:`, error);
+        logger.error(`Provider ${provider.name} failed:`, { error: String(error) });
       }
     }
 
@@ -42,7 +45,7 @@ export class AlbumArtManager {
           return result.data;
         }
       } catch (error) {
-        console.error(`Provider ${provider.name} failed:`, error);
+        logger.error(`Provider ${provider.name} failed:`, { error: String(error) });
       }
     }
 

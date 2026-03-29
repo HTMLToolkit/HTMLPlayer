@@ -1,5 +1,8 @@
 import { BaseProvider, type SearchQuery, type ProviderResult } from "./base";
 import type { AlbumArtProvider, AlbumArtResult } from "./albumArtTypes";
+import { createLogger } from "../../helpers/logger";
+
+const logger = createLogger("musicBrainz");
 
 export class MusicBrainzProvider
   extends BaseProvider
@@ -54,7 +57,7 @@ export class MusicBrainzProvider
         confidence: 0.8,
       };
     } catch (error) {
-      console.error("MusicBrainz fetch error:", error);
+      logger.error("MusicBrainz fetch error:", { error: String(error) });
       return null;
     }
   }
@@ -113,7 +116,7 @@ export class MusicBrainzProvider
 
       return null;
     } catch (error) {
-      console.error("MusicBrainz artist image error:", error);
+      logger.error("MusicBrainz artist image error:", { error: String(error) });
       return null;
     }
   }

@@ -1,4 +1,7 @@
 import type { Track } from "../../core/engine/types";
+import { createLogger } from "../../helpers/logger";
+
+const logger = createLogger("preloader");
 
 export interface CachedTrack {
   track: Track;
@@ -113,7 +116,7 @@ export class PreloadManager {
     for (const index of indices) {
       const track = tracks[index];
       if (track && !this.isLoaded(track.id) && !this.loading.has(track.id)) {
-        this.preload(track).catch(console.error);
+        this.preload(track).catch((e) => logger.error("Preload failed", { error: String(e) }));
       }
     }
   }

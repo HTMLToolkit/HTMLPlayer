@@ -1,4 +1,5 @@
 import type { IAudioBackend } from "../index";
+import { throwError } from "../../../helpers/logger";
 
 let Tone: typeof import("tone") | null = null;
 let pitchShift: import("tone").PitchShift | null = null;
@@ -23,7 +24,7 @@ export class PitchBackend implements IAudioBackend {
 
   async load(url: string): Promise<void> {
     if (!this.inner) {
-      throw new Error("No inner backend configured");
+      return throwError("No inner backend configured");
     }
 
     if (this.pendingLoad) {

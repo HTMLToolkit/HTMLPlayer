@@ -1,3 +1,7 @@
+import { createLogger } from "../../helpers/logger";
+
+const logger = createLogger("visualizerLoader");
+
 interface VisualizerDrawFunction {
   (
     analyser: AnalyserNode,
@@ -116,14 +120,14 @@ export async function loadVisualizer(
           if (firstKey) {
             loadedVisualizers.delete(firstKey);
             clearVisualizerState(firstKey);
-            console.log(`Evicted visualizer from cache: ${firstKey}`);
+            logger.debug(`Evicted visualizer from cache: ${firstKey}`);
           }
         }
         loadedVisualizers.set(key, visualizer);
         return visualizer;
       }
-    } catch (error) {
-      console.error(`Failed to load visualizer ${key}:`, error);
+      } catch (error) {
+      logger.error(`Failed to load visualizer ${key}:`, { state: { error: String(error) } });
     }
   }
 

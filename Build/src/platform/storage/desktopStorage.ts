@@ -1,5 +1,8 @@
 import { BaseStorageBackend, PlatformType } from "./base";
 import type { Track } from "../../core/engine/types";
+import { createLogger } from "../../helpers/logger";
+
+const logger = createLogger("desktopStorage");
 
 export class DesktopStorageBackend extends BaseStorageBackend {
   name = "Desktop Storage (Tauri)";
@@ -44,13 +47,13 @@ export class DesktopStorageBackend extends BaseStorageBackend {
           });
           files.push(file);
         } catch (err) {
-          console.error(`Failed to read ${path}:`, err);
+          logger.error(`Failed to read ${path}:`, { error: String(err) });
         }
       }
 
       return files;
     } catch (error) {
-      console.error("Failed to open file dialog:", error);
+      logger.error("Failed to open file dialog:", { error: String(error) });
       return [];
     }
   }
@@ -81,14 +84,14 @@ export class DesktopStorageBackend extends BaseStorageBackend {
             });
             files.push(file);
           } catch (err) {
-            console.error(`Failed to read ${e.name}:`, err);
+            logger.error(`Failed to read ${e.name}:`, { error: String(err) });
           }
         }
       }
 
       return files.length > 0 ? this.filesToFileList(files) : null;
     } catch (error) {
-      console.error("Failed to open directory:", error);
+      logger.error("Failed to open directory:", { error: String(error) });
       return null;
     }
   }
@@ -114,7 +117,7 @@ export class DesktopStorageBackend extends BaseStorageBackend {
         const track = await this.loadTrack(file);
         tracks.push(track);
       } catch (error) {
-        console.error(`Failed to load track ${file.name}:`, error);
+        logger.error(`Failed to load track ${file.name}:`, { error: String(error) });
       }
     }
     return tracks;

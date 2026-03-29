@@ -1,5 +1,8 @@
 import { BaseProvider, type SearchQuery, type ProviderResult } from "./base";
 import type { Lyrics, LyricsProvider } from "./lyricsTypes";
+import { createLogger } from "../../helpers/logger";
+
+const logger = createLogger("lyricsOvh");
 
 export class LyricsOvhProvider extends BaseProvider implements LyricsProvider {
   name = "Lyrics.ovh";
@@ -42,7 +45,7 @@ export class LyricsOvhProvider extends BaseProvider implements LyricsProvider {
         confidence: 0.7,
       };
     } catch (error) {
-      console.error("Lyrics.ovh fetch error:", error);
+      logger.error("Lyrics.ovh fetch error:", { error: String(error) });
       return null;
     }
   }

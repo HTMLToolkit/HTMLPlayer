@@ -1,4 +1,5 @@
 import { BaseAudioBackend } from "./BaseBackend";
+import { throwError } from "../../../helpers/logger";
 
 export class FloBackend extends BaseAudioBackend {
   private audioContext: AudioContext | null = null;
@@ -64,7 +65,7 @@ export class FloBackend extends BaseAudioBackend {
     try {
       const response = await fetch(url);
       if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        return throwError(`HTTP ${response.status}: ${response.statusText}`);
       }
 
       const arrayBuffer = await response.arrayBuffer();

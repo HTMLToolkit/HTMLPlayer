@@ -1,4 +1,7 @@
 // WIP WARNING
+import { createLogger } from "../../helpers/logger";
+
+const logger = createLogger("discord");
 
 export interface DiscordPresenceData {
   userId: string;
@@ -24,9 +27,9 @@ export class DiscordService {
    * Log track update instead of sending to Discord backend
    */
   public async updatePresence(data: DiscordPresenceData): Promise<boolean> {
-    console.log(
-      `[DiscordService] Would POST to ${DiscordService.API_BASE_URL}/presence with:`,
-      data,
+    logger.info(
+      `Would POST to ${DiscordService.API_BASE_URL}/presence with:`,
+      { state: data },
     );
     return true;
   }
@@ -35,7 +38,7 @@ export class DiscordService {
    * Log clear presence instead of sending to Discord backend
    */
   public async clearPresence(userId: string): Promise<boolean> {
-    console.log(`[DiscordService] Would clear presence for userId: ${userId}`);
+    logger.info(`Would clear presence for userId: ${userId}`);
     return true;
   }
 
@@ -58,7 +61,7 @@ export class DiscordService {
 
       return null; // This will be handled by the OAuth callback flow
     } catch (error) {
-      console.error("Error parsing Discord callback:", error);
+      logger.error("Error parsing Discord callback:", { error: String(error) });
       return null;
     }
   }

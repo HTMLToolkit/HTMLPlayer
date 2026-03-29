@@ -5,6 +5,9 @@ import type {
   EncodingDetails,
   GaplessInfo,
 } from "../../core/engine/types";
+import { createLogger } from "../../helpers/logger";
+
+const logger = createLogger("musicMetadata");
 
 export class MusicMetadataExtractor extends BaseMetadataExtractor {
   async extractMetadata(file: File | Blob): Promise<ExtractedMetadata> {
@@ -80,7 +83,7 @@ export class MusicMetadataExtractor extends BaseMetadataExtractor {
         gapless: Object.keys(gapless).length > 0 ? gapless : undefined,
       };
     } catch (error) {
-      console.error("Failed to extract metadata:", error);
+      logger.error("Failed to extract metadata:", { error: String(error) });
       return {
         title: this.getDefaultTitle(file as File),
         artist: "Unknown Artist",
@@ -102,7 +105,7 @@ export class MusicMetadataExtractor extends BaseMetadataExtractor {
         return URL.createObjectURL(blob);
       }
     } catch (error) {
-      console.error("Failed to extract album art:", error);
+      logger.error("Failed to extract album art:", { error: String(error) });
     }
     return undefined;
   }

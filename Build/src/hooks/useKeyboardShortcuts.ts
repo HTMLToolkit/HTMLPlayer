@@ -5,6 +5,9 @@ import {
   type ShortcutConfig,
 } from "../platform/storage/shortcuts";
 import type { UseKomorebiReturn } from "./useKomorebi";
+import { createLogger } from "../helpers/logger";
+
+const logger = createLogger("keyboardShortcuts");
 
 interface UseKeyboardShortcutsProps {
   komorebi: UseKomorebiReturn;
@@ -30,7 +33,7 @@ export const useKeyboardShortcuts = ({
   });
 
   useEffect(() => {
-    shortcutsDb.getAllShortcuts().then(setShortcuts).catch(console.error);
+    shortcutsDb.getAllShortcuts().then(setShortcuts).catch((e) => logger.error("Failed to load shortcuts", { error: String(e) }));
   }, []);
 
   useEffect(() => {

@@ -1,4 +1,7 @@
 import { getDb, STORES } from "./db";
+import { createLogger } from "../../helpers/logger";
+
+const logger = createLogger("albumArtStorage");
 
 const albumArtCache = new Map<string, string>();
 const MAX_CACHE = 50;
@@ -37,7 +40,7 @@ export const albumArtStorage = {
 
       return null;
     } catch (error) {
-      console.error(`Failed to load album art for ${songId}:`, error);
+      logger.error(`Failed to load album art for ${songId}:`, { error: String(error) });
       return null;
     }
   },
@@ -84,7 +87,7 @@ export const albumArtStorage = {
 
       return result;
     } catch (error) {
-      console.error("Failed to load album art batch:", error);
+      logger.error("Failed to load album art batch:", { error: String(error) });
       return result;
     }
   },
@@ -104,7 +107,7 @@ export const albumArtStorage = {
       evictCache();
       albumArtCache.set(songId, albumArt);
     } catch (error) {
-      console.error(`Failed to save album art for ${songId}:`, error);
+      logger.error(`Failed to save album art for ${songId}:`, { error: String(error) });
     }
   },
 

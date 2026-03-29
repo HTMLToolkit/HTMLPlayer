@@ -1,4 +1,5 @@
 import { useRef, useEffect, useState, useCallback } from "react";
+import { logger } from "../../../helpers/logger";
 import { useTranslation } from "react-i18next";
 import {
   getVisualizer,
@@ -99,7 +100,11 @@ export const Visualizer = ({
         }
       })
       .catch((error) => {
-        console.error("Failed to load visualizer:", error);
+        if (error instanceof Error) {
+          logger.error("Failed to load visualizer:", { error: error.message });
+        } else {
+          logger.error("Failed to load visualizer");
+        }
         setIsLoadingVisualizer(false);
       });
   }, [selectedVisualizerKey]);

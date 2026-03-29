@@ -7,7 +7,7 @@ import {
 } from "../primitives/DropdownMenu";
 import { Button } from "../primitives/Button";
 import { Icon } from "./Icon";
-import { useThemeMode } from "../../theming/hooks";
+import { useThemeMode } from "../../theming/hooks/useTheming";
 import type { ThemeMode } from "../../theming/events";
 import styles from "./ThemeModeSwitch.module.css";
 

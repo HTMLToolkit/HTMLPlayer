@@ -1,3 +1,7 @@
+import { createLogger } from "../../helpers/logger";
+
+const logger = createLogger("fileValidation");
+
 const ALLOWED_EXTENSIONS = [
   "mp3",
   "wav",
@@ -26,13 +30,13 @@ export function processFiles(files: File[]): AudioFile[] {
       !file.type.startsWith("audio/") &&
       !(ext && ALLOWED_EXTENSIONS.includes(ext))
     ) {
-      console.warn(`Skipping non-audio file: ${file.name}`);
+      logger.warn(`Skipping non-audio file: ${file.name}`);
       continue;
     }
     if (ext !== "flo") {
       const canPlay = audioTest.canPlayType(file.type);
       if (canPlay !== "probably" && canPlay !== "maybe") {
-        console.warn(`Skipping unsupported format: ${file.name}`);
+        logger.warn(`Skipping unsupported format: ${file.name}`);
         continue;
       }
     }

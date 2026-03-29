@@ -1,4 +1,7 @@
 import type { Track } from "../../core/engine/types";
+import { createLogger } from "../../helpers/logger";
+
+const logger = createLogger("duplicateDetector");
 
 export interface DuplicateGroup {
   representative: Track;
@@ -58,7 +61,7 @@ export class DuplicateDetector {
         existing.push(track);
         hashToTracks.set(hash, existing);
       } catch (error) {
-        console.error(`Failed to hash track ${track.id}:`, error);
+        logger.error(`Failed to hash track ${track.id}:`, { error: String(error) });
       }
     }
 

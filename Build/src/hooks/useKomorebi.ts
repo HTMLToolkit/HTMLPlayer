@@ -11,6 +11,9 @@ import { HTMLAudioBackend } from "../platform/audio/backends/HTMLBackend";
 import { LibraryManager } from "../platform/library/library";
 import { libraryPersistence } from "../platform/library/persistence";
 import { SettingsManager } from "../platform/settings/settings";
+import { createLogger } from "../helpers/logger";
+
+const logger = createLogger("useKomorebi");
 
 export interface UseKomorebiOptions {
   autoPlay?: boolean;
@@ -191,7 +194,7 @@ export function useKomorebi(
           });
         }
       } catch (err) {
-        console.error("Failed to load library:", err);
+        logger.error("Failed to load library:", { error: String(err) });
       }
     };
 

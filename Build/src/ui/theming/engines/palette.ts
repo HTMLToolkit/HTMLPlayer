@@ -1,5 +1,8 @@
 import type { Palette } from "../types";
 import type { ThemingEvents } from "../events";
+import { createLogger, throwError } from "../../../helpers/logger";
+
+const logger = createLogger("palette");
 
 const PALETTE_STORAGE_KEY = "selected-color-theme";
 
@@ -54,7 +57,7 @@ export class PaletteEngine {
 
   private validatePalette(meta: unknown, path: string): Palette | null {
     if (!meta || typeof meta !== "object") {
-      console.warn(`Palette file ${path}: Invalid metadata format`);
+      logger.warn(`Palette file ${path}: Invalid metadata format`);
       return null;
     }
 
@@ -62,7 +65,7 @@ export class PaletteEngine {
     const required = ["name", "author", "description", "version", "cssFile"];
     for (const field of required) {
       if (!data[field] || typeof data[field] !== "string") {
-        console.warn(
+        logger.warn(
           `Palette file ${path}: Missing or invalid field "${field}"`,
         );
         return null;
@@ -89,7 +92,7 @@ export class PaletteEngine {
     if (!palette) {
       const error = `Palette "${paletteName}" not found`;
       this.events.emit("paletteerror", { error });
-      throw new Error(error);
+      return throwError(error);
     }
 
     const cssPath = Object.keys(paletteCssFiles).find((path) =>
@@ -99,7 +102,7 @@ export class PaletteEngine {
     if (!cssPath) {
       const error = `CSS file not found: ${palette.cssFile}`;
       this.events.emit("paletteerror", { error });
-      throw new Error(error);
+      return throwError(error);
     }
 
     this.removeAllPaletteStyles();
@@ -147,7 +150,7 @@ export class PaletteEngine {
         return `url('${(imageModule as { default: string }).default}')`;
       }
 
-      console.warn(`Image not found in imports: ${imagePath}`);
+      logger.warn(`Image not found in imports: ${imagePath}`);
       return `url('${url}')`;
     });
   }

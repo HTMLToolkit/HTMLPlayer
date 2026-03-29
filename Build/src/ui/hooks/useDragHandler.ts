@@ -4,6 +4,9 @@ import { toast } from "sonner";
 import type { DragItem, DropZone } from "../components/primitives/Draggable";
 import type { UseKomorebiReturn } from "../../hooks/useKomorebi";
 import { findPlaylistById, findParentFolderId } from "../../platform/library";
+import { createLogger } from "../../helpers/logger";
+
+const logger = createLogger("dragHandler");
 
 export function useDragHandler(komorebi: UseKomorebiReturn) {
   const { t } = useTranslation();
@@ -12,7 +15,7 @@ export function useDragHandler(komorebi: UseKomorebiReturn) {
 
   const handleDragOperation = useCallback(
     (dragItem: DragItem, dropZone: DropZone) => {
-      console.log("Drag operation:", { dragItem, dropZone });
+      logger.debug("Drag operation:", { dragItem, dropZone });
 
       if (dragItem.type === "song" && dropZone.type === "playlist") {
         const songId = dragItem.id;
@@ -86,7 +89,7 @@ export function useDragHandler(komorebi: UseKomorebiReturn) {
         return;
       }
 
-      console.log("Unhandled drag operation:", { dragItem, dropZone });
+      logger.debug("Unhandled drag operation:", { dragItem, dropZone });
     },
     [komorebi.state.currentPlaylist, libraryState, library, t],
   );

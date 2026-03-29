@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { logger } from "../../../helpers/logger";
 import { useRegisterSW } from "virtual:pwa-register/react";
 import { useTranslation } from "react-i18next";
 import { Button } from "../primitives/Button";
@@ -24,18 +25,18 @@ export function UpdatePrompt({
       swUrl: string,
       registration: ServiceWorkerRegistration | undefined,
     ) {
-      console.log("SW registered:", swUrl);
+      logger.info("SW registered", { swUrl });
 
       // Set up periodic update checks
       if (registration && checkInterval > 0) {
         setInterval(() => {
-          console.log("Checking for SW updates...");
+          logger.info("Checking for SW updates...");
           registration.update();
         }, checkInterval);
       }
     },
     onRegisterError(error: Error) {
-      console.error("SW registration error:", error);
+      logger.error("SW registration error:", { error: error.message });
     },
   });
 

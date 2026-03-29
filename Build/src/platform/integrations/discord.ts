@@ -1,6 +1,9 @@
 import { BaseIntegration } from "./base";
 import type { Track } from "../../core/engine/types";
 import { DiscordService } from "./discordService";
+import { createLogger } from "../../helpers/logger";
+
+const logger = createLogger("discord");
 
 export class DiscordIntegration extends BaseIntegration {
   name = "Discord RPC";
@@ -35,7 +38,7 @@ export class DiscordIntegration extends BaseIntegration {
         state: track.artist,
       });
     } catch (error) {
-      console.error("Failed to update Discord presence:", error);
+      logger.error("Failed to update Discord presence:", { error: String(error) });
     }
   }
 

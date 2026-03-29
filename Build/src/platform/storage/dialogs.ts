@@ -1,4 +1,7 @@
 import { getDb, STORES } from "./db";
+import { createLogger } from "../../helpers/logger";
+
+const logger = createLogger("dialogStorage");
 
 export const dialogStorage = {
   async shouldShow(dialogKey: string): Promise<boolean> {
@@ -15,9 +18,9 @@ export const dialogStorage = {
 
       return result?.data?.dontShowAgain !== true;
     } catch (error) {
-      console.error(
+      logger.error(
         `Failed to check dialog preference for ${dialogKey}:`,
-        error,
+        { error: String(error) },
       );
       return true;
     }
@@ -41,9 +44,9 @@ export const dialogStorage = {
         req.onerror = () => reject(req.error);
       });
     } catch (error) {
-      console.error(
+      logger.error(
         `Failed to save dialog preference for ${dialogKey}:`,
-        error,
+        { error: String(error) },
       );
       throw error;
     }
@@ -74,7 +77,7 @@ export const dialogStorage = {
           ),
       );
     } catch (error) {
-      console.error("Failed to reset dialog preferences:", error);
+      logger.error("Failed to reset dialog preferences:", { error: String(error) });
       throw error;
     }
   },

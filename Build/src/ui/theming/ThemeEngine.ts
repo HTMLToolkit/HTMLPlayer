@@ -10,6 +10,9 @@ import type {
   ThemeConfig,
   ThemingState,
 } from "./types";
+import { createLogger } from "../../helpers/logger";
+
+const logger = createLogger("themeEngine");
 
 export interface ThemingEventMap {
   ready: { palettes: Palette[]; iconSets: IconSet[]; wallpapers: Wallpaper[] };
@@ -72,7 +75,7 @@ export class ThemeEngine {
 
       this.isReady = true;
     } catch (error) {
-      console.error("ThemeEngine initialization error:", error);
+      logger.error("ThemeEngine initialization error:", { error: String(error) });
     } finally {
       this.isLoading = false;
     }

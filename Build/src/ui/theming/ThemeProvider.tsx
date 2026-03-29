@@ -9,6 +9,7 @@ import React, {
 } from "react";
 import { ThemeEngine } from "./ThemeEngine";
 import { setThemeEngine } from "./index";
+import { throwError } from "../../helpers/logger";
 import type { ThemeMode } from "./events";
 import type {
   Palette,
@@ -161,7 +162,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
 export const useThemingContext = (): ThemingContextValue => {
   const context = useContext(ThemingContext);
   if (!context) {
-    throw new Error("useThemingContext must be used within ThemeProvider");
+    return throwError("useThemingContext must be used within ThemeProvider");
   }
   return context;
 };

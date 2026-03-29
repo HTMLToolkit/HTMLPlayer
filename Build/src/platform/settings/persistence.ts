@@ -1,5 +1,8 @@
 import type { SettingsState } from "./types";
 import { DEFAULT_SETTINGS } from "./types";
+import { createLogger } from "../../helpers/logger";
+
+const logger = createLogger("settingsPersistence");
 
 const SETTINGS_KEY = "htmlplayer-settings";
 
@@ -9,7 +12,7 @@ export class SettingsPersistence {
       const serialized = JSON.stringify(settings);
       localStorage.setItem(SETTINGS_KEY, serialized);
     } catch (error) {
-      console.error("Failed to save settings:", error);
+      logger.error("Failed to save settings:", { error: String(error) });
     }
   }
 
@@ -23,7 +26,7 @@ export class SettingsPersistence {
       const parsed = JSON.parse(serialized) as Partial<SettingsState>;
       return { ...DEFAULT_SETTINGS, ...parsed };
     } catch (error) {
-      console.error("Failed to load settings:", error);
+      logger.error("Failed to load settings:", { error: String(error) });
       return { ...DEFAULT_SETTINGS };
     }
   }
@@ -32,7 +35,7 @@ export class SettingsPersistence {
     try {
       localStorage.removeItem(SETTINGS_KEY);
     } catch (error) {
-      console.error("Failed to clear settings:", error);
+      logger.error("Failed to clear settings:", { error: String(error) });
     }
   }
 

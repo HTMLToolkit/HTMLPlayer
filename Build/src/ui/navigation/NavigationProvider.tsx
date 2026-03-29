@@ -6,6 +6,7 @@ import {
   type ReactNode,
 } from "react";
 import type { NavigationView } from "../../types/custom-events";
+import { throwError } from "../../helpers/logger";
 
 export type View = NavigationView;
 
@@ -111,7 +112,7 @@ export function NavigationProvider({ children }: { children: ReactNode }) {
 export function useNavigation(): NavigationContextValue {
   const context = useContext(NavigationContext);
   if (!context) {
-    throw new Error("useNavigation must be used within NavigationProvider");
+    return throwError("useNavigation must be used within NavigationProvider");
   }
   return context;
 }

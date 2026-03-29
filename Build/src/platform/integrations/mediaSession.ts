@@ -1,5 +1,8 @@
 import { BaseIntegration } from "./base";
 import type { Track } from "../../core/engine/types";
+import { createLogger } from "../../helpers/logger";
+
+const logger = createLogger("mediaSession");
 
 export class MediaSessionIntegration extends BaseIntegration {
   name = "Media Session";
@@ -9,7 +12,7 @@ export class MediaSessionIntegration extends BaseIntegration {
 
   async initialize(): Promise<void> {
     if (!("mediaSession" in navigator)) {
-      console.warn("MediaSession not supported");
+      logger.warn("MediaSession not supported");
       return;
     }
 
@@ -99,7 +102,7 @@ export class MediaSessionIntegration extends BaseIntegration {
           },
         ];
       } catch {
-        console.warn("Failed to load album art for MediaSession");
+        logger.warn("Failed to load album art for MediaSession");
       }
     }
 

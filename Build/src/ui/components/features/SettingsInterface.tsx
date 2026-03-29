@@ -10,7 +10,7 @@ import {
 import { Button } from "../primitives/Button";
 import { ThemeModeSwitch } from "../shared/ThemeModeSwitch";
 import { Icon } from "../shared/Icon";
-import { usePalette, useIconSet, useWallpaper } from "../../theming/hooks";
+import { usePalette, useIconSet, useWallpaper } from "../../theming/hooks/useTheming";
 import { languageNames } from "../../../types/supportedLanguages";
 import { clearAllCaches } from "../../../platform/storage";
 import { toast } from "sonner";

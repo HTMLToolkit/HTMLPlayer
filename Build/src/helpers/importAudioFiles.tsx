@@ -1,4 +1,5 @@
 import { toast } from "sonner";
+import { logger } from "./logger";
 import {
   createMetadataExtractor,
   createFloMetadataExtractor,
@@ -32,7 +33,11 @@ async function extractAudioMetadata(
     try {
       albumArt = await compressAlbumArt(albumArt);
     } catch (e) {
-      console.warn("Failed to compress album art:", e);
+      if (e instanceof Error) {
+        logger.warn("Failed to compress album art:", { error: e.message });
+      } else {
+        logger.warn("Failed to compress album art");
+      }
     }
   }
 
@@ -104,7 +109,7 @@ export async function importAudioFiles(
                 { type: "audio/wav" },
               );
               processedMimeType = "audio/wav";
-              console.log(`Pre-decoded flo to WAV for Safari: ${file.name}`);
+              logger.info(`Pre-decoded flo to WAV for Safari: ${file.name}`);
             } else {
               // Non-Safari: Pre-decode to PCM for Web Audio API
               const { decodeFloToAudioBuffer } =
@@ -148,13 +153,14 @@ export async function importAudioFiles(
               // Close the temporary AudioContext
               await audioContext.close();
 
-              console.log(`Pre-decoded flo to PCM: ${file.name}`);
+              logger.info(`Pre-decoded flo to PCM: ${file.name}`);
             }
           } catch (error) {
-            console.warn(
-              "Failed to pre-decode flo file, storing original:",
-              error,
-            );
+            if (error instanceof Error) {
+              logger.warn("Failed to pre-decode flo file, storing original:", { error: error.message });
+            } else {
+              logger.warn("Failed to pre-decode flo file, storing original");
+            }
             // Keep original file if pre-decoding fails
             processedMimeType = "audio/x-flo";
           }
@@ -192,7 +198,11 @@ export async function importAudioFiles(
 
         successCount++;
       } catch (error) {
-        console.error("Failed to process song:", error);
+        if (error instanceof Error) {
+          logger.error("Failed to process song:", { error: error.message });
+        } else {
+          logger.error("Failed to process song");
+        }
         errorCount++;
       }
     }

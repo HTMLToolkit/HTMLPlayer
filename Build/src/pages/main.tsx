@@ -1,5 +1,6 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
+import { logger } from "../helpers/logger";
 import IndexPage from "./_index";
 import "../global.css";
 import { Toaster } from "sonner";
@@ -39,9 +40,7 @@ const App: React.FC = () => {
     <React.StrictMode>
       <I18nextProvider i18n={i18nInstance}>
         <ThemeProvider
-          onThemeChange={({ type, value }) => {
-            console.log(`Theme changed: ${type} = ${value}`);
-          }}
+          onThemeChange={(data) => logger.info(`Theme changed: ${data.type} = ${data.value}`)}
         >
           <IndexPage />
         </ThemeProvider>

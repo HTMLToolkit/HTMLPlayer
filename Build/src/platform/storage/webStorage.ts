@@ -1,5 +1,8 @@
 import { BaseStorageBackend, PlatformType } from "./base";
 import type { Track } from "../../core/engine/types";
+import { createLogger } from "../../helpers/logger";
+
+const logger = createLogger("webStorage");
 
 export class WebStorageBackend extends BaseStorageBackend {
   name = "Web Storage";
@@ -80,7 +83,7 @@ export class WebStorageBackend extends BaseStorageBackend {
         const track = await this.loadTrack(file);
         tracks.push(track);
       } catch (error) {
-        console.error(`Failed to load track ${file.name}:`, error);
+        logger.error(`Failed to load track ${file.name}:`, { error: String(error) });
       }
     }
     return tracks;

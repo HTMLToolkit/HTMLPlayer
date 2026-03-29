@@ -1,4 +1,5 @@
 import React, { useState, useCallback } from "react";
+import { logger } from "../../../helpers/logger";
 import {
   DndContext,
   DragEndEvent,
@@ -141,7 +142,7 @@ export const DraggableProvider: React.FC<DraggableProviderProps> = ({
     const separatorIndex = fullId.indexOf("::");
 
     if (separatorIndex === -1) {
-      console.error("Invalid drag ID format:", fullId);
+      logger.error("Invalid drag ID format", { fullId });
       return;
     }
 
@@ -165,7 +166,7 @@ export const DraggableProvider: React.FC<DraggableProviderProps> = ({
       const parseId = (fullId: string) => {
         const separatorIndex = fullId.indexOf("::");
         if (separatorIndex === -1) {
-          console.error("Invalid ID format:", fullId);
+          logger.error("Invalid ID format", { fullId });
           return { type: "", id: "" };
         }
         return {

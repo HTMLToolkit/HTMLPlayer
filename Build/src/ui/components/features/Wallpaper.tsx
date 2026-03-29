@@ -1,5 +1,5 @@
 import React, { Suspense, useEffect, useRef } from "react";
-import { useWallpaper, useTheming } from "../../theming/hooks";
+import { useWallpaper, useTheming } from "../../theming/hooks/useTheming";
 
 // WallpaperRenderer Component
 interface WallpaperRendererProps {

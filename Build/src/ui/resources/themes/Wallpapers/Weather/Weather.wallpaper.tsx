@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useCallback } from "react";
+import { logger, throwError } from "../../../../../helpers/logger";
 
 type WeatherType = "sunny" | "cloudy" | "rain" | "snow" | "storm" | "fog";
 
@@ -73,13 +74,13 @@ const WeatherWallpaper: React.FC<WallpaperProps> = () => {
         );
 
         if (!response.ok) {
-          throw new Error(`Weather API error: ${response.status}`);
+          throwError(`Weather API error: ${response.status}`);
         }
 
         const data = await response.json();
 
         if (!data.current) {
-          throw new Error("Invalid weather data received");
+          throwError("Invalid weather data received");
         }
 
         // Get location name using reverse geocoding (optional)
@@ -93,7 +94,11 @@ const WeatherWallpaper: React.FC<WallpaperProps> = () => {
             locationName = geoData.city || geoData.locality || "Your Location";
           }
         } catch (geoError) {
-          console.warn("Could not fetch location name:", geoError);
+          if (geoError instanceof Error) {
+            logger.warn("Could not fetch location name:", { error: geoError.message });
+          } else {
+            logger.warn("Could not fetch location name");
+          }
         }
 
         const weatherData: WeatherData = {
@@ -105,7 +110,11 @@ const WeatherWallpaper: React.FC<WallpaperProps> = () => {
 
         setWeatherData(weatherData);
       } catch (err) {
-        console.error("Weather fetch error:", err);
+        if (err instanceof Error) {
+          logger.error("Weather fetch error:", { error: err.message });
+        } else {
+          logger.error("Weather fetch error");
+        }
         setError(
           err instanceof Error ? err.message : "Failed to fetch weather",
         );
@@ -129,7 +138,11 @@ const WeatherWallpaper: React.FC<WallpaperProps> = () => {
         fetchWeather(latitude, longitude);
       },
       (err) => {
-        console.warn("Geolocation error:", err);
+        if (err instanceof Error) {
+          logger.warn("Geolocation error:", { error: err.message });
+        } else {
+          logger.warn("Geolocation error");
+        }
         // Fallback to a default location (e.g., New York City)
         fetchWeather(40.7128, -74.006);
       },

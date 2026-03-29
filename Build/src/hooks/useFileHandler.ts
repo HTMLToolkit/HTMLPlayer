@@ -5,6 +5,9 @@ import {
   type FileHandlerResult,
 } from "../platform/storage/fileHandler";
 import type { Track } from "../core/engine/types";
+import { createLogger } from "../helpers/logger";
+
+const logger = createLogger("useFileHandler");
 
 export function useFileHandler(
   addSong: (song: Track) => Promise<void>,
@@ -65,7 +68,7 @@ export function useFileHandler(
           );
         })
         .catch((error) => {
-          console.error("Failed to process queued files:", error);
+          logger.error("Failed to process queued files:", { error: String(error) });
           toast.error(
             t("filePicker.failedImport", { count: filesToProcess.length }),
           );

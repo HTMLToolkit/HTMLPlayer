@@ -1,6 +1,7 @@
 import { BaseAudioBackend } from "./BaseBackend";
 import { HTMLAudioBackend } from "./HTMLBackend";
 import { WebAudioBackend } from "./WebAudioBackend";
+import { throwError } from "../../../helpers/logger";
 
 export class HybridBackend extends BaseAudioBackend {
   private htmlBackend: HTMLAudioBackend | null = null;
@@ -43,7 +44,7 @@ export class HybridBackend extends BaseAudioBackend {
     } else if (this.useWebAudio) {
       this.currentBackend = this.ensureWebAudioBackend();
     } else {
-      throw new Error("No backend available");
+      return throwError("No backend available");
     }
 
     await this.currentBackend.load(url);

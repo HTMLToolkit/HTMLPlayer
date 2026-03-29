@@ -1,5 +1,6 @@
 import type { Wallpaper, WallpaperProps, WallpaperComponent } from "../types";
 import type { ThemingEvents } from "../events";
+import { throwError } from "../../../helpers/logger";
 
 const WALLPAPER_STORAGE_KEY = "selected-wallpaper";
 
@@ -83,17 +84,23 @@ export class WallpaperEngine {
   }
 
   async apply(wallpaperName: string): Promise<void> {
+    if (wallpaperName === "None" || !wallpaperName) {
+      this.reset();
+      this.events.emit("wallpaperchange", { wallpaper: "None" });
+      return;
+    }
+
     const wallpaper = this.getByName(wallpaperName);
     if (!wallpaper) {
       const error = `Wallpaper "${wallpaperName}" not found`;
       this.events.emit("wallpapererror", { error });
-      throw new Error(error);
+      return throwError(error);
     }
 
     if (!wallpaperComponentFiles[wallpaper.componentFile]) {
       const error = `Wallpaper component not found: ${wallpaper.componentFile}`;
       this.events.emit("wallpapererror", { error });
-      throw new Error(error);
+      return throwError(error);
     }
 
     try {
@@ -104,7 +111,7 @@ export class WallpaperEngine {
     } catch (error) {
       const errorMsg = `Failed to load wallpaper: ${(error as Error).message}`;
       this.events.emit("wallpapererror", { error: errorMsg });
-      throw new Error(errorMsg);
+      return throwError(errorMsg);
     }
 
     this.currentWallpaper = wallpaper;

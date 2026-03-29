@@ -1,4 +1,5 @@
 import { BaseAudioBackend } from "./BaseBackend";
+import { throwError } from "../../../helpers/logger";
 
 export class WebAudioBackend extends BaseAudioBackend {
   private audioContext: AudioContext | null = null;
@@ -60,14 +61,14 @@ export class WebAudioBackend extends BaseAudioBackend {
     try {
       const response = await fetch(url);
       if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        return throwError(`HTTP ${response.status}: ${response.statusText}`);
       }
 
       const arrayBuffer = await response.arrayBuffer();
       this.chain.audioBuffer = await ctx.decodeAudioData(arrayBuffer);
       this.duration = this.chain.audioBuffer.duration;
     } catch (error) {
-      throw new Error(`Failed to load audio: ${(error as Error).message}`);
+      return throwError(`Failed to load audio: ${(error as Error).message}`);
     }
   }
 

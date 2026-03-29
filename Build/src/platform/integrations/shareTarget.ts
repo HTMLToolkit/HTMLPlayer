@@ -1,3 +1,7 @@
+import { createLogger } from "../../helpers/logger";
+
+const logger = createLogger("shareTarget");
+
 const SHARE_HANDLED_KEY = "last-shared-files";
 
 export interface ShareTargetResult {
@@ -85,7 +89,7 @@ export async function handleShareCache(): Promise<ShareTargetResult | null> {
 
     return { files: newFiles, type: "files" };
   } catch (e) {
-    console.error("Failed to retrieve shared file from cache", e);
+    logger.error("Failed to retrieve shared file from cache", { error: String(e) });
     return null;
   }
 }

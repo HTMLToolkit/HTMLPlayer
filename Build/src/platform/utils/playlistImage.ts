@@ -1,4 +1,7 @@
 import type { Track } from "../../core/engine/types";
+import { createLogger } from "../../helpers/logger";
+
+const logger = createLogger("playlistImage");
 
 export async function generatePlaylistImage(songs: Track[]): Promise<string> {
   const canvas = document.createElement("canvas");
@@ -57,7 +60,7 @@ export async function generatePlaylistImage(songs: Track[]): Promise<string> {
     canvas.height = 0;
     return result;
   } catch (error) {
-    console.error("Failed to generate playlist image:", error);
+    logger.error("Failed to generate playlist image:", { error: String(error) });
     canvas.width = 0;
     canvas.height = 0;
     return "";

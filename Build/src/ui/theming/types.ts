@@ -42,6 +42,15 @@ export interface ResolvedIcon {
   viewBox?: string;
 }
 
+export interface ResolvedComponentIcon {
+  type: "component";
+  Component: React.ComponentType<{ size?: number; color?: string }>;
+  component: React.ComponentType<{ size?: number; color?: string }>;
+  defaultProps?: Record<string, unknown>;
+  propTransformer?: (props: Record<string, unknown>) => Record<string, unknown>;
+  title?: string;
+}
+
 export interface Wallpaper {
   name: string;
   author: string;

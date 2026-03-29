@@ -1,5 +1,8 @@
 import { BaseMetadataExtractor } from "./base";
 import type { ExtractedMetadata, MetadataExtractor } from "./base";
+import { createLogger } from "../../helpers/logger";
+
+const logger = createLogger("floMetadata");
 
 interface FloAudioInfo {
   artist?: string;
@@ -22,7 +25,7 @@ export class FloMetadataExtractor extends BaseMetadataExtractor {
       this.floDecoder = flo;
       this.initialized = true;
     } catch (error) {
-      console.error("Failed to initialize flo decoder:", error);
+      logger.error("Failed to initialize flo decoder:", { error: String(error) });
       throw error;
     }
   }
@@ -50,7 +53,7 @@ export class FloMetadataExtractor extends BaseMetadataExtractor {
         },
       };
     } catch (error) {
-      console.error("Failed to extract flo metadata:", error);
+      logger.error("Failed to extract flo metadata:", { error: String(error) });
       return {
         title: this.getDefaultTitle(file as File),
         artist: "Unknown Artist",

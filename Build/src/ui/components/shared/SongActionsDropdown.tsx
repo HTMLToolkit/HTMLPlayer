@@ -1,4 +1,5 @@
 import { useState, Fragment } from "react";
+import { logger } from "../../../helpers/logger";
 import { toast } from "sonner";
 import { Button } from "../primitives/Button";
 import {
@@ -269,12 +270,20 @@ export const SongActionsDropdown = ({
         toast.success(t("songInfoCopied"));
       }
     } catch (error) {
-      console.error("Failed to share:", error);
+      if (error instanceof Error) {
+        logger.error("Failed to share:", { error: error.message });
+      } else {
+        logger.error("Failed to share");
+      }
       try {
         await navigator.clipboard.writeText(`${song.title} by ${song.artist}`);
         toast.success(t("songInfoCopied"));
       } catch (clipboardError) {
-        console.error("Failed to copy to clipboard:", clipboardError);
+        if (clipboardError instanceof Error) {
+          logger.error("Failed to copy to clipboard:", { error: clipboardError.message });
+        } else {
+          logger.error("Failed to copy to clipboard");
+        }
         toast.error(t("songShareFailed"));
       }
     }

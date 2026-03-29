@@ -1,5 +1,12 @@
 import { createRoot } from "react-dom/client";
+import { logger } from "../../helpers/logger";
 import { getCurrentThemeCSS } from "../../ui/theming";
+import {
+  PIP_WINDOW_WIDTH,
+  PIP_WINDOW_HEIGHT,
+  PIP_STYLE_DELAY_MS,
+  PIP_THEME_VARIABLES,
+} from "../../constants/pip";
 
 let pipWindow: Window | null = null;
 
@@ -37,14 +44,22 @@ export function copyAllStyles(pipWindow: Window) {
           copiedRulesCount += styleSheet.cssRules.length;
         }
       } catch (e) {
-        console.warn("Could not access stylesheet:", styleSheet.href, e);
+        if (e instanceof Error) {
+          logger.warn("Could not access stylesheet", { href: styleSheet.href, error: e.message });
+        } else {
+          logger.warn("Could not access stylesheet", { href: styleSheet.href });
+        }
       }
     });
   } catch (e) {
-    console.warn("Could not copy some stylesheets:", e);
+    if (e instanceof Error) {
+      logger.warn("Could not copy some stylesheets", { error: e.message });
+    } else {
+      logger.warn("Could not copy some stylesheets");
+    }
   }
 
-  console.log(`Copied ${copiedRulesCount} CSS rules to PiP window`);
+  logger.info(`Copied ${copiedRulesCount} CSS rules to PiP window`);
 }
 
 export const isMiniplayerSupported = (): boolean => {
@@ -79,7 +94,7 @@ export async function toggleMiniplayer(
   MiniplayerContent: React.ComponentType<{ controls: MiniplayerControls }>,
 ) {
   if (!controls.playerState.currentSong) {
-    console.error("No song is currently playing");
+    logger.error("No song is currently playing");
     return;
   }
 
@@ -94,13 +109,13 @@ export async function toggleMiniplayer(
       !("documentPictureInPicture" in window) ||
       !window.documentPictureInPicture
     ) {
-      console.error("Document Picture-in-Picture not supported");
+      logger.error("Document Picture-in-Picture not supported");
       return;
     }
 
     const newPipWindow = await window.documentPictureInPicture.requestWindow({
-      width: 400,
-      height: 70,
+      width: PIP_WINDOW_WIDTH,
+      height: PIP_WINDOW_HEIGHT,
     });
     pipWindow = newPipWindow;
 
@@ -110,7 +125,7 @@ export async function toggleMiniplayer(
 
     copyAllStyles(newPipWindow);
 
-    await new Promise((resolve) => setTimeout(resolve, 300));
+    await new Promise((resolve) => setTimeout(resolve, PIP_STYLE_DELAY_MS));
 
     const themeCSS = getCurrentThemeCSS();
     if (themeCSS && themeCSS.trim() !== ":root {\n  \n}") {
@@ -161,7 +176,11 @@ export async function toggleMiniplayer(
       }
     };
   } catch (err) {
-    console.error("PiP failed:", err);
+    if (err instanceof Error) {
+      logger.error("PiP failed:", { error: err.message });
+    } else {
+      logger.error("PiP failed");
+    }
     pipWindow = null;
   }
 }
@@ -169,20 +188,8 @@ export async function toggleMiniplayer(
 function applyFallbackThemeVariables(pipWindow: Window) {
   const rootStyle = getComputedStyle(document.documentElement);
   const fallbackVariables: string[] = [];
-  const themeVars = [
-    "--themecolor", "--themecolor2", "--themecolor3", "--themecolor4",
-    "--themegradient", "--themecolor-transparent", "--themecolor2-transparent",
-    "--themecolor3-transparent", "--foreground", "--foreground-strong",
-    "--foreground-stronger", "--foreground-muted", "--foreground-subtle",
-    "--background", "--surface", "--surface-foreground",
-    "--surface-transparent-05", "--surface-transparent-1", "--surface-transparent-2",
-    "--primary", "--primary-foreground", "--primary-transparent",
-    "--primary-border", "--primary-border-strong", "--secondary",
-    "--secondary-foreground", "--menu-background", "--spacing-1",
-    "--spacing-2", "--spacing-3", "--spacing-4", "--radius", "--radius-lg",
-  ];
 
-  themeVars.forEach((varName) => {
+  PIP_THEME_VARIABLES.forEach((varName) => {
     const value = rootStyle.getPropertyValue(varName).trim();
     if (value) {
       fallbackVariables.push(`${varName}: ${value};`);

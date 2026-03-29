@@ -1,4 +1,7 @@
 import { getDb, STORES } from "./db";
+import { createLogger } from "../../helpers/logger";
+
+const logger = createLogger("audioStorage");
 
 export interface AudioData {
   fileData: ArrayBuffer;
@@ -26,7 +29,7 @@ export const audioStorage = {
         ? { fileData: result.fileData, mimeType: result.mimeType }
         : null;
     } catch (error) {
-      console.error(`Failed to load audio data for song ${songId}:`, error);
+      logger.error(`Failed to load audio data for song ${songId}:`, { error: String(error) });
       return null;
     }
   },
@@ -48,7 +51,7 @@ export const audioStorage = {
         req.onerror = () => reject(req.error);
       });
     } catch (error) {
-      console.error(`Failed to save audio data for song ${songId}:`, error);
+      logger.error(`Failed to save audio data for song ${songId}:`, { error: String(error) });
       throw error;
     }
   },
@@ -65,7 +68,7 @@ export const audioStorage = {
         req.onerror = () => reject(req.error);
       });
     } catch (error) {
-      console.error(`Failed to remove audio data for song ${songId}:`, error);
+      logger.error(`Failed to remove audio data for song ${songId}:`, { error: String(error) });
       throw error;
     }
   },

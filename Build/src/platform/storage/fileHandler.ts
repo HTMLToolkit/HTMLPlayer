@@ -1,4 +1,7 @@
 import { processFiles } from "../utils/fileValidation";
+import { createLogger } from "../../helpers/logger";
+
+const logger = createLogger("fileHandler");
 
 declare global {
   interface Window {
@@ -36,7 +39,7 @@ export function setupFileHandler(
   onFilesReceived: (result: FileHandlerResult) => void,
 ): () => void {
   if (!("launchQueue" in window) || !window.launchQueue) {
-    console.warn("File Handling API not supported");
+    logger.warn("File Handling API not supported");
     return () => {};
   }
 
@@ -59,7 +62,7 @@ export function setupFileHandler(
         const fileId = `${file.name}-${file.size}-${file.lastModified}`;
 
         if (processed.includes(fileId)) {
-          console.log("Skipping duplicate:", file.name);
+          logger.debug("Skipping duplicate:", { fileName: file.name });
           continue;
         }
 
@@ -72,7 +75,7 @@ export function setupFileHandler(
           errorCount++;
         }
       } catch (error) {
-        console.error("Error processing file handle:", error);
+        logger.error("Error processing file handle:", { error: String(error) });
         errorCount++;
       }
     }
@@ -88,7 +91,7 @@ export function setupFileHandler(
     try {
       window.launchQueue?.setConsumer(() => {});
     } catch (e) {
-      console.warn("Could not clear file handler:", e);
+      logger.warn("Could not clear file handler:", { error: String(e) });
     }
   };
 }

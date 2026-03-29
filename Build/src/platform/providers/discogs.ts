@@ -1,5 +1,8 @@
 import { BaseProvider, type SearchQuery, type ProviderResult } from "./base";
 import type { AlbumArtProvider, AlbumArtResult } from "./albumArtTypes";
+import { createLogger } from "../../helpers/logger";
+
+const logger = createLogger("discogs");
 
 export class DiscogsProvider extends BaseProvider implements AlbumArtProvider {
   name = "Discogs";
@@ -64,7 +67,7 @@ export class DiscogsProvider extends BaseProvider implements AlbumArtProvider {
         confidence: 0.75,
       };
     } catch (error) {
-      console.error("Discogs fetch error:", error);
+      logger.error("Discogs fetch error:", { error: String(error) });
       return null;
     }
   }

@@ -1,5 +1,8 @@
 import type { SearchQuery, ProviderResult } from "./base";
 import type { Lyrics, LyricsProvider } from "./lyricsTypes";
+import { createLogger } from "../../helpers/logger";
+
+const logger = createLogger("lyricsManager");
 
 export class LyricsManager {
   private providers: LyricsProvider[] = [];
@@ -24,7 +27,7 @@ export class LyricsManager {
           return result.data;
         }
       } catch (error) {
-        console.error(`Provider ${provider.name} failed:`, error);
+        logger.error(`Provider ${provider.name} failed:`, { error: String(error) });
       }
     }
 

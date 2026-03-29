@@ -1,4 +1,5 @@
 import { BaseAudioBackend } from "./BaseBackend";
+import { throwError } from "../../../helpers/logger";
 
 export class HTMLAudioBackend extends BaseAudioBackend {
   private audio: HTMLAudioElement;
@@ -51,7 +52,7 @@ export class HTMLAudioBackend extends BaseAudioBackend {
       try {
         await this.audio.play();
       } catch (error) {
-        throw new Error(`Play failed: ${(error as Error).message}`);
+        return throwError(`Play failed: ${(error as Error).message}`);
       }
     }
   }

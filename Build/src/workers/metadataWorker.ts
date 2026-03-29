@@ -1,6 +1,21 @@
 import { parseBlob, selectCover } from "music-metadata";
 import type { ILyricsTag } from "music-metadata";
 
+const logger = {
+  debug: (message: string, data?: Record<string, unknown>) => {
+    self.postMessage({ type: "log", level: "debug", message, data });
+  },
+  info: (message: string, data?: Record<string, unknown>) => {
+    self.postMessage({ type: "log", level: "info", message, data });
+  },
+  warn: (message: string, data?: Record<string, unknown>) => {
+    self.postMessage({ type: "log", level: "warn", message, data });
+  },
+  error: (message: string, data?: Record<string, unknown>) => {
+    self.postMessage({ type: "log", level: "error", message, data });
+  },
+};
+
 // Constants for missing metadata (will be translated in main thread)
 const UNKNOWN_ARTIST = "__UNKNOWN_ARTIST__";
 const UNKNOWN_ALBUM = "__UNKNOWN_ALBUM__";
@@ -56,7 +71,7 @@ async function compressAlbumArt(
     base64.startsWith("data:image/webp") || base64.startsWith("data:image/gif");
 
   if (isAnimatedFormat) {
-    console.log("Skipping compression for animated image");
+    logger.debug("Skipping compression for animated image");
     return base64; // Return original to preserve animation
   }
 
@@ -96,7 +111,7 @@ async function compressAlbumArt(
       // Compress to JPEG at 70% quality
       const compressed = canvas.toDataURL("image/jpeg", 0.7);
 
-      console.log(
+      logger.debug(
         `Album art compressed: ${(base64.length / 1024).toFixed(1)}KB → ${(compressed.length / 1024).toFixed(1)}KB`,
       );
 
@@ -304,7 +319,7 @@ self.onmessage = async (event: MessageEvent) => {
       try {
         albumArt = await compressAlbumArt(base64);
       } catch (error) {
-        console.warn("Worker: Failed to compress album art:", error);
+        logger.warn("Worker: Failed to compress album art:", { error: String(error) });
         albumArt = base64; // Fallback to original
       }
     }

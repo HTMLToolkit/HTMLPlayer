@@ -10,6 +10,7 @@ import styles from "./Lyrics.module.css";
 import { Button } from "../primitives/Button";
 import { Icon } from "../shared/Icon";
 import { cleanMetadata } from "../../../platform/lyrics";
+import { logger } from "../../../helpers/logger";
 
 interface LyricsProps {
   artist: string;
@@ -243,7 +244,7 @@ export const Lyrics = ({
     });
     setCurrentLineIndex(-1);
     // Debug log arrival
-    console.debug("[Lyrics] embedded lyrics arrived", {
+    logger.debug("[Lyrics] embedded lyrics arrived", {
       length: normalizedEmbedded.length,
       normalizedEmbedded,
     });
@@ -304,7 +305,7 @@ export const Lyrics = ({
   );
 
   useEffect(() => {
-    console.debug("[Lyrics] selectedLyrics changed", {
+    logger.debug("[Lyrics] selectedLyrics changed", {
       selectedIndex,
       selectedLyrics,
       currentLineIndex,

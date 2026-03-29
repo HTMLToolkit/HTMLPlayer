@@ -1,6 +1,9 @@
 import type { Track, Playlist } from "../../core/engine/types";
 import type { SettingsState } from "../settings/types";
 import type { SongScore } from "../library/scoring";
+import { createLogger } from "../../helpers/logger";
+
+const logger = createLogger("session");
 
 export interface SessionState {
   lastPlayedSongId: string | null;
@@ -41,7 +44,7 @@ export class SessionManager {
     try {
       localStorage.setItem(SESSION_KEY, JSON.stringify(this.session));
     } catch (error) {
-      console.error("Failed to save session:", error);
+      logger.error("Failed to save session:", { error: String(error) });
     }
   }
 
@@ -53,7 +56,7 @@ export class SessionManager {
         this.session = { ...this.session, ...parsed };
       }
     } catch (error) {
-      console.error("Failed to load session:", error);
+      logger.error("Failed to load session:", { error: String(error) });
     }
     return this.session;
   }
@@ -75,7 +78,7 @@ export class SessionManager {
     try {
       localStorage.removeItem(SESSION_KEY);
     } catch (error) {
-      console.error("Failed to clear session:", error);
+      logger.error("Failed to clear session:", { error: String(error) });
     }
   }
 

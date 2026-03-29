@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { logger } from "../../../helpers/logger";
 import {
   shortcutsDb,
   KeyboardShortcut,
@@ -88,7 +89,11 @@ export const ShortcutConfig: React.FC<ShortcutConfigProps> = ({
       setConflict(null);
       onShortcutsChanged?.();
     } catch (error) {
-      console.error("Failed to save shortcut:", error);
+      if (error instanceof Error) {
+        logger.error("Failed to save shortcut:", { error: error.message });
+      } else {
+        logger.error("Failed to save shortcut");
+      }
       setConflict(
         error instanceof Error
           ? error.message

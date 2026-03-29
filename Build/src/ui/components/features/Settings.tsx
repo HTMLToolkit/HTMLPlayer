@@ -12,7 +12,7 @@ import { Button } from "../primitives/Button";
 import { Icon } from "../shared/Icon";
 import { ShortcutConfig } from "../shared/ShortcutConfig";
 import styles from "./Settings.module.css";
-import { usePalette } from "../../theming/hooks";
+import { usePalette } from "../../theming/hooks/useTheming";
 import type { UseKomorebiReturn } from "../../../hooks/useKomorebi";
 
 import { SettingsAudio } from "./SettingsAudio";
