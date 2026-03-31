@@ -1,6 +1,7 @@
 import { memo } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "../primitives/Button";
+import { SearchInput } from "../primitives/SearchInput";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -8,8 +9,8 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
 } from "../primitives/DropdownMenu";
-import { Icon } from "../shared/Icon";
 import styles from "./Playlist.module.css";
+import Icon from "../shared/Icon";
 
 interface PlaylistToolbarProps {
   searchQuery: string;
@@ -30,24 +31,18 @@ export const PlaylistToolbar = memo(function PlaylistToolbar({
 
   return (
     <div className={styles.searchContainer}>
-      <div className={styles.searchWrapper}>
-        <div className={styles.searchIcon}>
-          <Icon name="music" size={16} decorative />
-        </div>
-        <input
-          type="text"
-          className={styles.searchInput}
-          placeholder={t("playlist.searchPlaylists")}
-          value={searchQuery}
-          onChange={(e) => onSearchChange(e.target.value)}
-        />
-      </div>
+      <SearchInput
+        icon="music"
+        placeholder={t("playlist.searchPlaylists")}
+        value={searchQuery}
+        onChange={(e) => onSearchChange(e.target.value)}
+      />
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button
             variant="outline"
             size="icon-md"
-            className={styles.actionButton}
+            className={`${styles.actionButton} action-button-lift`}
           >
             <Icon name="plus" size={16} decorative />
           </Button>

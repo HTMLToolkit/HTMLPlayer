@@ -61,8 +61,8 @@
 }
 
 .albumArt {
-  width: 115px;
-  height: 115px;
+  width: var(--player-art-size);
+  height: var(--player-art-size);
   background: var(--albumart-gradient);
   border-radius: var(--radius-md);
   flex-shrink: 0;
@@ -396,8 +396,8 @@
   position: fixed;
   top: 65px;
   right: 0;
-  left: calc(var(--sidebar-width) + 11px);
-  width: calc(100vw - var(--sidebar-width) - 15px);
+  left: calc(var(--sidebar-width) + var(--spacing-layout));
+  width: calc(100vw - var(--sidebar-width) - var(--spacing-layout));
   height: calc(100vh - 90px - 180px);
   max-height: 300px;
   background: black;

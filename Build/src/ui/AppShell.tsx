@@ -17,6 +17,7 @@ import { useFileHandler } from "../hooks/useFileHandler";
 import { useShareTarget } from "../hooks/useShareTarget";
 import { clearHandledShares } from "../platform/integrations/shareTarget";
 import { importAudioFiles } from "../helpers/importAudioFiles";
+import { trackStorage } from "../platform/storage/trackStorage";
 import {
   switchToAutoMode,
   switchToDarkMode,
@@ -42,7 +43,14 @@ function AppShellContent({ komorebi }: AppShellProps) {
   const [, setThemeMode] = useState<ThemeMode>("auto");
   const playerRef = useRef<PlayerRef>(null);
 
-  const handleAddSong = async (song: any) => {
+  const handleAddSong = async (song: any, file?: File) => {
+    if (!file) return;
+    song.url = URL.createObjectURL(file);
+    song.hasStoredAudio = true;
+    
+    const arrayBuffer = await file.arrayBuffer();
+    await trackStorage.saveTrack(song, arrayBuffer);
+    
     komorebi.addSong(song);
   };
 

@@ -5,6 +5,7 @@ const MODE_STORAGE_KEY = "themeMode";
 export class ThemeModeEngine {
   private currentMode: ThemeMode = "auto";
   private mediaQuery: MediaQueryList | null = null;
+  private mediaQueryListener: ((e: MediaQueryListEvent) => void) | null = null;
   private events: ThemingEvents;
   private onBroadcast: (() => void) | null = null;
 
@@ -21,8 +22,8 @@ export class ThemeModeEngine {
   }
 
   setMode(mode: ThemeMode): void {
-    if (this.currentMode === mode) return;
-
+    const shouldSkip = this.currentMode === mode && mode !== "auto";
+    
     this.clearMediaQueryListener();
 
     switch (mode) {
@@ -41,7 +42,10 @@ export class ThemeModeEngine {
     localStorage.setItem(MODE_STORAGE_KEY, mode);
 
     this.updateMetaThemeColor();
-    this.events.emit("modechange", { mode: mode });
+    
+    if (!shouldSkip) {
+      this.events.emit("modechange", { mode: mode });
+    }
 
     setTimeout(() => {
       this.onBroadcast?.();
@@ -51,18 +55,18 @@ export class ThemeModeEngine {
   private setupAutoMode(): void {
     const prefersDark = window.matchMedia("(prefers-color-scheme: dark)");
 
-    const listener = (e: MediaQueryListEvent) => {
+    this.mediaQueryListener = (e: MediaQueryListEvent) => {
       if (e.matches) {
         document.documentElement.classList.add("dark");
       } else {
         document.documentElement.classList.remove("dark");
       }
       this.updateMetaThemeColor();
-      this.events.emit("modechange", { mode: "auto" });
+      this.events.emit("themechange", null);
       this.onBroadcast?.();
     };
 
-    prefersDark.addEventListener("change", listener);
+    prefersDark.addEventListener("change", this.mediaQueryListener);
     this.mediaQuery = prefersDark;
 
     if (prefersDark.matches) {
@@ -73,9 +77,10 @@ export class ThemeModeEngine {
   }
 
   private clearMediaQueryListener(): void {
-    if (this.mediaQuery) {
-      this.mediaQuery.removeEventListener("change", () => {});
+    if (this.mediaQuery && this.mediaQueryListener) {
+      this.mediaQuery.removeEventListener("change", this.mediaQueryListener);
       this.mediaQuery = null;
+      this.mediaQueryListener = null;
     }
   }
 

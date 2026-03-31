@@ -80,7 +80,7 @@ export const DEFAULT_SETTINGS: SettingsState = {
   defaultShuffle: false,
   defaultRepeat: "off",
   autoPlayNext: true,
-  themeMode: "dark",
+  themeMode: "auto",
   compactMode: false,
   showAlbumArt: true,
   showLyrics: false,

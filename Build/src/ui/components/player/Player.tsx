@@ -5,22 +5,19 @@ import {
   useImperativeHandle,
   forwardRef,
 } from "react";
-import { Button } from "../primitives/Button";
+import { useTranslation } from "react-i18next";
+import { isSafari } from "../../../platform/utils/safari";
 import { Visualizer } from "./Visualizer";
 import { Lyrics } from "./Lyrics";
 import styles from "./Player.module.css";
 import { SongActionsDropdown } from "../shared/SongActionsDropdown";
-import { useTranslation } from "react-i18next";
-import { isMiniplayerSupported, toggleMiniplayer } from "../../../platform/pip/index";
-import { MiniplayerContent } from "./Miniplayer";
-import { ScrollText } from "../shared/ScrollText";
-import { isSafari } from "../../../platform/utils/safari";
-import { Icon } from "../shared/Icon";
-import { useAlbumArt } from "../../../hooks/useAlbumArt";
 import { useNavigation } from "../../navigation";
 import { ProgressBar } from "./ProgressBar";
 import { VolumeControl } from "./VolumeControl";
 import { PlayerControls } from "./PlayerControls";
+import { PlayerAlbumArt } from "./PlayerAlbumArt";
+import { PlayerTrackInfo } from "./PlayerTrackInfo";
+import { PlayerSecondaryControls } from "./PlayerSecondaryControls";
 import type { UseKomorebiReturn } from "../../../hooks/useKomorebi";
 
 interface PlayerProps {
@@ -58,12 +55,6 @@ export const Player = forwardRef<PlayerRef, PlayerProps>(
     const { state: navState } = useNavigation();
     const currentSong = currentTrack;
     const libraryState = library.getState();
-
-    const lazyAlbumArt = useAlbumArt(
-      currentSong?.id,
-      currentSong?.hasAlbumArt || !!currentSong?.albumArt,
-    );
-    const currentAlbumArt = currentSong?.albumArt || lazyAlbumArt;
 
     const [showVisualizer, setShowVisualizer] = useState(false);
     const [showLyrics, setShowLyrics] = useState(false);
@@ -164,33 +155,16 @@ export const Player = forwardRef<PlayerRef, PlayerProps>(
           className={`${styles.player} ${isHomeView ? styles.playerCompact : ""}`}
         >
           <div className={styles.currentSong}>
-            <div className={styles.albumArt}>
-              {currentAlbumArt && (
-                <img
-                  src={currentAlbumArt}
-                  alt={t("player.albumArtAlt", { title: currentSong.title })}
-                  loading="lazy"
-                  style={{
-                    width: "100%",
-                    height: "100%",
-                    objectFit: "cover",
-                    borderRadius: "inherit",
-                  }}
-                />
-              )}
-            </div>
-            <div className={styles.songInfo}>
-              <div className={styles.songTitleWrapper}>
-                <ScrollText
-                  text={currentSong?.title || t("common.loading")}
-                  textClassName={styles.songTitle}
-                  textStyle={{ opacity: currentSong?.title ? 1 : 0 }}
-                  allowHTML
-                  pauseOnHover
-                />
-              </div>
-              <div className={styles.artistName}>{currentSong.artist}</div>
-            </div>
+            <PlayerAlbumArt
+              songId={currentSong?.id}
+              hasAlbumArt={currentSong?.hasAlbumArt}
+              albumArt={currentSong?.albumArt}
+              title={currentSong?.title || ""}
+            />
+            <PlayerTrackInfo
+              title={currentSong?.title}
+              artist={currentSong?.artist}
+            />
           </div>
 
           <div className={styles.controls} data-tour="player-controls">
@@ -219,60 +193,20 @@ export const Player = forwardRef<PlayerRef, PlayerProps>(
               onToggleMute={handleVolumeToggle}
             />
 
-            <div className={styles.secondaryControls}>
-              <Button
-                variant="ghost"
-                size="icon-sm"
-                className={`${styles.favoriteButton} ${isFavorite ? styles.favorited : ""}`}
-                onClick={handleFavorite}
-                title={isFavorite ? t("player.removeFavorite") : t("player.addFavorite")}
-              >
-                <Icon name="heart" size={16} decorative />
-              </Button>
-              {!isOnSafari && (
-                <Button
-                  variant="ghost"
-                  size="icon-sm"
-                  className={`${styles.secondaryButton} ${showVisualizer ? styles.active : ""}`}
-                  onClick={handleVisualizerToggle}
-                  title={t("player.visualizer")}
-                  data-tour="visualizer-button"
-                >
-                  <Icon name="barChart3" size={16} decorative />
-                </Button>
-              )}
-              <Button
-                variant="ghost"
-                size="icon-sm"
-                className={`${styles.secondaryButton} ${showLyrics ? styles.active : ""}`}
-                onClick={handleLyricsToggle}
-                title={t("player.lyrics")}
-                data-tour="lyrics-button"
-              >
-                <Icon name="type" size={16} decorative />
-              </Button>
-              {isMiniplayerSupported() && (
-                <Button
-                  variant="ghost"
-                  size="icon-sm"
-                  className={styles.secondaryButton}
-                  onClick={() => {
-                    toggleMiniplayer(
-                      {
-                        playerState: { currentSong, isPlaying },
-                        togglePlayPause,
-                        next,
-                        previous,
-                      },
-                      MiniplayerContent,
-                    );
-                  }}
-                  title="Picture-in-Picture"
-                >
-                  <Icon name="pictureInPicture2" size={16} decorative />
-                </Button>
-              )}
-            </div>
+            <PlayerSecondaryControls
+              currentSong={currentSong}
+              isPlaying={isPlaying}
+              isFavorite={isFavorite}
+              showVisualizer={showVisualizer}
+              showLyrics={showLyrics}
+              isOnSafari={isOnSafari}
+              onFavorite={handleFavorite}
+              onVisualizerToggle={handleVisualizerToggle}
+              onLyricsToggle={handleLyricsToggle}
+              onPlayPause={togglePlayPause}
+              onNext={next}
+              onPrevious={previous}
+            />
 
             <SongActionsDropdown
               song={currentSong}

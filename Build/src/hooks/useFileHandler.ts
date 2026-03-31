@@ -10,11 +10,11 @@ import { createLogger } from "../helpers/logger";
 const logger = createLogger("useFileHandler");
 
 export function useFileHandler(
-  addSong: (song: Track) => Promise<void>,
+  addSong: (song: Track, file?: File) => Promise<void>,
   t: any,
   importFiles: (
     files: File[],
-    addSong: (song: Track) => Promise<void>,
+    addSong: (song: Track, file?: File) => Promise<void>,
     t: any,
   ) => Promise<void>,
   isInitialized?: boolean,

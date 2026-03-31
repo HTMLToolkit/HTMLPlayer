@@ -26,7 +26,7 @@ export const SortDropdown = React.forwardRef<PersistentDropdownMenuRef, SortDrop
           <Button
             variant="outline"
             size="icon-md"
-            className={styles.actionButton}
+            className={`${styles.actionButton} action-button-lift`}
             aria-label={t("sort.sortBy")}
           >
             <Icon name="arrowUpDown" size={16} decorative />

@@ -31,7 +31,7 @@ export function SelectSongsMenu({
         <Button
           variant="outline"
           size="icon-md"
-          className={styles.actionButton}
+          className={`${styles.actionButton} action-button-lift`}
           aria-label={t("actions.selectSongs")}
         >
           <Icon name="listChecks" size={16} decorative />

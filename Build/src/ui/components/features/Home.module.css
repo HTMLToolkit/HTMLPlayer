@@ -73,7 +73,7 @@
   text-transform: uppercase;
   letter-spacing: 0.08em;
   background: var(--surface-transparent-2);
-  color: var(--foreground-subtle);
+  color: var(--primary-foreground);
   border: 1px solid var(--surface-transparent-3);
 }
 
@@ -87,7 +87,7 @@
 
 .heroSubtitle {
   margin: 0;
-  color: var(--foreground-subtle);
+  color: var(--primary-foreground);
   font-size: 0.95rem;
 }
 
@@ -145,7 +145,7 @@
 
 .sectionSubtitle {
   margin: 0;
-  color: var(--foreground-subtle);
+  color: var(--primary-foreground);
   font-size: 0.85rem;
 }
 
@@ -168,7 +168,7 @@
 
 .statLabel {
   font-size: 0.75rem;
-  color: var(--foreground-subtle);
+  color: var(--primary-foreground);
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
@@ -228,7 +228,7 @@
 
 .quickActionDescription {
   margin: 0;
-  color: var(--foreground-subtle);
+  color: var(--primary-foreground);
   font-size: 0.75rem;
   line-height: 1.4;
 }
@@ -306,7 +306,7 @@
 
 .songArtist {
   font-size: 0.75rem;
-  color: var(--foreground-subtle);
+  color: var(--primary-foreground);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -314,7 +314,7 @@
 
 .emptyState {
   padding: var(--spacing-4);
-  color: var(--foreground-subtle);
+  color: var(--primary-foreground);
   font-size: 0.9rem;
   text-align: center;
   background: var(--surface-transparent-1);
@@ -380,7 +380,7 @@
 
 .playlistCount {
   font-size: 0.75rem;
-  color: var(--foreground-subtle);
+  color: var(--primary-foreground);
 }
 
 @media (max-width: 900px) {

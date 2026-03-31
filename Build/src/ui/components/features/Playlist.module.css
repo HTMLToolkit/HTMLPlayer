@@ -15,61 +15,21 @@
   min-width: 0;
 }
 
-.searchWrapper {
-  position: relative;
-  flex: 1;
-}
-
-.searchIcon {
-  position: absolute;
-  left: var(--spacing-3);
-  top: 50%;
-  transform: translateY(-50%);
-  color: var(--primary-foreground);
-  pointer-events: none;
-}
-
-.searchInput {
-  background: var(--surface-transparent-1);
-  border: 1px solid var(--surface-transparent-2);
-  color: var(--primary-foreground);
-  padding-left: calc(var(--spacing-3) * 2 + 16px);
-  width: 100%;
-  border-radius: var(--radius);
-  padding: var(--spacing-2) calc(var(--spacing-3) * 2 + 16px);
-}
-
-.searchInput:focus {
-  outline: var(--shadow);
-  border-color: var(--primary-border-strong);
-  box-shadow: 0 0 0 2px var(--primary-transparent-2);
-}
-
-.searchInput::placeholder {
-  color: var(--primary-foreground);
-}
-
 .actionButton {
   background: var(--surface-transparent-1);
   border: 1px solid var(--surface-transparent-2);
   color: var(--primary-foreground);
   font-weight: 500;
-  transition: all var(--animation-duration-fast) ease;
 }
 
 .actionButton:hover {
   background: var(--surface-transparent-2);
   border-color: var(--primary-border-strong);
-  transform: translateY(-1px);
 }
 
 .actionButton:focus-visible {
   outline: 2px solid var(--themecolor2);
   outline-offset: 2px;
-}
-
-.actionButton:active {
-  transform: translateY(0);
 }
 
 .playlistList {

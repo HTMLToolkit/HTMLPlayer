@@ -16,6 +16,7 @@ import { AddToPopover } from "../shared/AddToPopover";
 import { useTranslation } from "react-i18next";
 import { Icon } from "../shared/Icon";
 import { dialogStorage } from "../../../platform/storage";
+import { trackStorage } from "../../../platform/storage/trackStorage";
 import { importAudioFiles } from "../../../helpers/importAudioFiles";
 import { Home } from "../features/Home";
 import { useAlbumArt } from "../../../hooks/useAlbumArt";
@@ -415,8 +416,19 @@ export const MainContent = ({
   const handleImportAudioFiles = async (
     audioFiles: Array<{ file: File } | File>,
   ) => {
-    const wrappedAddSong = async (song: any) => {
+    const wrappedAddSong = async (song: any, file: File) => {
+      console.log("[import] before setting:", { id: song.id, hasStoredAudio: song.hasStoredAudio, url: song.url });
+      song.url = URL.createObjectURL(file);
+      song.hasStoredAudio = true;
+      console.log("[import] after setting:", { id: song.id, hasStoredAudio: song.hasStoredAudio, url: song.url });
+      
+      const arrayBuffer = await file.arrayBuffer();
+      console.log("[import] arrayBuffer size:", arrayBuffer.byteLength);
+      await trackStorage.saveTrack(song, arrayBuffer);
+      console.log("[import] saved to trackStorage");
+      
       addSong(song);
+      console.log("[import] added to library");
     };
     await importAudioFiles(audioFiles, wrappedAddSong, t);
   };

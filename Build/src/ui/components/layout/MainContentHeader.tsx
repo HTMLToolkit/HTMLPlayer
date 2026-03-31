@@ -1,7 +1,7 @@
 import React from "react";
 import { Button } from "../primitives/Button";
 import { Icon } from "../shared/Icon";
-import { Input } from "../primitives/Input";
+import { SearchInput } from "../primitives/SearchInput";
 import { SortDropdown } from "./SortDropdown";
 import { SelectSongsMenu } from "./SelectSongsMenu";
 import { DeleteDialog } from "../primitives/DeleteDialog";
@@ -108,21 +108,17 @@ export function MainContentHeader({
         )}
         {!isHomeView && (
           <div className={styles.actions}>
-            <div className={styles.searchWrapper}>
-              <Icon name="search" className={styles.searchIcon} size={16} decorative />
-              <Input
-                placeholder={t("search.placeholder")}
-                className={styles.searchInput}
-                value={songSearchQuery}
-                onChange={(e) => onSearchChange(e.target.value)}
-                data-tour="search"
-              />
-            </div>
+            <SearchInput
+              placeholder={t("search.placeholder")}
+              value={songSearchQuery}
+              onChange={(e) => onSearchChange(e.target.value)}
+              data-tour="search"
+            />
             <div className={styles.buttonGroup}>
               <Button
                 variant="outline"
                 size="icon-md"
-                className={styles.actionButton}
+                className={`${styles.actionButton} action-button-lift`}
                 onClick={onDeleteSong}
                 aria-label={t("actions.delete")}
               >
@@ -145,7 +141,7 @@ export function MainContentHeader({
               <Button
                 variant="outline"
                 size="icon-md"
-                className={styles.actionButton}
+                className={`${styles.actionButton} action-button-lift`}
                 onClick={onAddMusic}
                 aria-label={t("actions.addMusic")}
                 data-tour="upload-music"

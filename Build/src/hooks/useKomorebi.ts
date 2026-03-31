@@ -10,6 +10,7 @@ import type { IAudioBackend } from "../platform/audio";
 import { HTMLAudioBackend } from "../platform/audio/backends/HTMLBackend";
 import { LibraryManager } from "../platform/library/library";
 import { libraryPersistence } from "../platform/library/persistence";
+import { trackStorage } from "../platform/storage/trackStorage";
 import { SettingsManager } from "../platform/settings/settings";
 import { createLogger } from "../helpers/logger";
 
@@ -178,11 +179,23 @@ export function useKomorebi(
     engine.on("loading", handleLoading);
     engine.on("ready", handleReady);
 
+    const handleLibraryChange = () => {
+      setState(engine.getState());
+    };
+    library.on("songadded", handleLibraryChange);
+    library.on("songremoved", handleLibraryChange);
+    library.on("playlistadded", handleLibraryChange);
+    library.on("playlistremoved", handleLibraryChange);
+    library.on("favoritechanged", handleLibraryChange);
+
     const loadLibrary = async () => {
       try {
         const savedLibrary = await libraryPersistence.loadFullLibrary();
         if (savedLibrary) {
-          savedLibrary.songs.forEach((song) => library.addSong(song));
+          for (const song of savedLibrary.songs) {
+            const reconstructed = await trackStorage.reconstructUrl(song);
+            library.addSong(reconstructed);
+          }
           savedLibrary.playlists.forEach((playlist) => {
             if ("songs" in playlist) {
               library.addPlaylist(playlist);
@@ -211,6 +224,11 @@ export function useKomorebi(
       engine.off("error", handleError);
       engine.off("loading", handleLoading);
       engine.off("ready", handleReady);
+      library.off("songadded", handleLibraryChange);
+      library.off("songremoved", handleLibraryChange);
+      library.off("playlistadded", handleLibraryChange);
+      library.off("playlistremoved", handleLibraryChange);
+      library.off("favoritechanged", handleLibraryChange);
       backendRef.current?.dispose();
     };
   }, []);
@@ -289,15 +307,34 @@ export function useKomorebi(
   }, []);
 
   const playSong = useCallback(async (song: Track, playlist?: Playlist) => {
+    console.log("[playSong] called", { song: song?.title, songUrl: song?.url, playlist: playlist?.name });
     setError(null);
     const engine = engineRef.current;
-    if (!engine) return;
+    console.log("[playSong] engine:", engine);
+    if (!engine) {
+      console.log("[playSong] no engine!");
+      return;
+    }
+
+    const trackToPlay = await trackStorage.reconstructUrl(song);
+    console.log("[playSong] reconstructed url:", trackToPlay.url);
 
     if (playlist) {
       engine.setPlaylist(playlist);
     }
-    engine.load(song, playlist);
+    engine.load(trackToPlay, playlist);
+    
+    await new Promise<void>((resolve) => {
+      const handleReady = () => {
+        engine.off("ready", handleReady);
+        resolve();
+      };
+      engine.on("ready", handleReady);
+    });
+    
+    console.log("[playSong] calling engine.play()");
     await engine.play();
+    console.log("[playSong] play() completed");
   }, []);
 
   const seek = useCallback((time: number) => {

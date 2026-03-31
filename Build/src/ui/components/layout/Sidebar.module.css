@@ -70,24 +70,8 @@
   gap: var(--spacing-3);
 }
 
-.searchWrapper {
-  position: relative;
-}
-
 .searchIcon {
-  position: absolute;
-  left: var(--spacing-3);
-  top: 50%;
-  transform: translateY(-50%);
   color: var(--primary-foreground);
-  pointer-events: none;
-}
-
-.searchInput {
-  background: var(--surface-transparent-1);
-  border: 1px solid var(--surface-transparent-2);
-  color: var(--primary-foreground);
-  padding-left: calc(var(--spacing-3) * 2 + 16px);
 }
 
 .searchInput::placeholder {
