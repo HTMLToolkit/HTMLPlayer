@@ -82,11 +82,11 @@ const PlaylistCardItem = React.memo<{
 
 export const Home: React.FC<HomeProps> = ({ komorebi, onAddMusic }) => {
   const { t } = useTranslation();
-  const { currentTrack, library, playSong, getFavorites } = komorebi;
+  const { currentTrack, library, songs: komorebiSongs, playSong, getFavorites } = komorebi;
   const { goToSongs } = useNavigation();
 
   const libraryState = library.getState();
-  const songs = libraryState.songs;
+  const songs = komorebiSongs;
   const playlists = libraryState.playlists;
   const favorites = libraryState.favorites;
 

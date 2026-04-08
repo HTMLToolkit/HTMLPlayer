@@ -3,6 +3,7 @@ import { KomorebiEngine } from "../core/engine/engine";
 import type {
   Track,
   Playlist,
+  PlaylistFolder,
   EngineState,
   QueueState,
 } from "../core/engine/types";
@@ -31,6 +32,7 @@ export interface UseKomorebiReturn {
   isLoading: boolean;
 
   state: EngineState;
+  songs: Track[];
   currentTrack: Track | null;
   isPlaying: boolean;
   currentTime: number;
@@ -73,6 +75,14 @@ export interface UseKomorebiReturn {
   search: (query: string) => Track[];
   getSongsByArtist: (artist: string) => Track[];
   getSongsByAlbum: (album: string) => Track[];
+}
+
+declare global {
+  interface MusicLibrary {
+    songs: Track[];
+    playlists: (Playlist | PlaylistFolder)[];
+    favorites: string[];
+  }
 }
 
 const DEFAULT_QUEUE: QueueState = {
@@ -123,6 +133,7 @@ export function useKomorebi(
   const [error, setError] = useState<string | null>(null);
 
   const [state, setState] = useState<EngineState>(createInitialState);
+  const [songs, setSongs] = useState<Track[]>([]);
   const [currentTrack, setCurrentTrack] = useState<Track | null>(null);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
@@ -180,6 +191,8 @@ export function useKomorebi(
     engine.on("ready", handleReady);
 
     const handleLibraryChange = () => {
+      console.log("[handleLibraryChange] called, songs:", library.getState().songs.length);
+      setSongs([...library.getState().songs]);
       setState(engine.getState());
     };
     library.on("songadded", handleLibraryChange);
@@ -213,6 +226,8 @@ export function useKomorebi(
 
     loadLibrary().then(() => {
       setIsReady(true);
+      console.log("[loadLibrary] setting songs:", library.getState().songs.length);
+      setSongs([...library.getState().songs]);
       setState(engine.getState());
     });
 
@@ -381,6 +396,7 @@ export function useKomorebi(
   }, []);
 
   const addSong = useCallback((song: Track) => {
+    console.log("[addSong] called", { songId: song.id, title: song.title });
     libraryRef.current?.addSong(song);
   }, []);
 
@@ -437,6 +453,7 @@ export function useKomorebi(
     isLoading,
 
     state,
+    songs,
     currentTrack,
     isPlaying: state.state === "playing",
     currentTime,

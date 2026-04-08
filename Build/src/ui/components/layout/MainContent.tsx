@@ -218,8 +218,14 @@ export const MainContent = ({
 }: MainContentProps) => {
   const { t } = useTranslation();
   const { state: navState, goToSongs, goHome } = useNavigation();
-  const library = komorebi.library;
-  const libraryState = library.getState();
+  const { songs, library } = komorebi;
+  console.log("[MainContent] songs:", songs.length, "library songs:", library.getState().songs.length);
+
+  const libraryState: MusicLibrary = {
+    songs,
+    playlists: library.getState().playlists,
+    favorites: library.getState().favorites,
+  };
 
   const [songSearchQuery, setSongSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState<
@@ -274,24 +280,24 @@ export const MainContent = ({
 
   const songsToDisplay = React.useMemo(() => {
     if (navState.view === "artist" && navState.artist) {
-      return libraryState.songs.filter(
+      return songs.filter(
         (song: Track) => song.artist === navState.artist,
       );
     } else if (navState.view === "album" && navState.album) {
-      return libraryState.songs.filter(
+      return songs.filter(
         (song: Track) => song.album === navState.album,
       );
     } else if (engineState.currentPlaylist) {
       return engineState.currentPlaylist.songs;
     } else {
-      return libraryState.songs;
+      return songs;
     }
   }, [
     navState.view,
     navState.artist,
     navState.album,
     engineState.currentPlaylist,
-    libraryState.songs,
+    songs,
   ]);
 
   const filteredSongs = React.useMemo(() => {
@@ -370,7 +376,7 @@ export const MainContent = ({
     e.stopPropagation();
     const wasFavorite = library.isFavorite(songId);
     toggleFavorite(songId);
-    const song = libraryState.songs.find((s) => s.id === songId);
+    const song = songs.find((s) => s.id === songId);
     if (song) {
       toast.success(
         wasFavorite
@@ -583,7 +589,7 @@ export const MainContent = ({
       {/* Add To Popover */}
       <AddToPopover
         songs={selectedSongs
-          .map((id) => libraryState.songs.find((s) => s.id === id))
+          .map((id) => songs.find((s) => s.id === id))
           .filter((s): s is Track => s !== undefined)}
         library={libraryState}
         onCreatePlaylist={createPlaylist}

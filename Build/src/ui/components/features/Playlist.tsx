@@ -27,7 +27,7 @@ export const PlaylistView = memo(function PlaylistView({
   komorebi,
 }: PlaylistViewProps) {
   const { t } = useTranslation();
-  const library = komorebi.library;
+  const { songs, library } = komorebi;
   const libraryState = library.getState();
   const [playlistSearchQuery, setPlaylistSearchQuery] = useState("");
   const [playlistImages, setPlaylistImages] = useState<Record<string, string>>(
@@ -170,7 +170,7 @@ export const PlaylistView = memo(function PlaylistView({
       isCancelled = true;
       clearTimeout(timeoutId);
     };
-  }, [libraryState.playlists, libraryState.songs]);
+  }, [libraryState.playlists, songs]);
 
   const filteredPlaylists = useMemo(
     () =>
@@ -266,10 +266,10 @@ export const PlaylistView = memo(function PlaylistView({
     const allSongs: Playlist = {
       id: "all-songs",
       name: t("allSongs"),
-      songs: libraryState.songs,
+      songs: songs,
     };
     komorebi.playSong(allSongs.songs[0], allSongs);
-  }, [libraryState.songs, komorebi, t]);
+  }, [songs, komorebi, t]);
 
   const handleShare = useCallback(
     (playlist: Playlist) => {
@@ -425,7 +425,7 @@ export const PlaylistView = memo(function PlaylistView({
         >
           <Icon name="music" size={16} decorative />
           {t("allSongs")}
-          <span className={styles.songCount}>{libraryState.songs.length}</span>
+          <span className={styles.songCount}>{songs.length}</span>
         </button>
 
         <button
@@ -434,7 +434,7 @@ export const PlaylistView = memo(function PlaylistView({
             handlePlaylistSelect({
               id: "favorites",
               name: t("favorites.favorites"),
-              songs: libraryState.songs.filter((s) =>
+              songs: songs.filter((s) =>
                 libraryState.favorites.includes(s.id),
               ),
             })
