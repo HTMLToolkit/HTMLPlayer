@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>HTMLPlayer Terms of Service</title>
+    <meta name="description" content="HTMLPlayer Terms of Service" />
+    <link href="./src/global.css" rel="stylesheet" />
+    <link
+      href="./src/ui/resources/themes/Palettes/Blue/Blue.theme.css"
+      rel="stylesheet"
+      id="theme-link"
+    />
+    <script>
+      (function () {
+        const savedMode = localStorage.getItem("themeMode") || "auto";
+        if (savedMode === "dark") {
+          document.documentElement.classList.add("dark");
+        } else if (savedMode === "auto") {
+          if (
+            window.matchMedia &&
+            window.matchMedia("(prefers-color-scheme: dark)").matches
+          ) {
+            document.documentElement.classList.add("dark");
+          }
+        }
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="./src/pages/termsEntry.tsx"></script>
+  </body>
+</html>

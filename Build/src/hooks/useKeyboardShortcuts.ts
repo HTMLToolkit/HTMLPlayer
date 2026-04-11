@@ -1,27 +1,16 @@
-import { useEffect, useCallback, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import {
   shortcutsDb,
-  ShortcutConfig,
-  KeyboardShortcut,
-} from "../helpers/shortcutsIndexedDbHelper";
+  matchesShortcut,
+  type ShortcutConfig,
+} from "../platform/storage/shortcuts";
+import type { UseKomorebiReturn } from "./useKomorebi";
+import { createLogger } from "../helpers/logger";
 
-interface MusicPlayerHook {
-  togglePlayPause: () => void;
-  playNext: () => void;
-  playPrevious: () => void;
-  setVolume: (volume: number) => void;
-  toggleShuffle: () => void;
-  toggleRepeat: () => void;
-  playerState: {
-    volume: number;
-    shuffle: boolean;
-    repeat: "off" | "one" | "all";
-    isMuted?: boolean;
-  };
-}
+const logger = createLogger("keyboardShortcuts");
 
 interface UseKeyboardShortcutsProps {
-  musicPlayerHook: MusicPlayerHook;
+  komorebi: UseKomorebiReturn;
   onOpenSettings?: () => void;
   onToggleLyrics?: () => void;
   onToggleVisualizer?: () => void;
@@ -29,127 +18,89 @@ interface UseKeyboardShortcutsProps {
 }
 
 export const useKeyboardShortcuts = ({
-  musicPlayerHook,
+  komorebi,
   onOpenSettings,
   onToggleLyrics,
   onToggleVisualizer,
   onSearch,
 }: UseKeyboardShortcutsProps) => {
   const [shortcuts, setShortcuts] = useState<ShortcutConfig>({});
+  const callbacksRef = useRef({
+    onOpenSettings,
+    onToggleLyrics,
+    onToggleVisualizer,
+    onSearch,
+  });
 
-  // Load shortcuts from IndexedDB on mount
   useEffect(() => {
-    const loadShortcuts = async () => {
-      try {
-        const loadedShortcuts = await shortcutsDb.getAllShortcuts();
-        setShortcuts(loadedShortcuts);
-      } catch (error) {
-        console.error("Failed to load keyboard shortcuts:", error);
-        // Use default shortcuts as fallback
-        setShortcuts(await shortcutsDb.getAllShortcuts());
-      }
-    };
-
-    loadShortcuts();
+    shortcutsDb.getAllShortcuts().then(setShortcuts).catch((e) => logger.error("Failed to load shortcuts", { error: String(e) }));
   }, []);
 
-  const matchesShortcut = useCallback(
-    (event: KeyboardEvent, shortcut: KeyboardShortcut): boolean => {
-      return (
-        event.key === shortcut.key &&
-        (shortcut.ctrlKey || false) === event.ctrlKey &&
-        (shortcut.altKey || false) === event.altKey &&
-        (shortcut.shiftKey || false) === event.shiftKey
-      );
-    },
-    [],
-  );
+  useEffect(() => {
+    callbacksRef.current = {
+      onOpenSettings,
+      onToggleLyrics,
+      onToggleVisualizer,
+      onSearch,
+    };
+  }, [onOpenSettings, onToggleLyrics, onToggleVisualizer, onSearch]);
 
-  const handleKeyPress = useCallback(
-    (event: KeyboardEvent) => {
-      // Ignore if typing in input fields
+  useEffect(() => {
+    const handleKeyPress = (event: KeyboardEvent) => {
       const target = event.target as HTMLElement;
       if (
         target.tagName === "INPUT" ||
         target.tagName === "TEXTAREA" ||
         target.isContentEditable
-      ) {
+      )
         return;
-      }
 
-      // Ignore if tour/help guide is open
       const tourElement = document.querySelector('[data-tour-elem="popover"]');
-      if (tourElement) {
-        return;
-      }
+      if (tourElement) return;
 
-      // Find matching shortcut
       const matchingShortcut = Object.values(shortcuts).find((shortcut) =>
         matchesShortcut(event, shortcut),
       );
-
       if (!matchingShortcut) return;
 
-      // Prevent default behavior for our shortcuts
       event.preventDefault();
 
-      // Execute the appropriate action
+      const { onOpenSettings, onToggleLyrics, onToggleVisualizer, onSearch } =
+        callbacksRef.current;
+
       switch (matchingShortcut.action) {
         case "playPause":
-          musicPlayerHook.togglePlayPause();
+          komorebi.togglePlayPause();
           break;
         case "nextSong":
-          musicPlayerHook.playNext();
+          komorebi.next();
           break;
         case "previousSong":
-          musicPlayerHook.playPrevious();
+          komorebi.previous();
           break;
         case "volumeUp":
-          const newVolumeUp = Math.min(
-            1,
-            musicPlayerHook.playerState.volume + 0.05,
-          );
-          console.log(
-            "Volume up:",
-            musicPlayerHook.playerState.volume,
-            "->",
-            newVolumeUp,
-          );
-          musicPlayerHook.setVolume(newVolumeUp);
+          komorebi.setVolume(Math.min(1, komorebi.volume + 0.05));
           break;
         case "volumeDown":
-          const newVolumeDown = Math.max(
-            0,
-            musicPlayerHook.playerState.volume - 0.05,
-          );
-          console.log(
-            "Volume down:",
-            musicPlayerHook.playerState.volume,
-            "->",
-            newVolumeDown,
-          );
-          musicPlayerHook.setVolume(newVolumeDown);
+          komorebi.setVolume(Math.max(0, komorebi.volume - 0.05));
           break;
-        case "mute":
-          // Toggle mute by setting volume to 0 or restoring it
-          const currentVolume = musicPlayerHook.playerState.volume;
+        case "mute": {
+          const currentVolume = komorebi.volume;
           if (currentVolume > 0) {
-            // Store current volume and mute
             sessionStorage.setItem("previousVolume", currentVolume.toString());
-            musicPlayerHook.setVolume(0);
+            komorebi.setVolume(0);
           } else {
-            // Restore previous volume or default to 0.7
-            const previousVolume = parseFloat(
-              sessionStorage.getItem("previousVolume") || "0.7",
+            komorebi.setVolume(
+              parseFloat(sessionStorage.getItem("previousVolume") || "0.7"),
             );
-            musicPlayerHook.setVolume(previousVolume);
           }
           break;
+        }
         case "toggleShuffle":
-          musicPlayerHook.toggleShuffle();
+          komorebi.toggleShuffle();
           break;
         case "toggleRepeat":
-          musicPlayerHook.toggleRepeat();
+          komorebi.toggleRepeat();
           break;
         case "toggleLyrics":
           onToggleLyrics?.();
@@ -164,31 +115,14 @@ export const useKeyboardShortcuts = ({
           onOpenSettings?.();
           break;
       }
-    },
-    [
-      shortcuts,
-      matchesShortcut,
-      musicPlayerHook,
-      onToggleLyrics,
-      onToggleVisualizer,
-      onSearch,
-      onOpenSettings,
-    ],
-  );
-
-  useEffect(() => {
-    document.addEventListener("keydown", handleKeyPress);
-    return () => {
-      document.removeEventListener("keydown", handleKeyPress);
     };
-  }, [handleKeyPress]);
 
-  // Return current shortcuts and a function to reload them
+    document.addEventListener("keydown", handleKeyPress);
+    return () => document.removeEventListener("keydown", handleKeyPress);
+  }, [komorebi, shortcuts]);
+
   return {
     shortcuts,
-    reloadShortcuts: async () => {
-      const loadedShortcuts = await shortcutsDb.getAllShortcuts();
-      setShortcuts(loadedShortcuts);
-    },
+    reloadShortcuts: () => shortcutsDb.getAllShortcuts().then(setShortcuts),
   };
 };

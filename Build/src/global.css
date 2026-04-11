@@ -2,6 +2,7 @@
 @import "@fontsource/poppins";
 @import "@fontsource/jetbrains-mono";
 @import "@fontsource/caveat";
+@import "./ui/theming/base-theme.css";
 
 /* This root block is kept separate as these values do not change between light and dark mode */
 /* prettier-ignore */
@@ -61,7 +62,9 @@
   --spacing-12: 3rem;
   --spacing-16: 4rem;
 
-  /* Miscellaneous */
+  /* Layout Spacing */
+  --spacing-layout: 15px;
+  --player-art-size: 115px;
   --sidebar-width: 250px;
   --sidebar-collapsed-width: 40px;
 
@@ -73,6 +76,10 @@ body {
   padding: 0;
   /* background: var(--themegradient); */
   overflow: hidden;
+}
+
+html {
+  overflow-y: auto;
 }
 
 /* html {
@@ -148,5 +155,50 @@ body {
   :root {
     --sidebar-width: 0px;
     /* Sidebar is overlay on mobile, doesn't affect layout */
+  }
+}
+
+/* Structural patterns */
+@layer utilities {
+  .search-wrapper {
+    position: relative;
+  }
+
+  .search-icon {
+    position: absolute;
+    left: var(--spacing-3);
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+  }
+
+  .search-input {
+    background: var(--surface-transparent-1);
+    border: 1px solid var(--surface-transparent-2);
+    color: var(--primary-foreground);
+    padding-left: calc(var(--spacing-3) * 2 + 16px);
+    border-radius: var(--radius);
+  }
+
+  .search-input::placeholder {
+    color: var(--primary-foreground);
+  }
+
+  .search-input:focus {
+    outline: var(--shadow);
+    border-color: var(--primary-border-strong);
+    box-shadow: 0 0 0 2px var(--primary-transparent-2);
+  }
+
+  .action-button-lift {
+    transition: all var(--animation-duration-fast) ease;
+  }
+
+  .action-button-lift:hover {
+    transform: translateY(-1px);
+  }
+
+  .action-button-lift:active {
+    transform: translateY(0);
   }
 }

@@ -1,0 +1,105 @@
+/* Cyberpunk Theme */
+:root {
+  /* Theme */
+  --themegradient: linear-gradient(135deg, #00ffff, #ff00ff, #ffff00);
+  --themecolor: hsl(180, 100%, 50%);
+  --themecolor2: hsl(300, 100%, 50%);
+  --themecolor3: hsl(60, 100%, 50%);
+  --themecolor4: hsl(240, 100%, 60%);
+
+  --foreground: hsl(240, 15%, 15%);
+  --background: hsl(240, 20%, 97%);
+  --surface: hsl(240, 15%, 94%);
+
+  --primary: hsl(180, 100%, 40%);
+  --primary-foreground: hsl(0, 0%, 0%);
+
+  --secondary: hsl(300, 100%, 60%);
+  --secondary-foreground: hsl(0, 0%, 100%);
+
+  --sidebar: hsl(240, 35%, 20%);
+  --sidebar-foreground: hsl(180, 100%, 80%);
+
+  --favorite: hsl(300, 100%, 60%);
+  --danger: hsl(0, 100%, 67%);
+
+  --card: hsl(0, 0%, 100%);
+  --card-rgb: 0, 255, 255;
+  --popup: hsl(0, 0%, 100%);
+
+  --muted: hsl(240, 15%, 85%);
+  --muted-foreground: hsl(240, 10%, 35%);
+
+  --error: hsl(358, 75%, 55%);
+  --error-foreground: hsl(0, 0%, 100%);
+
+  --certain-icons: var(--themecolor);
+  --albumart-gradient: linear-gradient(
+    135deg,
+    var(--themecolor) 0%,
+    var(--themecolor2) 50%,
+    var(--themecolor3) 100%
+  );
+
+  /* Shadows (Custom Glow) */
+  --shadow: 0 1px 2px hsla(180, 100%, 50%, 0.1), 0 3px 6px hsla(300, 100%, 50%, 0.07);
+  --shadow-md:
+    0 1px 3px hsla(180, 100%, 50%, 0.1),
+    0 10px 15px -5px hsla(300, 100%, 50%, 0.05),
+    0 20px 25px -5px hsla(180, 100%, 50%, 0.04);
+  --shadow-lg:
+    0 1px 3px hsla(180, 100%, 50%, 0.1),
+    0 20px 25px -5px hsla(300, 100%, 50%, 0.07),
+    0 30px 40px -5px hsla(180, 100%, 50%, 0.05);
+  --shadow-focus:
+    0 0 0 2px hsla(180, 100%, 50%, 0.4), 0 1px 2px hsla(300, 100%, 50%, 0.1);
+}
+
+.dark {
+  --themegradient: linear-gradient(135deg, #003635 0%, #69005f 50%, #4b4200 100%);
+  --themecolor: hsl(180, 100%, 60%);
+  --themecolor2: hsl(300, 100%, 60%);
+  --themecolor3: hsl(60, 100%, 70%);
+  --themecolor4: hsl(240, 100%, 70%);
+
+  --foreground: hsl(180, 100%, 85%);
+  --background: hsl(240, 40%, 5%);
+  --surface: hsl(240, 35%, 8%);
+
+  --primary: hsl(180, 100%, 60%);
+  --primary-foreground: hsl(0, 0%, 100%);
+
+  --secondary: hsl(300, 100%, 70%);
+  --secondary-foreground: hsl(0, 0%, 0%);
+
+  --sidebar: hsl(240, 50%, 8%);
+  --sidebar-foreground: hsl(180, 100%, 80%);
+
+  --favorite: hsl(300, 100%, 70%);
+  --danger: hsl(0, 100%, 67%);
+
+  --card: hsl(240, 35%, 10%);
+  --card-rgb: 0, 255, 255;
+  --popup: hsl(240, 35%, 10%);
+
+  --muted: hsl(240, 20%, 15%);
+  --muted-foreground: hsl(180, 50%, 70%);
+
+  --error: hsl(358, 75%, 60%);
+  --error-foreground: hsl(0, 0%, 100%);
+
+  --certain-icons: hsl(180, 100%, 60%);
+  --albumart-gradient: linear-gradient(135deg, #001122 0%, #220044 50%, #002211 100%);
+
+  --shadow: 0 1px 2px hsla(180, 100%, 60%, 0.2), 0 3px 6px hsla(300, 100%, 60%, 0.15);
+  --shadow-md:
+    0 1px 3px hsla(180, 100%, 60%, 0.2),
+    0 10px 15px -5px hsla(300, 100%, 60%, 0.1),
+    0 20px 25px -5px hsla(180, 100%, 60%, 0.08);
+  --shadow-lg:
+    0 1px 3px hsla(180, 100%, 60%, 0.2),
+    0 20px 25px -5px hsla(300, 100%, 60%, 0.15),
+    0 30px 40px -5px hsla(180, 100%, 60%, 0.1);
+  --shadow-focus:
+    0 0 0 2px hsla(180, 100%, 60%, 0.5), 0 1px 2px hsla(300, 100%, 60%, 0.2);
+}

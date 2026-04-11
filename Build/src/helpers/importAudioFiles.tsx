@@ -1,11 +1,64 @@
 import { toast } from "sonner";
-import { extractAudioMetadata, generateUniqueId } from "./filePickerHelper";
-import { musicIndexedDbHelper } from "./musicIndexedDbHelper";
-import { setAlbumArtInCache } from "../hooks/useAlbumArt";
+import { logger } from "./logger";
+import {
+  createMetadataExtractor,
+  createFloMetadataExtractor,
+  compressAlbumArt,
+  generateUniqueId,
+} from "../platform/metadata";
+import { albumArtStorage } from "../platform/storage";
+import type { ExtractedMetadata } from "../platform/metadata";
+import type { Track } from "../core/engine/types";
+
+function getMetadataExtractor(file: File) {
+  const ext = file.name.split(".").pop()?.toLowerCase();
+  if (ext === "flo") {
+    return createFloMetadataExtractor();
+  }
+  return createMetadataExtractor();
+}
+
+async function extractAudioMetadata(
+  file: File,
+  t: any,
+): Promise<{
+  metadata: ExtractedMetadata;
+  albumArt: string | undefined;
+}> {
+  const extractor = getMetadataExtractor(file);
+  const metadata = await extractor.extractMetadata(file);
+
+  let albumArt = metadata.albumArt;
+  if (albumArt) {
+    try {
+      albumArt = await compressAlbumArt(albumArt);
+    } catch (e) {
+      if (e instanceof Error) {
+        logger.warn("Failed to compress album art:", { error: e.message });
+      } else {
+        logger.warn("Failed to compress album art");
+      }
+    }
+  }
+
+  const translated: ExtractedMetadata = {
+    ...metadata,
+    artist:
+      metadata.artist === "Unknown Artist"
+        ? t("common.unknownArtist")
+        : metadata.artist,
+    album:
+      metadata.album === "Unknown Album"
+        ? t("common.unknownAlbum")
+        : metadata.album,
+  };
+
+  return { metadata: translated, albumArt };
+}
 
 export async function importAudioFiles(
   audioFiles: Array<{ file: File } | File>,
-  addSong: (song: Song, file: File) => Promise<void>,
+  addSong: (song: Track, file: File) => Promise<void>,
   t: any,
 ) {
   if (!audioFiles || audioFiles.length === 0) return;
@@ -24,7 +77,8 @@ export async function importAudioFiles(
     for (const audioFile of batch) {
       try {
         const file: File = (audioFile as any).file || (audioFile as File);
-        const metadata = await extractAudioMetadata(file);
+        const { metadata, albumArt: compressedArt } =
+          await extractAudioMetadata(file, t);
         const songId = generateUniqueId();
 
         // Pre-decode flo files for better performance
@@ -44,19 +98,22 @@ export async function importAudioFiles(
 
             if (isSafari) {
               // Safari: Pre-decode to WAV for compatibility
-              const { decodeFloToWav } = await import("./refloWavHelper");
+              const { decodeFloToWav } =
+                await import("../platform/audio/floWavDecoder");
               const wavBytes = await decodeFloToWav(arrayBuffer);
-              const wavBlob = new Blob([wavBytes], { type: "audio/wav" });
+              const wavArray = new Uint8Array(wavBytes);
+              const wavBlob = new Blob([wavArray], { type: "audio/wav" });
               processedFile = new File(
                 [wavBlob],
                 file.name.replace(/\.flo$/i, ".wav"),
                 { type: "audio/wav" },
               );
               processedMimeType = "audio/wav";
-              console.log(`Pre-decoded flo to WAV for Safari: ${file.name}`);
+              logger.info(`Pre-decoded flo to WAV for Safari: ${file.name}`);
             } else {
               // Non-Safari: Pre-decode to PCM for Web Audio API
-              const { decodeFloToAudioBuffer } = await import("./floProcessor");
+              const { decodeFloToAudioBuffer } =
+                await import("../platform/audio/floDecoder");
               const audioContext = new AudioContext();
               const audioBuffer = await decodeFloToAudioBuffer(
                 arrayBuffer,
@@ -96,26 +153,26 @@ export async function importAudioFiles(
               // Close the temporary AudioContext
               await audioContext.close();
 
-              console.log(`Pre-decoded flo to PCM: ${file.name}`);
+              logger.info(`Pre-decoded flo to PCM: ${file.name}`);
             }
           } catch (error) {
-            console.warn(
-              "Failed to pre-decode flo file, storing original:",
-              error,
-            );
+            if (error instanceof Error) {
+              logger.warn("Failed to pre-decode flo file, storing original:", { error: error.message });
+            } else {
+              logger.warn("Failed to pre-decode flo file, storing original");
+            }
             // Keep original file if pre-decoding fails
             processedMimeType = "audio/x-flo";
           }
         }
 
         // Save album art separately if present
-        const hasAlbumArt = !!metadata.albumArt;
-        if (hasAlbumArt && metadata.albumArt) {
-          await musicIndexedDbHelper.saveAlbumArt(songId, metadata.albumArt);
-          setAlbumArtInCache(songId, metadata.albumArt);
+        const hasAlbumArt = !!compressedArt;
+        if (hasAlbumArt && compressedArt) {
+          await albumArtStorage.save(songId, compressedArt);
         }
 
-        const song: Song = {
+        const song: Track = {
           id: songId,
           title: metadata.title,
           artist: metadata.artist,
@@ -124,7 +181,7 @@ export async function importAudioFiles(
             t("songInfo.album", { title: t("common.unknownAlbum") }),
           duration: metadata.duration,
           url: "", // Will be set by addSong
-          albumArt: metadata.albumArt, // Keep for immediate display
+          albumArt: compressedArt, // Keep for immediate display
           hasAlbumArt,
           embeddedLyrics: metadata.embeddedLyrics,
           encoding: metadata.encoding,
@@ -141,7 +198,11 @@ export async function importAudioFiles(
 
         successCount++;
       } catch (error) {
-        console.error("Failed to process song:", error);
+        if (error instanceof Error) {
+          logger.error("Failed to process song:", { error: error.message });
+        } else {
+          logger.error("Failed to process song");
+        }
         errorCount++;
       }
     }

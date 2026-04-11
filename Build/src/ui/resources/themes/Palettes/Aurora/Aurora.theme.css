@@ -1,0 +1,130 @@
+/* Aurora */
+:root {
+  /* Theme */
+  --themegradient: linear-gradient(
+    135deg in oklab,
+    color-mix(in oklab, #00ff87 70%, #ff0080 30%),
+    color-mix(in oklab, #0080ff 60%, #ff4000 40%)
+  );
+  --themecolor: color-mix(in oklab, #00ff87 80%, #ffffff 20%);
+  --themecolor2: color-mix(in oklab, #0080ff 75%, #000000 25%);
+  --themecolor3: color-mix(in oklab, #00ffaa 70%, #0066ff 30%);
+  --themecolor4: color-mix(in oklab, #0099ff 65%, #ff0066 35%);
+
+  /* Foreground */
+  --foreground: color-mix(in oklab, #1a1a2e 90%, #00ff87 10%);
+
+  /* Background */
+  --background: conic-gradient(
+    from 0deg at 50% 100%,
+    color-mix(in oklab, #fafcff 95%, #00ff87 5%),
+    color-mix(in oklab, #f8faff 95%, #0080ff 5%)
+  );
+
+  /* Surface */
+  --surface: color-mix(in oklab, #f5f9ff 90%, #00ffaa 10%);
+
+  /* Primary */
+  --primary: oklch(70% 0.15 180);
+  --primary-foreground: oklch(98% 0.02 180);
+
+  /* Secondary */
+  --secondary: oklch(65% 0.18 320);
+  --secondary-foreground: oklch(98% 0.02 320);
+
+  /* Sidebar */
+  --sidebar: color-mix(in oklab, #e6f3ff 85%, #00ff87 15%);
+  --sidebar-foreground: color-mix(in oklab, #1a1a2e 85%, #0080ff 15%);
+
+  /* Favorites */
+  --favorite: oklch(70% 0.2 30);
+
+  /* Danger */
+  --danger: oklch(65% 0.22 15);
+
+  /* Cards */
+  --card: hsl(210, 35%, 95%);
+  --card-rgb: 120, 180, 220;
+  --popup: color-mix(in oklab, #ffffff 90%, #00ffaa 10%);
+
+  /* Muted */
+  --muted: color-mix(in oklab, #e8f4ff 80%, #00ff87 20%);
+  --muted-foreground: color-mix(in oklab, #4a5568 70%, #0080ff 30%);
+
+  /* Error */
+  --error: oklch(62% 0.21 25);
+  --error-foreground: oklch(98% 0.02 25);
+
+  /* Miscellaneous */
+  --certain-icons: color-mix(in oklab, #00ff87 70%, #0080ff 30%);
+  --albumart-gradient: conic-gradient(
+    from 45deg,
+    color-mix(in oklab, #00ff87 80%, #ffffff 20%) 0%,
+    color-mix(in oklab, #0080ff 80%, #ffffff 20%) 100%
+  );
+}
+
+.dark {
+  /* Theme */
+  --themegradient: linear-gradient(
+    135deg in oklab,
+    color-mix(in oklab, #003d1a 80%, #00ff87 20%),
+    color-mix(in oklab, #001a33 80%, #0080ff 20%)
+  );
+  --themecolor: color-mix(in oklab, #00cc6a 70%, #000000 30%);
+  --themecolor2: color-mix(in oklab, #0066cc 70%, #ffffff 30%);
+  --themecolor3: color-mix(in oklab, #00cc88 65%, #003366 35%);
+  --themecolor4: color-mix(in oklab, #0077cc 65%, #cc0044 35%);
+
+  /* Foreground */
+  --foreground: color-mix(in oklab, #f0f8ff 95%, #00ff87 5%);
+
+  /* Background */
+  --background: conic-gradient(
+    from 180deg at 50% 0%,
+    color-mix(in oklab, #0a0f1a 95%, #00ff87 5%),
+    color-mix(in oklab, #0f0a1a 95%, #0080ff 5%)
+  );
+
+  /* Surface */
+  --surface: color-mix(in oklab, #1a1f2a 90%, #00cc88 10%);
+
+  /* Primary */
+  --primary: oklch(75% 0.12 200);
+  --primary-foreground: oklch(92% 0.03 278);
+
+  /* Secondary */
+  --secondary: oklch(70% 0.16 340);
+  --secondary-foreground: oklch(15% 0.02 340);
+
+  /* Sidebar */
+  --sidebar: color-mix(in oklab, #141922 85%, #00cc6a 15%);
+  --sidebar-foreground: color-mix(in oklab, #e6f3ff 85%, #0066cc 15%);
+
+  /* Favorites */
+  --favorite: oklch(75% 0.18 35);
+
+  /* Danger */
+  --danger: oklch(70% 0.2 20);
+
+  /* Cards */
+  --card: hsl(220, 25%, 18%);
+  --card-rgb: 50, 120, 180;
+  --popup: color-mix(in oklab, #1a1f2a 90%, #00cc88 10%);
+
+  /* Muted */
+  --muted: color-mix(in oklab, #2a3341 80%, #00cc6a 20%);
+  --muted-foreground: color-mix(in oklab, #a0b4cc 70%, #0066cc 30%);
+
+  /* Error */
+  --error: oklch(67% 0.19 30);
+  --error-foreground: oklch(15% 0.02 30);
+
+  /* Miscellaneous */
+  --certain-icons: color-mix(in oklab, #00cc6a 70%, #0066cc 30%);
+  --albumart-gradient: conic-gradient(
+    from 225deg,
+    color-mix(in oklab, #003d1a 80%, #000000 20%) 0%,
+    color-mix(in oklab, #001a33 80%, #000000 20%) 100%
+  );
+}

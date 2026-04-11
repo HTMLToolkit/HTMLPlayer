@@ -1,0 +1,119 @@
+/* Stellar Glow */
+:root {
+  /* Theme */
+  --themegradient: linear-gradient(135deg, #8a4af3, #1e2a44);
+  --themecolor: hsl(260, 80%, 65%);
+  --themecolor2: hsl(225, 50%, 35%);
+  --themecolor3: hsl(260, 75%, 60%);
+  --themecolor4: hsl(225, 45%, 30%);
+
+  /* Foreground */
+  --foreground: hsl(220, 20%, 20%);
+
+  /* Background */
+  --background: hsl(260, 20%, 97%);
+
+  /* Surface */
+  --surface: hsl(260, 15%, 95%);
+
+  /* Primary */
+  --primary: hsl(260, 80%, 65%);
+  --primary-foreground: hsl(0, 0%, 100%);
+  /* Primary Borders */
+
+  /* Secondary */
+  --secondary: hsl(225, 50%, 50%);
+  --secondary-foreground: hsl(0, 0%, 100%);
+
+  /* Sidebar */
+  --sidebar: hsl(260, 30%, 30%);
+  --sidebar-foreground: hsl(260, 15%, 95%);
+
+  /* Favorites */
+  --favorite: hsl(45, 80%, 60%);
+
+  /* Danger */
+  --danger: hsl(0, 80%, 60%);
+
+  /* Cards */
+  --card: hsl(0, 0%, 100%);
+  --card-rgb: 138, 74, 243;
+
+  /* Popups */
+  --popup: hsl(0, 0%, 100%);
+
+  /* Muted */
+  --muted: hsl(260, 15%, 80%);
+  --muted-foreground: hsl(260, 10%, 35%);
+
+  /* Error */
+  --error: hsl(0, 70%, 50%);
+  --error-foreground: hsl(0, 0%, 100%);
+
+  /* Miscellaneous */
+  --certain-icons: var(--themecolor);
+  --albumart-gradient: linear-gradient(
+    135deg,
+    var(--themecolor2) 0%,
+    var(--themecolor3) 100%
+  );
+
+  /* Shadows */
+}
+
+.dark {
+  /* Theme */
+  --themegradient: linear-gradient(135deg, #1e2a44 0%, #2c1b5a 100%);
+  --themecolor: hsl(260, 60%, 35%);
+  --themecolor2: hsl(225, 40%, 25%);
+  --themecolor3: hsl(260, 55%, 30%);
+  --themecolor4: hsl(225, 35%, 20%);
+
+  /* Foreground */
+  --foreground: hsl(260, 15%, 85%);
+
+  /* Background */
+  --background: hsl(260, 20%, 10%);
+
+  /* Surface */
+  --surface: hsl(260, 15%, 13%);
+
+  /* Primary */
+  --primary: hsl(260, 60%, 45%);
+  --primary-foreground: hsl(0, 0%, 100%);
+  /* Primary Borders */
+
+  /* Secondary */
+  --secondary: hsl(225, 40%, 35%);
+  --secondary-foreground: hsl(0, 0%, 100%);
+
+  /* Sidebar */
+  --sidebar: hsl(260, 25%, 15%);
+  --sidebar-foreground: hsl(260, 15%, 90%);
+
+  /* Favorites */
+  --favorite: hsl(45, 70%, 50%);
+
+  /* Danger */
+  --danger: hsl(0, 70%, 50%);
+
+  /* Cards */
+  --card: hsl(260, 15%, 15%);
+  --card-rgb: 44, 27, 90;
+
+  /* Popups */
+  --popup: hsl(260, 15%, 15%);
+
+  /* Muted */
+  --muted: hsl(260, 15%, 25%);
+  --muted-foreground: hsl(260, 10%, 65%);
+
+  /* Error */
+  --error: hsl(0, 65%, 45%);
+  --error-foreground: hsl(0, 0%, 100%);
+
+  /* Miscellaneous */
+  --certain-icons: hsl(260, 60%, 35%);
+  --albumart-gradient: linear-gradient(135deg, #1e2a44 0%, #2c1b5a 100%);
+
+}

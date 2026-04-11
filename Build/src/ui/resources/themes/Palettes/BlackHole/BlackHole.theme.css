@@ -1,0 +1,142 @@
+/* BlackHole Theme */
+:root {
+  /* Theme */
+  --themegradient: linear-gradient(
+    135deg,
+    #000000,
+    #1a1a1a,
+    #333333,
+    #4a4a4a,
+    #666666
+  );
+  --themecolor: hsl(0, 0%, 15%);
+  --themecolor2: hsl(0, 0%, 25%);
+  --themecolor3: hsl(0, 0%, 35%);
+  --themecolor4: hsl(210, 20%, 40%);
+
+  /* Foreground */
+  --foreground: hsl(0, 0%, 20%);
+
+  /* Background */
+  --background: hsl(0, 0%, 96%);
+
+  /* Surface */
+  --surface: hsl(0, 0%, 93%);
+
+  /* Primary */
+  --primary: hsl(0, 0%, 25%);
+  --primary-foreground: hsl(0, 0%, 100%);
+  /* Primary Borders */
+
+  /* Secondary */
+  --secondary: hsl(210, 20%, 35%);
+  --secondary-foreground: hsl(0, 0%, 100%);
+
+  /* Sidebar */
+  --sidebar: hsl(0, 0%, 30%);
+  --sidebar-foreground: hsl(0, 0%, 95%);
+
+  /* Favorites */
+  --favorite: hsl(210, 20%, 40%);
+
+  /* Danger */
+  --danger: hsl(0, 60%, 50%);
+
+  /* Cards */
+  --card: hsl(0, 0%, 100%);
+  --card-rgb: 64, 64, 64;
+
+  /* Popups */
+  --popup: hsl(0, 0%, 100%);
+
+  /* Muted */
+  --muted: hsl(0, 0%, 85%);
+  --muted-foreground: hsl(0, 0%, 35%);
+
+  /* Error */
+  --error: hsl(0, 60%, 50%);
+  --error-foreground: hsl(0, 0%, 100%);
+
+  /* Miscellaneous */
+  --certain-icons: var(--themecolor2);
+  --albumart-gradient: linear-gradient(
+    135deg,
+    var(--themecolor) 0%,
+    var(--themecolor2) 33%,
+    var(--themecolor3) 66%,
+    var(--themecolor4) 100%
+  );
+
+  /* Shadows */
+}
+
+.dark {
+  /* Theme */
+  --themegradient: radial-gradient(
+    circle at center,
+    #000000 0%,
+    #0a0a0a 20%,
+    #1a1a2e 40%,
+    #16213e 60%,
+    #0f3460 80%,
+    #e94560 100%
+  );
+  --themecolor: hsl(0, 0%, 5%);
+  --themecolor2: hsl(225, 50%, 15%);
+  --themecolor3: hsl(210, 60%, 25%);
+  --themecolor4: hsl(350, 85%, 60%);
+
+  /* Foreground */
+  --foreground: hsl(210, 20%, 85%);
+
+  /* Background */
+  --background: hsl(0, 0%, 2%);
+
+  /* Surface */
+  --surface: hsl(225, 30%, 5%);
+
+  /* Primary */
+  --primary: hsl(210, 60%, 35%);
+  --primary-foreground: hsl(0, 0%, 100%);
+  /* Primary Borders */
+
+  /* Secondary */
+  --secondary: hsl(350, 85%, 60%);
+  --secondary-foreground: hsl(0, 0%, 100%);
+
+  /* Sidebar */
+  --sidebar: hsl(225, 30%, 4%);
+  --sidebar-foreground: hsl(210, 20%, 80%);
+
+  /* Favorites */
+  --favorite: hsl(350, 85%, 60%);
+
+  /* Danger */
+  --danger: hsl(0, 85%, 60%);
+
+  /* Cards */
+  --card: hsl(225, 25%, 7%);
+  --card-rgb: 233, 69, 96;
+
+  /* Popups */
+  --popup: hsl(225, 25%, 7%);
+
+  /* Muted */
+  --muted: hsl(225, 15%, 12%);
+  --muted-foreground: hsl(210, 10%, 65%);
+
+  /* Error */
+  --error: hsl(0, 85%, 60%);
+  --error-foreground: hsl(0, 0%, 100%);
+
+  /* Miscellaneous */
+  --certain-icons: hsl(210, 60%, 35%);
+  --albumart-gradient: radial-gradient(
+    circle at center,
+    hsl(0, 0%, 5%) 0%,
+    hsl(225, 50%, 15%) 30%,
+    hsl(210, 60%, 25%) 60%,
+    hsl(350, 85%, 60%) 100%
+  );
+
+}

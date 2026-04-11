@@ -1,0 +1,320 @@
+/* 50 Shades of Blue */
+:root {
+  /* Theme */
+  --themegradient: linear-gradient(
+    to right,
+    #000033,
+    #000066,
+    #000099,
+    #0000cc,
+    #0000ff,
+    #0011ff,
+    #0022ff,
+    #0033ff,
+    #0044ff,
+    #0055ff,
+    #0066ff,
+    #0077ff,
+    #0088ff,
+    #0099ff,
+    #00aaff,
+    #00bbff,
+    #00ccff,
+    #00ddff,
+    #00eeff,
+    #00ffff,
+    #11f5ff,
+    #22ebff,
+    #33e1ff,
+    #44d7ff,
+    #55cdff,
+    #66c3ff,
+    #77b9ff,
+    #88afff,
+    #999fff,
+    #aaaaff,
+    #bbbbff,
+    #ccccff,
+    #ddddff,
+    #eeeeff,
+    #f0f0ff,
+    #d0e0ff,
+    #a0c0ff,
+    #70a0ff,
+    #4080ff,
+    #1060ff,
+    #003fff,
+    #002fff,
+    #001fff,
+    #0010ff,
+    #0008ff,
+    #0000ff,
+    #0000ee,
+    #0000dd,
+    #0000cc,
+    #0000bb
+  );
+  --themecolor: hsl(200, 100%, 60%);
+  --themecolor2: hsl(220, 100%, 40%);
+  --themecolor3: hsl(195, 100%, 65%);
+  --themecolor4: hsl(220, 80%, 35%);
+
+  /* Foreground */
+  --foreground: hsl(220, 20%, 20%);
+
+  /* Background */
+  --background: hsl(220, 30%, 95%);
+
+  /* Surface */
+  --surface: hsl(220, 25%, 93%);
+
+  /* Primary */
+  --primary: hsl(200, 100%, 60%);
+  --primary-foreground: hsl(0, 0%, 100%);
+  /* Primary Borders */
+
+  /* Secondary */
+  --secondary: hsl(220, 100%, 40%);
+  --secondary-foreground: hsl(0, 0%, 100%);
+
+  /* Sidebar */
+  --sidebar: hsl(220, 60%, 30%);
+  --sidebar-foreground: hsl(220, 20%, 95%);
+
+  /* Favorites */
+  --favorite: hsl(240, 20%, 80%);
+
+  /* Danger */
+  --danger: hsl(0, 80%, 60%);
+
+  /* Cards */
+  --card: hsl(0, 0%, 100%);
+  --card-rgb: 204, 204, 255;
+
+  /* Popups */
+  --popup: hsl(0, 0%, 100%);
+
+  /* Muted */
+  --muted: hsl(220, 20%, 80%);
+  --muted-foreground: hsl(220, 15%, 35%);
+
+  /* Error */
+  --error: hsl(0, 70%, 55%);
+  --error-foreground: hsl(0, 0%, 100%);
+
+  /* Miscellaneous */
+  --certain-icons: var(--themecolor);
+  --albumart-gradient: linear-gradient(
+    to right,
+    #000033,
+    #000066,
+    #000099,
+    #0000cc,
+    #0000ff,
+    #0011ff,
+    #0022ff,
+    #0033ff,
+    #0044ff,
+    #0055ff,
+    #0066ff,
+    #0077ff,
+    #0088ff,
+    #0099ff,
+    #00aaff,
+    #00bbff,
+    #00ccff,
+    #00ddff,
+    #00eeff,
+    #00ffff,
+    #11f5ff,
+    #22ebff,
+    #33e1ff,
+    #44d7ff,
+    #55cdff,
+    #66c3ff,
+    #77b9ff,
+    #88afff,
+    #999fff,
+    #aaaaff,
+    #bbbbff,
+    #ccccff,
+    #ddddff,
+    #eeeeff,
+    #f0f0ff,
+    #d0e0ff,
+    #a0c0ff,
+    #70a0ff,
+    #4080ff,
+    #1060ff,
+    #003fff,
+    #002fff,
+    #001fff,
+    #0010ff,
+    #0008ff,
+    #0000ff,
+    #0000ee,
+    #0000dd,
+    #0000cc,
+    #0000bb
+  );
+}
+
+.dark {
+  /* Theme */
+  --themegradient: linear-gradient(
+    to right,
+    #000033,
+    #000044,
+    #000055,
+    #000066,
+    #000077,
+    #000088,
+    #000099,
+    #0000aa,
+    #0000bb,
+    #0000cc,
+    #0010dd,
+    #0011ee,
+    #0022ff,
+    #0033ff,
+    #0044ff,
+    #0055ff,
+    #0066ff,
+    #0077ff,
+    #0088ff,
+    #0099ff,
+    #00aaff,
+    #00bbff,
+    #00ccff,
+    #00ddff,
+    #00eeff,
+    #00f5ff,
+    #00ebff,
+    #00e1ff,
+    #00d7ff,
+    #00cdff,
+    #00c3ff,
+    #00b9ff,
+    #00afff,
+    #009fff,
+    #008fff,
+    #007fff,
+    #006fff,
+    #005fff,
+    #004fff,
+    #003fff,
+    #002fff,
+    #001fff,
+    #0010ff,
+    #0008ff,
+    #0000ff,
+    #0000ee,
+    #0000dd,
+    #0000cc,
+    #0000bb,
+    #0000aa
+  );
+  --themecolor: hsl(200, 80%, 35%);
+  --themecolor2: hsl(220, 80%, 25%);
+  --themecolor3: hsl(195, 80%, 40%);
+  --themecolor4: hsl(220, 70%, 20%);
+
+  /* Foreground */
+  --foreground: hsl(220, 20%, 85%);
+
+  /* Background */
+  --background: hsl(220, 30%, 12%);
+
+  /* Surface */
+  --surface: hsl(220, 25%, 15%);
+
+  /* Primary */
+  --primary: hsl(200, 80%, 35%);
+  --primary-foreground: hsl(0, 0%, 100%);
+  /* Primary Borders */
+
+  /* Secondary */
+  --secondary: hsl(220, 80%, 25%);
+  --secondary-foreground: hsl(0, 0%, 100%);
+
+  /* Sidebar */
+  --sidebar: hsl(220, 50%, 15%);
+  --sidebar-foreground: hsl(220, 20%, 90%);
+
+  /* Favorites */
+  --favorite: hsl(240, 15%, 70%);
+
+  /* Danger */
+  --danger: hsl(0, 70%, 50%);
+
+  /* Cards */
+  --card: hsl(220, 25%, 15%);
+  --card-rgb: 0, 0, 102;
+
+  /* Popups */
+  --popup: hsl(220, 25%, 15%);
+
+  /* Muted */
+  --muted: hsl(220, 20%, 25%);
+  --muted-foreground: hsl(220, 15%, 65%);
+
+  /* Error */
+  --error: hsl(0, 65%, 45%);
+  --error-foreground: hsl(0, 0%, 100%);
+
+  /* Miscellaneous */
+  --certain-icons: hsl(200, 80%, 35%);
+  --albumart-gradient: linear-gradient(
+    to right,
+    #000033,
+    #000044,
+    #000055,
+    #000066,
+    #000077,
+    #000088,
+    #000099,
+    #0000aa,
+    #0000bb,
+    #0000cc,
+    #0010dd,
+    #0011ee,
+    #0022ff,
+    #0033ff,
+    #0044ff,
+    #0055ff,
+    #0066ff,
+    #0077ff,
+    #0088ff,
+    #0099ff,
+    #00aaff,
+    #00bbff,
+    #00ccff,
+    #00ddff,
+    #00eeff,
+    #00f5ff,
+    #00ebff,
+    #00e1ff,
+    #00d7ff,
+    #00cdff,
+    #00c3ff,
+    #00b9ff,
+    #00afff,
+    #009fff,
+    #008fff,
+    #007fff,
+    #006fff,
+    #005fff,
+    #004fff,
+    #003fff,
+    #002fff,
+    #001fff,
+    #0010ff,
+    #0008ff,
+    #0000ff,
+    #0000ee,
+    #0000dd,
+    #0000cc,
+    #0000bb,
+    #0000aa
+  );
+}

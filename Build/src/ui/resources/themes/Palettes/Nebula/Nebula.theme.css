@@ -1,0 +1,130 @@
+/* Nebula Theme */
+:root {
+  /* Theme */
+  --themegradient: linear-gradient(135deg, #8b5cf6, #06b6d4, #ec4899);
+  --themecolor: hsl(262, 83%, 58%);
+  --themecolor2: hsl(188, 94%, 43%);
+  --themecolor3: hsl(322, 84%, 60%);
+  --themecolor4: hsl(275, 70%, 45%);
+
+  /* Foreground */
+  --foreground: hsl(220, 15%, 20%);
+
+  /* Background */
+  --background: hsl(250, 20%, 98%);
+
+  /* Surface */
+  --surface: hsl(260, 15%, 96%);
+
+  /* Primary */
+  --primary: hsl(262, 83%, 58%);
+  --primary-foreground: hsl(0, 0%, 100%);
+  /* Primary Borders */
+
+  /* Secondary */
+  --secondary: hsl(322, 84%, 60%);
+  --secondary-foreground: hsl(0, 0%, 100%);
+
+  /* Sidebar */
+  --sidebar: hsl(270, 35%, 25%);
+  --sidebar-foreground: hsl(260, 15%, 95%);
+
+  /* Favorites */
+  --favorite: hsl(322, 84%, 60%);
+
+  /* Danger */
+  --danger: hsl(0, 100%, 67%);
+
+  /* Cards */
+  --card: hsl(0, 0%, 100%);
+  --card-rgb: 139, 92, 246;
+
+  /* Popups */
+  --popup: hsl(0, 0%, 100%);
+
+  /* Muted */
+  --muted: hsl(260, 15%, 85%);
+  --muted-foreground: hsl(260, 10%, 40%);
+
+  /* Error */
+  --error: hsl(358, 75%, 55%);
+  --error-foreground: hsl(0, 0%, 100%);
+
+  /* Miscellaneous */
+  --certain-icons: var(--themecolor);
+  --albumart-gradient: linear-gradient(
+    135deg,
+    var(--themecolor) 0%,
+    var(--themecolor2) 50%,
+    var(--themecolor3) 100%
+  );
+
+  /* Shadows */
+}
+
+.dark {
+  /* Theme */
+  --themegradient: linear-gradient(
+    135deg,
+    #2e1065 0%,
+    #0c4a6e 50%,
+    #831843 100%
+  );
+  --themecolor: hsl(262, 83%, 45%);
+  --themecolor2: hsl(188, 94%, 30%);
+  --themecolor3: hsl(322, 84%, 45%);
+  --themecolor4: hsl(275, 70%, 35%);
+
+  /* Foreground */
+  --foreground: hsl(260, 15%, 90%);
+
+  /* Background */
+  --background: hsl(262, 25%, 8%);
+
+  /* Surface */
+  --surface: hsl(262, 20%, 12%);
+
+  /* Primary */
+  --primary: hsl(262, 83%, 65%);
+  --primary-foreground: hsl(0, 0%, 100%);
+  /* Primary Borders */
+
+  /* Secondary */
+  --secondary: hsl(322, 84%, 70%);
+  --secondary-foreground: hsl(0, 0%, 100%);
+
+  /* Sidebar */
+  --sidebar: hsl(270, 35%, 12%);
+  --sidebar-foreground: hsl(260, 15%, 90%);
+
+  /* Favorites */
+  --favorite: hsl(322, 84%, 70%);
+
+  /* Danger */
+  --danger: hsl(0, 100%, 67%);
+
+  /* Cards */
+  --card: hsl(262, 20%, 14%);
+  --card-rgb: 139, 92, 246;
+
+  /* Popups */
+  --popup: hsl(262, 20%, 14%);
+
+  /* Muted */
+  --muted: hsl(262, 15%, 20%);
+  --muted-foreground: hsl(260, 10%, 70%);
+
+  /* Error */
+  --error: hsl(358, 75%, 60%);
+  --error-foreground: hsl(0, 0%, 100%);
+
+  /* Miscellaneous */
+  --certain-icons: hsl(262, 83%, 65%);
+  --albumart-gradient: linear-gradient(
+    135deg,
+    #2e1065 0%,
+    #0c4a6e 50%,
+    #831843 100%
+  );
+
+}

@@ -1,0 +1,146 @@
+/* Supernova Theme */
+:root {
+  /* Theme */
+  --themegradient: linear-gradient(
+    135deg,
+    #ff4500,
+    #ff6b00,
+    #ff8c00,
+    #ffa500,
+    #ffbf00,
+    #ffd700,
+    #ffeb3b,
+    #fff176
+  );
+  --themecolor: hsl(16, 100%, 50%);
+  --themecolor2: hsl(38, 100%, 50%);
+  --themecolor3: hsl(45, 100%, 50%);
+  --themecolor4: hsl(52, 100%, 60%);
+
+  /* Foreground */
+  --foreground: hsl(25, 25%, 15%);
+
+  /* Background */
+  --background: hsl(45, 15%, 98%);
+
+  /* Surface */
+  --surface: hsl(40, 20%, 95%);
+
+  /* Primary */
+  --primary: hsl(16, 100%, 50%);
+  --primary-foreground: hsl(0, 0%, 0%);
+  /* Primary Borders */
+
+  /* Secondary */
+  --secondary: hsl(45, 100%, 50%);
+  --secondary-foreground: hsl(0, 0%, 0%);
+
+  /* Sidebar */
+  --sidebar: hsl(20, 40%, 20%);
+  --sidebar-foreground: hsl(45, 100%, 95%);
+
+  /* Favorites */
+  --favorite: hsl(16, 100%, 60%);
+
+  /* Danger */
+  --danger: hsl(0, 100%, 67%);
+
+  /* Cards */
+  --card: hsl(0, 0%, 100%);
+  --card-rgb: 255, 69, 0;
+
+  /* Popups */
+  --popup: hsl(0, 0%, 100%);
+
+  /* Muted */
+  --muted: hsl(40, 25%, 82%);
+  --muted-foreground: hsl(25, 15%, 35%);
+
+  /* Error */
+  --error: hsl(358, 75%, 55%);
+  --error-foreground: hsl(0, 0%, 100%);
+
+  /* Miscellaneous */
+  --certain-icons: var(--themecolor);
+  --albumart-gradient: linear-gradient(
+    135deg,
+    var(--themecolor) 0%,
+    var(--themecolor2) 25%,
+    var(--themecolor3) 50%,
+    var(--themecolor4) 75%,
+    hsl(60, 100%, 70%) 100%
+  );
+
+  /* Shadows */
+}
+
+.dark {
+  /* Theme */
+  --themegradient: linear-gradient(
+    135deg,
+    #1a0a00 0%,
+    #2d1400 25%,
+    #401e00 50%,
+    #532800 75%,
+    #663200 100%
+  );
+  --themecolor: hsl(16, 100%, 65%);
+  --themecolor2: hsl(38, 100%, 65%);
+  --themecolor3: hsl(45, 100%, 70%);
+  --themecolor4: hsl(52, 100%, 75%);
+
+  /* Foreground */
+  --foreground: hsl(45, 30%, 88%);
+
+  /* Background */
+  --background: hsl(20, 30%, 6%);
+
+  /* Surface */
+  --surface: hsl(20, 25%, 10%);
+
+  /* Primary */
+  --primary: hsl(16, 100%, 65%);
+  --primary-foreground: hsl(0, 0%, 100%);
+  /* Primary Borders */
+
+  /* Secondary */
+  --secondary: hsl(45, 100%, 70%);
+  --secondary-foreground: hsl(0, 0%, 0%);
+
+  /* Sidebar */
+  --sidebar: hsl(20, 40%, 8%);
+  --sidebar-foreground: hsl(45, 100%, 85%);
+
+  /* Favorites */
+  --favorite: hsl(16, 100%, 70%);
+
+  /* Danger */
+  --danger: hsl(0, 100%, 67%);
+
+  /* Cards */
+  --card: hsl(20, 25%, 12%);
+  --card-rgb: 255, 69, 0;
+
+  /* Popups */
+  --popup: hsl(20, 25%, 12%);
+
+  /* Muted */
+  --muted: hsl(20, 20%, 18%);
+  --muted-foreground: hsl(45, 20%, 70%);
+
+  /* Error */
+  --error: hsl(358, 75%, 60%);
+  --error-foreground: hsl(0, 0%, 100%);
+
+  /* Miscellaneous */
+  --certain-icons: hsl(16, 100%, 65%);
+  --albumart-gradient: linear-gradient(
+    135deg,
+    hsl(16, 100%, 65%) 0%,
+    hsl(38, 100%, 65%) 25%,
+    hsl(45, 100%, 70%) 50%,
+    hsl(52, 100%, 75%) 75%,
+    hsl(60, 100%, 80%) 100%
+  );
+
+}

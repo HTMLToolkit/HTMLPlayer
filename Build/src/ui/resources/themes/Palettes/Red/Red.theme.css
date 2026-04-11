@@ -1,0 +1,123 @@
+/* Red */
+:root {
+  /* Theme */
+  --themegradient: linear-gradient(135deg, #b22222, #ff6347);
+  --themecolor: hsl(0, 75%, 45%);
+  --themecolor2: hsl(0, 80%, 50%);
+  --themecolor3: hsl(0, 70%, 55%);
+  --themecolor4: hsl(0, 65%, 60%);
+
+  /* Foreground */
+  --foreground: hsl(0, 0%, 20%);
+
+  /* Background */
+  --background: hsl(0, 20%, 98%);
+
+  /* Surface */
+  --surface: hsl(0, 15%, 96%);
+
+  /* Primary */
+  --primary: hsl(0, 80%, 50%);
+  --primary-foreground: hsl(0, 0%, 0%);
+  /* Primary Borders */
+
+  /* Secondary */
+  --secondary: hsl(350, 70%, 60%);
+  --secondary-foreground: hsl(0, 0%, 100%);
+
+  /* Sidebar */
+  --sidebar: hsl(0, 25%, 92%);
+  --sidebar-foreground: hsl(0, 0%, 20%);
+
+  /* Favorites */
+  --favorite: hsl(0, 100%, 71%);
+
+  /* Danger */
+  --danger: hsl(0, 85%, 60%);
+
+  /* Cards */
+  --card: hsl(0, 95%, 98%);
+  --card-rgb: 178, 34, 34;
+
+  /* Popups */
+  --popup: hsl(0, 95%, 98%);
+
+  /* Muted */
+  --muted: hsl(0, 15%, 85%);
+  --muted-foreground: hsl(0, 10%, 40%);
+
+  /* Error */
+  --error: hsl(358, 75%, 55%);
+  --error-foreground: hsl(0, 0%, 100%);
+
+  /* Miscellaneous */
+  --certain-icons: var(--themecolor);
+  --albumart-gradient: linear-gradient(
+    135deg,
+    var(--themecolor) 0%,
+    var(--themecolor2) 100%
+  );
+
+  /* Shadows */
+}
+
+.dark {
+  /* Theme */
+  --themegradient: linear-gradient(135deg, #5c0b0b, #a83232);
+  --themecolor: hsl(0, 70%, 25%);
+  --themecolor2: hsl(0, 75%, 35%);
+  --themecolor3: hsl(0, 60%, 30%);
+  --themecolor4: hsl(0, 55%, 25%);
+
+  /* Foreground */
+  --foreground: hsl(0, 0%, 95%);
+
+  /* Background */
+  --background: hsl(0, 60%, 10%);
+
+  /* Surface */
+  --surface: hsl(0, 55%, 13%);
+
+  /* Primary */
+  --primary: hsl(0, 75%, 35%);
+  --primary-foreground: hsl(0, 0%, 100%);
+  /* Primary Borders */
+
+  /* Secondary */
+  --secondary: hsl(350, 65%, 45%);
+  --secondary-foreground: hsl(0, 0%, 100%);
+
+  /* Sidebar */
+  --sidebar: hsl(0, 60%, 15%);
+  --sidebar-foreground: hsl(0, 0%, 95%);
+
+  /* Favorites */
+  --favorite: hsl(0, 100%, 71%);
+
+  /* Danger */
+  --danger: hsl(0, 85%, 60%);
+
+  /* Cards */
+  --card: hsl(0, 65%, 15%);
+  --card-rgb: 92, 11, 11;
+
+  /* Popups */
+  --popup: hsl(0, 65%, 15%);
+
+  /* Muted */
+  --muted: hsl(0, 55%, 25%);
+  --muted-foreground: hsl(0, 50%, 70%);
+
+  /* Error */
+  --error: hsl(0, 75%, 55%);
+  --error-foreground: hsl(0, 0%, 100%);
+
+  /* Miscellaneous */
+  --certain-icons: hsl(0, 75%, 45%);
+  --albumart-gradient: linear-gradient(
+    135deg,
+    var(--themecolor) 0%,
+    var(--themecolor2) 100%
+  );
+
+}

@@ -1,0 +1,119 @@
+/* Drones */
+:root {
+  /* Theme */
+  --themegradient: url("MurderDrones.jpg");
+  --themecolor: hsl(262, 90%, 68%);
+  --themecolor2: hsl(280, 95%, 75%);
+  --themecolor3: hsl(245, 85%, 65%);
+  --themecolor4: hsl(290, 88%, 70%);
+
+  --foreground: hsl(256, 20%, 15%);
+  --background: hsl(250, 20%, 98%);
+  --surface: hsl(250, 15%, 96%);
+
+  --primary: hsl(262, 85%, 58%);
+  --primary-foreground: hsl(256, 30%, 10%);
+
+  --secondary: hsl(280, 85%, 65%);
+  --secondary-foreground: hsl(0, 0%, 100%);
+
+  --sidebar: hsl(255, 25%, 92%);
+  --sidebar-foreground: hsl(255, 15%, 20%);
+
+  --favorite: hsl(325, 85%, 65%);
+  --danger: hsl(340, 75%, 60%);
+
+  --card: hsla(255, 80%, 98%, 0.8);
+  --card-rgb: 245, 242, 255;
+  --popup: hsla(255, 80%, 98%, 0.95);
+
+  --muted: hsl(255, 20%, 85%);
+  --muted-foreground: hsl(255, 15%, 40%);
+
+  --error: hsl(0, 75%, 55%);
+  --error-foreground: hsl(0, 0%, 100%);
+
+  --certain-icons: var(--themecolor);
+  --albumart-gradient: radial-gradient(
+    circle at center,
+    var(--themecolor2) 0%,
+    var(--themecolor3) 100%
+  );
+
+  --shadow: 0 1px 2px hsla(255, 30%, 15%, 0.05), 0 3px 6px hsla(255, 30%, 15%, 0.07);
+  --shadow-md:
+    0 1px 3px hsla(255, 30%, 15%, 0.05),
+    0 10px 15px -5px hsla(255, 30%, 15%, 0.05),
+    0 20px 25px -5px hsla(255, 30%, 15%, 0.04);
+  --shadow-lg:
+    0 1px 3px hsla(255, 30%, 15%, 0.05),
+    0 20px 25px -5px hsla(255, 30%, 15%, 0.07),
+    0 30px 40px -5px hsla(255, 30%, 15%, 0.05);
+  --shadow-focus:
+    0 0 0 2px hsla(262, 85%, 58%, 0.25), 0 1px 2px hsla(255, 30%, 15%, 0.05);
+    
+  --themegradient-animation: rotate 20s linear infinite;
+}
+
+.dark {
+  --themegradient: url("MurderDrones.jpg");
+  --themecolor: hsl(262, 75%, 55%);
+  --themecolor2: hsl(280, 80%, 60%);
+  --themecolor3: hsl(245, 70%, 50%);
+  --themecolor4: hsl(290, 75%, 55%);
+
+  --foreground: hsl(255, 20%, 90%);
+  --background: hsl(255, 25%, 8%);
+  --surface: hsl(255, 20%, 12%);
+
+  --primary: hsl(262, 75%, 60%);
+  --primary-foreground: hsl(0, 0%, 100%);
+
+  --secondary: hsl(280, 75%, 65%);
+  --secondary-foreground: hsl(0, 0%, 100%);
+
+  --sidebar: hsl(255, 25%, 10%);
+  --sidebar-foreground: hsl(255, 20%, 90%);
+
+  --favorite: hsl(325, 75%, 60%);
+  --danger: hsl(340, 70%, 65%);
+
+  --card: hsla(255, 30%, 12%, 0.8);
+  --card-rgb: 25, 20, 45;
+  --popup: hsla(255, 30%, 12%, 0.95);
+
+  --muted: hsl(255, 20%, 25%);
+  --muted-foreground: hsl(255, 15%, 70%);
+
+  --error: hsl(0, 70%, 60%);
+  --error-foreground: hsl(0, 0%, 100%);
+
+  --certain-icons: hsl(262, 75%, 55%);
+  --albumart-gradient: radial-gradient(
+    circle at center,
+    var(--themecolor2) 0%,
+    var(--themecolor3) 100%
+  );
+
+  --shadow: 0 1px 2px hsla(255, 30%, 0%, 0.1), 0 3px 6px hsla(255, 30%, 0%, 0.15);
+  --shadow-md:
+    0 1px 3px hsla(255, 30%, 0%, 0.1), 0 10px 15px -5px hsla(255, 30%, 0%, 0.1),
+    0 20px 25px -5px hsla(255, 30%, 0%, 0.08);
+  --shadow-lg:
+    0 1px 3px hsla(255, 30%, 0%, 0.1),
+    0 20px 25px -5px hsla(255, 30%, 0%, 0.15),
+    0 30px 40px -5px hsla(255, 30%, 0%, 0.1);
+  --shadow-focus:
+    0 0 0 2px hsla(262, 75%, 60%, 0.25), 0 1px 2px hsla(255, 30%, 0%, 0.1);
+
+  --themegradient-animation: rotate 20s linear infinite;
+}
+
+@keyframes rotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+body::before {
+  animation: var(--themegradient-animation) !important;
+}

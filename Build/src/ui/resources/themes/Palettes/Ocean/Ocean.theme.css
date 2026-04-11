@@ -1,0 +1,96 @@
+/* Mystical */
+:root {
+  /* Theme */
+  --themegradient: linear-gradient(135deg, #a0e9fd, #74c0fc);
+  --themecolor: hsl(190, 85%, 55%);
+  --themecolor2: hsl(200, 75%, 45%);
+  --themecolor3: hsl(180, 90%, 60%);
+  --themecolor4: hsl(195, 80%, 50%);
+
+  /* Foreground */
+  --foreground: hsl(220, 10%, 20%);
+
+  /* Background */
+  --background: hsl(210, 20%, 97%);
+
+  /* Surface */
+  --surface: hsl(210, 15%, 95%);
+
+  /* Primary */
+  --primary: hsl(190, 80%, 50%);
+  --primary-foreground: #ffffff;
+
+  /* Secondary */
+  --secondary: hsl(150, 70%, 55%);
+  --secondary-foreground: #ffffff;
+
+  /* Sidebar */
+  --sidebar: hsl(190, 20%, 90%);
+  --sidebar-foreground: hsl(210, 15%, 20%);
+
+  /* Favorites */
+  --favorite: hsl(10, 90%, 60%);
+
+  /* Danger */
+  --danger: hsl(0, 100%, 65%);
+
+  /* Cards */
+  --card: hsl(0, 0%, 100%);
+
+  /* Popups */
+  --popup: hsl(0, 0%, 100%);
+
+  /* Muted */
+  --muted: hsl(220, 15%, 85%);
+
+  /* Error */
+  --error: hsl(358, 75%, 55%);
+}
+
+.dark {
+  /* Theme */
+  --themegradient: linear-gradient(135deg, #0b1d2f 0%, #1a2c3f 100%);
+  --themecolor: hsl(190, 85%, 25%);
+  --themecolor2: hsl(200, 70%, 22%);
+  --themecolor3: hsl(180, 90%, 18%);
+  --themecolor4: hsl(195, 80%, 20%);
+
+  /* Foreground */
+  --foreground: hsl(210, 15%, 90%);
+
+  /* Background */
+  --background: hsl(210, 15%, 12%);
+
+  /* Surface */
+  --surface: hsl(210, 15%, 15%);
+
+  /* Primary */
+  --primary: hsl(190, 80%, 45%);
+  --primary-foreground: #ffffff;
+
+  /* Secondary */
+  --secondary: hsl(150, 70%, 45%);
+  --secondary-foreground: #ffffff;
+
+  /* Sidebar */
+  --sidebar: hsl(210, 15%, 15%);
+  --sidebar-foreground: hsl(210, 15%, 90%);
+
+  /* Favorites */
+  --favorite: hsl(10, 90%, 60%);
+
+  /* Danger */
+  --danger: hsl(0, 100%, 65%);
+
+  /* Cards */
+  --card: hsl(210, 15%, 18%);
+
+  /* Popups */
+  --popup: hsl(210, 15%, 18%);
+
+  /* Muted */
+  --muted: hsl(210, 15%, 25%);
+
+  /* Error */
+  --error: hsl(358, 75%, 60%);
+}

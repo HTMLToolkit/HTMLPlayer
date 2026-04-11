@@ -1,0 +1,99 @@
+/* Core Palette Theme thingy
+   Provides derived properties for all themes using color-mix()
+   Any theme injecting basic tokens will inherit these dynamic values automatically.
+*/
+
+:root,
+.dark {
+  /* Dynamic Transparencies */
+  --themecolor-transparent: color-mix(in srgb, var(--themecolor) 50%, transparent);
+  --themecolor2-transparent: color-mix(in srgb, var(--themecolor2) 50%, transparent);
+  --themecolor3-transparent: color-mix(in srgb, var(--themecolor3) 50%, transparent);
+
+  --menu-background: color-mix(in srgb, var(--themecolor2) 35%, transparent);
+
+  /* Foreground derivatives */
+  /* Automatically maps to opaque or slightly transparent foreground based on light/dark mode */
+  --foreground-strong: color-mix(in srgb, var(--foreground) 90%, transparent);
+  --foreground-stronger: var(--foreground);
+  --foreground-muted: color-mix(in srgb, var(--foreground) 75%, transparent);
+  --foreground-subtle: color-mix(in srgb, var(--foreground) 80%, transparent);
+
+  /* Surface derivatives */
+  --surface-foreground: var(--foreground);
+  --surface-transparent-05: color-mix(in srgb, var(--foreground) 5%, transparent);
+  --surface-transparent-1: color-mix(in srgb, var(--foreground) 10%, transparent);
+  --surface-transparent-2: color-mix(in srgb, var(--foreground) 20%, transparent);
+
+  /* Primary Transparents */
+  --primary-foreground: #ffffff;
+  --primary-transparent: color-mix(in srgb, var(--primary) 25%, transparent);
+  --primary-transparent-1: color-mix(in srgb, var(--primary) 10%, transparent);
+  --primary-transparent-2: color-mix(in srgb, var(--primary) 15%, transparent);
+  --primary-transparent-3: color-mix(in srgb, var(--primary) 20%, transparent);
+  --primary-transparent-4: color-mix(in srgb, var(--primary) 30%, transparent);
+  --primary-transparent-5: color-mix(in srgb, var(--primary) 35%, transparent);
+
+  /* Primary Borders */
+  --primary-border: color-mix(in srgb, var(--primary) 30%, transparent);
+  --primary-border-strong: color-mix(in srgb, var(--primary) 40%, transparent);
+  --primary-border-stronger: color-mix(in srgb, var(--primary) 50%, transparent);
+  --primary-border-active: color-mix(in srgb, var(--primary) 60%, transparent);
+
+  /* Secondary */
+  --secondary-foreground: #ffffff;
+
+  /* Sidebar */
+  --sidebar-bg-transparent: color-mix(in srgb, var(--themecolor2) 40%, transparent);
+  --sidebar-bg-hover: color-mix(in srgb, var(--themecolor2) 60%, transparent);
+
+  /* Favorites */
+  --favorite-transparent-1: color-mix(in srgb, var(--favorite) 15%, transparent);
+  --favorite-transparent-2: color-mix(in srgb, var(--favorite) 25%, transparent);
+  --favorite-border: color-mix(in srgb, var(--favorite) 30%, transparent);
+
+  /* Danger */
+  --danger-transparent-1: color-mix(in srgb, var(--danger) 15%, transparent);
+  --danger-transparent-2: color-mix(in srgb, var(--danger) 25%, transparent);
+  --danger-border: color-mix(in srgb, var(--danger) 30%, transparent);
+
+  /* Cards and Popups */
+  --card-foreground: var(--foreground);
+  --popup-foreground: var(--foreground);
+
+  /* Error */
+  --error-foreground: #ffffff;
+
+  /* Miscellaneous */
+  --certain-icons: var(--themecolor);
+  --albumart-gradient: linear-gradient(135deg, var(--themecolor) 0%, var(--themecolor2) 100%);
+}
+
+/* Base Shadow & Border Variables for Light Mode */
+:root {
+  --shadow-base-1: rgba(0, 0, 0, 0.05);
+  --shadow-base-2: rgba(0, 0, 0, 0.07);
+  --shadow-base-3: rgba(0, 0, 0, 0.04);
+  /* Fallback border when not specified */
+  --border-default: hsl(0, 0%, 90%);
+  --border: var(--border-override, var(--border-default));
+}
+
+/* Base Shadow & Border Variables for Dark Mode */
+.dark {
+  --shadow-base-1: rgba(0, 0, 0, 0.1);
+  --shadow-base-2: rgba(0, 0, 0, 0.15);
+  --shadow-base-3: rgba(0, 0, 0, 0.08);
+  /* Fallback border when not specified */
+  --border-default: hsl(0, 0%, 20%);
+  --border: var(--border-override, var(--border-default));
+}
+
+/* Global Shadow Rules */
+:root,
+.dark {
+  --shadow: 0 1px 2px var(--shadow-base-1), 0 3px 6px var(--shadow-base-2);
+  --shadow-md: 0 1px 3px var(--shadow-base-1), 0 10px 15px -5px var(--shadow-base-1), 0 20px 25px -5px var(--shadow-base-3);
+  --shadow-lg: 0 1px 3px var(--shadow-base-1), 0 20px 25px -5px var(--shadow-base-2), 0 30px 40px -5px var(--shadow-base-1);
+  --shadow-focus: 0 0 0 2px color-mix(in srgb, var(--primary) 25%, transparent), 0 1px 2px var(--shadow-base-1);
+}

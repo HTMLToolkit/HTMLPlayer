@@ -1,5 +1,9 @@
-interface CachedSong {
-  song: Song;
-  url: string;
-  loadedAt: number;
+import type { Track } from "../core/engine/types";
+
+declare global {
+  interface CachedSong {
+    song: Track;
+    url: string;
+    loadedAt: number;
+  }
 }
