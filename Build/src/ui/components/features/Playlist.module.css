@@ -57,6 +57,10 @@
 .playlistItem {
   display: flex;
   align-items: center;
+  justify-content: flex-start;
+  white-space: normal;
+  font-weight: 400;
+  font-size: inherit;
   gap: var(--spacing-3);
   padding: var(--spacing-3);
   background: var(--primary-transparent);

@@ -19,6 +19,7 @@ import { PlayerAlbumArt } from "./PlayerAlbumArt";
 import { PlayerTrackInfo } from "./PlayerTrackInfo";
 import { PlayerSecondaryControls } from "./PlayerSecondaryControls";
 import type { UseKomorebiReturn } from "../../../hooks/useKomorebi";
+import type { Track, Playlist } from "../../../core/engine/types";
 
 interface PlayerProps {
   komorebi: UseKomorebiReturn;
@@ -211,24 +212,18 @@ export const Player = forwardRef<PlayerRef, PlayerProps>(
             <SongActionsDropdown
               song={currentSong}
               library={libraryState}
-              onCreatePlaylist={(name: string, songs: any[]) => {
+              onCreatePlaylist={(name: string, songs: Track[]) => {
                 const playlist = { id: `playlist-${Date.now()}`, name, songs };
                 library.addPlaylist(playlist);
                 return playlist;
               }}
               onAddToPlaylist={(playlistId: string, songId: string) => {
-                const playlist = library.getPlaylist(playlistId);
-                if (playlist) {
-                  const song = library.getSong(songId);
-                  if (song) {
-                    playlist.songs.push(song);
-                    library.updatePlaylist(playlistId, { songs: playlist.songs });
-                  }
-                }
+                const song = library.getSong(songId);
+                if (song) library.addToPlaylist(playlistId, song);
               }}
               onAddToFavorites={(songId: string) => komorebi.toggleFavorite(songId)}
               isFavorited={(songId: string) => komorebi.isFavorite(songId)}
-              onPlaySong={(song: any, playlist?: any) => komorebi.playSong(song, playlist)}
+              onPlaySong={(song: Track, playlist?: Playlist) => komorebi.playSong(song, playlist)}
               onRemoveSong={(songId: string) => komorebi.removeSong(songId)}
               size={16}
               className={styles.moreButton}

@@ -3,8 +3,8 @@ import { useWallpaper, useTheming } from "../../theming/hooks/useTheming";
 
 // WallpaperRenderer Component
 interface WallpaperRendererProps {
-  currentSong: any;
-  playbackState: any;
+  currentSong?: unknown;
+  playbackState?: unknown;
 }
 
 const WallpaperRenderer: React.FC<WallpaperRendererProps> = ({

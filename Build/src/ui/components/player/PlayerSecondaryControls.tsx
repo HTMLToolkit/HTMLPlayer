@@ -3,10 +3,11 @@ import { Button } from "../primitives/Button";
 import { Icon } from "../shared/Icon";
 import { isMiniplayerSupported, toggleMiniplayer } from "../../../platform/pip/index";
 import { MiniplayerContent } from "./Miniplayer";
+import type { Track } from "../../../core/engine/types";
 import styles from "./Player.module.css";
 
 interface PlayerSecondaryControlsProps {
-  currentSong: any;
+  currentSong: Track;
   isPlaying: boolean;
   isFavorite: boolean;
   showVisualizer: boolean;

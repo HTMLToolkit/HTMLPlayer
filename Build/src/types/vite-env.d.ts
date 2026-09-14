@@ -33,3 +33,10 @@ declare global {
     documentPictureInPicture?: DocumentPictureInPicture;
   }
 }
+
+interface Window {
+  eruda?: {
+    init(): void;
+    destroy(): void;
+  };
+}

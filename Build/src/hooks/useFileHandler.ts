@@ -11,11 +11,11 @@ const logger = createLogger("useFileHandler");
 
 export function useFileHandler(
   addSong: (song: Track, file?: File) => Promise<void>,
-  t: any,
+  t: (key: string, options?: Record<string, unknown>) => string,
   importFiles: (
     files: File[],
     addSong: (song: Track, file?: File) => Promise<void>,
-    t: any,
+    t: (key: string, options?: Record<string, unknown>) => string,
   ) => Promise<void>,
   isInitialized?: boolean,
 ) {

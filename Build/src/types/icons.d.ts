@@ -20,8 +20,8 @@ export type IconPropTransformer = (props: {
   fill?: string;
   className?: string;
   style?: React.CSSProperties;
-  [key: string]: any;
-}) => Record<string, any>;
+  [key: string]: unknown;
+}) => Record<string, unknown>;
 
 export type IconLibraryConfig = {
   module: IconLibraryModule;

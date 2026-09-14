@@ -1,4 +1,9 @@
-import type { Track, Playlist, PlaylistFolder } from "../../core/engine/types";
+import type {
+  Track,
+  Playlist,
+  PlaylistFolder,
+  PlaylistItem,
+} from "../../core/engine/types";
 import type { LibraryState, LibraryEventMap, LibraryActions } from "./types";
 
 type EventCallback<T> = (data: T) => void;
@@ -44,10 +49,8 @@ export class LibraryManager implements LibraryActions {
     this.state.songs.splice(index, 1);
     this.state.favorites = this.state.favorites.filter((id) => id !== songId);
 
-    for (const item of this.state.playlists) {
-      if ("songs" in item) {
-        item.songs = item.songs.filter((s) => s.id !== songId);
-      }
+    for (const playlist of flattenPlaylists(this.state.playlists)) {
+      playlist.songs = playlist.songs.filter((s) => s.id !== songId);
     }
 
     this.emit("songremoved", songId);
@@ -58,6 +61,7 @@ export class LibraryManager implements LibraryActions {
     if (index === -1) return;
 
     this.state.songs[index] = { ...this.state.songs[index], ...updates };
+    this.emit("songupdated", this.state.songs[index]);
   }
 
   getSong(songId: string): Track | undefined {
@@ -75,33 +79,25 @@ export class LibraryManager implements LibraryActions {
   }
 
   removePlaylist(playlistId: string): void {
-    const index = this.state.playlists.findIndex(
-      (p) => "id" in p && p.id === playlistId,
-    );
-    if (index === -1) return;
-
-    this.state.playlists.splice(index, 1);
-    this.emit("playlistremoved", playlistId);
-  }
-
-  updatePlaylist(playlistId: string, updates: Partial<Playlist>): void {
-    const index = this.state.playlists.findIndex(
-      (p) => "id" in p && p.id === playlistId,
-    );
-    if (index === -1) return;
-
-    const playlist = this.state.playlists[index];
-    if ("songs" in playlist) {
-      this.state.playlists[index] = { ...playlist, ...updates } as Playlist;
+    const removed = this.removeFromTree(this.state.playlists, playlistId);
+    if (removed && "songs" in removed) {
+      this.emit("playlistremoved", playlistId);
     }
   }
 
+  updatePlaylist(playlistId: string, updates: Partial<Playlist>): void {
+    const node = this.findItem(this.state.playlists, playlistId);
+    if (!node || !("songs" in node.item)) return;
+
+    const updated = { ...node.item, ...updates };
+    node.parent[node.index] = updated;
+    this.emit("playlistupdated", updated);
+  }
+
   getPlaylist(playlistId: string): Playlist | undefined {
-    const item = this.state.playlists.find(
-      (p) => "id" in p && p.id === playlistId,
-    );
-    if (item && "songs" in item) {
-      return item;
+    const node = this.findItem(this.state.playlists, playlistId);
+    if (node && "songs" in node.item) {
+      return node.item;
     }
     return undefined;
   }
@@ -114,6 +110,7 @@ export class LibraryManager implements LibraryActions {
     if (exists) return;
 
     playlist.songs.push(song);
+    this.emit("playlistupdated", playlist);
   }
 
   removeFromPlaylist(playlistId: string, songId: string): void {
@@ -121,6 +118,7 @@ export class LibraryManager implements LibraryActions {
     if (!playlist) return;
 
     playlist.songs = playlist.songs.filter((s) => s.id !== songId);
+    this.emit("playlistupdated", playlist);
   }
 
   reorderPlaylistSongs(playlistId: string, songs: Track[]): void {
@@ -128,6 +126,7 @@ export class LibraryManager implements LibraryActions {
     if (!playlist) return;
 
     playlist.songs = songs;
+    this.emit("playlistupdated", playlist);
   }
 
   createFolder(name: string): PlaylistFolder {
@@ -137,31 +136,93 @@ export class LibraryManager implements LibraryActions {
       children: [],
     };
     this.state.playlists.push(folder);
+    this.emit("playlistsupdated", [...this.state.playlists]);
     return folder;
   }
 
+  removeFolder(folderId: string): void {
+    const removed = this.removeFromTree(this.state.playlists, folderId);
+    if (removed) {
+      this.emit("playlistsupdated", [...this.state.playlists]);
+    }
+  }
+
+  renameFolder(folderId: string, name: string): void {
+    const node = this.findItem(this.state.playlists, folderId);
+    if (node && "children" in node.item) {
+      node.item.name = name;
+      this.emit("playlistsupdated", [...this.state.playlists]);
+    }
+  }
+
   moveToFolder(playlistId: string, folderId: string): void {
-    const playlistIndex = this.state.playlists.findIndex(
-      (p) => "id" in p && p.id === playlistId,
-    );
-    if (playlistIndex === -1) return;
+    this.moveItem(playlistId, folderId);
+  }
 
-    const playlist = this.state.playlists[playlistIndex];
+  moveFolder(folderId: string, targetFolderId: string): void {
+    this.moveItem(folderId, targetFolderId);
+  }
 
-    if (folderId === "root") {
+  seedPlaylists(items: PlaylistItem[]): void {
+    this.state.playlists = items;
+  }
+
+  private findItem(
+    items: PlaylistItem[],
+    id: string,
+  ): { parent: PlaylistItem[]; index: number; item: PlaylistItem } | null {
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i];
+      if (item.id === id) {
+        return { parent: items, index: i, item };
+      }
+      if ("children" in item) {
+        const found = this.findItem(item.children, id);
+        if (found) return found;
+      }
+    }
+    return null;
+  }
+
+  private removeFromTree(
+    items: PlaylistItem[],
+    id: string,
+  ): PlaylistItem | null {
+    const node = this.findItem(items, id);
+    if (!node) return null;
+    node.parent.splice(node.index, 1);
+    return node.item;
+  }
+
+  private isDescendant(folder: PlaylistFolder, id: string): boolean {
+    for (const child of folder.children) {
+      if (child.id === id) return true;
+      if ("children" in child && this.isDescendant(child, id)) return true;
+    }
+    return false;
+  }
+
+  private moveItem(itemId: string, targetFolderId: string): void {
+    const node = this.findItem(this.state.playlists, itemId);
+    if (!node) return;
+
+    if (targetFolderId === "root") {
+      node.parent.splice(node.index, 1);
+      this.state.playlists.push(node.item);
+      this.emit("playlistsupdated", [...this.state.playlists]);
       return;
     }
 
-    const folderIndex = this.state.playlists.findIndex(
-      (p) => "children" in p && "id" in p && p.id === folderId,
-    );
-    if (folderIndex === -1) return;
+    const target = this.findItem(this.state.playlists, targetFolderId);
+    if (!target || !("children" in target.item)) return;
 
-    const folder = this.state.playlists[folderIndex];
-    if (!("children" in folder)) return;
+    if ("children" in node.item && this.isDescendant(node.item, targetFolderId)) {
+      return;
+    }
 
-    folder.children.push(playlist as Playlist);
-    this.state.playlists.splice(playlistIndex, 1);
+    node.parent.splice(node.index, 1);
+    target.item.children.push(node.item);
+    this.emit("playlistsupdated", [...this.state.playlists]);
   }
 
   toggleFavorite(songId: string): void {

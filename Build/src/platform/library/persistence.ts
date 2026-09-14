@@ -1,4 +1,4 @@
-import type { Track } from "../../core/engine/types";
+import type { Track, PlaylistItem } from "../../core/engine/types";
 import type { LibraryState } from "./types";
 import { trackStorage } from "../storage/trackStorage";
 import { playlistStorage, favoritesStorage } from "../storage/playlistStorage";
@@ -18,6 +18,10 @@ class LibraryPersistence {
 
   async saveFavorites(favorites: string[]): Promise<void> {
     await favoritesStorage.saveFavorites(favorites);
+  }
+
+  async savePlaylists(playlists: PlaylistItem[]): Promise<void> {
+    await playlistStorage.savePlaylists(playlists);
   }
 
   async loadFullLibrary(): Promise<LibraryState> {

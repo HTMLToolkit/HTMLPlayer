@@ -1,6 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { Button } from "../primitives/Button";
 import { Icon } from "../shared/Icon";
+import type { Track } from "../../../core/engine/types";
 import styles from "./Miniplayer.module.css";
 
 export interface MiniplayerControls {
@@ -8,7 +9,7 @@ export interface MiniplayerControls {
   next: () => void;
   previous: () => void;
   playerState: {
-    currentSong: any;
+    currentSong: Track | null;
     isPlaying: boolean;
   };
 }

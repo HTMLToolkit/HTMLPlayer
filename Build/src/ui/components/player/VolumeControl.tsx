@@ -1,6 +1,7 @@
-import React, { useCallback, useEffect, useState } from "react";
+import { useCallback } from "react";
 import { Button } from "../primitives/Button";
 import { Icon } from "../shared/Icon";
+import { useDragControl } from "../../../ui/hooks";
 import styles from "./Player.module.css";
 
 interface VolumeControlProps {
@@ -14,64 +15,13 @@ export function VolumeControl({
   onVolumeChange,
   onToggleMute,
 }: VolumeControlProps) {
-  const [isDragging, setIsDragging] = useState(false);
-  const volumeRef = React.useRef<HTMLDivElement>(null);
-
-  const updateVolume = useCallback(
-    (clientX: number) => {
-      if (!volumeRef.current) return;
-      const rect = volumeRef.current.getBoundingClientRect();
-      const clickX = clientX - rect.left;
-      const percentage = Math.max(0, Math.min(1, clickX / rect.width));
-      onVolumeChange(percentage);
-    },
+  const onMove = useCallback(
+    (fraction: number) => onVolumeChange(fraction),
     [onVolumeChange],
   );
 
-  const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (isDragging) return;
-    updateVolume(e.clientX);
-  };
-
-  const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
-    setIsDragging(true);
-    updateVolume(e.clientX);
-  };
-
-  const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
-    setIsDragging(true);
-    updateVolume(e.touches[0].clientX);
-  };
-
-  useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      if (isDragging) updateVolume(e.clientX);
-    };
-
-    const handleTouchMove = (e: TouchEvent) => {
-      if (isDragging) {
-        e.preventDefault();
-        updateVolume(e.touches[0].clientX);
-      }
-    };
-
-    const handleMouseUp = () => setIsDragging(false);
-    const handleTouchEnd = () => setIsDragging(false);
-
-    if (isDragging) {
-      document.addEventListener("mousemove", handleMouseMove);
-      document.addEventListener("mouseup", handleMouseUp);
-      document.addEventListener("touchmove", handleTouchMove, { passive: false });
-      document.addEventListener("touchend", handleTouchEnd);
-    }
-
-    return () => {
-      document.removeEventListener("mousemove", handleMouseMove);
-      document.removeEventListener("mouseup", handleMouseUp);
-      document.removeEventListener("touchmove", handleTouchMove);
-      document.removeEventListener("touchend", handleTouchEnd);
-    };
-  }, [isDragging, updateVolume]);
+  const { ref, isDragging, handleClick, handleMouseDown, handleTouchStart } =
+    useDragControl(onMove);
 
   const getVolumeIcon = () => {
     if (volume === 0) return <Icon name="volumeOff" size={16} decorative />;
@@ -94,7 +44,7 @@ export function VolumeControl({
       </Button>
       <div
         className={`${styles.volumeBar} ${isDragging ? styles.dragging : ""}`}
-        ref={volumeRef}
+        ref={ref}
         onClick={handleClick}
         onMouseDown={handleMouseDown}
         onTouchStart={handleTouchStart}

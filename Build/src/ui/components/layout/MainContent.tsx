@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import {
   DraggableItem,
   DropZone,
@@ -16,8 +16,8 @@ import { AddToPopover } from "../shared/AddToPopover";
 import { useTranslation } from "react-i18next";
 import { Icon } from "../shared/Icon";
 import { dialogStorage } from "../../../platform/storage";
-import { trackStorage } from "../../../platform/storage/trackStorage";
 import { importAudioFiles } from "../../../helpers/importAudioFiles";
+import { prepareAndStoreSong } from "../../../helpers/addSong";
 import { Home } from "../features/Home";
 import { useAlbumArt } from "../../../hooks/useAlbumArt";
 import { useNavigation } from "../../navigation";
@@ -26,22 +26,25 @@ import type { Track, Playlist } from "../../../core/engine/types";
 import type { UseKomorebiReturn } from "../../../hooks/useKomorebi";
 import type { PersistentDropdownMenuRef } from "../primitives/PersistentDropdownMenu";
 
+function formatDuration(seconds: number): string {
+  const mins = Math.floor(seconds / 60);
+  const secs = Math.round(seconds % 60);
+  return `${mins}:${secs.toString().padStart(2, "0")}`;
+}
+
 interface SortableSongItemProps {
   song: Track;
   isCurrent: boolean;
   isSelected: boolean;
-  onClick: () => void;
-  onCheckboxChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onClick: (song: Track) => void;
+  onSelectionChange: (songId: string, checked: boolean) => void;
   isSelectActive: boolean;
   ratings: Record<string, "thumbs-up" | "thumbs-down" | "none">;
-  onRatingChange: (rating: "thumbs-up" | "thumbs-down") => void;
-  onFavoriteToggle: (e: React.MouseEvent<HTMLButtonElement>) => void;
+  onRateSong: (songId: string, rating: "thumbs-up" | "thumbs-down") => void;
+  onToggleFavorite: (songId: string) => void;
   isFavorited: boolean;
-  formatDuration: (seconds: number) => string;
-  styles: any;
-  SongActionsDropdown: any;
   library: MusicLibrary;
-  createPlaylist: (name: string) => void;
+  createPlaylist: (name: string) => Playlist;
   addToPlaylist: (playlistId: string, songId: string) => void;
   playSong: (song: Track, playlist?: Playlist) => void;
   removeSong: (songId: string) => void;
@@ -52,15 +55,12 @@ const SortableSongItem = React.memo(function SortableSongItem({
   isCurrent,
   isSelected,
   onClick,
-  onCheckboxChange,
+  onSelectionChange,
   isSelectActive,
   ratings,
-  onRatingChange,
-  onFavoriteToggle,
+  onRateSong,
+  onToggleFavorite,
   isFavorited,
-  formatDuration,
-  styles,
-  SongActionsDropdown,
   library,
   createPlaylist,
   addToPlaylist,
@@ -83,7 +83,7 @@ const SortableSongItem = React.memo(function SortableSongItem({
   const songContent = (dragHandleProps?: DragHandleProps) => (
     <div
       className={`${styles.songItem} ${isCurrent ? styles.currentSong : ""}`}
-      onClick={onClick}
+      onClick={() => onClick(song)}
       ref={containerRef}
     >
       <div className={styles.songInfo}>
@@ -93,7 +93,13 @@ const SortableSongItem = React.memo(function SortableSongItem({
           </DragHandle>
         )}
         {isSelectActive && (
-          <Checkbox checked={isSelected} onChange={onCheckboxChange} />
+          <Checkbox
+            checked={isSelected}
+            onChange={(e) => {
+              e.stopPropagation();
+              onSelectionChange(song.id, e.target.checked);
+            }}
+          />
         )}
         <div className={styles.albumArt}>
           {albumArt && (
@@ -139,7 +145,7 @@ const SortableSongItem = React.memo(function SortableSongItem({
           className={`${styles.songActionButton} ${isFavorited ? styles.favorited : ""}`}
           onClick={(e) => {
             e.stopPropagation();
-            onFavoriteToggle(e);
+            onToggleFavorite(song.id);
           }}
         >
           <Icon
@@ -155,7 +161,7 @@ const SortableSongItem = React.memo(function SortableSongItem({
           className={`${styles.songActionButton} ${ratings[song.id] === "thumbs-up" ? styles.active : ""}`}
           onClick={(e) => {
             e.stopPropagation();
-            onRatingChange("thumbs-up");
+            onRateSong(song.id, "thumbs-up");
           }}
         >
           <Icon name="thumbsUp" size={14} decorative />
@@ -166,7 +172,7 @@ const SortableSongItem = React.memo(function SortableSongItem({
           className={`${styles.songActionButton} ${ratings[song.id] === "thumbs-down" ? styles.active : ""}`}
           onClick={(e) => {
             e.stopPropagation();
-            onRatingChange("thumbs-down");
+            onRateSong(song.id, "thumbs-down");
           }}
         >
           <Icon name="thumbsDown" size={14} decorative />
@@ -218,14 +224,21 @@ export const MainContent = ({
 }: MainContentProps) => {
   const { t } = useTranslation();
   const { state: navState, goToSongs, goHome } = useNavigation();
-  const { songs, library } = komorebi;
-  console.log("[MainContent] songs:", songs.length, "library songs:", library.getState().songs.length);
+  const { songs, library, state: engineState } = komorebi;
 
-  const libraryState: MusicLibrary = {
-    songs,
-    playlists: library.getState().playlists,
-    favorites: library.getState().favorites,
-  };
+  const engineCurrentPlaylist = engineState.currentPlaylist;
+  const currentPlaylist = engineCurrentPlaylist
+    ? library.getPlaylist(engineCurrentPlaylist.id) ?? engineCurrentPlaylist
+    : null;
+
+  const libraryState: MusicLibrary = React.useMemo(
+    () => ({
+      songs,
+      playlists: library.getState().playlists,
+      favorites: library.getState().favorites,
+    }),
+    [songs, library],
+  );
 
   const [songSearchQuery, setSongSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState<
@@ -248,35 +261,38 @@ export const MainContent = ({
     addSong,
     removeSong,
     toggleFavorite,
-    state: engineState,
   } = komorebi;
 
-  const createPlaylist = (name: string) => {
-    const playlist: Playlist = {
-      id: `playlist-${Date.now()}`,
-      name,
-      songs: [],
-    };
-    library.addPlaylist(playlist);
-    return playlist;
-  };
+  const createPlaylist = useCallback(
+    (name: string) => {
+      const playlist: Playlist = {
+        id: `playlist-${Date.now()}`,
+        name,
+        songs: [],
+      };
+      library.addPlaylist(playlist);
+      return playlist;
+    },
+    [library],
+  );
 
-  const addToPlaylist = (playlistId: string, songId: string) => {
-    const playlist = library.getPlaylist(playlistId);
-    const song = library.getSong(songId);
-    if (playlist && song) {
-      playlist.songs.push(song);
-      library.updatePlaylist(playlistId, { songs: playlist.songs });
-    }
-  };
+  const addToPlaylist = useCallback(
+    (playlistId: string, songId: string) => {
+      const song = library.getSong(songId);
+      if (song) {
+        library.addToPlaylist(playlistId, song);
+      }
+    },
+    [library],
+  );
 
   // Clear sorting when entering playlist view
   React.useEffect(() => {
-    if (engineState.currentPlaylist) {
+    if (currentPlaylist) {
       setSortBy(null);
       setSortOrder("asc");
     }
-  }, [engineState.currentPlaylist]);
+  }, [currentPlaylist?.id]);
 
   const songsToDisplay = React.useMemo(() => {
     if (navState.view === "artist" && navState.artist) {
@@ -287,8 +303,8 @@ export const MainContent = ({
       return songs.filter(
         (song: Track) => song.album === navState.album,
       );
-    } else if (engineState.currentPlaylist) {
-      return engineState.currentPlaylist.songs;
+    } else if (currentPlaylist) {
+      return currentPlaylist.songs;
     } else {
       return songs;
     }
@@ -296,7 +312,7 @@ export const MainContent = ({
     navState.view,
     navState.artist,
     navState.album,
-    engineState.currentPlaylist,
+    currentPlaylist,
     songs,
   ]);
 
@@ -356,35 +372,54 @@ export const MainContent = ({
 
   const handleSongSearch = (query: string) => setSongSearchQuery(query);
 
-  const handleSongClick = (song: Track) => {
-    playSong(song, engineState.currentPlaylist || undefined);
-  };
+  const handleSongClick = useCallback(
+    (song: Track) => {
+      playSong(song, currentPlaylist || undefined);
+    },
+    [playSong, currentPlaylist],
+  );
 
-  const handleRating = (
-    songId: string,
-    rating: "thumbs-up" | "thumbs-down",
-  ) => {
-    const currentRating = ratings[songId];
-    const newRating = currentRating === rating ? "none" : rating;
-    setRatings((prev) => ({ ...prev, [songId]: newRating }));
-  };
+  const handleRating = useCallback(
+    (
+      songId: string,
+      rating: "thumbs-up" | "thumbs-down",
+    ) => {
+      setRatings((prev) => {
+        const currentRating = prev[songId];
+        return { ...prev, [songId]: currentRating === rating ? "none" : rating };
+      });
+    },
+    [],
+  );
 
-  const handleToggleFavorite = (
-    e: React.MouseEvent<HTMLButtonElement, MouseEvent>,
-    songId: string,
-  ) => {
-    e.stopPropagation();
-    const wasFavorite = library.isFavorite(songId);
-    toggleFavorite(songId);
-    const song = songs.find((s) => s.id === songId);
-    if (song) {
-      toast.success(
-        wasFavorite
-          ? t("favorites.removed", { title: song.title })
-          : t("favorites.added", { title: song.title }),
+  const handleSelectionChange = useCallback(
+    (songId: string, checked: boolean) => {
+      setSelectedSongs((prev) =>
+        checked
+          ? prev.includes(songId)
+            ? prev
+            : [...prev, songId]
+          : prev.filter((id) => id !== songId),
       );
-    }
-  };
+    },
+    [],
+  );
+
+  const handleToggleFavorite = useCallback(
+    (songId: string) => {
+      const wasFavorite = library.isFavorite(songId);
+      toggleFavorite(songId);
+      const song = songs.find((s) => s.id === songId);
+      if (song) {
+        toast.success(
+          wasFavorite
+            ? t("favorites.removed", { title: song.title })
+            : t("favorites.added", { title: song.title }),
+        );
+      }
+    },
+    [toggleFavorite, library, songs, t],
+  );
 
   const handleDeleteSong = async () => {
     if (filteredSongs.length === 0) {
@@ -422,19 +457,9 @@ export const MainContent = ({
   const handleImportAudioFiles = async (
     audioFiles: Array<{ file: File } | File>,
   ) => {
-    const wrappedAddSong = async (song: any, file: File) => {
-      console.log("[import] before setting:", { id: song.id, hasStoredAudio: song.hasStoredAudio, url: song.url });
-      song.url = URL.createObjectURL(file);
-      song.hasStoredAudio = true;
-      console.log("[import] after setting:", { id: song.id, hasStoredAudio: song.hasStoredAudio, url: song.url });
-      
-      const arrayBuffer = await file.arrayBuffer();
-      console.log("[import] arrayBuffer size:", arrayBuffer.byteLength);
-      await trackStorage.saveTrack(song, arrayBuffer);
-      console.log("[import] saved to trackStorage");
-      
+    const wrappedAddSong = async (song: Track, file: File) => {
+      await prepareAndStoreSong(song, file);
       addSong(song);
-      console.log("[import] added to library");
     };
     await importAudioFiles(audioFiles, wrappedAddSong, t);
   };
@@ -449,12 +474,6 @@ export const MainContent = ({
       toast.dismiss();
       toast.error(t("filePicker.failedOpen"));
     }
-  };
-
-  const formatDuration = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = Math.round(seconds % 60);
-    return `${mins}:${secs.toString().padStart(2, "0")}`;
   };
 
   const handleSelectSongsToggle = () => {
@@ -479,24 +498,26 @@ export const MainContent = ({
       role="group"
       aria-label={t("home.title")}
     >
-      <button
-        type="button"
+      <Button
+        variant="ghost"
+        size="sm"
         className={`${styles.viewSwitchButton} ${navState.view === "home" ? styles.viewSwitchButtonActive : ""}`}
         onClick={goHome}
         aria-pressed={navState.view === "home"}
       >
         <Icon name="home" size={14} decorative />
         {t("home.title")}
-      </button>
-      <button
-        type="button"
+      </Button>
+      <Button
+        variant="ghost"
+        size="sm"
         className={`${styles.viewSwitchButton} ${isLibraryContext ? styles.viewSwitchButtonActive : ""}`}
         onClick={goToSongs}
         aria-pressed={isLibraryContext}
       >
         <Icon name="list" size={14} decorative />
         {t("allSongs")}
-      </button>
+      </Button>
     </div>
   );
 
@@ -550,28 +571,18 @@ export const MainContent = ({
                 song={song}
                 isCurrent={engineState.currentTrack?.id === song.id}
                 isSelected={selectedSongs.includes(song.id)}
-                onClick={() => handleSongClick(song)}
-                onCheckboxChange={(e) => {
-                  e.stopPropagation();
-                  setSelectedSongs((prev) =>
-                    prev.includes(song.id)
-                      ? prev.filter((id) => id !== song.id)
-                      : [...prev, song.id],
-                  );
-                }}
+                onClick={handleSongClick}
+                onSelectionChange={handleSelectionChange}
                 isSelectActive={isSelectSongsActive}
                 ratings={ratings}
-                onRatingChange={(rating) => handleRating(song.id, rating)}
-                onFavoriteToggle={(e) => handleToggleFavorite(e, song.id)}
+                onRateSong={handleRating}
+                onToggleFavorite={handleToggleFavorite}
                 isFavorited={library.isFavorite(song.id)}
-                formatDuration={formatDuration}
-                styles={styles}
-                SongActionsDropdown={SongActionsDropdown}
                 library={libraryState}
                 createPlaylist={createPlaylist}
                 addToPlaylist={addToPlaylist}
                 playSong={playSong}
-                isInPlaylist={!!engineState.currentPlaylist}
+                isInPlaylist={!!currentPlaylist}
                 removeSong={removeSong}
               />
             ))}

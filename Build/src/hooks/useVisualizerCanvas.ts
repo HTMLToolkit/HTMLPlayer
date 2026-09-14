@@ -26,7 +26,9 @@ export const useVisualizerCanvas = ({
   const [loadedVisualizerNames, setLoadedVisualizerNames] = useState<Map<string, string>>(new Map());
   const [selectedVisualizerKey, setSelectedVisualizerKey] = useState<string>("");
   const [selectedVisualizer, setSelectedVisualizer] = useState<VisualizerType | null>(null);
-  const [visualizerSettings, setVisualizerSettings] = useState<Record<string, any>>({});
+  const [visualizerSettings, setVisualizerSettings] = useState<
+    Record<string, number | string | boolean>
+  >({});
   const [isLoading, setIsLoading] = useState(false);
 
   // Initialize available visualizers
@@ -63,9 +65,9 @@ export const useVisualizerCanvas = ({
         if (visualizer?.settingsConfig) {
           setVisualizerSettings(
             Object.entries(visualizer.settingsConfig).reduce((acc, [key, config]) => {
-              acc[key] = config.default;
+              acc[key] = config.default as number | string | boolean;
               return acc;
-            }, {} as Record<string, any>),
+            }, {} as Record<string, number | string | boolean>),
           );
         }
       })

@@ -10,6 +10,8 @@ import {
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
 } from "../primitives/DropdownMenu";
+import { Slider } from "../primitives/Slider";
+import { Input } from "../primitives/Input";
 import styles from "./Visualizer.module.css";
 
 interface VisualizerProps {
@@ -38,7 +40,7 @@ export const Visualizer = ({
     isLoading,
   } = useVisualizerCanvas({ analyserNode, isPlaying, canvasRef });
 
-  const handleSettingChange = (key: string, value: any) => {
+  const handleSettingChange = (key: string, value: number) => {
     setVisualizerSettings((prev) => ({
       ...prev,
       [key]: value,
@@ -104,26 +106,25 @@ export const Visualizer = ({
                   {t(`visualizers.${selectedVisualizerKey}.settings.${key}`)}
                 </label>
                 {config.type === "range" && (
-                  <input
-                    type="range"
+                  <Slider
                     id={key}
                     min={config.min}
                     max={config.max}
                     step={config.step}
-                    value={visualizerSettings[key] ?? config.default}
-                    onChange={(e) =>
-                      handleSettingChange(key, parseFloat(e.target.value))
+                    value={[Number(visualizerSettings[key] ?? config.default)]}
+                    onValueChange={(value) =>
+                      handleSettingChange(key, value[0] ?? 0)
                     }
                   />
                 )}
                 {config.type === "number" && (
-                  <input
+                  <Input
                     type="number"
                     id={key}
                     min={config.min}
                     max={config.max}
                     step={config.step}
-                    value={visualizerSettings[key] ?? config.default}
+                    value={Number(visualizerSettings[key] ?? config.default)}
                     onChange={(e) =>
                       handleSettingChange(key, parseFloat(e.target.value))
                     }

@@ -9,6 +9,7 @@ import {
 } from "../primitives/Select";
 import { Icon } from "../shared/Icon";
 import styles from "./Settings.module.css";
+import type { RepeatMode } from "../../../core/engine/types";
 import type { SettingsManager } from "../../../platform/settings/settings";
 
 interface SettingsPlaybackProps {
@@ -74,7 +75,7 @@ export function SettingsPlayback({
         </div>
         <Select
           value={settingsState.defaultRepeat}
-          onValueChange={(val) => settings.setDefaultRepeat(val as any)}
+          onValueChange={(val) => settings.setDefaultRepeat(val as RepeatMode)}
         >
           <SelectTrigger id="default-repeat">
             <SelectValue />

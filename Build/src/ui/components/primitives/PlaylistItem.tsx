@@ -61,7 +61,11 @@ export const PlaylistItem = memo(function PlaylistItem({
             data={item}
             className={styles.playlistDropZone}
           >
-            <button className={styles.playlistItem} onClick={onSelect}>
+            <Button
+              variant="ghost"
+              className={styles.playlistItem}
+              onClick={onSelect}
+            >
               {playlistImages[item.id] ? (
                 <div className={styles.playlistImage}>
                   <img src={playlistImages[item.id]} alt="" loading="lazy" />
@@ -81,7 +85,7 @@ export const PlaylistItem = memo(function PlaylistItem({
                 />
               </div>
               <span className={styles.songCount}>{item.songs.length}</span>
-            </button>
+            </Button>
           </DropZone>
         </DraggableItem>
       </div>

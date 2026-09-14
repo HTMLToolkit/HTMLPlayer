@@ -36,11 +36,11 @@ export interface IconProps {
   alt?: string;
   title?: string;
   role?: string;
-  onClick?: React.MouseEventHandler<any>;
-  onMouseEnter?: React.MouseEventHandler<any>;
-  onMouseLeave?: React.MouseEventHandler<any>;
-  onFocus?: React.FocusEventHandler<any>;
-  onBlur?: React.FocusEventHandler<any>;
+  onClick?: React.MouseEventHandler;
+  onMouseEnter?: React.MouseEventHandler;
+  onMouseLeave?: React.MouseEventHandler;
+  onFocus?: React.FocusEventHandler;
+  onBlur?: React.FocusEventHandler;
 }
 
 const renderFallback = (
@@ -201,7 +201,8 @@ export const Icon: React.FC<IconProps> = ({
         : {};
 
       // Build props object with proper typing
-      const componentProps: Record<string, any> = {
+      const componentProps: React.SVGProps<SVGSVGElement> &
+        Record<string, unknown> = {
         className,
         style: {
           display: inline ? "inline-flex" : "inline-flex",

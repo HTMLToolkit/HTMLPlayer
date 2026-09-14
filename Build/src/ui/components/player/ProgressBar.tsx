@@ -1,4 +1,5 @@
-import React, { useCallback, useEffect, useState } from "react";
+import { useCallback } from "react";
+import { useDragControl } from "../../../ui/hooks";
 import styles from "./Player.module.css";
 
 interface ProgressBarProps {
@@ -8,65 +9,15 @@ interface ProgressBarProps {
 }
 
 export function ProgressBar({ currentTime, duration, onSeek }: ProgressBarProps) {
-  const [isDragging, setIsDragging] = useState(false);
-  const progressRef = React.useRef<HTMLDivElement>(null);
-
-  const updateProgress = useCallback(
-    (clientX: number) => {
-      if (!progressRef.current || !duration) return;
-      const rect = progressRef.current.getBoundingClientRect();
-      const clickX = clientX - rect.left;
-      const percentage = Math.max(0, Math.min(1, clickX / rect.width));
-      const newTime = percentage * duration;
-      onSeek(newTime);
+  const onMove = useCallback(
+    (fraction: number) => {
+      if (duration) onSeek(fraction * duration);
     },
     [duration, onSeek],
   );
 
-  const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (isDragging) return;
-    updateProgress(e.clientX);
-  };
-
-  const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
-    setIsDragging(true);
-    updateProgress(e.clientX);
-  };
-
-  const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
-    setIsDragging(true);
-    updateProgress(e.touches[0].clientX);
-  };
-
-  useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      if (isDragging) updateProgress(e.clientX);
-    };
-
-    const handleTouchMove = (e: TouchEvent) => {
-      if (isDragging) {
-        e.preventDefault();
-        updateProgress(e.touches[0].clientX);
-      }
-    };
-
-    const handleMouseUp = () => setIsDragging(false);
-    const handleTouchEnd = () => setIsDragging(false);
-
-    if (isDragging) {
-      document.addEventListener("mousemove", handleMouseMove);
-      document.addEventListener("mouseup", handleMouseUp);
-      document.addEventListener("touchmove", handleTouchMove, { passive: false });
-      document.addEventListener("touchend", handleTouchEnd);
-    }
-
-    return () => {
-      document.removeEventListener("mousemove", handleMouseMove);
-      document.removeEventListener("mouseup", handleMouseUp);
-      document.removeEventListener("touchmove", handleTouchMove);
-      document.removeEventListener("touchend", handleTouchEnd);
-    };
-  }, [isDragging, updateProgress]);
+  const { ref, isDragging, handleClick, handleMouseDown, handleTouchStart } =
+    useDragControl(onMove);
 
   const formatTime = (seconds: number) => {
     const totalSeconds = Math.round(seconds);
@@ -91,7 +42,7 @@ export function ProgressBar({ currentTime, duration, onSeek }: ProgressBarProps)
       <span className={styles.timeDisplay}>{formatTime(currentTime)}</span>
       <div
         className={`${styles.progressBar} ${isDragging ? styles.dragging : ""}`}
-        ref={progressRef}
+        ref={ref}
         onClick={handleClick}
         onMouseDown={handleMouseDown}
         onTouchStart={handleTouchStart}

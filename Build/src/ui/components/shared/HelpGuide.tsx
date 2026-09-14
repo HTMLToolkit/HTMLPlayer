@@ -10,6 +10,16 @@ interface HelpGuideProps {
   children: React.ReactNode;
 }
 
+/** A single tour step as authored in the per-language tour.json files. */
+interface TourStepConfig {
+  key: string;
+  title: string;
+  content: string;
+  extraContent?: string;
+  /** Tour library placement hint; validated against a known union at render time. */
+  position: string;
+}
+
 const { Badge, Close, Navigation } = components;
 
 const TourContext = createContext<{ loaded: boolean; isOpen: boolean }>({
@@ -25,11 +35,11 @@ export { useTour };
 export const HelpGuideProvider = ({ children }: HelpGuideProps) => {
   function useTourStepsConfig() {
     const { i18n } = useTranslation();
-    const [tourStepsConfig, setTourStepsConfig] = useState<any[]>([]);
+    const [tourStepsConfig, setTourStepsConfig] = useState<TourStepConfig[]>([]);
 
     useEffect(() => {
       const lang = i18n.language?.split("-")[0] || "en";
-      const configMap: Record<string, any[]> = {
+      const configMap: Record<string, TourStepConfig[]> = {
         en: tourEn,
       };
 

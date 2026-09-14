@@ -14,7 +14,9 @@ import {
   useDraggable,
   useDroppable,
   CollisionDetection,
+  DraggableSyntheticListeners,
 } from "@dnd-kit/core";
+import type { Data as DraggableData } from "@dnd-kit/core";
 import { sortableKeyboardCoordinates } from "@dnd-kit/sortable";
 import { Icon } from "../shared/Icon";
 import dragStyles from "./Draggable.module.css";
@@ -24,13 +26,13 @@ import { useTranslation } from "react-i18next";
 export interface DragItem {
   id: string;
   type: "song" | "playlist" | "folder";
-  data: any; // The actual song/playlist/folder data
+  data: DraggableData | undefined; // The actual song/playlist/folder payload
 }
 
 export interface DropZone {
   id: string;
   type: "playlist" | "folder" | "root" | "song";
-  data: any; // The target playlist/folder/song data
+  data: DraggableData | undefined; // The target playlist/folder/song payload
 }
 
 export type DragOperationHandler = (
@@ -46,7 +48,7 @@ interface DraggableProviderProps {
 interface DraggableItemProps {
   id: string;
   type: "song" | "playlist" | "folder";
-  data: any;
+  data: DraggableData;
   children:
     | React.ReactNode
     | ((dragHandleProps: DragHandleProps) => React.ReactNode);
@@ -63,7 +65,7 @@ export interface DragHandleProps {
 interface DropZoneProps {
   id: string;
   type: "playlist" | "folder" | "root" | "song";
-  data: any;
+  data: DraggableData;
   children: React.ReactNode;
   className?: string;
 }
@@ -297,7 +299,7 @@ export const DraggableItem: React.FC<DraggableItemProps> = ({
       // Clone children and inject drag listeners for any DragHandle components
       return React.Children.map(children, (child) => {
         if (React.isValidElement(child)) {
-          return React.cloneElement(child as React.ReactElement<any>, {
+          return React.cloneElement(child as React.ReactElement<{ __dragListeners?: DraggableSyntheticListeners }>, {
             __dragListeners: listeners,
           });
         }
@@ -321,13 +323,13 @@ export const DraggableItem: React.FC<DraggableItemProps> = ({
   );
 };
 
-// Drag handle component - only this element initiates drag when useDragHandle is true
+// Drag handle component, only this element initiates drag when useDragHandle is true
 export const DragHandle: React.FC<{
   children: React.ReactNode;
   className?: string;
   listeners?: DragHandleProps["listeners"];
   attributes?: DragHandleProps["attributes"];
-  __dragListeners?: any; // Legacy: Injected by DraggableItem via cloneElement
+  __dragListeners?: DraggableSyntheticListeners;
 }> = ({ children, className, listeners, attributes, __dragListeners }) => {
   // Use explicit props first, fall back to injected props
   const dragListeners = listeners || __dragListeners;
@@ -373,10 +375,11 @@ export const DropZone: React.FC<DropZoneProps> = ({
 export const DraggableDropZone: React.FC<{
   dragId: string;
   dragType: "song" | "playlist" | "folder";
-  dragData: any;
+  dragData: { title: string; artist?: string };
+
   dropId: string;
   dropType: "playlist" | "folder" | "root" | "song";
-  dropData: any;
+  dropData: { title: string; artist?: string };
   children: React.ReactNode;
   className?: string;
   disabled?: boolean;

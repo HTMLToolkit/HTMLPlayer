@@ -23,7 +23,11 @@ export interface LibraryActions {
   removeFromPlaylist(playlistId: string, songId: string): void;
   reorderPlaylistSongs(playlistId: string, songs: Track[]): void;
   createFolder(name: string): PlaylistFolder;
+  removeFolder(folderId: string): void;
+  renameFolder(folderId: string, name: string): void;
   moveToFolder(playlistId: string, folderId: string): void;
+  moveFolder(folderId: string, targetFolderId: string): void;
+  seedPlaylists(items: PlaylistItem[]): void;
   toggleFavorite(songId: string): void;
   isFavorite(songId: string): boolean;
   search(query: string): Track[];
@@ -36,8 +40,14 @@ export interface LibraryActions {
 export interface LibraryEvents {
   on(event: "songadded", callback: (song: Track) => void): void;
   on(event: "songremoved", callback: (songId: string) => void): void;
+  on(event: "songupdated", callback: (song: Track) => void): void;
   on(event: "playlistadded", callback: (playlist: Playlist) => void): void;
   on(event: "playlistremoved", callback: (playlistId: string) => void): void;
+  on(event: "playlistupdated", callback: (playlist: Playlist) => void): void;
+  on(
+    event: "playlistsupdated",
+    callback: (playlists: PlaylistItem[]) => void,
+  ): void;
   on(
     event: "favoritechanged",
     callback: (songId: string, isFavorite: boolean) => void,
@@ -50,8 +60,11 @@ export type LibraryEventType = keyof LibraryEvents;
 export interface LibraryEventMap {
   songadded: Track;
   songremoved: string;
+  songupdated: Track;
   playlistadded: Playlist;
   playlistremoved: string;
+  playlistupdated: Playlist;
+  playlistsupdated: PlaylistItem[];
   favoritechanged: { songId: string; isFavorite: boolean };
   librarycleared: null;
 }

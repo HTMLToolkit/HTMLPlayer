@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import type { DragItem, DropZone } from "../components/primitives/Draggable";
 import type { UseKomorebiReturn } from "../../hooks/useKomorebi";
-import { findPlaylistById, findParentFolderId } from "../../platform/library";
+import { findPlaylistById } from "../../platform/library";
 import { createLogger } from "../../helpers/logger";
 
 const logger = createLogger("dragHandler");
@@ -40,11 +40,7 @@ export function useDragHandler(komorebi: UseKomorebiReturn) {
         }
 
         if (song && targetPlaylist) {
-          const playlist = library.getPlaylist(targetPlaylistId);
-          if (playlist) {
-            playlist.songs.push(song);
-            library.updatePlaylist(targetPlaylistId, { songs: playlist.songs });
-          }
+          library.addToPlaylist(targetPlaylistId, song);
           toast.success(
             t("songMovedToPlaylist", {
               song: song.title,
@@ -56,7 +52,10 @@ export function useDragHandler(komorebi: UseKomorebiReturn) {
       }
 
       if (dragItem.type === "song" && dropZone.type === "song") {
-        const currentPlaylist = komorebi.state.currentPlaylist;
+        const enginePlaylist = komorebi.state.currentPlaylist;
+        const currentPlaylist = enginePlaylist
+          ? library.getPlaylist(enginePlaylist.id) ?? enginePlaylist
+          : null;
         if (currentPlaylist) {
           const songs = [...currentPlaylist.songs];
           const oldIndex = songs.findIndex((s) => s.id === dragItem.id);
@@ -64,27 +63,24 @@ export function useDragHandler(komorebi: UseKomorebiReturn) {
           if (oldIndex !== -1 && newIndex !== -1) {
             const [removed] = songs.splice(oldIndex, 1);
             songs.splice(newIndex, 0, removed);
-            library.updatePlaylist(currentPlaylist.id, { songs });
+            library.reorderPlaylistSongs(currentPlaylist.id, songs);
           }
         }
         return;
       }
 
-      if (dragItem.type === "playlist" && dropZone.type === "folder") {
+      if (
+        (dragItem.type === "playlist" || dragItem.type === "folder") &&
+        dropZone.type === "folder"
+      ) {
         const targetFolderId = dropZone.id;
-        const folderId = dragItem.id;
-
-        const targetParentFolderId = findParentFolderId(
-          libraryState.playlists,
-          targetFolderId,
-        );
-        const folder = libraryState.playlists.find((p) => p.id === folderId);
-        library.updatePlaylist(folderId, {
-          parentId: targetParentFolderId ?? undefined,
-        } as any);
+        if (dragItem.type === "playlist") {
+          library.moveToFolder(dragItem.id, targetFolderId);
+        } else {
+          library.moveFolder(dragItem.id, targetFolderId);
+        }
         toast.success(
-          t("playlist.reordered", { item: folder?.name || "Folder" }) ||
-            `Moved folder`,
+          t("playlist.reordered", { item: dragItem.id }) || `Moved item`,
         );
         return;
       }

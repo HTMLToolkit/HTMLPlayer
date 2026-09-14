@@ -66,7 +66,8 @@ export const FolderItem = memo(function FolderItem({
               className={styles.playlistDropZone}
             >
               <CollapsibleTrigger asChild>
-                <button
+                <Button
+                  variant="ghost"
                   className={`${styles.playlistItem} ${styles.folderItem}`}
                   style={{ width: "100%" }}
                 >
@@ -91,7 +92,7 @@ export const FolderItem = memo(function FolderItem({
                   <span className={styles.songCount}>
                     {item.children.length}
                   </span>
-                </button>
+                </Button>
               </CollapsibleTrigger>
             </DropZone>
           </DraggableItem>

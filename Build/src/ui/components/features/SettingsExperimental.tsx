@@ -49,8 +49,8 @@ export function SettingsExperimental({
 
   const loadEruda = () => {
     return new Promise<void>((resolve, reject) => {
-      if ((window as any).eruda) {
-        (window as any).eruda.init();
+      if (window.eruda) {
+        window.eruda.init();
         resolve();
         return;
       }
@@ -58,7 +58,7 @@ export function SettingsExperimental({
       script.src = "https://cdn.jsdelivr.net/npm/eruda";
       script.crossOrigin = "anonymous";
       script.onload = () => {
-        (window as any).eruda.init();
+        window.eruda?.init();
         resolve();
       };
       script.onerror = reject;
@@ -67,12 +67,12 @@ export function SettingsExperimental({
   };
 
   const unloadEruda = () => {
-    if ((window as any).eruda) {
+    if (window.eruda) {
       try {
-        (window as any).eruda.destroy();
+        window.eruda.destroy();
         const erudaScript = document.querySelector('script[src*="eruda"]');
         if (erudaScript) erudaScript.remove();
-        delete (window as any).eruda;
+        delete window.eruda;
       } catch {}
     }
   };

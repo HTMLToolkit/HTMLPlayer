@@ -45,6 +45,36 @@ export const Sidebar = memo(
     const [showAbout, setShowAbout] = useState(false);
     const [isCollapsed, setIsCollapsed] = useState(false);
     const [isMobile, setIsMobile] = useState(false);
+    const [libraryVersion, setLibraryVersion] = useState(0);
+    const [, setSettingsVersion] = useState(0);
+
+    useEffect(() => {
+      const library = komorebi.library;
+      const settings = komorebi.settings;
+      const libraryEvents = [
+        "songadded",
+        "songremoved",
+        "songupdated",
+        "playlistadded",
+        "playlistremoved",
+        "playlistupdated",
+        "favoritechanged",
+        "librarycleared",
+      ] as const;
+
+      const bumpLibrary = () => setLibraryVersion((v) => v + 1);
+      const bumpSettings = () => setSettingsVersion((v) => v + 1);
+
+      libraryEvents.forEach((event) => library.on(event, bumpLibrary));
+      settings.on("settingschange", bumpSettings);
+      settings.on("themechange", bumpSettings);
+
+      return () => {
+        libraryEvents.forEach((event) => library.off(event, bumpLibrary));
+        settings.off("settingschange", bumpSettings);
+        settings.off("themechange", bumpSettings);
+      };
+    }, [komorebi.library, komorebi.settings]);
 
     // Detect mobile viewport
     useEffect(() => {
@@ -149,7 +179,11 @@ export const Sidebar = memo(
             <h2 className={styles.title}>{t("playlists")}</h2>
           </div>
 
-          <PlaylistComponent komorebi={komorebi} />
+          <PlaylistComponent
+            library={komorebi.library}
+            playSong={komorebi.playSong}
+            version={libraryVersion}
+          />
 
           <div className={styles.footer}>
             <Separator />
@@ -269,14 +303,13 @@ export const Sidebar = memo(
     );
   },
   (prevProps, nextProps) => {
-    const prevLibrary = prevProps.komorebi.library.getState();
-    const nextLibrary = nextProps.komorebi.library.getState();
+    // The library/settings managers are stable singletons created once by the
+    // hook, so identity comparison only skips when nothing this subtree renders
+    // actually changed. Content changes arrive via the internal subscriptions
+    // above, not through prop identity.
     return (
-      prevLibrary.playlists === nextLibrary.playlists &&
-      prevLibrary.songs === nextLibrary.songs &&
-      prevLibrary.favorites === nextLibrary.favorites &&
-      prevProps.komorebi.settings.getSettings() ===
-        nextProps.komorebi.settings.getSettings() &&
+      prevProps.komorebi.library === nextProps.komorebi.library &&
+      prevProps.komorebi.settings === nextProps.komorebi.settings &&
       prevProps.settingsOpen === nextProps.settingsOpen &&
       prevProps.isMobileOpen === nextProps.isMobileOpen
     );

@@ -180,7 +180,7 @@ export function SettingsInterface({
         </div>
         <ThemeModeSwitch
           value={settingsState.themeMode}
-          onChange={(val) => settings.setThemeMode(val as any)}
+          onChange={(val) => settings.setThemeMode(val)}
         />
       </div>
 

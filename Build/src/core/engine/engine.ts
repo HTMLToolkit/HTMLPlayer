@@ -55,6 +55,7 @@ export class KomorebiEngine {
   private currentTime = 0;
   private duration = 0;
   private currentError: EngineError | null = null;
+  private currentPlaylist: Playlist | null = null;
 
   private timeUpdateInterval: number | null = null;
   private scheduledTransitionId: number | null = null;
@@ -126,11 +127,25 @@ export class KomorebiEngine {
 
     if (playlist) {
       this.queue.setPlaylist(playlist);
+      this.currentPlaylist = playlist;
+    } else if (
+      this.queue.getTracks().findIndex((t) => t.id === track.id) < 0
+    ) {
+      const solo: Playlist = {
+        id: `solo:${track.id}`,
+        name: track.title,
+        songs: [track],
+      };
+      this.queue.setPlaylist(solo);
+      this.currentPlaylist = solo;
     }
+
+    const previousTrack = this.queue.getCurrentTrack();
 
     this.queue.setCurrentIndex(
       this.queue.getTracks().findIndex((t) => t.id === track.id),
     );
+    this.emitTrackChange(previousTrack, track);
 
     this.stateMachine.transition("loading");
     this.currentError = null;
@@ -353,6 +368,7 @@ export class KomorebiEngine {
 
   setPlaylist(playlist: Playlist): void {
     this.queue.setPlaylist(playlist, false);
+    this.currentPlaylist = playlist;
     this.events.emit("queuechange", { queue: this.queue.getState() });
   }
 
@@ -360,7 +376,7 @@ export class KomorebiEngine {
     return {
       state: this.stateMachine.getState(),
       currentTrack: this.queue.getCurrentTrack(),
-      currentPlaylist: null,
+      currentPlaylist: this.currentPlaylist,
       queue: this.queue.getState(),
       settings: { ...this.settings },
       currentTime: this.currentTime,
@@ -422,32 +438,39 @@ export class KomorebiEngine {
     timeout = 5000,
   ): Promise<void> {
     return new Promise((resolve, reject) => {
-      const checkState = () => {
-        if (this.stateMachine.getState() === targetState) {
-          resolve();
-          return true;
-        }
-        if (this.stateMachine.hasError()) {
-          reject(new Error("State transition failed"));
-          return true;
-        }
-        return false;
-      };
-
-      if (checkState()) return;
-
+      let settled = false;
       const timeoutId = setTimeout(() => {
-        this.events.off("statechange", stateHandler);
+        if (settled) return;
+        settled = true;
+        this.events.off("statechange", onStateChange);
         reject(new Error(`Timeout waiting for state: ${targetState}`));
       }, timeout);
 
-      const stateHandler = () => {
-        if (checkState()) {
+      const onStateChange = () => {
+        if (settled) return;
+        if (this.stateMachine.getState() === targetState) {
+          settled = true;
           clearTimeout(timeoutId);
+          this.events.off("statechange", onStateChange);
+          resolve();
+        } else if (this.stateMachine.hasError()) {
+          settled = true;
+          clearTimeout(timeoutId);
+          this.events.off("statechange", onStateChange);
+          reject(new Error("State transition failed"));
         }
       };
 
-      this.events.on("statechange", stateHandler);
+      if (this.stateMachine.getState() === targetState) {
+        onStateChange();
+        return;
+      }
+      if (this.stateMachine.hasError()) {
+        onStateChange();
+        return;
+      }
+
+      this.events.on("statechange", onStateChange);
     });
   }
 
@@ -526,6 +549,10 @@ export class KomorebiEngine {
     if (this.settings.repeat === "one") {
       this.seek(0);
       this.play();
+      return;
+    }
+
+    if (this.stateMachine.isTransitioning()) {
       return;
     }
 

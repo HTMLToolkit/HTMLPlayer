@@ -92,6 +92,8 @@ const DEFAULT_QUEUE: QueueState = {
   shuffleOrder: [],
 };
 
+const LOAD_WAIT_TIMEOUT_MS = 5000;
+
 function createInitialState(): EngineState {
   return {
     state: "idle",
@@ -125,6 +127,7 @@ export function useKomorebi(
   const backendRef = useRef<IAudioBackend | null>(null);
   const engineRef = useRef<KomorebiEngine | null>(null);
   const libraryRef = useRef<LibraryManager | null>(null);
+  const playlistsSaveTimerRef = useRef<number | null>(null);
   const settingsRef = useRef<SettingsManager | null>(null);
   const initializedRef = useRef(false);
 
@@ -170,12 +173,6 @@ export function useKomorebi(
       setCurrentTime(e.currentTime);
       setDuration(e.duration);
     };
-    const handleEnded = async () => {
-      const currentState = engine.getState();
-      if (currentState.settings.autoPlayNext) {
-        await engine.next();
-      }
-    };
     const handleError = (e: { error: { message: string } }) => {
       setError(e.error.message);
     };
@@ -183,22 +180,27 @@ export function useKomorebi(
     const handleReady = () => setIsLoading(false);
 
     engine.on("statechange", handleStateChange);
+    engine.on("volumechange", handleStateChange);
+    engine.on("queuechange", handleStateChange);
+    engine.on("settingschange", handleStateChange);
+    engine.on("durationchange", handleStateChange);
     engine.on("trackchange", handleTrackChange);
     engine.on("timeupdate", handleTimeUpdate);
-    engine.on("ended", handleEnded);
     engine.on("error", handleError);
     engine.on("loading", handleLoading);
     engine.on("ready", handleReady);
 
     const handleLibraryChange = () => {
-      console.log("[handleLibraryChange] called, songs:", library.getState().songs.length);
       setSongs([...library.getState().songs]);
       setState(engine.getState());
     };
     library.on("songadded", handleLibraryChange);
     library.on("songremoved", handleLibraryChange);
+    library.on("songupdated", handleLibraryChange);
     library.on("playlistadded", handleLibraryChange);
     library.on("playlistremoved", handleLibraryChange);
+    library.on("playlistupdated", handleLibraryChange);
+    library.on("playlistsupdated", handleLibraryChange);
     library.on("favoritechanged", handleLibraryChange);
 
     const loadLibrary = async () => {
@@ -209,11 +211,7 @@ export function useKomorebi(
             const reconstructed = await trackStorage.reconstructUrl(song);
             library.addSong(reconstructed);
           }
-          savedLibrary.playlists.forEach((playlist) => {
-            if ("songs" in playlist) {
-              library.addPlaylist(playlist);
-            }
-          });
+          library.seedPlaylists(savedLibrary.playlists);
           savedLibrary.favorites.forEach((id) => {
             const song = library.getSong(id);
             if (song) library.toggleFavorite(id);
@@ -226,23 +224,28 @@ export function useKomorebi(
 
     loadLibrary().then(() => {
       setIsReady(true);
-      console.log("[loadLibrary] setting songs:", library.getState().songs.length);
       setSongs([...library.getState().songs]);
       setState(engine.getState());
     });
 
     return () => {
       engine.off("statechange", handleStateChange);
+      engine.off("volumechange", handleStateChange);
+      engine.off("queuechange", handleStateChange);
+      engine.off("settingschange", handleStateChange);
+      engine.off("durationchange", handleStateChange);
       engine.off("trackchange", handleTrackChange);
       engine.off("timeupdate", handleTimeUpdate);
-      engine.off("ended", handleEnded);
       engine.off("error", handleError);
       engine.off("loading", handleLoading);
       engine.off("ready", handleReady);
       library.off("songadded", handleLibraryChange);
       library.off("songremoved", handleLibraryChange);
+      library.off("songupdated", handleLibraryChange);
       library.off("playlistadded", handleLibraryChange);
       library.off("playlistremoved", handleLibraryChange);
+      library.off("playlistupdated", handleLibraryChange);
+      library.off("playlistsupdated", handleLibraryChange);
       library.off("favoritechanged", handleLibraryChange);
       backendRef.current?.dispose();
     };
@@ -264,6 +267,23 @@ export function useKomorebi(
       }
     };
 
+    const handlePlaylistsChange = () => {
+      if (playlistsSaveTimerRef.current !== null) {
+        window.clearTimeout(playlistsSaveTimerRef.current);
+      }
+      playlistsSaveTimerRef.current = window.setTimeout(() => {
+        playlistsSaveTimerRef.current = null;
+        const current = libraryRef.current;
+        if (current) {
+          libraryPersistence
+            .savePlaylists(current.getState().playlists)
+            .catch((error: unknown) => {
+              logger.error("Failed to save playlists:", { error: String(error) });
+            });
+        }
+      }, 300);
+    };
+
     const library = libraryRef.current;
     library.on(
       "songadded",
@@ -277,8 +297,27 @@ export function useKomorebi(
       "favoritechanged",
       handleFavoritesChange as Parameters<typeof library.on>[1],
     );
+    library.on(
+      "playlistadded",
+      handlePlaylistsChange as Parameters<typeof library.on>[1],
+    );
+    library.on(
+      "playlistremoved",
+      handlePlaylistsChange as Parameters<typeof library.on>[1],
+    );
+    library.on(
+      "playlistupdated",
+      handlePlaylistsChange as Parameters<typeof library.on>[1],
+    );
+    library.on(
+      "playlistsupdated",
+      handlePlaylistsChange as Parameters<typeof library.on>[1],
+    );
 
     return () => {
+      if (playlistsSaveTimerRef.current !== null) {
+        window.clearTimeout(playlistsSaveTimerRef.current);
+      }
       library.off(
         "songadded",
         handleSongAdded as Parameters<typeof library.on>[1],
@@ -290,6 +329,22 @@ export function useKomorebi(
       library.off(
         "favoritechanged",
         handleFavoritesChange as Parameters<typeof library.on>[1],
+      );
+      library.off(
+        "playlistadded",
+        handlePlaylistsChange as Parameters<typeof library.on>[1],
+      );
+      library.off(
+        "playlistremoved",
+        handlePlaylistsChange as Parameters<typeof library.on>[1],
+      );
+      library.off(
+        "playlistupdated",
+        handlePlaylistsChange as Parameters<typeof library.on>[1],
+      );
+      library.off(
+        "playlistsupdated",
+        handlePlaylistsChange as Parameters<typeof library.on>[1],
       );
     };
   }, [options.persistLibrary, isReady]);
@@ -322,34 +377,39 @@ export function useKomorebi(
   }, []);
 
   const playSong = useCallback(async (song: Track, playlist?: Playlist) => {
-    console.log("[playSong] called", { song: song?.title, songUrl: song?.url, playlist: playlist?.name });
     setError(null);
     const engine = engineRef.current;
-    console.log("[playSong] engine:", engine);
-    if (!engine) {
-      console.log("[playSong] no engine!");
-      return;
-    }
+    if (!engine) return;
 
     const trackToPlay = await trackStorage.reconstructUrl(song);
-    console.log("[playSong] reconstructed url:", trackToPlay.url);
 
     if (playlist) {
       engine.setPlaylist(playlist);
     }
     engine.load(trackToPlay, playlist);
-    
+
     await new Promise<void>((resolve) => {
-      const handleReady = () => {
+      let settled = false;
+      const finish = () => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timeoutId);
         engine.off("ready", handleReady);
+        engine.off("error", handleError);
         resolve();
       };
+      const timeoutId = setTimeout(finish, LOAD_WAIT_TIMEOUT_MS);
+      const handleReady = () => finish();
+      const handleError = () => finish();
+
       engine.on("ready", handleReady);
+      engine.on("error", handleError);
     });
-    
-    console.log("[playSong] calling engine.play()");
-    await engine.play();
-    console.log("[playSong] play() completed");
+
+    const playerState = engine.getState().state;
+    if (playerState === "ready" || playerState === "paused") {
+      await engine.play();
+    }
   }, []);
 
   const seek = useCallback((time: number) => {
@@ -396,7 +456,6 @@ export function useKomorebi(
   }, []);
 
   const addSong = useCallback((song: Track) => {
-    console.log("[addSong] called", { songId: song.id, title: song.title });
     libraryRef.current?.addSong(song);
   }, []);
 

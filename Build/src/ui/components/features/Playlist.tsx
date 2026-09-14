@@ -9,6 +9,7 @@ import React, {
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { Icon } from "../shared/Icon";
+import { Button } from "../primitives/Button";
 import { generatePlaylistImage } from "../../../platform/utils/playlistImage";
 import { flattenPlaylists } from "../../../platform/library";
 import { PlaylistItem } from "../primitives/PlaylistItem";
@@ -20,15 +21,18 @@ import type { Playlist, PlaylistFolder } from "../../../core/engine/types";
 import styles from "./Playlist.module.css";
 
 interface PlaylistViewProps {
-  komorebi: UseKomorebiReturn;
+  library: UseKomorebiReturn["library"];
+  playSong: UseKomorebiReturn["playSong"];
+  version: number;
 }
 
 export const PlaylistView = memo(function PlaylistView({
-  komorebi,
+  library,
+  playSong,
 }: PlaylistViewProps) {
   const { t } = useTranslation();
-  const { songs, library } = komorebi;
   const libraryState = library.getState();
+  const songs = libraryState.songs;
   const [playlistSearchQuery, setPlaylistSearchQuery] = useState("");
   const [playlistImages, setPlaylistImages] = useState<Record<string, string>>(
     {},
@@ -71,15 +75,10 @@ export const PlaylistView = memo(function PlaylistView({
 
   const createFolder = useCallback(
     (name: string) => {
-      const folder: PlaylistFolder = {
-        id: `folder-${Date.now()}`,
-        name,
-        children: [],
-      };
-      libraryState.playlists.push(folder);
+      library.createFolder(name);
       toast.success(t("playlist.folderCreated", { name }));
     },
-    [libraryState.playlists, t],
+    [library, t],
   );
 
   const removePlaylist = useCallback(
@@ -90,52 +89,6 @@ export const PlaylistView = memo(function PlaylistView({
       );
     },
     [library, dialogItem],
-  );
-
-  const moveToFolder = useCallback(
-    (itemId: string, folderId: string | null) => {
-      const findAndRemove = (
-        items: (Playlist | PlaylistFolder)[],
-        id: string,
-      ): Playlist | PlaylistFolder | null => {
-        const idx = items.findIndex((item) => item.id === id);
-        if (idx !== -1) return items.splice(idx, 1)[0];
-        for (const item of items) {
-          if ("children" in item) {
-            const found = findAndRemove(item.children, id);
-            if (found) return found;
-          }
-        }
-        return null;
-      };
-
-      const state = library.getState();
-      const item = findAndRemove(state.playlists, itemId);
-      if (!item) return;
-
-      if (folderId) {
-        const addToFolder = (
-          items: (Playlist | PlaylistFolder)[],
-          id: string,
-        ): boolean => {
-          for (const item of items) {
-            if (item.id === id && "children" in item) {
-              item.children.push(item);
-              return true;
-            }
-            if ("children" in item) {
-              if (addToFolder(item.children, id)) return true;
-            }
-          }
-          return false;
-        };
-        addToFolder(state.playlists, folderId);
-      } else {
-        state.playlists.push(item);
-      }
-      toast.success(t("playlist.movedToRoot", { item: item.name }));
-    },
-    [library, t],
   );
 
   useEffect(() => {
@@ -229,16 +182,34 @@ export const PlaylistView = memo(function PlaylistView({
           createFolder(value || "");
           break;
         case "delete":
-          dialogItem && removePlaylist(dialogItem.id);
+          if (dialogItem && "children" in dialogItem) {
+            library.removeFolder(dialogItem.id);
+            toast.success(
+              t("playlist.playlistDeleted", { name: dialogItem.name }),
+            );
+          } else {
+            dialogItem && removePlaylist(dialogItem.id);
+          }
           break;
         case "rename":
           if (dialogItem && value?.trim()) {
-            dialogItem.name = value.trim();
+            if ("children" in dialogItem) {
+              library.renameFolder(dialogItem.id, value.trim());
+            } else {
+              library.updatePlaylist(dialogItem.id, { name: value.trim() });
+            }
             toast.success(t("playlist.renamed", { name: value.trim() }));
           }
           break;
         case "move":
-          moveToFolder(dialogItem?.id || "", value || null);
+          if (dialogItem && "children" in dialogItem) {
+            library.moveFolder(dialogItem.id, value || "root");
+          } else if (dialogItem) {
+            library.moveToFolder(dialogItem.id, value || "root");
+          }
+          toast.success(
+            t("playlist.movedToRoot", { item: dialogItem?.name || "" }),
+          );
           break;
       }
       setDialogOpen(false);
@@ -249,7 +220,6 @@ export const PlaylistView = memo(function PlaylistView({
       createPlaylist,
       createFolder,
       removePlaylist,
-      moveToFolder,
       t,
     ],
   );
@@ -257,9 +227,9 @@ export const PlaylistView = memo(function PlaylistView({
   const handlePlaylistSelect = useCallback(
     (playlist: Playlist) => {
       if (playlist.songs.length > 0)
-        komorebi.playSong(playlist.songs[0], playlist);
+        playSong(playlist.songs[0], playlist);
     },
-    [komorebi],
+    [playSong],
   );
 
   const handleAllSongsClick = useCallback(() => {
@@ -268,8 +238,8 @@ export const PlaylistView = memo(function PlaylistView({
       name: t("allSongs"),
       songs: songs,
     };
-    komorebi.playSong(allSongs.songs[0], allSongs);
-  }, [songs, komorebi, t]);
+    playSong(allSongs.songs[0], allSongs);
+  }, [songs, playSong, t]);
 
   const handleShare = useCallback(
     (playlist: Playlist) => {
@@ -368,7 +338,7 @@ export const PlaylistView = memo(function PlaylistView({
             onRename={() => openDialog("rename", item)}
             onShare={() => handleShare(item)}
             onMoveToFolder={() => openDialog("move", item)}
-            onMoveToRoot={() => moveToFolder(item.id, null)}
+            onMoveToRoot={() => library.moveToFolder(item.id, "root")}
             onExportJson={() => handleExport(item, "json")}
             onExportM3u={() => handleExport(item, "m3u")}
             onDelete={() => openDialog("delete", item)}
@@ -384,7 +354,7 @@ export const PlaylistView = memo(function PlaylistView({
           onToggle={() => toggleFolder(item.id)}
           onRename={() => openDialog("rename", item)}
           onMoveToFolder={() => openDialog("move", item)}
-          onMoveToRoot={() => moveToFolder(item.id, null)}
+            onMoveToRoot={() => library.moveFolder(item.id, "root")}
           onDelete={() => openDialog("delete", item)}
           renderPlaylistItem={renderPlaylistItem}
         />
@@ -396,7 +366,6 @@ export const PlaylistView = memo(function PlaylistView({
       handlePlaylistSelect,
       openDialog,
       handleShare,
-      moveToFolder,
       handleExport,
       openFolders,
       toggleFolder,
@@ -419,16 +388,18 @@ export const PlaylistView = memo(function PlaylistView({
         style={{ position: "relative" }}
         data-tour="playlists"
       >
-        <button
+        <Button
+          variant="ghost"
           className={`${styles.playlistItem} ${styles.allSongsItem}`}
           onClick={handleAllSongsClick}
         >
           <Icon name="music" size={16} decorative />
           {t("allSongs")}
           <span className={styles.songCount}>{songs.length}</span>
-        </button>
+        </Button>
 
-        <button
+        <Button
+          variant="ghost"
           className={`${styles.playlistItem} ${styles.favoritesItem}`}
           onClick={() =>
             handlePlaylistSelect({
@@ -445,7 +416,7 @@ export const PlaylistView = memo(function PlaylistView({
           <span className={styles.songCount}>
             {libraryState.favorites.length}
           </span>
-        </button>
+        </Button>
 
         {filteredPlaylists.map((item) => renderPlaylistItem(item))}
 
