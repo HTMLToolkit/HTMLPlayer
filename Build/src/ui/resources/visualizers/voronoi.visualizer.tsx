@@ -43,7 +43,7 @@ const voronoiSpectrum: VisualizerType = {
       visualizerStates.set("voronoiSpectrum", state);
     }
 
-    analyser.getByteFrequencyData(freqDataArray as any);
+    analyser.getByteFrequencyData(freqDataArray);
 
     ctx.fillStyle = backgroundColor;
     ctx.fillRect(0, 0, canvas.width, canvas.height);

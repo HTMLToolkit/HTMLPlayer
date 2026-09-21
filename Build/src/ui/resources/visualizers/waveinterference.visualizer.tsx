@@ -20,7 +20,10 @@ const interferenceSpectrogram: VisualizerType = {
     } = settings;
 
     if (dataType !== "frequency") return;
-    analyser.getByteFrequencyData(freqDataArray as any);
+    if (!(freqDataArray instanceof Uint8Array)) return;
+    analyser.getByteFrequencyData(
+      freqDataArray as Uint8Array<ArrayBuffer>,
+    );
 
     ctx.fillStyle = backgroundColor;
     ctx.fillRect(0, 0, canvas.width, canvas.height);

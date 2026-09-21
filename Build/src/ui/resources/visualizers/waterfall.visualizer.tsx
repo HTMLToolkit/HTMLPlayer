@@ -22,7 +22,7 @@ const waterfall: VisualizerType = {
     if (dataType !== "frequency") return;
 
     // Get frequency data
-    analyser.getByteFrequencyData(freqDataArray as any);
+    analyser.getByteFrequencyData(freqDataArray);
 
     // Scroll canvas up by scrollSpeed pixels
     const imageData = ctx.getImageData(

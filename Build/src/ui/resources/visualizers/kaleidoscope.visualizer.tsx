@@ -20,7 +20,7 @@ const kaleidoscope: VisualizerType = {
     } = settings;
 
     if (dataType !== "frequency") return;
-    analyser.getByteFrequencyData(freqDataArray as any);
+    analyser.getByteFrequencyData(freqDataArray);
 
     const centerX = canvas.width / 2;
     const centerY = canvas.height / 2;

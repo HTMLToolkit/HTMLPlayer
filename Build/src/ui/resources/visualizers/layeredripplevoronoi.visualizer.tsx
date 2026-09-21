@@ -40,7 +40,7 @@ const LayeredRippleVoronoi: VisualizerType = {
       visualizerStates.set("LayeredRippleVoronoi", state);
     }
 
-    analyser.getByteFrequencyData(freqDataArray as any);
+    analyser.getByteFrequencyData(freqDataArray);
 
     const centerX = canvas.width / 2;
     const centerY = canvas.height / 2;
