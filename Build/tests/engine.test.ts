@@ -101,14 +101,14 @@ describe("QueueManager", () => {
   it("should get current track", () => {
     const playlist = createMockPlaylist(["a", "b", "c"]);
     queue.setPlaylist(playlist);
-    queue.setCurrentIndex(1);
+    queue.jumpToIndex(1);
     expect(queue.getCurrentTrack()?.id).toBe("b");
   });
 
   it("should handle next track", () => {
     const playlist = createMockPlaylist(["a", "b", "c"]);
     queue.setPlaylist(playlist);
-    queue.setCurrentIndex(0);
+    queue.jumpToIndex(0);
     const next = queue.getNextTrack(false);
     expect(next?.id).toBe("b");
   });
@@ -116,7 +116,7 @@ describe("QueueManager", () => {
   it("should handle previous track", () => {
     const playlist = createMockPlaylist(["a", "b", "c"]);
     queue.setPlaylist(playlist);
-    queue.setCurrentIndex(1);
+    queue.jumpToIndex(1);
     const prev = queue.getPreviousTrack(false);
     expect(prev?.id).toBe("a");
   });
@@ -124,7 +124,7 @@ describe("QueueManager", () => {
   it("should wrap around at end of playlist", () => {
     const playlist = createMockPlaylist(["a", "b", "c"]);
     queue.setPlaylist(playlist);
-    queue.setCurrentIndex(2);
+    queue.jumpToIndex(2);
     const next = queue.getNextTrack(false);
     expect(next?.id).toBe("a");
   });
@@ -132,7 +132,7 @@ describe("QueueManager", () => {
   it("should wrap around at start of playlist", () => {
     const playlist = createMockPlaylist(["a", "b", "c"]);
     queue.setPlaylist(playlist);
-    queue.setCurrentIndex(0);
+    queue.jumpToIndex(0);
     const prev = queue.getPreviousTrack(false);
     expect(prev?.id).toBe("c");
   });
@@ -140,7 +140,7 @@ describe("QueueManager", () => {
   it("should shuffle tracks", () => {
     const playlist = createMockPlaylist(["a", "b", "c", "d", "e"]);
     queue.setPlaylist(playlist);
-    queue.setCurrentIndex(2);
+    queue.jumpToIndex(2);
     queue.shuffle(true);
     expect(queue.isShuffled()).toBe(true);
     expect(queue.getTracks().length).toBe(5);

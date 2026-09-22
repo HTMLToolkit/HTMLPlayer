@@ -7,6 +7,11 @@ import {
 } from "react";
 import type { NavigationView } from "../../types/custom-events";
 import { throwError } from "../../helpers/logger";
+import {
+  selectCurrentPlaylist,
+  selectCurrentTrack,
+  useKomorebiStore,
+} from "../../store";
 
 export type View = NavigationView;
 
@@ -28,6 +33,9 @@ export interface NavigationContextValue {
   goToPlaylist: (playlistId: string) => void;
   goToSearch: (query?: string) => void;
   goToFavorites: () => void;
+  goToCurrentArtist: () => void;
+  goToCurrentAlbum: () => void;
+  goToCurrentPlaylist: () => void;
   goBack: () => void;
 }
 
@@ -81,6 +89,30 @@ export function NavigationProvider({ children }: { children: ReactNode }) {
     [navigate],
   );
 
+  const goToCurrentArtist = useCallback(() => {
+    const store = useKomorebiStore.getState();
+    const track = selectCurrentTrack(store);
+    if (track?.artist) {
+      navigate({ view: "artist", artist: track.artist });
+    }
+  }, [navigate]);
+
+  const goToCurrentAlbum = useCallback(() => {
+    const store = useKomorebiStore.getState();
+    const track = selectCurrentTrack(store);
+    if (track?.album) {
+      navigate({ view: "album", album: track.album });
+    }
+  }, [navigate]);
+
+  const goToCurrentPlaylist = useCallback(() => {
+    const store = useKomorebiStore.getState();
+    const playlist = selectCurrentPlaylist(store);
+    if (playlist) {
+      navigate({ view: "playlist", playlistId: playlist.id });
+    }
+  }, [navigate]);
+
   const goBack = useCallback(() => {
     if (historyIndex > 0) {
       const newIndex = historyIndex - 1;
@@ -101,6 +133,9 @@ export function NavigationProvider({ children }: { children: ReactNode }) {
         goToPlaylist,
         goToSearch,
         goToFavorites,
+        goToCurrentArtist,
+        goToCurrentAlbum,
+        goToCurrentPlaylist,
         goBack,
       }}
     >

@@ -1,4 +1,10 @@
-import type { Track, Playlist, QueueState, PlayHistory } from "../types";
+import type {
+  Track,
+  Playlist,
+  QueueState,
+  QueueCursor,
+  PlayHistory,
+} from "../types";
 
 export type ShuffleMode = "random" | "smart";
 
@@ -6,10 +12,15 @@ export interface WeightedRandomizer {
   getWeightedRandomTrack(trackIds: string[]): string | null;
 }
 
+type Direction = "next" | "previous";
+
+/**
+ * Owns the play queue around a discriminated cursor.
+ */
 export class QueueManager {
   private state: QueueState = {
     tracks: [],
-    currentIndex: -1,
+    cursor: { kind: "empty" },
     shuffled: false,
     shuffleOrder: [],
   };
@@ -35,7 +46,7 @@ export class QueueManager {
     if (!playlist) {
       this.state = {
         tracks: [],
-        currentIndex: -1,
+        cursor: { kind: "empty" },
         shuffled: this.state.shuffled,
         shuffleOrder: [],
       };
@@ -51,29 +62,78 @@ export class QueueManager {
     this.state.tracks = tracks;
     this.state.shuffleOrder = this.generateShuffleOrder(
       tracks.length,
-      newIndex,
+      newIndex >= 0 ? newIndex : null,
     );
-    this.state.currentIndex = newIndex >= 0 ? newIndex : -1;
+    this.setCursor(
+      newIndex >= 0 ? { kind: "active", index: newIndex } : { kind: "empty" },
+    );
+  }
+
+  getCursor(): QueueCursor {
+    return this.state.cursor;
+  }
+
+  setCursor(cursor: QueueCursor): void {
+    switch (cursor.kind) {
+      case "empty":
+        this.state.cursor = { kind: "empty" };
+        break;
+      case "active":
+        if (cursor.index >= 0 && cursor.index < this.state.tracks.length) {
+          this.state.cursor = { kind: "active", index: cursor.index };
+        } else {
+          this.state.cursor = { kind: "empty" };
+        }
+        break;
+    }
+  }
+
+  /**
+   * Move the cursor to an index unconditionally. Negative or out-of-bounds
+   * indices (including the old `-1` sentinel) collapse to the empty state.
+   */
+  jumpToIndex(index: number | null): void {
+    this.setCursor(
+      index === null ? { kind: "empty" } : { kind: "active", index },
+    );
+  }
+
+  peekNextCursor(_smartShuffle: boolean): QueueCursor {
+    return this.peekAdjacentCursor("next");
+  }
+
+  peekPreviousCursor(_smartShuffle: boolean): QueueCursor {
+    return this.peekAdjacentCursor("previous");
   }
 
   getCurrentTrack(): Track | null {
-    if (
-      this.state.currentIndex < 0 ||
-      this.state.currentIndex >= this.state.tracks.length
-    ) {
-      return null;
+    const cursor = this.state.cursor;
+    switch (cursor.kind) {
+      case "empty":
+        return null;
+      case "active":
+        return this.state.tracks[cursor.index] ?? null;
     }
-    return this.state.tracks[this.state.currentIndex];
   }
 
-  getCurrentIndex(): number {
-    return this.state.currentIndex;
+  getCurrentIndex(): number | null {
+    const cursor = this.state.cursor;
+    switch (cursor.kind) {
+      case "empty":
+        return null;
+      case "active":
+        return cursor.index;
+    }
   }
 
-  setCurrentIndex(index: number): void {
-    if (index >= 0 && index < this.state.tracks.length) {
-      this.state.currentIndex = index;
-    }
+  getNextIndex(smartShuffle: boolean): number | null {
+    const cursor = this.peekNextCursor(smartShuffle);
+    return cursor.kind === "active" ? cursor.index : null;
+  }
+
+  getPreviousIndex(smartShuffle: boolean): number | null {
+    const cursor = this.peekPreviousCursor(smartShuffle);
+    return cursor.kind === "active" ? cursor.index : null;
   }
 
   getTracks(): Track[] {
@@ -87,75 +147,44 @@ export class QueueManager {
     return [...this.state.shuffleOrder];
   }
 
-  getNextIndex(_smartShuffle: boolean): number {
-    const order = this.getPlayOrder();
-    const currentPos = order.indexOf(this.state.currentIndex);
-
-    if (currentPos === -1) {
-      return order.length > 0 ? order[0] : -1;
-    }
-
-    const nextPos = currentPos + 1;
-    if (nextPos >= order.length) {
-      return order.length > 0 ? order[0] : -1;
-    }
-
-    return order[nextPos];
-  }
-
-  getPreviousIndex(_smartShuffle: boolean): number {
-    const order = this.getPlayOrder();
-    const currentPos = order.indexOf(this.state.currentIndex);
-
-    if (currentPos === -1) {
-      return order.length > 0 ? order[order.length - 1] : -1;
-    }
-
-    const prevPos = currentPos - 1;
-    if (prevPos < 0) {
-      return order.length > 0 ? order[order.length - 1] : -1;
-    }
-
-    return order[prevPos];
-  }
-
   getNextTrack(smartShuffle: boolean): Track | null {
-    const nextIndex = this.getNextIndex(smartShuffle);
-    if (nextIndex < 0 || nextIndex >= this.state.tracks.length) {
-      return null;
-    }
-    return this.state.tracks[nextIndex];
+    return this.trackForCursor(this.peekNextCursor(smartShuffle));
   }
 
   getPreviousTrack(smartShuffle: boolean): Track | null {
-    const prevIndex = this.getPreviousIndex(smartShuffle);
-    if (prevIndex < 0 || prevIndex >= this.state.tracks.length) {
-      return null;
-    }
-    return this.state.tracks[prevIndex];
+    return this.trackForCursor(this.peekPreviousCursor(smartShuffle));
   }
 
   shuffle(preserveCurrent = true): void {
     this.state.shuffled = true;
+    const preserveIndex =
+      preserveCurrent && this.state.cursor.kind === "active"
+        ? this.state.cursor.index
+        : null;
 
     if (this.shuffleMode === "smart" && this.weightedRandomizer) {
       this.state.shuffleOrder = this.generateSmartShuffleOrder(
         this.state.tracks.length,
-        preserveCurrent ? this.state.currentIndex : -1,
+        preserveIndex,
       );
     } else {
       this.state.shuffleOrder = this.generateShuffleOrder(
         this.state.tracks.length,
-        preserveCurrent ? this.state.currentIndex : -1,
+        preserveIndex,
       );
     }
   }
 
   private generateSmartShuffleOrder(
     length: number,
-    preserveIndex: number,
+    preserveIndex: number | null,
   ): number[] {
     if (length === 0) return [];
+
+    const randomizer = this.weightedRandomizer;
+    if (!randomizer) {
+      return this.generateShuffleOrder(length, preserveIndex);
+    }
 
     const trackIds = this.state.tracks.map((t) => t.id);
     const selectedIds: string[] = [];
@@ -163,8 +192,7 @@ export class QueueManager {
 
     while (availableIndices.length > 0) {
       const availableTrackIds = availableIndices.map((i) => trackIds[i]);
-      const selectedId =
-        this.weightedRandomizer!.getWeightedRandomTrack(availableTrackIds);
+      const selectedId = randomizer.getWeightedRandomTrack(availableTrackIds);
 
       if (!selectedId) break;
 
@@ -178,7 +206,7 @@ export class QueueManager {
       availableIndices.splice(actualIndex, 1);
     }
 
-    if (preserveIndex >= 0 && preserveIndex < length) {
+    if (preserveIndex !== null && preserveIndex < length) {
       const preserveId = trackIds[preserveIndex];
       const idxInSelected = selectedIds.indexOf(preserveId);
       if (idxInSelected > 0) {
@@ -187,7 +215,9 @@ export class QueueManager {
       }
     }
 
-    return selectedIds.map((id) => trackIds.indexOf(id)).filter((i) => i >= 0);
+    return selectedIds
+      .map((id) => trackIds.indexOf(id))
+      .filter((i) => i >= 0);
   }
 
   unshuffle(): void {
@@ -201,7 +231,7 @@ export class QueueManager {
 
   private generateShuffleOrder(
     length: number,
-    preserveIndex: number,
+    preserveIndex: number | null,
   ): number[] {
     if (length === 0) return [];
 
@@ -212,7 +242,7 @@ export class QueueManager {
       [indices[i], indices[j]] = [indices[j], indices[i]];
     }
 
-    if (preserveIndex >= 0 && preserveIndex < length) {
+    if (preserveIndex !== null && preserveIndex < length) {
       const currentInShuffle = indices.indexOf(preserveIndex);
       if (currentInShuffle > 0) {
         [indices[0], indices[currentInShuffle]] = [
@@ -260,7 +290,14 @@ export class QueueManager {
   }
 
   setState(state: Partial<QueueState>): void {
-    Object.assign(this.state, state);
+    const { cursor, tracks, ...rest } = state;
+    if (tracks !== undefined) {
+      this.state.tracks = [...tracks];
+    }
+    if (cursor !== undefined) {
+      this.setCursor(cursor);
+    }
+    Object.assign(this.state, rest);
   }
 
   addTrack(track: Track): void {
@@ -280,8 +317,22 @@ export class QueueManager {
 
     this.state.tracks.splice(index, 1);
 
-    if (this.state.currentIndex > index) {
-      this.state.currentIndex--;
+    switch (this.state.cursor.kind) {
+      case "empty":
+        break;
+      case "active": {
+        const { index: cursorIndex } = this.state.cursor;
+        if (cursorIndex > index) {
+          this.state.cursor = { kind: "active", index: cursorIndex - 1 };
+        } else if (cursorIndex === index) {
+          // The removed slot now holds the former next track. If the removed
+          // track was last, the slot is gone entirely and the queue is empty.
+          if (cursorIndex >= this.state.tracks.length) {
+            this.state.cursor = { kind: "empty" };
+          }
+        }
+        break;
+      }
     }
 
     if (this.state.shuffled) {
@@ -293,7 +344,42 @@ export class QueueManager {
 
   clear(): void {
     this.state.tracks = [];
-    this.state.currentIndex = -1;
+    this.state.cursor = { kind: "empty" };
     this.state.shuffleOrder = [];
+  }
+
+  private trackForCursor(cursor: QueueCursor): Track | null {
+    switch (cursor.kind) {
+      case "empty":
+        return null;
+      case "active":
+        return this.state.tracks[cursor.index] ?? null;
+    }
+  }
+
+  private peekAdjacentCursor(direction: Direction): QueueCursor {
+    const order = this.getPlayOrder();
+    if (order.length === 0) return { kind: "empty" };
+
+    const last = order.length - 1;
+
+    switch (this.state.cursor.kind) {
+      case "empty":
+        return direction === "next"
+          ? { kind: "active", index: order[0] }
+          : { kind: "active", index: order[last] };
+      case "active": {
+        const currentPos = order.indexOf(this.state.cursor.index);
+        if (currentPos === -1) {
+          return direction === "next"
+            ? { kind: "active", index: order[0] }
+            : { kind: "active", index: order[last] };
+        }
+        const adjacentPos = direction === "next" ? currentPos + 1 : currentPos - 1;
+        const wrappedPos =
+          adjacentPos < 0 ? last : adjacentPos > last ? 0 : adjacentPos;
+        return { kind: "active", index: order[wrappedPos] };
+      }
+    }
   }
 }

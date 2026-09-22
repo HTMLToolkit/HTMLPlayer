@@ -1,4 +1,4 @@
-import { QueueManager, WeightedRandomizer, ShuffleMode } from "../src/core/engine/queue";
+import { QueueManager, WeightedRandomizer } from "../src/core/engine/queue";
 
 class MockRandomizer implements WeightedRandomizer {
   private trackOrder: string[] = [];
@@ -33,11 +33,64 @@ describe("QueueManager", () => {
     queue = new QueueManager();
   });
 
+  describe("Cursor", () => {
+    it("should start with empty queue and empty cursor", () => {
+      expect(queue.getTracks()).toHaveLength(0);
+      expect(queue.getCurrentTrack()).toBeNull();
+      expect(queue.getCurrentIndex()).toBeNull();
+      expect(queue.getCursor()).toEqual({ kind: "empty" });
+    });
+
+    it("should set an active cursor", () => {
+      queue.setPlaylist({ id: "p1", name: "Tracks", songs: [
+        createMockTrack("1"),
+        createMockTrack("2"),
+      ] });
+      queue.setCursor({ kind: "active", index: 1 });
+      expect(queue.getCurrentIndex()).toBe(1);
+      expect(queue.getCurrentTrack()?.id).toBe("2");
+    });
+
+    it("should collapse out-of-bounds active cursor to empty", () => {
+      queue.setPlaylist({ id: "p1", name: "Tracks", songs: [
+        createMockTrack("1"),
+      ] });
+      queue.setCursor({ kind: "active", index: 5 });
+      expect(queue.getCursor()).toEqual({ kind: "empty" });
+      expect(queue.getCurrentIndex()).toBeNull();
+    });
+
+    it("should collapse negative active cursor to empty", () => {
+      queue.setPlaylist({ id: "p1", name: "Tracks", songs: [
+        createMockTrack("1"),
+      ] });
+      queue.setCursor({ kind: "active", index: -1 });
+      expect(queue.getCursor()).toEqual({ kind: "empty" });
+      expect(queue.getCurrentIndex()).toBeNull();
+    });
+
+    it("should collapse jump to null to empty", () => {
+      queue.setPlaylist({ id: "p1", name: "Tracks", songs: [
+        createMockTrack("1"),
+        createMockTrack("2"),
+      ] });
+      queue.jumpToIndex(0);
+      expect(queue.getCurrentIndex()).toBe(0);
+      queue.jumpToIndex(null);
+      expect(queue.getCursor()).toEqual({ kind: "empty" });
+    });
+
+    it("should never represent an invalid index through jumpToIndex", () => {
+      queue.jumpToIndex(-1);
+      expect(queue.getCursor()).toEqual({ kind: "empty" });
+      expect(() => queue.getCurrentTrack()).not.toThrow();
+    });
+  });
+
   describe("Basic operations", () => {
     it("should start with empty queue", () => {
       expect(queue.getTracks()).toHaveLength(0);
-      expect(queue.getCurrentTrack()).toBeNull();
-      expect(queue.getCurrentIndex()).toBe(-1);
+      expect(queue.getCurrentIndex()).toBeNull();
     });
 
     it("should add tracks", () => {
@@ -59,6 +112,7 @@ describe("QueueManager", () => {
       queue.addTrack(createMockTrack("2"));
       queue.clear();
       expect(queue.getTracks()).toHaveLength(0);
+      expect(queue.getCursor()).toEqual({ kind: "empty" });
     });
   });
 
@@ -67,7 +121,7 @@ describe("QueueManager", () => {
       queue.addTrack(createMockTrack("1"));
       queue.addTrack(createMockTrack("2"));
       queue.addTrack(createMockTrack("3"));
-      queue.setCurrentIndex(0);
+      queue.jumpToIndex(0);
     });
 
     it("should get next track", () => {
@@ -76,21 +130,66 @@ describe("QueueManager", () => {
     });
 
     it("should get previous track", () => {
-      queue.setCurrentIndex(1);
+      queue.jumpToIndex(1);
       const prev = queue.getPreviousTrack(false);
       expect(prev?.id).toBe("1");
     });
 
     it("should wrap around at end", () => {
-      queue.setCurrentIndex(2);
+      queue.jumpToIndex(2);
       const next = queue.getNextTrack(false);
       expect(next?.id).toBe("1");
     });
 
     it("should wrap around at start for previous", () => {
-      queue.setCurrentIndex(0);
+      queue.jumpToIndex(0);
       const prev = queue.getPreviousTrack(false);
       expect(prev?.id).toBe("3");
+    });
+
+    it("should peek from empty to first/last", () => {
+      queue.clear();
+      expect(queue.peekNextCursor(false)).toEqual({ kind: "empty" });
+      queue.addTrack(createMockTrack("1"));
+      queue.addTrack(createMockTrack("2"));
+      expect(queue.peekNextCursor(false)).toEqual({ kind: "active", index: 0 });
+      expect(queue.peekPreviousCursor(false)).toEqual({ kind: "active", index: 1 });
+    });
+  });
+
+  describe("Remove track cursor adjustment", () => {
+    beforeEach(() => {
+      queue.addTrack(createMockTrack("1"));
+      queue.addTrack(createMockTrack("2"));
+      queue.addTrack(createMockTrack("3"));
+    });
+
+    it("should decrement cursor when removing a track before it", () => {
+      queue.jumpToIndex(2);
+      queue.removeTrack("1");
+      expect(queue.getCurrentIndex()).toBe(1);
+      expect(queue.getCurrentTrack()?.id).toBe("3");
+    });
+
+    it("should empty cursor when removing the last active track", () => {
+      queue.jumpToIndex(2);
+      queue.removeTrack("3");
+      expect(queue.getCursor()).toEqual({ kind: "empty" });
+      expect(queue.getCurrentTrack()).toBeNull();
+    });
+
+    it("should keep cursor when removing a track after it", () => {
+      queue.jumpToIndex(0);
+      queue.removeTrack("3");
+      expect(queue.getCurrentIndex()).toBe(0);
+      expect(queue.getCurrentTrack()?.id).toBe("1");
+    });
+
+    it("should move cursor to the slot owner when removing the active track", () => {
+      queue.jumpToIndex(1);
+      queue.removeTrack("2");
+      expect(queue.getCurrentIndex()).toBe(1);
+      expect(queue.getCurrentTrack()?.id).toBe("3");
     });
   });
 
@@ -100,7 +199,7 @@ describe("QueueManager", () => {
       queue.addTrack(createMockTrack("2"));
       queue.addTrack(createMockTrack("3"));
       queue.addTrack(createMockTrack("4"));
-      queue.setCurrentIndex(0);
+      queue.jumpToIndex(0);
     });
 
     it("should enable shuffle", () => {
@@ -115,7 +214,7 @@ describe("QueueManager", () => {
     });
 
     it("should preserve current track in shuffle", () => {
-      queue.setCurrentIndex(1);
+      queue.jumpToIndex(1);
       queue.shuffle(true);
       const order = queue.getPlayOrder();
       expect(order[0]).toBe(1);
@@ -128,7 +227,7 @@ describe("QueueManager", () => {
       queue.addTrack(createMockTrack("b"));
       queue.addTrack(createMockTrack("c"));
       queue.addTrack(createMockTrack("d"));
-      queue.setCurrentIndex(0);
+      queue.jumpToIndex(0);
     });
 
     it("should set weighted randomizer", () => {

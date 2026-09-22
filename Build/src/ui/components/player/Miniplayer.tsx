@@ -1,7 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { Button } from "../primitives/Button";
 import { Icon } from "../shared/Icon";
-import type { Track } from "../../../core/engine/types";
+import type { QueueCursor, Track } from "../../../core/engine/types";
 import styles from "./Miniplayer.module.css";
 
 export interface MiniplayerControls {
@@ -9,7 +9,8 @@ export interface MiniplayerControls {
   next: () => void;
   previous: () => void;
   playerState: {
-    currentSong: Track | null;
+    cursor: QueueCursor;
+    tracks: Track[];
     isPlaying: boolean;
   };
 }
@@ -18,10 +19,20 @@ interface MiniplayerProps {
   controls: MiniplayerControls;
 }
 
+function currentSongFromState(playerState: MiniplayerControls["playerState"]): Track | null {
+  switch (playerState.cursor.kind) {
+    case "empty":
+      return null;
+    case "active":
+      return playerState.tracks[playerState.cursor.index] ?? null;
+  }
+}
+
 export const MiniplayerContent: React.FC<MiniplayerProps> = ({ controls }) => {
   const { t } = useTranslation();
   const { playerState, togglePlayPause, next, previous } = controls;
-  const { currentSong, isPlaying } = playerState;
+  const { isPlaying } = playerState;
+  const currentSong = currentSongFromState(playerState);
 
   if (!currentSong) {
     return <div>{t("player.noSongPlaying")}</div>;
@@ -71,7 +82,8 @@ export const MiniplayerContent: React.FC<MiniplayerProps> = ({ controls }) => {
 export const Miniplayer = ({ controls }: MiniplayerProps) => {
   const { t } = useTranslation();
   const { playerState, togglePlayPause, next, previous } = controls;
-  const { currentSong, isPlaying } = playerState;
+  const { isPlaying } = playerState;
+  const currentSong = currentSongFromState(playerState);
 
   if (!currentSong) {
     return <div className={styles.miniplayer}>{t("player.noSongPlaying")}</div>;

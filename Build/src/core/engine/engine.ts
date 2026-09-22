@@ -142,9 +142,8 @@ export class KomorebiEngine {
 
     const previousTrack = this.queue.getCurrentTrack();
 
-    this.queue.setCurrentIndex(
-      this.queue.getTracks().findIndex((t) => t.id === track.id),
-    );
+    const trackIndex = this.queue.getTracks().findIndex((t) => t.id === track.id);
+    this.queue.jumpToIndex(trackIndex >= 0 ? trackIndex : null);
     this.emitTrackChange(previousTrack, track);
 
     this.stateMachine.transition("loading");
@@ -225,26 +224,20 @@ export class KomorebiEngine {
   async next(): Promise<void> {
     this.cancelScheduledTransition();
 
-    const nextTrack = this.queue.getNextTrack(this.settings.smartShuffle);
-    if (nextTrack) {
-      const currentTrack = this.queue.getCurrentTrack();
-      this.queue.setCurrentIndex(
-        this.queue.getNextIndex(this.settings.smartShuffle),
-      );
+    const nextCursor = this.queue.peekNextCursor(this.settings.smartShuffle);
 
-      if (this.stateMachine.isPlaying()) {
-        this.loadAndPlay(nextTrack);
-      } else {
-        this.load(nextTrack);
-      }
+    switch (nextCursor.kind) {
+      case "empty":
+        break;
+      case "active": {
+        const nextTrack = this.queue.getTracks()[nextCursor.index];
 
-      this.emitTrackChange(currentTrack, nextTrack);
-    } else if (this.settings.repeat === "all") {
-      this.queue.setCurrentIndex(-1);
-      const firstTrack = this.queue.getNextTrack(this.settings.smartShuffle);
-      if (firstTrack) {
-        this.loadAndPlay(firstTrack);
-        this.emitTrackChange(null, firstTrack);
+        if (this.stateMachine.isPlaying()) {
+          this.loadAndPlay(nextTrack);
+        } else {
+          this.load(nextTrack);
+        }
+        break;
       }
     }
   }
@@ -257,20 +250,21 @@ export class KomorebiEngine {
       return;
     }
 
-    const prevTrack = this.queue.getPreviousTrack(this.settings.smartShuffle);
-    if (prevTrack) {
-      const currentTrack = this.queue.getCurrentTrack();
-      this.queue.setCurrentIndex(
-        this.queue.getPreviousIndex(this.settings.smartShuffle),
-      );
+    const prevCursor = this.queue.peekPreviousCursor(this.settings.smartShuffle);
 
-      if (this.stateMachine.isPlaying()) {
-        this.loadAndPlay(prevTrack);
-      } else {
-        this.load(prevTrack);
+    switch (prevCursor.kind) {
+      case "empty":
+        break;
+      case "active": {
+        const prevTrack = this.queue.getTracks()[prevCursor.index];
+
+        if (this.stateMachine.isPlaying()) {
+          this.loadAndPlay(prevTrack);
+        } else {
+          this.load(prevTrack);
+        }
+        break;
       }
-
-      this.emitTrackChange(currentTrack, prevTrack);
     }
   }
 
@@ -513,14 +507,9 @@ export class KomorebiEngine {
 
   private executeTransition(nextTrack: Track): void {
     const currentTrack = this.queue.getCurrentTrack();
-    this.queue.setCurrentIndex(
-      this.queue.getNextIndex(this.settings.smartShuffle),
-    );
 
     this.load(nextTrack);
     this.play();
-
-    this.emitTrackChange(currentTrack, nextTrack);
 
     if (currentTrack) {
       this.events.emit("ended", { track: currentTrack });

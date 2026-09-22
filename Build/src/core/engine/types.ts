@@ -66,11 +66,42 @@ export interface PlaylistFolder {
 
 export type PlaylistItem = Playlist | PlaylistFolder;
 
+export type QueueCursor =
+  | { kind: "empty" }
+  | { kind: "active"; index: number };
+
+export function isQueueCursorEmpty(
+  cursor: QueueCursor,
+): cursor is { kind: "empty" } {
+  return cursor.kind === "empty";
+}
+
+export function isQueueCursorActive(
+  cursor: QueueCursor,
+): cursor is { kind: "active"; index: number } {
+  return cursor.kind === "active";
+}
+
 export interface QueueState {
   tracks: Track[];
-  currentIndex: number;
+  cursor: QueueCursor;
   shuffled: boolean;
   shuffleOrder: number[];
+}
+
+/**
+ * Type guard for play history entries.
+ */
+export function isPlayHistory(value: unknown): value is PlayHistory {
+  if (typeof value !== "object" || value === null) return false;
+  return (
+    "trackId" in value &&
+    "lastPlayed" in value &&
+    "playCount" in value &&
+    typeof value.trackId === "string" &&
+    typeof value.lastPlayed === "number" &&
+    typeof value.playCount === "number"
+  );
 }
 
 export interface PlayHistory {

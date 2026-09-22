@@ -27,6 +27,11 @@ import {
 import styles from "../pages/_index.module.css";
 import type { UseKomorebiReturn } from "../hooks/useKomorebi";
 import type { Track } from "../core/engine/types";
+import {
+  selectCurrentTrack,
+  selectIsPlaying,
+  useKomorebiStore,
+} from "../store";
 
 const UpdatePromptComponent = lazy(
   () => import("./components/shared/UpdatePrompt"),
@@ -43,6 +48,8 @@ function AppShellContent({ komorebi }: AppShellProps) {
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [, setThemeMode] = useState<ThemeMode>("auto");
   const playerRef = useRef<PlayerRef>(null);
+  const currentSong = useKomorebiStore(selectCurrentTrack);
+  const isPlaying = useKomorebiStore(selectIsPlaying);
 
   const handleAddSong = async (song: Track, file?: File) => {
     if (!file) return;
@@ -135,8 +142,8 @@ function AppShellContent({ komorebi }: AppShellProps) {
     <HelpGuideProvider>
       <DraggableProvider onDragOperation={handleDragOperation}>
         <WallpaperRenderer
-          currentSong={komorebi.currentTrack}
-          playbackState={{ isPlaying: komorebi.isPlaying }}
+          currentSong={currentSong}
+          playbackState={{ isPlaying }}
         />
         <div className={styles.container}>
           <Sidebar

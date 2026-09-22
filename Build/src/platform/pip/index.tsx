@@ -1,6 +1,7 @@
 import { createRoot } from "react-dom/client";
 import { logger } from "../../helpers/logger";
 import { getCurrentThemeCSS } from "../../ui/theming";
+import type { QueueCursor, Track } from "../../core/engine/types";
 import {
   PIP_WINDOW_WIDTH,
   PIP_WINDOW_HEIGHT,
@@ -73,7 +74,8 @@ export interface MiniplayerControls {
   next: () => void;
   previous: () => void;
   playerState: {
-    currentSong: any;
+    cursor: QueueCursor;
+    tracks: Track[];
     isPlaying: boolean;
   };
 }
@@ -93,7 +95,7 @@ export async function toggleMiniplayer(
   controls: MiniplayerControls,
   MiniplayerContent: React.ComponentType<{ controls: MiniplayerControls }>,
 ) {
-  if (!controls.playerState.currentSong) {
+  if (controls.playerState.cursor.kind === "empty") {
     logger.error("No song is currently playing");
     return;
   }

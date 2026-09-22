@@ -3,11 +3,14 @@ import { Button } from "../primitives/Button";
 import { Icon } from "../shared/Icon";
 import { isMiniplayerSupported, toggleMiniplayer } from "../../../platform/pip/index";
 import { MiniplayerContent } from "./Miniplayer";
-import type { Track } from "../../../core/engine/types";
+import {
+  selectQueueCursor,
+  selectQueueTracks,
+  useKomorebiStore,
+} from "../../../store";
 import styles from "./Player.module.css";
 
 interface PlayerSecondaryControlsProps {
-  currentSong: Track;
   isPlaying: boolean;
   isFavorite: boolean;
   showVisualizer: boolean;
@@ -22,7 +25,6 @@ interface PlayerSecondaryControlsProps {
 }
 
 export const PlayerSecondaryControls = ({
-  currentSong,
   isPlaying,
   isFavorite,
   showVisualizer,
@@ -36,6 +38,8 @@ export const PlayerSecondaryControls = ({
   onPrevious,
 }: PlayerSecondaryControlsProps) => {
   const { t } = useTranslation();
+  const cursor = useKomorebiStore(selectQueueCursor);
+  const tracks = useKomorebiStore(selectQueueTracks);
 
   return (
     <div className={styles.secondaryControls}>
@@ -81,7 +85,7 @@ export const PlayerSecondaryControls = ({
           onClick={() => {
             toggleMiniplayer(
               {
-                playerState: { currentSong, isPlaying },
+                playerState: { cursor, tracks, isPlaying },
                 togglePlayPause: onPlayPause,
                 next: onNext,
                 previous: onPrevious,

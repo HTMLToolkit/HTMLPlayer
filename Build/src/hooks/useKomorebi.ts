@@ -1,11 +1,10 @@
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useCallback } from "react";
 import { KomorebiEngine } from "../core/engine/engine";
 import type {
   Track,
   Playlist,
   PlaylistFolder,
   EngineState,
-  QueueState,
 } from "../core/engine/types";
 import type { IAudioBackend } from "../platform/audio";
 import { HTMLAudioBackend } from "../platform/audio/backends/HTMLBackend";
@@ -14,6 +13,22 @@ import { libraryPersistence } from "../platform/library/persistence";
 import { trackStorage } from "../platform/storage/trackStorage";
 import { SettingsManager } from "../platform/settings/settings";
 import { createLogger } from "../helpers/logger";
+import {
+  useKomorebiStore,
+  EMPTY_ENGINE_STATE,
+  selectCurrentTrack,
+  selectCurrentTime,
+  selectDuration,
+  selectError,
+  selectIsLoading,
+  selectIsPlaying,
+  selectIsReady,
+  selectRepeat,
+  selectShuffle,
+  selectSnapshot,
+  selectSongs,
+  selectVolume,
+} from "../store";
 
 const logger = createLogger("useKomorebi");
 
@@ -85,41 +100,7 @@ declare global {
   }
 }
 
-const DEFAULT_QUEUE: QueueState = {
-  tracks: [],
-  currentIndex: -1,
-  shuffled: false,
-  shuffleOrder: [],
-};
-
 const LOAD_WAIT_TIMEOUT_MS = 5000;
-
-function createInitialState(): EngineState {
-  return {
-    state: "idle",
-    currentTrack: null,
-    currentPlaylist: null,
-    queue: DEFAULT_QUEUE,
-    settings: {
-      volume: 1,
-      crossfade: 0,
-      crossfadeBeforeGapless: 3000,
-      autoPlayNext: true,
-      tempo: 1,
-      pitch: 0,
-      gaplessPlayback: true,
-      smartShuffle: false,
-      repeat: "off",
-      defaultShuffle: false,
-      defaultRepeat: "off",
-    },
-    currentTime: 0,
-    duration: 0,
-    volume: 1,
-    playHistory: new Map(),
-    error: null,
-  };
-}
 
 export function useKomorebi(
   options: UseKomorebiOptions = {},
@@ -130,16 +111,6 @@ export function useKomorebi(
   const playlistsSaveTimerRef = useRef<number | null>(null);
   const settingsRef = useRef<SettingsManager | null>(null);
   const initializedRef = useRef(false);
-
-  const [isReady, setIsReady] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const [state, setState] = useState<EngineState>(createInitialState);
-  const [songs, setSongs] = useState<Track[]>([]);
-  const [currentTrack, setCurrentTrack] = useState<Track | null>(null);
-  const [currentTime, setCurrentTime] = useState(0);
-  const [duration, setDuration] = useState(0);
 
   if (!initializedRef.current) {
     const backend = new HTMLAudioBackend();
@@ -158,50 +129,38 @@ export function useKomorebi(
     initializedRef.current = true;
   }
 
+  const snapshot = useKomorebiStore(selectSnapshot);
+  const state = snapshot ?? EMPTY_ENGINE_STATE;
+  const songs = useKomorebiStore(selectSongs);
+  const isReady = useKomorebiStore(selectIsReady);
+  const isLoading = useKomorebiStore(selectIsLoading);
+  const error = useKomorebiStore(selectError);
+  const currentTrack = useKomorebiStore(selectCurrentTrack);
+  const isPlaying = useKomorebiStore(selectIsPlaying);
+  const currentTime = useKomorebiStore(selectCurrentTime);
+  const duration = useKomorebiStore(selectDuration);
+  const volume = useKomorebiStore(selectVolume);
+  const repeat = useKomorebiStore(selectRepeat);
+  const shuffle = useKomorebiStore(selectShuffle);
+
   useEffect(() => {
     const engine = engineRef.current;
     const library = libraryRef.current;
     if (!engine || !library) return;
 
-    const handleStateChange = () => {
-      setState(engine.getState());
-    };
-    const handleTrackChange = (e: { from: Track | null; to: Track | null }) => {
-      setCurrentTrack(e.to);
-    };
-    const handleTimeUpdate = (e: { currentTime: number; duration: number }) => {
-      setCurrentTime(e.currentTime);
-      setDuration(e.duration);
-    };
-    const handleError = (e: { error: { message: string } }) => {
-      setError(e.error.message);
-    };
-    const handleLoading = () => setIsLoading(true);
-    const handleReady = () => setIsLoading(false);
+    const detachEngine = useKomorebiStore.getState().attachEngine(engine);
 
-    engine.on("statechange", handleStateChange);
-    engine.on("volumechange", handleStateChange);
-    engine.on("queuechange", handleStateChange);
-    engine.on("settingschange", handleStateChange);
-    engine.on("durationchange", handleStateChange);
-    engine.on("trackchange", handleTrackChange);
-    engine.on("timeupdate", handleTimeUpdate);
-    engine.on("error", handleError);
-    engine.on("loading", handleLoading);
-    engine.on("ready", handleReady);
-
-    const handleLibraryChange = () => {
-      setSongs([...library.getState().songs]);
-      setState(engine.getState());
+    const pushLibraryToStore = () => {
+      useKomorebiStore.getState().setSongs([...library.getState().songs]);
     };
-    library.on("songadded", handleLibraryChange);
-    library.on("songremoved", handleLibraryChange);
-    library.on("songupdated", handleLibraryChange);
-    library.on("playlistadded", handleLibraryChange);
-    library.on("playlistremoved", handleLibraryChange);
-    library.on("playlistupdated", handleLibraryChange);
-    library.on("playlistsupdated", handleLibraryChange);
-    library.on("favoritechanged", handleLibraryChange);
+    library.on("songadded", pushLibraryToStore);
+    library.on("songremoved", pushLibraryToStore);
+    library.on("songupdated", pushLibraryToStore);
+    library.on("playlistadded", pushLibraryToStore);
+    library.on("playlistremoved", pushLibraryToStore);
+    library.on("playlistupdated", pushLibraryToStore);
+    library.on("playlistsupdated", pushLibraryToStore);
+    library.on("favoritechanged", pushLibraryToStore);
 
     const loadLibrary = async () => {
       try {
@@ -223,30 +182,20 @@ export function useKomorebi(
     };
 
     loadLibrary().then(() => {
-      setIsReady(true);
-      setSongs([...library.getState().songs]);
-      setState(engine.getState());
+      useKomorebiStore.getState().setReady(true);
+      pushLibraryToStore();
     });
 
     return () => {
-      engine.off("statechange", handleStateChange);
-      engine.off("volumechange", handleStateChange);
-      engine.off("queuechange", handleStateChange);
-      engine.off("settingschange", handleStateChange);
-      engine.off("durationchange", handleStateChange);
-      engine.off("trackchange", handleTrackChange);
-      engine.off("timeupdate", handleTimeUpdate);
-      engine.off("error", handleError);
-      engine.off("loading", handleLoading);
-      engine.off("ready", handleReady);
-      library.off("songadded", handleLibraryChange);
-      library.off("songremoved", handleLibraryChange);
-      library.off("songupdated", handleLibraryChange);
-      library.off("playlistadded", handleLibraryChange);
-      library.off("playlistremoved", handleLibraryChange);
-      library.off("playlistupdated", handleLibraryChange);
-      library.off("playlistsupdated", handleLibraryChange);
-      library.off("favoritechanged", handleLibraryChange);
+      detachEngine();
+      library.off("songadded", pushLibraryToStore);
+      library.off("songremoved", pushLibraryToStore);
+      library.off("songupdated", pushLibraryToStore);
+      library.off("playlistadded", pushLibraryToStore);
+      library.off("playlistremoved", pushLibraryToStore);
+      library.off("playlistupdated", pushLibraryToStore);
+      library.off("playlistsupdated", pushLibraryToStore);
+      library.off("favoritechanged", pushLibraryToStore);
       backendRef.current?.dispose();
     };
   }, []);
@@ -372,12 +321,12 @@ export function useKomorebi(
   }, []);
 
   const load = useCallback((track: Track, playlist?: Playlist) => {
-    setError(null);
+    useKomorebiStore.getState().setError(null);
     engineRef.current?.load(track, playlist);
   }, []);
 
   const playSong = useCallback(async (song: Track, playlist?: Playlist) => {
-    setError(null);
+    useKomorebiStore.getState().setError(null);
     const engine = engineRef.current;
     if (!engine) return;
 
@@ -514,12 +463,12 @@ export function useKomorebi(
     state,
     songs,
     currentTrack,
-    isPlaying: state.state === "playing",
+    isPlaying,
     currentTime,
     duration,
-    volume: state.settings.volume,
-    repeat: state.settings.repeat,
-    shuffle: state.queue.shuffled,
+    volume,
+    repeat,
+    shuffle,
     error,
 
     play,

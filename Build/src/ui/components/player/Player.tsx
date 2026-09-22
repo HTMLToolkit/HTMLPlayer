@@ -53,7 +53,7 @@ export const Player = forwardRef<PlayerRef, PlayerProps>(
       library,
     } = komorebi;
 
-    const { state: navState } = useNavigation();
+    const { state: navState, goToCurrentAlbum, goToCurrentArtist } = useNavigation();
     const currentSong = currentTrack;
     const libraryState = library.getState();
 
@@ -165,6 +165,9 @@ export const Player = forwardRef<PlayerRef, PlayerProps>(
             <PlayerTrackInfo
               title={currentSong?.title}
               artist={currentSong?.artist}
+              album={currentSong?.album}
+              onAlbumClick={goToCurrentAlbum}
+              onArtistClick={goToCurrentArtist}
             />
           </div>
 
@@ -195,7 +198,6 @@ export const Player = forwardRef<PlayerRef, PlayerProps>(
             />
 
             <PlayerSecondaryControls
-              currentSong={currentSong}
               isPlaying={isPlaying}
               isFavorite={isFavorite}
               showVisualizer={showVisualizer}

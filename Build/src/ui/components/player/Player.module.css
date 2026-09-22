@@ -44,7 +44,7 @@
   font-size: 0.95rem;
 }
 
-.playerCompact .artistName {
+.playerCompact .artistButton {
   font-size: 0.8rem;
 }
 
@@ -121,10 +121,37 @@
   opacity: 1;
 }
 
-.artistName {
+.songTitle.navigableTitle {
+  cursor: pointer;
+}
+
+.songTitle.navigableTitle:hover {
+  color: var(--primary);
+}
+
+.artistButton {
+  border: none;
+  background: none;
+  padding: 0;
+  text-align: left;
   font-family: var(--font-family-base);
   font-size: 0.875rem;
   color: var(--foreground-subtle);
+  cursor: pointer;
+}
+
+.artistButton:hover:not(:disabled) {
+  color: var(--primary);
+}
+
+.artistButton:disabled {
+  cursor: default;
+}
+
+.albumName {
+  font-family: var(--font-family-base);
+  font-size: 0.75rem;
+  color: var(--foreground-muted, var(--foreground-subtle));
 }
 
 .favoriteButton {
@@ -531,7 +558,7 @@
     /* Ensure minimum width for text */
   }
 
-  .artistName {
+  .artistButton {
     font-size: 1rem;
   }
 

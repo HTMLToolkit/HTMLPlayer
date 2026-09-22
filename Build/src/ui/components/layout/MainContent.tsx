@@ -25,6 +25,11 @@ import { MainContentHeader } from "./MainContentHeader";
 import type { Track, Playlist } from "../../../core/engine/types";
 import type { UseKomorebiReturn } from "../../../hooks/useKomorebi";
 import type { PersistentDropdownMenuRef } from "../primitives/PersistentDropdownMenu";
+import {
+  selectCurrentPlaylist,
+  selectCurrentTrack,
+  useKomorebiStore,
+} from "../../../store";
 
 function formatDuration(seconds: number): string {
   const mins = Math.floor(seconds / 60);
@@ -224,9 +229,11 @@ export const MainContent = ({
 }: MainContentProps) => {
   const { t } = useTranslation();
   const { state: navState, goToSongs, goHome } = useNavigation();
-  const { songs, library, state: engineState } = komorebi;
+  const { songs, library } = komorebi;
 
-  const engineCurrentPlaylist = engineState.currentPlaylist;
+  const currentTrack = useKomorebiStore(selectCurrentTrack);
+  const engineCurrentPlaylist = useKomorebiStore(selectCurrentPlaylist);
+
   const currentPlaylist = engineCurrentPlaylist
     ? library.getPlaylist(engineCurrentPlaylist.id) ?? engineCurrentPlaylist
     : null;
@@ -569,7 +576,7 @@ export const MainContent = ({
               <SortableSongItem
                 key={song.id}
                 song={song}
-                isCurrent={engineState.currentTrack?.id === song.id}
+                isCurrent={currentTrack?.id === song.id}
                 isSelected={selectedSongs.includes(song.id)}
                 onClick={handleSongClick}
                 onSelectionChange={handleSelectionChange}

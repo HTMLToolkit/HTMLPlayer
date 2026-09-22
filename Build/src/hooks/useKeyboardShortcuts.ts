@@ -6,6 +6,7 @@ import {
 } from "../platform/storage/shortcuts";
 import type { UseKomorebiReturn } from "./useKomorebi";
 import { createLogger } from "../helpers/logger";
+import { selectVolume, useKomorebiStore } from "../store";
 
 const logger = createLogger("keyboardShortcuts");
 
@@ -25,6 +26,7 @@ export const useKeyboardShortcuts = ({
   onSearch,
 }: UseKeyboardShortcutsProps) => {
   const [shortcuts, setShortcuts] = useState<ShortcutConfig>({});
+  const volume = useKomorebiStore(selectVolume);
   const callbacksRef = useRef({
     onOpenSettings,
     onToggleLyrics,
@@ -79,13 +81,13 @@ export const useKeyboardShortcuts = ({
           komorebi.previous();
           break;
         case "volumeUp":
-          komorebi.setVolume(Math.min(1, komorebi.volume + 0.05));
+          komorebi.setVolume(Math.min(1, volume + 0.05));
           break;
         case "volumeDown":
-          komorebi.setVolume(Math.max(0, komorebi.volume - 0.05));
+          komorebi.setVolume(Math.max(0, volume - 0.05));
           break;
         case "mute": {
-          const currentVolume = komorebi.volume;
+          const currentVolume = volume;
           if (currentVolume > 0) {
             sessionStorage.setItem("previousVolume", currentVolume.toString());
             komorebi.setVolume(0);
@@ -119,7 +121,7 @@ export const useKeyboardShortcuts = ({
 
     document.addEventListener("keydown", handleKeyPress);
     return () => document.removeEventListener("keydown", handleKeyPress);
-  }, [komorebi, shortcuts]);
+  }, [komorebi, shortcuts, volume]);
 
   return {
     shortcuts,

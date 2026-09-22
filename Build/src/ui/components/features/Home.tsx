@@ -8,6 +8,7 @@ import { useNavigation } from "../../navigation";
 import type { Track, Playlist } from "../../../core/engine/types";
 import type { UseKomorebiReturn } from "../../../hooks/useKomorebi";
 import { flattenPlaylists } from "../../../platform/library";
+import { selectCurrentTrack, useKomorebiStore } from "../../../store";
 
 interface HomeProps {
   komorebi: UseKomorebiReturn;
@@ -82,8 +83,9 @@ const PlaylistCardItem = React.memo<{
 
 export const Home: React.FC<HomeProps> = ({ komorebi, onAddMusic }) => {
   const { t } = useTranslation();
-  const { currentTrack, library, songs: komorebiSongs, playSong, getFavorites } = komorebi;
+  const { library, songs: komorebiSongs, playSong, getFavorites } = komorebi;
   const { goToSongs } = useNavigation();
+  const currentTrack = useKomorebiStore(selectCurrentTrack);
 
   const libraryState = library.getState();
   const songs = komorebiSongs;
