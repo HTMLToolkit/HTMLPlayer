@@ -23,7 +23,7 @@ export class AlbumArtManager {
       try {
         const result = await provider.fetchAlbumArt(query);
         if (result && result.data.length > 0) {
-          const best = result.data[0];
+          const best = result.data[0]!; // result.data.length > 0 guarantees index 0 exists
           this.cache.set(cacheKey, best);
           return best;
         }

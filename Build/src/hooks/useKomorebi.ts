@@ -114,13 +114,12 @@ export function useKomorebi(
 
   if (!initializedRef.current) {
     const backend = new HTMLAudioBackend();
-    const engine = new KomorebiEngine({
+    const engine = new KomorebiEngine(backend, {
       crossfade: { enabled: false, duration: 0, shape: "linear" },
       gapless: { enabled: true },
       smartShuffle: true,
       autoPlayNext: options.autoPlay ?? false,
     });
-    engine.setBackend(backend);
     engineRef.current = engine;
     backendRef.current = backend;
 

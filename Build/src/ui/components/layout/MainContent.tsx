@@ -441,14 +441,18 @@ export const MainContent = ({
     if (!shouldShow) {
       // Delete directly without showing dialog
       const songToDelete = filteredSongs[0];
+      if (!songToDelete) return;
       removeSong(songToDelete.id);
       toast.success(t("deletedFromLibrary", { song: songToDelete.title }));
       return;
     }
 
     // Show confirmation dialog
-    setSongToDelete(filteredSongs[0]);
-    setShowDeleteConfirm(true);
+    const firstSong = filteredSongs[0];
+    if (firstSong) {
+      setSongToDelete(firstSong);
+      setShowDeleteConfirm(true);
+    }
   };
 
   const handleDeleteConfirm = () => {

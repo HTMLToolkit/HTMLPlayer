@@ -44,7 +44,7 @@ export const HelpGuideProvider = ({ children }: HelpGuideProps) => {
       };
 
       // Fall back to English if the selected language doesn't have a tour config.
-      setTourStepsConfig(configMap[lang] ?? configMap.en);
+      setTourStepsConfig(configMap[lang] ?? configMap.en ?? []);
     }, [i18n.language]);
 
     return tourStepsConfig;

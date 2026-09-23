@@ -226,8 +226,8 @@ export const PlaylistView = memo(function PlaylistView({
 
   const handlePlaylistSelect = useCallback(
     (playlist: Playlist) => {
-      if (playlist.songs.length > 0)
-        playSong(playlist.songs[0], playlist);
+      const song = playlist.songs[0];
+      if (song) playSong(song, playlist);
     },
     [playSong],
   );
@@ -238,7 +238,8 @@ export const PlaylistView = memo(function PlaylistView({
       name: t("allSongs"),
       songs: songs,
     };
-    playSong(allSongs.songs[0], allSongs);
+    const song = allSongs.songs[0];
+    if (song) playSong(song, allSongs);
   }, [songs, playSong, t]);
 
   const handleShare = useCallback(

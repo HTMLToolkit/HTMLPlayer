@@ -1,4 +1,5 @@
 import type { Track } from "../../core/engine/types";
+import { isPlainObject, isTrack } from "../../core/engine/validators";
 import { getDb, STORES } from "./unifiedDB";
 import { createLogger } from "../../helpers/logger";
 
@@ -28,10 +29,13 @@ function storedToTrack(stored: StoredTrack): Track {
   };
 }
 
+function isStoredTrack(value: unknown): value is StoredTrack {
+  if (!isTrack(value) || !isPlainObject(value)) return false;
+  return typeof value.hasStoredAudio === "boolean";
+}
+
 export const trackStorage = {
   async saveTrack(track: Track, audioData?: ArrayBuffer): Promise<void> {
-    console.log("[saveTrack] called", { trackId: track.id, hasStoredAudio: track.hasStoredAudio, audioDataSize: audioData?.byteLength });
-    
     const db = await getDb();
     const tx = db.transaction(STORES.TRACKS, "readwrite");
     const store = tx.objectStore(STORES.TRACKS);
@@ -46,16 +50,11 @@ export const trackStorage = {
     const hasExistingAudio = !!(existing?.hasStoredAudio && existingAudio);
     const finalAudioData = hasExistingAudio ? existingAudio : audioData;
     
-    console.log("[saveTrack] hasExistingAudio:", hasExistingAudio, "finalAudioData:", finalAudioData?.byteLength);
-    
     const stored = trackToStored(track, finalAudioData, hasExistingAudio);
     store.put(stored);
 
     return new Promise((resolve, reject) => {
-      tx.oncomplete = () => {
-        console.log("[saveTrack] completed");
-        resolve();
-      };
+      tx.oncomplete = () => resolve();
       tx.onerror = () => reject(tx.error);
     });
   },
@@ -95,12 +94,12 @@ export const trackStorage = {
     return new Promise((resolve, reject) => {
       const req = store.get(id);
       req.onsuccess = () => {
-        const stored = req.result as StoredTrack | undefined;
-        if (!stored) {
+        const stored = req.result;
+        if (!isStoredTrack(stored)) {
           resolve(null);
           return;
         }
-        
+
         store.put({ ...stored, lastAccessed: Date.now() });
         resolve(storedToTrack(stored));
       };
@@ -116,7 +115,9 @@ export const trackStorage = {
     return new Promise((resolve, reject) => {
       const req = store.getAll();
       req.onsuccess = () => {
-        const tracks = (req.result as StoredTrack[]).map(storedToTrack);
+        const raw = req.result;
+        const stored = Array.isArray(raw) ? raw.filter(isStoredTrack) : [];
+        const tracks = stored.map(storedToTrack);
         resolve(tracks);
       };
       req.onerror = () => reject(req.error);
@@ -124,7 +125,6 @@ export const trackStorage = {
   },
 
   async getAudioData(trackId: string): Promise<ArrayBuffer | null> {
-    console.log("[getAudioData] called for:", trackId);
     const db = await getDb();
     const tx = db.transaction(STORES.TRACKS, "readonly");
     const store = tx.objectStore(STORES.TRACKS);
@@ -133,7 +133,6 @@ export const trackStorage = {
       const req = store.get(trackId);
       req.onsuccess = () => {
         const stored = req.result as StoredTrack | undefined;
-        console.log("[getAudioData] result:", stored ? { id: stored.id, hasStoredAudio: stored.hasStoredAudio, audioDataSize: stored.audioData?.byteLength } : null);
         resolve(stored?.audioData ?? null);
       };
       req.onerror = () => reject(req.error);
@@ -153,33 +152,29 @@ export const trackStorage = {
   },
 
   async reconstructUrl(track: Track): Promise<Track> {
-    console.log("[reconstructUrl] called", { trackId: track.id, hasStoredAudio: track.hasStoredAudio, url: track.url });
-    
     if (!track.hasStoredAudio) {
-      console.log("[reconstructUrl] no hasStoredAudio, returning as-is");
       return track;
     }
 
-    if (track.url && track.url.startsWith("blob:")) {
-      try {
-        URL.revokeObjectURL(track.url);
-      } catch {}
-    }
+    const audioData = await this.getAudioData(track.id);
 
-    try {
-      const audioData = await this.getAudioData(track.id);
-      console.log("[reconstructUrl] got audioData:", audioData ? audioData.byteLength : null);
-      
-      if (audioData) {
-        const blob = new Blob([audioData], { type: track.mimeType || "audio/mpeg" });
-        const url = URL.createObjectURL(blob);
-        logger.info("Reconstructed audio URL from stored data", { trackId: track.id });
-        return { ...track, url };
-      } else {
-        logger.warn("hasStoredAudio is true but no audio data found", { trackId: track.id });
+    if (audioData) {
+      const blob = new Blob([audioData], { type: track.mimeType || "audio/mpeg" });
+      const url = URL.createObjectURL(blob);
+      logger.info("Reconstructed audio URL from stored data", { trackId: track.id });
+
+      // Reclaim the previous object URL only after a working replacement exists.
+      if (track.url && track.url.startsWith("blob:")) {
+        try {
+          URL.revokeObjectURL(track.url);
+        } catch {
+          // already revoked by a competing caller
+        }
       }
-    } catch (error) {
-      logger.error("Failed to reconstruct audio URL", { trackId: track.id, error: String(error) });
+
+      return { ...track, url };
+    } else {
+      logger.warn("hasStoredAudio is true but no audio data found", { trackId: track.id });
     }
 
     return track;

@@ -3,7 +3,7 @@ import type { PlayerState } from "../types";
 const VALID_TRANSITIONS: Record<PlayerState, PlayerState[]> = {
   idle: ["loading", "ready"],
   loading: ["ready", "error"],
-  ready: ["playing", "paused", "loading"],
+  ready: ["playing", "paused", "loading", "error"],
   playing: ["paused", "transitioning", "ready", "error"],
   paused: ["playing", "ready", "loading", "error"],
   transitioning: ["playing", "paused", "ready", "idle", "error"],
@@ -64,7 +64,7 @@ export class StateMachine {
 
   getPreviousState(): PlayerState | null {
     return this.history.length > 0
-      ? this.history[this.history.length - 1]
+      ? (this.history[this.history.length - 1] ?? null)
       : null;
   }
 

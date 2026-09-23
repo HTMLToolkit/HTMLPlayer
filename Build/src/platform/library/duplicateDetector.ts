@@ -17,7 +17,7 @@ export class DuplicateDetector {
 
     const view = new Uint8Array(buffer);
     for (let i = 0; i < view.length; i++) {
-      hash = ((hash << 5) - hash + view[i]) | 0;
+      hash = ((hash << 5) - hash + (view[i] ?? 0)) | 0;
     }
 
     return hash.toString(16);
@@ -32,7 +32,7 @@ export class DuplicateDetector {
 
     const view = new Uint8Array(buffer);
     for (let i = 0; i < view.length; i++) {
-      hash = ((hash << 5) - hash + view[i]) | 0;
+      hash = ((hash << 5) - hash + (view[i] ?? 0)) | 0;
     }
 
     return hash.toString(16);
@@ -70,7 +70,7 @@ export class DuplicateDetector {
     for (const [_hash, trackGroup] of hashToTracks) {
       if (trackGroup.length > 1) {
         duplicates.push({
-          representative: trackGroup[0],
+          representative: trackGroup[0]!, // length > 1 guarantees index 0 exists
           duplicates: trackGroup.slice(1),
         });
       }
@@ -94,7 +94,7 @@ export class DuplicateDetector {
     for (const [_signature, trackGroup] of signatureToTracks) {
       if (trackGroup.length > 1) {
         duplicates.push({
-          representative: trackGroup[0],
+          representative: trackGroup[0]!, // length > 1 guarantees index 0 exists
           duplicates: trackGroup.slice(1),
         });
       }

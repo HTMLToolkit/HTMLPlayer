@@ -1,11 +1,12 @@
 const DB_NAME = "HTMLPlayer";
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 
 export const STORES = {
   TRACKS: "tracks",
   PLAYLISTS: "playlists",
   FAVORITES: "favorites",
   SETTINGS: "settings",
+  META: "meta",
 } as const;
 
 let dbInstance: IDBDatabase | null = null;
@@ -43,6 +44,10 @@ function openDatabase(): Promise<IDBDatabase> {
 
       if (!db.objectStoreNames.contains(STORES.SETTINGS)) {
         db.createObjectStore(STORES.SETTINGS, { keyPath: "key" });
+      }
+
+      if (!db.objectStoreNames.contains(STORES.META)) {
+        db.createObjectStore(STORES.META, { keyPath: "key" });
       }
     };
   });

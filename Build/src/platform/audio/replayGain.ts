@@ -72,7 +72,7 @@ export class ReplayGainAnalyzer {
   private calculateRMS(samples: Float32Array): number {
     let sum = 0;
     for (let i = 0; i < samples.length; i++) {
-      sum += samples[i] * samples[i];
+      sum += (samples[i] ?? 0) * (samples[i] ?? 0);
     }
     return Math.sqrt(sum / samples.length);
   }
@@ -80,7 +80,7 @@ export class ReplayGainAnalyzer {
   private calculatePeak(samples: Float32Array): number {
     let peak = 0;
     for (let i = 0; i < samples.length; i++) {
-      const abs = Math.abs(samples[i]);
+      const abs = Math.abs(samples[i] ?? 0);
       if (abs > peak) peak = abs;
     }
     return peak;
@@ -140,7 +140,8 @@ export function parseReplayGainTags(
   const trackGain = tags["REPLAYGAIN_TRACK_GAIN"];
   if (trackGain) {
     const match = trackGain.match(/([-+]?[\d.]+)\s*dB/i);
-    if (match) result.trackGain = parseFloat(match[1]);
+    const rawGain = match?.[1];
+    if (rawGain !== undefined) result.trackGain = parseFloat(rawGain);
   }
 
   const trackPeak = tags["REPLAYGAIN_TRACK_PEAK"];
@@ -151,7 +152,8 @@ export function parseReplayGainTags(
   const albumGain = tags["REPLAYGAIN_ALBUM_GAIN"];
   if (albumGain) {
     const match = albumGain.match(/([-+]?[\d.]+)\s*dB/i);
-    if (match) result.albumGain = parseFloat(match[1]);
+    const rawGain = match?.[1];
+    if (rawGain !== undefined) result.albumGain = parseFloat(rawGain);
   }
 
   const albumPeak = tags["REPLAYGAIN_ALBUM_PEAK"];
@@ -162,7 +164,8 @@ export function parseReplayGainTags(
   const refLevel = tags["REPLAYGAIN_REFERENCE_LOUDNESS"];
   if (refLevel) {
     const match = refLevel.match(/([-+]?[\d.]+)\s*dB/i);
-    if (match) result.referenceLoudness = parseFloat(match[1]);
+    const rawLevel = match?.[1];
+    if (rawLevel !== undefined) result.referenceLoudness = parseFloat(rawLevel);
   }
 
   return Object.keys(result).length > 0 ? result : null;

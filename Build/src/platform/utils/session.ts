@@ -2,6 +2,11 @@ import type { Track, Playlist } from "../../core/engine/types";
 import type { SettingsState } from "../settings/types";
 import type { SongScore } from "../library/scoring";
 import { createLogger } from "../../helpers/logger";
+import {
+  deserializeVersionedJson,
+  sanitizeSessionState,
+  serializeVersioned,
+} from "../validators";
 
 const logger = createLogger("session");
 
@@ -42,7 +47,7 @@ export class SessionManager {
   saveSession(updates: Partial<SessionState>): void {
     this.session = { ...this.session, ...updates, timestamp: Date.now() };
     try {
-      localStorage.setItem(SESSION_KEY, JSON.stringify(this.session));
+      localStorage.setItem(SESSION_KEY, serializeVersioned(this.session));
     } catch (error) {
       logger.error("Failed to save session:", { error: String(error) });
     }
@@ -51,9 +56,9 @@ export class SessionManager {
   loadSession(): SessionState {
     try {
       const stored = localStorage.getItem(SESSION_KEY);
-      if (stored) {
-        const parsed = JSON.parse(stored) as Partial<SessionState>;
-        this.session = { ...this.session, ...parsed };
+      const envelope = deserializeVersionedJson(stored);
+      if (envelope) {
+        this.session = sanitizeSessionState(envelope.value, this.session);
       }
     } catch (error) {
       logger.error("Failed to load session:", { error: String(error) });

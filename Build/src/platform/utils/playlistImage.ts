@@ -51,7 +51,7 @@ export async function generatePlaylistImage(songs: Track[]): Promise<string> {
                 [40, 40, 40, 40],
               ];
 
-    images.forEach((img, i) => ctx.drawImage(img, ...positions[i]));
+    images.forEach((img, i) => ctx.drawImage(img, ...positions[i]!)); // i < images.length, positions covers 1..4
     ctx.fillStyle = "rgba(0, 0, 0, 0.1)";
     ctx.fillRect(0, 0, 80, 80);
 

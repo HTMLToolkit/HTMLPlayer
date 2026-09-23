@@ -82,7 +82,7 @@ export class FloBackend extends BaseAudioBackend {
       for (let ch = 0; ch < channels; ch++) {
         const channelData = audioBuffer.getChannelData(ch);
         for (let i = 0; i < frameCount; i++) {
-          channelData[i] = decodedSamples[i * channels + ch];
+          channelData[i] = decodedSamples[i * channels + ch] ?? 0;
         }
       }
 

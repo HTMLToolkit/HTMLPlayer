@@ -1,4 +1,5 @@
 import { QueueManager, WeightedRandomizer } from "../src/core/engine/queue";
+import { createMockTrack } from "./helpers";
 
 class MockRandomizer implements WeightedRandomizer {
   private trackOrder: string[] = [];
@@ -13,17 +14,6 @@ class MockRandomizer implements WeightedRandomizer {
     this.index++;
     return result;
   }
-}
-
-function createMockTrack(id: string) {
-  return {
-    id,
-    title: `Track ${id}`,
-    artist: "Artist",
-    album: "Album",
-    duration: 180,
-    url: `file:///${id}.mp3`,
-  };
 }
 
 describe("QueueManager", () => {

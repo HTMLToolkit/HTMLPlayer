@@ -20,7 +20,7 @@ export class MusicMetadataExtractor extends BaseMetadataExtractor {
 
       let albumArt: string | undefined;
       if (common.picture && common.picture.length > 0) {
-        const pic = common.picture[0];
+        const pic = common.picture[0]!; // length > 0 checked above, so index 0 is set
         const uint8Array = new Uint8Array(pic.data);
         const blob = new Blob([uint8Array], { type: pic.format });
         albumArt = URL.createObjectURL(blob);
@@ -99,7 +99,7 @@ export class MusicMetadataExtractor extends BaseMetadataExtractor {
       const metadata = await musicMetadata.parseBlob(file);
 
       if (metadata.common.picture && metadata.common.picture.length > 0) {
-        const pic = metadata.common.picture[0];
+        const pic = metadata.common.picture[0]!; // length > 0 checked above, so index 0 is set
         const uint8Array = new Uint8Array(pic.data);
         const blob = new Blob([uint8Array], { type: pic.format });
         return URL.createObjectURL(blob);

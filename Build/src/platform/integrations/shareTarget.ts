@@ -1,4 +1,5 @@
 import { createLogger } from "../../helpers/logger";
+import { sanitizeStringArray } from "../validators";
 
 const logger = createLogger("shareTarget");
 
@@ -15,7 +16,9 @@ export interface ShareTargetResult {
 function getHandledShares(): Set<string> {
   try {
     return new Set(
-      JSON.parse(sessionStorage.getItem(SHARE_HANDLED_KEY) || "[]"),
+      sanitizeStringArray(
+        JSON.parse(sessionStorage.getItem(SHARE_HANDLED_KEY) || "[]"),
+      ),
     );
   } catch {
     return new Set();

@@ -265,13 +265,12 @@ describe("KomorebiEngine", () => {
 
   beforeEach(() => {
     backend = createMockBackend();
-    engine = new KomorebiEngine({
+    engine = new KomorebiEngine(backend, {
       crossfade: { enabled: false, duration: 0, shape: "linear" },
       gapless: { enabled: true },
       smartShuffle: true,
       autoPlayNext: true,
     });
-    engine.setBackend(backend);
   });
 
   afterEach(() => {
@@ -418,5 +417,66 @@ describe("KomorebiEngine", () => {
     });
     expect(engine.getState().settings.volume).toBe(0.8);
     expect(engine.getState().settings.pitch).toBe(2);
+  });
+
+  it("should resolve load once ready", async () => {
+    const track = createMockTrack("test-1");
+    await engine.load(track);
+    expect(engine.getState().state).toBe("ready");
+  });
+
+  it("should resolve load without rejecting when the backend fails", async () => {
+    backend = createMockBackend();
+    backend.load = jest.fn().mockRejectedValue(new Error("Failed to load audio"));
+    engine = new KomorebiEngine(backend, {
+      crossfade: { enabled: false, duration: 0, shape: "linear" },
+      gapless: { enabled: true },
+      smartShuffle: true,
+      autoPlayNext: true,
+    });
+
+    const track = createMockTrack("test-1");
+    await expect(engine.load(track)).resolves.toBeUndefined();
+    expect(engine.getState().state).toBe("error");
+  });
+
+  it("should keep playing the next track when advancing", async () => {
+    const playlist = createMockPlaylist(["a", "b", "c"]);
+    engine.setPlaylist(playlist);
+    await engine.load(playlist.songs[0]);
+    await engine.play();
+    expect(engine.getState().state).toBe("playing");
+
+    await engine.next();
+    expect(engine.getState().state).toBe("playing");
+    expect(engine.getCurrentTrack()?.id).toBe("b");
+    expect(backend.play).toHaveBeenCalledTimes(2);
+  });
+
+  it("should not reject play when the backend fails mid-play", async () => {
+    const track = createMockTrack("test-1");
+    await engine.load(track);
+
+    backend.play = jest.fn().mockRejectedValue(new Error("Play failed"));
+    await expect(engine.play()).resolves.toBeUndefined();
+    expect(engine.getState().state).toBe("error");
+  });
+
+  it("should not reject play after a failed load", async () => {
+    backend = createMockBackend();
+    backend.load = jest.fn().mockRejectedValue(new Error("Failed to load audio"));
+    engine = new KomorebiEngine(backend, {
+      crossfade: { enabled: false, duration: 0, shape: "linear" },
+      gapless: { enabled: true },
+      smartShuffle: true,
+      autoPlayNext: true,
+    });
+
+    const track = createMockTrack("test-1");
+    engine.load(track);
+    await new Promise((r) => setTimeout(r, 10));
+
+    await expect(engine.play()).resolves.toBeUndefined();
+    expect(engine.getState().state).toBe("error");
   });
 });

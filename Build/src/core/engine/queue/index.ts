@@ -5,6 +5,7 @@ import type {
   QueueCursor,
   PlayHistory,
 } from "../types";
+import { assertInvariant, assertNever } from "../invariants";
 
 export type ShuffleMode = "random" | "smart";
 
@@ -85,6 +86,8 @@ export class QueueManager {
           this.state.cursor = { kind: "empty" };
         }
         break;
+      default:
+        assertNever(cursor);
     }
   }
 
@@ -113,6 +116,8 @@ export class QueueManager {
         return null;
       case "active":
         return this.state.tracks[cursor.index] ?? null;
+      default:
+        return assertNever(cursor);
     }
   }
 
@@ -123,6 +128,8 @@ export class QueueManager {
         return null;
       case "active":
         return cursor.index;
+      default:
+        return assertNever(cursor);
     }
   }
 
@@ -191,7 +198,9 @@ export class QueueManager {
     const availableIndices = Array.from({ length }, (_, i) => i);
 
     while (availableIndices.length > 0) {
-      const availableTrackIds = availableIndices.map((i) => trackIds[i]);
+      const availableTrackIds = availableIndices
+        .map((i) => trackIds[i])
+        .filter((id): id is string => id !== undefined);
       const selectedId = randomizer.getWeightedRandomTrack(availableTrackIds);
 
       if (!selectedId) break;
@@ -208,10 +217,12 @@ export class QueueManager {
 
     if (preserveIndex !== null && preserveIndex < length) {
       const preserveId = trackIds[preserveIndex];
-      const idxInSelected = selectedIds.indexOf(preserveId);
-      if (idxInSelected > 0) {
-        selectedIds.splice(idxInSelected, 1);
-        selectedIds.unshift(preserveId);
+      if (preserveId !== undefined) {
+        const idxInSelected = selectedIds.indexOf(preserveId);
+        if (idxInSelected > 0) {
+          selectedIds.splice(idxInSelected, 1);
+          selectedIds.unshift(preserveId);
+        }
       }
     }
 
@@ -239,16 +250,22 @@ export class QueueManager {
 
     for (let i = indices.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
-      [indices[i], indices[j]] = [indices[j], indices[i]];
+      const valueAtI = indices[i];
+      const valueAtJ = indices[j];
+      if (valueAtI === undefined || valueAtJ === undefined) continue;
+      indices[i] = valueAtJ;
+      indices[j] = valueAtI;
     }
 
     if (preserveIndex !== null && preserveIndex < length) {
       const currentInShuffle = indices.indexOf(preserveIndex);
       if (currentInShuffle > 0) {
-        [indices[0], indices[currentInShuffle]] = [
-          indices[currentInShuffle],
-          indices[0],
-        ];
+        const first = indices[0];
+        const atPos = indices[currentInShuffle];
+        if (first !== undefined && atPos !== undefined) {
+          indices[0] = atPos;
+          indices[currentInShuffle] = first;
+        }
       }
     }
 
@@ -303,11 +320,23 @@ export class QueueManager {
   addTrack(track: Track): void {
     this.state.tracks.push(track);
     if (this.state.shuffled) {
-      const newIndex = this.state.tracks.length - 1;
-      this.state.shuffleOrder.push(newIndex);
-      const insertPos =
-        Math.floor(Math.random() * (this.state.shuffleOrder.length - 1)) + 1;
-      this.state.shuffleOrder.splice(insertPos, 0, newIndex);
+      this.mergeNewTrackIntoShuffleOrder();
+    }
+  }
+
+  private mergeNewTrackIntoShuffleOrder(): void {
+    const newIndex = this.state.tracks.length - 1;
+    this.state.shuffleOrder.push(newIndex);
+
+    if (this.state.shuffleOrder.length > 1) {
+      const swapPos = Math.floor(
+        Math.random() * (this.state.shuffleOrder.length - 1),
+      );
+      const atSwap = this.state.shuffleOrder[swapPos];
+      const atEnd = this.state.shuffleOrder[this.state.shuffleOrder.length - 1];
+      if (atSwap === undefined || atEnd === undefined) return;
+      this.state.shuffleOrder[swapPos] = atEnd;
+      this.state.shuffleOrder[this.state.shuffleOrder.length - 1] = atSwap;
     }
   }
 
@@ -333,6 +362,8 @@ export class QueueManager {
         }
         break;
       }
+      default:
+        assertNever(this.state.cursor);
     }
 
     if (this.state.shuffled) {
@@ -354,6 +385,8 @@ export class QueueManager {
         return null;
       case "active":
         return this.state.tracks[cursor.index] ?? null;
+      default:
+        return assertNever(cursor);
     }
   }
 
@@ -364,22 +397,43 @@ export class QueueManager {
     const last = order.length - 1;
 
     switch (this.state.cursor.kind) {
-      case "empty":
+      case "empty": {
+        const first = order[0];
+        const lastIndex = order[last];
+        assertInvariant(
+          first !== undefined && lastIndex !== undefined,
+          "non-empty play order must yield both bounds",
+        );
         return direction === "next"
-          ? { kind: "active", index: order[0] }
-          : { kind: "active", index: order[last] };
+          ? { kind: "active", index: first }
+          : { kind: "active", index: lastIndex };
+      }
       case "active": {
         const currentPos = order.indexOf(this.state.cursor.index);
         if (currentPos === -1) {
+          const first = order[0];
+          const lastIndex = order[last];
+          assertInvariant(
+            first !== undefined && lastIndex !== undefined,
+            "non-empty play order must yield both bounds",
+          );
           return direction === "next"
-            ? { kind: "active", index: order[0] }
-            : { kind: "active", index: order[last] };
+            ? { kind: "active", index: first }
+            : { kind: "active", index: lastIndex };
         }
-        const adjacentPos = direction === "next" ? currentPos + 1 : currentPos - 1;
+        const adjacentPos =
+          direction === "next" ? currentPos + 1 : currentPos - 1;
         const wrappedPos =
           adjacentPos < 0 ? last : adjacentPos > last ? 0 : adjacentPos;
-        return { kind: "active", index: order[wrappedPos] };
+        const wrapped = order[wrappedPos];
+        assertInvariant(
+          wrapped !== undefined,
+          "wrapped peek position must fall within the play order",
+        );
+        return { kind: "active", index: wrapped };
       }
+      default:
+        return assertNever(this.state.cursor);
     }
   }
 }

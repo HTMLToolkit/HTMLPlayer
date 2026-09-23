@@ -116,8 +116,9 @@ export function NavigationProvider({ children }: { children: ReactNode }) {
   const goBack = useCallback(() => {
     if (historyIndex > 0) {
       const newIndex = historyIndex - 1;
+      const previous = history[newIndex];
       setHistoryIndex(newIndex);
-      setState(history[newIndex]);
+      if (previous) setState(previous);
     }
   }, [historyIndex, history]);
 

@@ -64,7 +64,8 @@ export class WallpaperEngine {
 
   private extractNameFromPath(path: string): string {
     const match = path.match(/\/([^/]+)\/[^\/]+\.wallpaper\.tsx/);
-    return match ? match[1] : "Unknown";
+    const dir = match?.[1];
+    return dir || "Unknown";
   }
 
   getAll(): Wallpaper[] {
@@ -104,9 +105,10 @@ export class WallpaperEngine {
     }
 
     try {
+      // apply() verified this component file exists before reaching here
       const module = (await wallpaperComponentFiles[
         wallpaper.componentFile
-      ]()) as WallpaperModule;
+      ]!()) as WallpaperModule;
       this.currentComponent = module.default;
     } catch (error) {
       const errorMsg = `Failed to load wallpaper: ${(error as Error).message}`;

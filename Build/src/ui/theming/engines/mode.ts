@@ -108,6 +108,7 @@ export class ThemeModeEngine {
 
     for (let i = 0; i < styles.length; i++) {
       const name = styles[i];
+      if (!name) continue;
       if (name.startsWith("--")) {
         const value = styles.getPropertyValue(name).trim();
         if (value) {

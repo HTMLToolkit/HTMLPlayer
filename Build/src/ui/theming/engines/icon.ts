@@ -104,7 +104,8 @@ export class IconEngine {
 
   private extractIdFromPath(path: string): string {
     const match = path.match(/\/([^/]+)\/[^\/]+\.theme\.json/);
-    return match ? match[1].toLowerCase() : "unknown";
+    const id = match?.[1];
+    return id ? id.toLowerCase() : "unknown";
   }
 
   getAll(): IconSet[] {
@@ -152,11 +153,13 @@ export class IconEngine {
     }
 
     try {
-      const module = await iconModuleFiles[this.currentSet.path]();
+      // apply() verified this path exists in iconModuleFiles before setting currentSet
+      const module = await iconModuleFiles[this.currentSet.path]!();
       const icons = (module as { default?: IconLibraryMap }).default;
 
       if (icons && icons[this.currentSet.id]?.[name]) {
-        const icon = icons[this.currentSet.id][name];
+        // The condition above confirms icons[this.currentSet.id] exists
+        const icon = icons[this.currentSet.id]![name];
         // IconDefinition - need to resolve library reference to component
         if (icon && typeof icon === "object" && "type" in icon) {
           const def = icon as { type: string; library: string; icon: string };

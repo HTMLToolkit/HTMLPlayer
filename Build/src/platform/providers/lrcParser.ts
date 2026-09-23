@@ -22,9 +22,9 @@ export class LRCLyricsProvider extends BaseProvider implements LyricsProvider {
       let match;
 
       while ((match = timeRegex.exec(line)) !== null) {
-        const minutes = parseInt(match[1], 10);
-        const seconds = parseInt(match[2], 10);
-        const milliseconds = parseInt(match[3].padEnd(3, "0"), 10);
+        const minutes = parseInt(match[1]!, 10); // exec matched the regex, so all capture groups are present
+        const seconds = parseInt(match[2]!, 10);
+        const milliseconds = parseInt(match[3]!.padEnd(3, "0"), 10);
         times.push(minutes * 60 + seconds + milliseconds / 1000);
       }
 

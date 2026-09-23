@@ -128,8 +128,8 @@ export async function importAudioFiles(
               // Interleave channels
               for (let i = 0; i < frameCount; i++) {
                 for (let ch = 0; ch < channels; ch++) {
-                  pcmData[i * channels + ch] =
-                    audioBuffer.getChannelData(ch)[i];
+                  // getChannelData(ch) holds frameCount samples (audioBuffer.length)
+                  pcmData[i * channels + ch] = audioBuffer.getChannelData(ch)[i]!;
                 }
               }
 

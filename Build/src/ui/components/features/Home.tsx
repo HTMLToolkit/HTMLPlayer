@@ -124,6 +124,7 @@ export const Home: React.FC<HomeProps> = ({ komorebi, onAddMusic }) => {
     }
     const pool = favoriteSongs.length ? favoriteSongs : songs;
     const randomSong = pool[Math.floor(Math.random() * pool.length)];
+    if (!randomSong) return;
     const playlist = favoriteSongs.length
       ? {
           id: "favorites-quickstart",
@@ -136,11 +137,14 @@ export const Home: React.FC<HomeProps> = ({ komorebi, onAddMusic }) => {
 
   const handlePlayFavorites = useCallback(() => {
     if (favoriteSongs.length) {
-      playSong(favoriteSongs[0], {
-        id: "favorites-home",
-        name: t("favorites.favorites"),
-        songs: favoriteSongs,
-      });
+      const song = favoriteSongs[0];
+      if (song) {
+        playSong(song, {
+          id: "favorites-home",
+          name: t("favorites.favorites"),
+          songs: favoriteSongs,
+        });
+      }
     } else {
       goToSongs();
     }
@@ -149,8 +153,11 @@ export const Home: React.FC<HomeProps> = ({ komorebi, onAddMusic }) => {
   const handlePlayPlaylist = useCallback(
     (playlist: Playlist) => {
       if (playlist.songs.length) {
-        playSong(playlist.songs[0], playlist);
-        goToSongs();
+        const song = playlist.songs[0];
+        if (song) {
+          playSong(song, playlist);
+          goToSongs();
+        }
       }
     },
     [playSong, goToSongs],

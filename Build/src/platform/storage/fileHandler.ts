@@ -1,4 +1,5 @@
 import { processFiles } from "../utils/fileValidation";
+import { sanitizeStringArray } from "../validators";
 import { createLogger } from "../../helpers/logger";
 
 const logger = createLogger("fileHandler");
@@ -23,7 +24,9 @@ const PROCESSED_FILES_KEY = "processedFiles";
 
 function getProcessedFiles(): string[] {
   try {
-    return JSON.parse(sessionStorage.getItem(PROCESSED_FILES_KEY) || "[]");
+    return sanitizeStringArray(
+      JSON.parse(sessionStorage.getItem(PROCESSED_FILES_KEY) || "[]"),
+    );
   } catch {
     return [];
   }

@@ -55,8 +55,10 @@ export function useDragControl(
 
   const handleTouchStart = useCallback(
     (e: TouchEvent<HTMLDivElement>) => {
+      const touch = e.touches[0];
+      if (!touch) return;
       setIsDragging(true);
-      updatePosition(e.touches[0].clientX);
+      updatePosition(touch.clientX);
     },
     [updatePosition],
   );
@@ -68,7 +70,9 @@ export function useDragControl(
       updatePosition(e.clientX);
     const handleTouchMove = (e: globalThis.TouchEvent) => {
       e.preventDefault();
-      updatePosition(e.touches[0].clientX);
+      const touch = e.touches[0];
+      if (!touch) return;
+      updatePosition(touch.clientX);
     };
     const handleMouseUp = () => setIsDragging(false);
     const handleTouchEnd = () => setIsDragging(false);

@@ -63,8 +63,10 @@ export function useDragHandler(komorebi: UseKomorebiReturn) {
           const oldIndex = songs.findIndex((s) => s.id === dragItem.id);
           const newIndex = songs.findIndex((s) => s.id === dropZone.id);
           if (oldIndex !== -1 && newIndex !== -1) {
-            const [removed] = songs.splice(oldIndex, 1);
-            songs.splice(newIndex, 0, removed);
+            const removed = songs.splice(oldIndex, 1)[0];
+            if (removed) {
+              songs.splice(newIndex, 0, removed);
+            }
             library.reorderPlaylistSongs(currentPlaylist.id, songs);
           }
         }

@@ -210,7 +210,10 @@ function parseLrcValue(lrc: string): EmbeddedLyrics | null {
     } else {
       lines.push({
         text: trimmed,
-        timestamp: lines.length > 0 ? lines[lines.length - 1].timestamp : 0,
+        timestamp:
+          lines.length > 0
+            ? (lines[lines.length - 1]?.timestamp ?? 0)
+            : 0,
       });
     }
   }
@@ -252,8 +255,9 @@ function parseItunesGapless(value: unknown): GaplessInfo | null {
   const hexMatches = cleaned.match(/[0-9A-Fa-f]{8}/g);
   if (!hexMatches || hexMatches.length < 3) return null;
 
-  const delayHex = hexMatches[1];
-  const paddingHex = hexMatches[2];
+  // hexMatches.length >= 3 verified above, so indices 1 and 2 exist
+  const delayHex = hexMatches[1]!;
+  const paddingHex = hexMatches[2]!;
 
   const encoderDelay = Number.parseInt(delayHex, 16);
   const encoderPadding = Number.parseInt(paddingHex, 16);

@@ -53,7 +53,7 @@ export class Equalizer {
       }
 
       filter.frequency.value = freq;
-      filter.gain.value = this.currentGains[i];
+      filter.gain.value = this.currentGains[i] ?? 0;
 
       return filter;
     });
@@ -99,7 +99,10 @@ export class Equalizer {
 
     const clampedGain = Math.max(-12, Math.min(12, gain));
     this.currentGains[index] = clampedGain;
-    this.filters[index].gain.value = clampedGain;
+    const filter = this.filters[index];
+    if (filter) {
+      filter.gain.value = clampedGain;
+    }
   }
 
   getGain(index: number): number {
@@ -117,7 +120,10 @@ export class Equalizer {
   }
 
   setFlat(): void {
-    this.setPreset(EQUALIZER_PRESETS[0]);
+    const flat = EQUALIZER_PRESETS[0];
+    if (flat) {
+      this.setPreset(flat);
+    }
   }
 
   getFrequencies(): number[] {
@@ -135,7 +141,10 @@ export class Equalizer {
     analyser.fftSize = 256;
 
     if (this.filters.length > 0) {
-      this.filters[this.filters.length - 1].connect(analyser);
+      const lastFilter = this.filters[this.filters.length - 1];
+      if (lastFilter) {
+        lastFilter.connect(analyser);
+      }
     }
 
     return analyser;

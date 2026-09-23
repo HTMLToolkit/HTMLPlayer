@@ -30,7 +30,7 @@ export async function decodeFloToAudioBuffer(
   for (let ch = 0; ch < channels; ch++) {
     const channelData = audioBuffer.getChannelData(ch);
     for (let i = 0; i < frameCount; i++) {
-      channelData[i] = samples[i * channels + ch];
+      channelData[i] = samples[i * channels + ch] ?? 0;
     }
   }
 

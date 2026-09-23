@@ -1,6 +1,13 @@
 import type { SettingsState } from "./types";
 import { DEFAULT_SETTINGS } from "./types";
 import { createLogger } from "../../helpers/logger";
+import {
+  deserializeVersionedJson,
+  sanitizeSettingsState,
+  serializeVersioned,
+  unwrapVersioned,
+  withSchemaVersion,
+} from "../validators";
 
 const logger = createLogger("settingsPersistence");
 
@@ -9,8 +16,7 @@ const SETTINGS_KEY = "htmlplayer-settings";
 export class SettingsPersistence {
   async save(settings: SettingsState): Promise<void> {
     try {
-      const serialized = JSON.stringify(settings);
-      localStorage.setItem(SETTINGS_KEY, serialized);
+      localStorage.setItem(SETTINGS_KEY, serializeVersioned(settings));
     } catch (error) {
       logger.error("Failed to save settings:", { error: String(error) });
     }
@@ -19,12 +25,11 @@ export class SettingsPersistence {
   async load(): Promise<SettingsState> {
     try {
       const serialized = localStorage.getItem(SETTINGS_KEY);
-      if (!serialized) {
+      const envelope = deserializeVersionedJson(serialized);
+      if (!envelope) {
         return { ...DEFAULT_SETTINGS };
       }
-
-      const parsed = JSON.parse(serialized) as Partial<SettingsState>;
-      return { ...DEFAULT_SETTINGS, ...parsed };
+      return sanitizeSettingsState(envelope.value, DEFAULT_SETTINGS);
     } catch (error) {
       logger.error("Failed to load settings:", { error: String(error) });
       return { ...DEFAULT_SETTINGS };
@@ -49,8 +54,8 @@ export class SettingsPersistence {
       request.onsuccess = async () => {
         const existing = request.result;
         const data = existing
-          ? { ...existing, value: await this.load() }
-          : { key: "main", value: await this.load() };
+          ? { ...existing, value: withSchemaVersion(await this.load()) }
+          : { key: "main", value: withSchemaVersion(await this.load()) };
 
         const putTransaction = db.transaction(["settings"], "readwrite");
         const putStore = putTransaction.objectStore("settings");
@@ -71,10 +76,14 @@ export class SettingsPersistence {
       const request = store.get("main");
 
       request.onsuccess = () => {
-        const result = request.result as
-          | { key: string; value: SettingsState }
-          | undefined;
-        resolve(result?.value ?? { ...DEFAULT_SETTINGS });
+        const result = request.result as { key: string; value: SettingsState } | undefined;
+        resolve(
+          unwrapVersioned(
+            result?.value,
+            (value) => sanitizeSettingsState(value, DEFAULT_SETTINGS),
+            { ...DEFAULT_SETTINGS },
+          ),
+        );
       };
 
       request.onerror = () => reject(request.error);

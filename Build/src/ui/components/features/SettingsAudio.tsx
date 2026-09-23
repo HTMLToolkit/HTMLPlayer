@@ -38,7 +38,7 @@ export function SettingsAudio({ settings, settingsState }: SettingsAudioProps) {
           id="tempo-slider"
           value={[settingsState.tempo * 100]}
           onValueChange={(val) => {
-            let newVal = val[0];
+            let newVal = val[0] ?? 100;
             if (Math.abs(newVal - 100) <= 3) newVal = 100;
             settings.setTempo(newVal / 100);
           }}
@@ -64,7 +64,7 @@ export function SettingsAudio({ settings, settingsState }: SettingsAudioProps) {
           id="pitch-slider"
           value={[settingsState.pitch ?? 0]}
           onValueChange={(val) => {
-            let newVal = val[0];
+            let newVal = val[0] ?? 0;
             if (Math.abs(newVal) <= 0.5) newVal = 0;
             settings.setPitch(newVal);
           }}
@@ -85,7 +85,7 @@ export function SettingsAudio({ settings, settingsState }: SettingsAudioProps) {
         <Slider
           id="volume-slider"
           value={[Math.round(settingsState.volume * 100)]}
-          onValueChange={(val) => settings.setVolume(val[0] / 100)}
+          onValueChange={(val) => settings.setVolume((val[0] ?? 0) / 100)}
           max={100}
           step={1}
           className={styles.slider}
@@ -118,7 +118,7 @@ export function SettingsAudio({ settings, settingsState }: SettingsAudioProps) {
               }
               onValueChange={(val) => {
                 if (!settingsState.gaplessPlayback) {
-                  settings.setCrossfade(val[0]);
+                  settings.setCrossfade(val[0] ?? 0);
                 }
               }}
               max={10}

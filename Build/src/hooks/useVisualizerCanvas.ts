@@ -46,9 +46,12 @@ export const useVisualizerCanvas = ({
     });
 
     if (visualizers.length > 0 && !selectedVisualizerKey) {
-      setSelectedVisualizerKey(
-        visualizers.includes(DEFAULT_VISUALIZER_KEY) ? DEFAULT_VISUALIZER_KEY : visualizers[0],
-      );
+      if (visualizers.includes(DEFAULT_VISUALIZER_KEY)) {
+        setSelectedVisualizerKey(DEFAULT_VISUALIZER_KEY);
+      } else {
+        const firstVisualizer = visualizers[0];
+        if (firstVisualizer) setSelectedVisualizerKey(firstVisualizer);
+      }
     }
   }, [selectedVisualizerKey]);
 
