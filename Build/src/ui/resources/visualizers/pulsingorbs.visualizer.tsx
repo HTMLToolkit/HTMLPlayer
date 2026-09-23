@@ -1,4 +1,8 @@
-import { VisualizerType, getByteFrequencyData } from "../../../platform/visualizers";
+import {
+  getByteFrequencyData,
+  sample,
+  VisualizerType,
+} from "../../../platform/visualizers";
 
 const pulsingOrbs: VisualizerType = {
   name: "Pulsing Orbs",
@@ -29,7 +33,7 @@ const pulsingOrbs: VisualizerType = {
 
     for (let i = 0; i < orbCount; i++) {
       const freqIndex = Math.floor((i * bufferLength) / orbCount);
-      const value = freqDataArray[freqIndex] ?? 0;
+      const value = sample(freqDataArray, freqIndex);
       const radius = (value / 256) * spacing * maxRadius;
 
       ctx.fillStyle = orbColor.replace("{hue}", `${(i * 360) / orbCount}`);

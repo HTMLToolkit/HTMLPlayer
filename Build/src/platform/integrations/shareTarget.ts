@@ -92,7 +92,9 @@ export async function handleShareCache(): Promise<ShareTargetResult | null> {
 
     return { files: newFiles, type: "files" };
   } catch (e) {
-    logger.error("Failed to retrieve shared file from cache", { error: String(e) });
+    logger.error("Failed to retrieve shared file from cache", {
+      error: String(e),
+    });
     return null;
   }
 }

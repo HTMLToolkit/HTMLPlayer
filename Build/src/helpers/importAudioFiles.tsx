@@ -73,7 +73,6 @@ export async function importAudioFiles(
     const batch = audioFiles.slice(i, i + BATCH_SIZE);
     toast.loading(t("batch.processing", { currentBatch, totalBatches }));
 
-    // Process sequentially to reduce memory pressure
     for (const audioFile of batch) {
       try {
         const file: File = (audioFile as any).file || (audioFile as File);
@@ -81,7 +80,6 @@ export async function importAudioFiles(
           await extractAudioMetadata(file, t);
         const songId = generateUniqueId();
 
-        // Pre-decode flo files for better performance
         let processedFile = file;
         let processedMimeType = file.type;
 
@@ -97,7 +95,6 @@ export async function importAudioFiles(
             );
 
             if (isSafari) {
-              // Safari: Pre-decode to WAV for compatibility
               const { decodeFloToWav } =
                 await import("../platform/audio/floWavDecoder");
               const wavBytes = await decodeFloToWav(arrayBuffer);
@@ -111,7 +108,6 @@ export async function importAudioFiles(
               processedMimeType = "audio/wav";
               logger.info(`Pre-decoded flo to WAV for Safari: ${file.name}`);
             } else {
-              // Non-Safari: Pre-decode to PCM for Web Audio API
               const { decodeFloToAudioBuffer } =
                 await import("../platform/audio/floDecoder");
               const audioContext = new AudioContext();
@@ -120,16 +116,14 @@ export async function importAudioFiles(
                 audioContext,
               );
 
-              // Store as interleaved Float32Array PCM
               const frameCount = audioBuffer.length;
               const channels = audioBuffer.numberOfChannels;
               const pcmData = new Float32Array(frameCount * channels);
 
-              // Interleave channels
               for (let i = 0; i < frameCount; i++) {
                 for (let ch = 0; ch < channels; ch++) {
-                  // getChannelData(ch) holds frameCount samples (audioBuffer.length)
-                  pcmData[i * channels + ch] = audioBuffer.getChannelData(ch)[i]!;
+                  pcmData[i * channels + ch] =
+                    audioBuffer.getChannelData(ch)[i]!;
                 }
               }
 
@@ -141,32 +135,30 @@ export async function importAudioFiles(
               );
               processedMimeType = "audio/pcm";
 
-              // Store AudioBuffer properties for reconstruction
               metadata.encoding = {
                 ...metadata.encoding,
                 sampleRate: audioBuffer.sampleRate,
                 channels: audioBuffer.numberOfChannels,
-                bitsPerSample: 32, // Float32
+                bitsPerSample: 32,
                 codec: "pcm-float32",
               };
 
-              // Close the temporary AudioContext
               await audioContext.close();
 
               logger.info(`Pre-decoded flo to PCM: ${file.name}`);
             }
           } catch (error) {
             if (error instanceof Error) {
-              logger.warn("Failed to pre-decode flo file, storing original:", { error: error.message });
+              logger.warn("Failed to pre-decode flo file, storing original:", {
+                error: error.message,
+              });
             } else {
               logger.warn("Failed to pre-decode flo file, storing original");
             }
-            // Keep original file if pre-decoding fails
             processedMimeType = "audio/x-flo";
           }
         }
 
-        // Save album art separately if present
         const hasAlbumArt = !!compressedArt;
         if (hasAlbumArt && compressedArt) {
           await albumArtStorage.save(songId, compressedArt);
@@ -180,8 +172,8 @@ export async function importAudioFiles(
             metadata.album ||
             t("songInfo.album", { title: t("common.unknownAlbum") }),
           duration: metadata.duration,
-          url: "", // Will be set by addSong
-          albumArt: compressedArt, // Keep for immediate display
+          url: "",
+          albumArt: compressedArt,
           hasAlbumArt,
           embeddedLyrics: metadata.embeddedLyrics,
           encoding: metadata.encoding,
@@ -191,7 +183,6 @@ export async function importAudioFiles(
 
         await addSong(song, processedFile);
 
-        // Clear file reference to help GC
         if (typeof audioFile === "object" && "file" in audioFile) {
           (audioFile as { file: File }).file = null as any;
         }
@@ -209,7 +200,6 @@ export async function importAudioFiles(
 
     currentBatch++;
 
-    // Give browser time to garbage collect between batches
     await new Promise((r) => setTimeout(r, 100));
   }
 

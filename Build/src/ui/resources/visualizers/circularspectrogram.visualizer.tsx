@@ -1,4 +1,8 @@
-import { VisualizerType, getByteFrequencyData } from "../../../platform/visualizers";
+import {
+  getByteFrequencyData,
+  sample,
+  VisualizerType,
+} from "../../../platform/visualizers";
 
 const circularSpectrogram: VisualizerType = {
   name: "Circular Spectrogram",
@@ -31,7 +35,7 @@ const circularSpectrogram: VisualizerType = {
 
     for (let i = 0; i < bufferLength; i++) {
       const angle = (i * 2 * Math.PI) / bufferLength;
-      const amplitude = (freqDataArray[i] ?? 0) / 256.0;
+      const amplitude = sample(freqDataArray, i) / 256.0;
       const x = centerX + radius * amplitude * Math.cos(angle);
       const y = centerY + radius * amplitude * Math.sin(angle);
 

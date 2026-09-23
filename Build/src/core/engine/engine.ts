@@ -15,6 +15,7 @@ import {
   type ShuffleMode,
 } from "./queue";
 import { Scheduler } from "./scheduler";
+import { AsyncOp } from "./asyncOp";
 import { assertNever } from "./invariants";
 import type { IAudioBackend } from "../../platform/audio";
 
@@ -29,6 +30,12 @@ export interface IAudioEngineConfig {
   };
   smartShuffle: boolean;
   autoPlayNext: boolean;
+  /**
+   * Resolves a track to a playable source before it reaches the backend. The
+   * app wires this to stored-audio reconstruction, so the engine always loads
+   * a real url (or fails loudly) regardless of which UI path picked the track.
+   */
+  trackResolver?: (track: Track) => Promise<Track>;
 }
 
 const DEFAULT_SETTINGS: EngineSettings = {
@@ -62,18 +69,19 @@ export class KomorebiEngine {
   private scheduledTransitionId: number | null = null;
 
   /**
-   * Monotonic identifier of the most recent load op. load() bumps it and both
-   * load() and play() check it against the value they captured after each
-   * await, so results and state transitions from a superseded op are dropped
-   * instead of clobbering the state of a newer op.
+   * Cancellation slot for load/play ops. load() calls next() to supersede any
+   * in-flight load, and every settle path re-checks isCurrent() before
+   * committing state, so results from a stale op are dropped. stop() calls
+   * invalidate() so a pending load completion cannot clobber the idle state.
    */
-  private loadGeneration = 0;
+  private readonly loadOp = new AsyncOp();
+  private readonly trackResolver:
+    | ((track: Track) => Promise<Track>)
+    | undefined;
 
-  constructor(
-    backend: IAudioBackend,
-    config?: Partial<IAudioEngineConfig>,
-  ) {
+  constructor(backend: IAudioBackend, config?: Partial<IAudioEngineConfig>) {
     this.backend = backend;
+    this.trackResolver = config?.trackResolver;
     this.backend.onTimeUpdate((time) => {
       this.handleTimeUpdate(time);
     });
@@ -123,13 +131,11 @@ export class KomorebiEngine {
     return this.queue.getShuffleMode();
   }
 
-  load(track: Track, playlist?: Playlist): Promise<void> {
+  async load(track: Track, playlist?: Playlist): Promise<void> {
     if (playlist) {
       this.queue.setPlaylist(playlist);
       this.currentPlaylist = playlist;
-    } else if (
-      this.queue.getTracks().findIndex((t) => t.id === track.id) < 0
-    ) {
+    } else if (this.queue.getTracks().findIndex((t) => t.id === track.id) < 0) {
       const solo: Playlist = {
         id: `solo:${track.id}`,
         name: track.title,
@@ -141,7 +147,9 @@ export class KomorebiEngine {
 
     const previousTrack = this.queue.getCurrentTrack();
 
-    const trackIndex = this.queue.getTracks().findIndex((t) => t.id === track.id);
+    const trackIndex = this.queue
+      .getTracks()
+      .findIndex((t) => t.id === track.id);
     this.queue.jumpToIndex(trackIndex >= 0 ? trackIndex : null);
     this.emitTrackChange(previousTrack, track);
 
@@ -149,12 +157,42 @@ export class KomorebiEngine {
     this.currentError = null;
     this.events.emit("loading", { track });
 
-    const generation = ++this.loadGeneration;
+    const generation = this.loadOp.next();
+
+    let target: Track;
+    try {
+      target = this.trackResolver ? await this.trackResolver(track) : track;
+    } catch (error) {
+      if (this.loadOp.isCurrent(generation)) {
+        this.emitError(
+          "LOAD_SOURCE_ERROR",
+          `resolve source: ${String(error)}`,
+          track,
+        );
+      }
+      return;
+    }
+
     return new Promise<void>((resolve) => {
+      if (!this.loadOp.isCurrent(generation)) {
+        resolve();
+        return;
+      }
+
+      if (typeof target.url !== "string" || target.url.length === 0) {
+        this.emitError(
+          "LOAD_SOURCE_ERROR",
+          `no playable source (url=${String(target.url)})`,
+          track,
+        );
+        resolve();
+        return;
+      }
+
       this.backend
-        .load(track.url)
+        .load(target.url)
         .then(() => {
-          if (generation !== this.loadGeneration) {
+          if (!this.loadOp.isCurrent(generation)) {
             resolve();
             return;
           }
@@ -166,7 +204,7 @@ export class KomorebiEngine {
           resolve();
         })
         .catch((error) => {
-          if (generation !== this.loadGeneration) {
+          if (!this.loadOp.isCurrent(generation)) {
             resolve();
             return;
           }
@@ -185,18 +223,18 @@ export class KomorebiEngine {
         if (!current) return;
 
         this.load(current);
-        const generation = this.loadGeneration;
+        const generation = this.loadOp.peek();
         await this.waitForState("ready");
-        if (generation !== this.loadGeneration) return;
+        if (!this.loadOp.isCurrent(generation)) return;
         await this.play();
         return;
       }
 
       if (state !== "ready" && state !== "paused") return;
 
-      const generation = this.loadGeneration;
+      const generation = this.loadOp.peek();
       await this.backend.play();
-      if (generation !== this.loadGeneration) return;
+      if (!this.loadOp.isCurrent(generation)) return;
 
       this.stateMachine.transition("playing");
       this.startTimeUpdates();
@@ -221,9 +259,13 @@ export class KomorebiEngine {
   }
 
   stop(): void {
+    if (this.stateMachine.isIdle()) return;
+    this.loadOp.invalidate();
     this.backend.stop();
+    this.cancelScheduledTransition();
     this.stateMachine.transition("idle");
     this.currentTime = 0;
+    this.currentError = null;
     this.stopTimeUpdates();
     this.emitStateChange();
   }
@@ -240,10 +282,14 @@ export class KomorebiEngine {
         const nextTrack = this.queue.getTracks()[nextCursor.index];
         if (nextTrack === undefined) break;
 
-        if (this.stateMachine.isPlaying()) {
-          await this.loadAndPlay(nextTrack);
-        } else {
-          await this.load(nextTrack);
+        try {
+          if (this.stateMachine.isPlaying()) {
+            await this.loadAndPlay(nextTrack);
+          } else {
+            await this.load(nextTrack);
+          }
+        } catch (error) {
+          this.emitError("NEXT_ERROR", (error as Error).message, nextTrack);
         }
         break;
       }
@@ -260,7 +306,9 @@ export class KomorebiEngine {
       return;
     }
 
-    const prevCursor = this.queue.peekPreviousCursor(this.settings.smartShuffle);
+    const prevCursor = this.queue.peekPreviousCursor(
+      this.settings.smartShuffle,
+    );
 
     switch (prevCursor.kind) {
       case "empty":
@@ -269,10 +317,14 @@ export class KomorebiEngine {
         const prevTrack = this.queue.getTracks()[prevCursor.index];
         if (prevTrack === undefined) break;
 
-        if (this.stateMachine.isPlaying()) {
-          await this.loadAndPlay(prevTrack);
-        } else {
-          await this.load(prevTrack);
+        try {
+          if (this.stateMachine.isPlaying()) {
+            await this.loadAndPlay(prevTrack);
+          } else {
+            await this.load(prevTrack);
+          }
+        } catch (error) {
+          this.emitError("PREV_ERROR", (error as Error).message, prevTrack);
         }
         break;
       }
@@ -451,7 +503,10 @@ export class KomorebiEngine {
           settled = true;
           clearTimeout(timeoutId);
           this.events.off("statechange", onStateChange);
-          reject(new Error("State transition failed"));
+          const reason = this.currentError
+            ? `Engine entered error state: ${this.currentError.code}`
+            : "Engine entered error state";
+          reject(new Error(reason));
         }
       };
 
@@ -514,7 +569,9 @@ export class KomorebiEngine {
       this.events.emit("ended", { track: currentTrack });
     }
 
-    this.stateMachine.transition("playing");
+    if (this.stateMachine.canTransition("playing")) {
+      this.stateMachine.transition("playing");
+    }
   }
 
   private cancelScheduledTransition(): void {
@@ -546,7 +603,7 @@ export class KomorebiEngine {
 
     if (this.settings.autoPlayNext) {
       this.next();
-    } else {
+    } else if (this.stateMachine.canTransition("ready")) {
       this.stateMachine.transition("ready");
       this.emitStateChange();
     }
@@ -595,7 +652,9 @@ export class KomorebiEngine {
 
   private emitError(code: string, message: string, track?: Track): void {
     this.currentError = { code, message, track };
-    this.stateMachine.transition("error");
+    if (this.stateMachine.canTransition("error")) {
+      this.stateMachine.transition("error");
+    }
     this.events.emit("error", { error: this.currentError });
     this.emitStateChange();
   }

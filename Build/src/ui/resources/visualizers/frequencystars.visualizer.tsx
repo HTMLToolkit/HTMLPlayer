@@ -1,4 +1,8 @@
-import { VisualizerType, getByteFrequencyData } from "../../../platform/visualizers";
+import {
+  getByteFrequencyData,
+  sample,
+  VisualizerType,
+} from "../../../platform/visualizers";
 
 const frequencyStars: VisualizerType = {
   name: "Frequency Stars",
@@ -26,7 +30,7 @@ const frequencyStars: VisualizerType = {
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     for (let i = 0; i < bufferLength; i++) {
-      const value = freqDataArray[i] ?? 0;
+      const value = sample(freqDataArray, i);
       if (value > threshold) {
         const x = Math.random() * canvas.width;
         const y = Math.random() * canvas.height;

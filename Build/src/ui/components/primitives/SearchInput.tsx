@@ -10,7 +10,12 @@ export const SearchInput = forwardRef<HTMLInputElement, SearchInputProps>(
   ({ icon = "search", className, ...props }, ref) => {
     return (
       <div className={`${styles.wrapper} search-wrapper`}>
-        <Icon name={icon} size={16} className={`${styles.icon} search-icon`} decorative />
+        <Icon
+          name={icon}
+          size={16}
+          className={`${styles.icon} search-icon`}
+          decorative
+        />
         <input
           ref={ref}
           type="text"

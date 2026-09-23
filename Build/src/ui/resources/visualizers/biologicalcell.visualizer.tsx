@@ -1,4 +1,8 @@
-import { VisualizerType, getByteFrequencyData } from "../../../platform/visualizers";
+import {
+  getByteFrequencyData,
+  sample,
+  VisualizerType,
+} from "../../../platform/visualizers";
 
 const biologicalCell: VisualizerType = {
   name: "Biological Cell",
@@ -37,7 +41,7 @@ const biologicalCell: VisualizerType = {
     ctx.stroke();
 
     for (let i = 0; i < bufferLength; i++) {
-      const amplitude = (freqDataArray[i] ?? 0) / 256.0;
+      const amplitude = sample(freqDataArray, i) / 256.0;
       const angle = (i * Math.PI * 2) / bufferLength;
       const radius = cellRadius * (0.2 + amplitude * 0.6);
 

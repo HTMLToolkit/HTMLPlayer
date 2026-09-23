@@ -1,4 +1,8 @@
-import { VisualizerType, getByteFrequencyData } from "../../../platform/visualizers";
+import {
+  getByteFrequencyData,
+  sample,
+  VisualizerType,
+} from "../../../platform/visualizers";
 
 const fluidWaveSpectrogram: VisualizerType = {
   name: "Fluid Wave",
@@ -34,7 +38,7 @@ const fluidWaveSpectrogram: VisualizerType = {
       for (let i = 0; i <= bufferLength; i++) {
         const x = (i / bufferLength) * canvas.width;
         const freqIndex = i % bufferLength;
-        const amplitude = (freqDataArray[freqIndex] ?? 0) / 256.0;
+        const amplitude = sample(freqDataArray, freqIndex) / 256.0;
 
         const wave1 = Math.sin(i * 0.1 + l * 0.5) * 30 * amplitude;
         const wave2 = Math.cos(i * 0.05 + l * 0.3) * 20 * amplitude;

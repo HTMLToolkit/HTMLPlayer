@@ -1,7 +1,8 @@
 import {
   getByteFrequencyData,
-  VisualizerType,
+  sample,
   visualizerStates,
+  VisualizerType,
 } from "../../../platform/visualizers";
 
 const topwaterSpectrogram: VisualizerType = {
@@ -58,7 +59,7 @@ const topwaterSpectrogram: VisualizerType = {
       for (let i = 0; i <= segments; i++) {
         const angle = (i / segments) * Math.PI * 2;
         const freqIndex = i % bufferLength;
-        const frequency = freqDataArray[freqIndex] ?? 0;
+        const frequency = sample(freqDataArray, freqIndex);
 
         const waveOffset =
           (state.config!.sinTable![
@@ -88,7 +89,7 @@ const topwaterSpectrogram: VisualizerType = {
       const innerRadius = Math.max(0, ringRadius - 20);
       let outerRadius = Math.max(0, ringRadius + 20);
       if (outerRadius < innerRadius) {
-        outerRadius = innerRadius; // avoid invalid gradient params
+        outerRadius = innerRadius;
       }
       const gradient = ctx.createRadialGradient(
         centerX,

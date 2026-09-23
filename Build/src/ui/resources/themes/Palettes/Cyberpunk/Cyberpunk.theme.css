@@ -1,6 +1,4 @@
-/* Cyberpunk Theme */
 :root {
-  /* Theme */
   --themegradient: linear-gradient(135deg, #00ffff, #ff00ff, #ffff00);
   --themecolor: hsl(180, 100%, 50%);
   --themecolor2: hsl(300, 100%, 50%);
@@ -41,8 +39,8 @@
     var(--themecolor3) 100%
   );
 
-  /* Shadows (Custom Glow) */
-  --shadow: 0 1px 2px hsla(180, 100%, 50%, 0.1), 0 3px 6px hsla(300, 100%, 50%, 0.07);
+  --shadow:
+    0 1px 2px hsla(180, 100%, 50%, 0.1), 0 3px 6px hsla(300, 100%, 50%, 0.07);
   --shadow-md:
     0 1px 3px hsla(180, 100%, 50%, 0.1),
     0 10px 15px -5px hsla(300, 100%, 50%, 0.05),
@@ -56,7 +54,12 @@
 }
 
 .dark {
-  --themegradient: linear-gradient(135deg, #003635 0%, #69005f 50%, #4b4200 100%);
+  --themegradient: linear-gradient(
+    135deg,
+    #003635 0%,
+    #69005f 50%,
+    #4b4200 100%
+  );
   --themecolor: hsl(180, 100%, 60%);
   --themecolor2: hsl(300, 100%, 60%);
   --themecolor3: hsl(60, 100%, 70%);
@@ -89,9 +92,15 @@
   --error-foreground: hsl(0, 0%, 100%);
 
   --certain-icons: hsl(180, 100%, 60%);
-  --albumart-gradient: linear-gradient(135deg, #001122 0%, #220044 50%, #002211 100%);
+  --albumart-gradient: linear-gradient(
+    135deg,
+    #001122 0%,
+    #220044 50%,
+    #002211 100%
+  );
 
-  --shadow: 0 1px 2px hsla(180, 100%, 60%, 0.2), 0 3px 6px hsla(300, 100%, 60%, 0.15);
+  --shadow:
+    0 1px 2px hsla(180, 100%, 60%, 0.2), 0 3px 6px hsla(300, 100%, 60%, 0.15);
   --shadow-md:
     0 1px 3px hsla(180, 100%, 60%, 0.2),
     0 10px 15px -5px hsla(300, 100%, 60%, 0.1),

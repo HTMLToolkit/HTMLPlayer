@@ -45,7 +45,6 @@ const StarryNightWallpaper: React.FC<WallpaperProps> = () => {
     canvas.width = dimensions.width;
     canvas.height = dimensions.height;
 
-    // Create stars
     const starCount = Math.min(
       200,
       Math.floor((dimensions.width * dimensions.height) / 8000),
@@ -60,7 +59,6 @@ const StarryNightWallpaper: React.FC<WallpaperProps> = () => {
     const animate = () => {
       timeRef.current += 0.02;
 
-      // Create gradient background (night sky)
       const gradient = ctx.createRadialGradient(
         dimensions.width / 2,
         dimensions.height / 2,
@@ -77,7 +75,6 @@ const StarryNightWallpaper: React.FC<WallpaperProps> = () => {
       ctx.fillStyle = gradient;
       ctx.fillRect(0, 0, dimensions.width, dimensions.height);
 
-      // Draw stars
       starsRef.current.forEach((star) => {
         const twinkle =
           Math.sin(timeRef.current * star.twinkleSpeed + star.twinkleOffset) *
@@ -88,7 +85,6 @@ const StarryNightWallpaper: React.FC<WallpaperProps> = () => {
         ctx.globalAlpha = currentBrightness;
         ctx.fillStyle = "#ffffff";
 
-        // Draw star with glow
         ctx.shadowColor = "#ffffff";
         ctx.shadowBlur = star.size * 3;
 
@@ -96,16 +92,14 @@ const StarryNightWallpaper: React.FC<WallpaperProps> = () => {
         ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
         ctx.fill();
 
-        // Reset shadow
         ctx.shadowBlur = 0;
       });
 
       ctx.globalAlpha = 1;
 
-      // Draw shooting star occasionally
       if (Math.random() < 0.005) {
         const startX = Math.random() * dimensions.width;
-        const startY = Math.random() * dimensions.height * 0.3; // Top third
+        const startY = Math.random() * dimensions.height * 0.3;
         const endX = startX + 200;
         const endY = startY + 100;
 

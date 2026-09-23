@@ -97,7 +97,7 @@ export class PointPerSongEngine {
 
   getWeightedRandomTrack(trackIds: string[]): string | null {
     if (trackIds.length === 0) return null;
-    if (trackIds.length === 1) return trackIds[0]!; // single-element array guarantees index 0
+    if (trackIds.length === 1) return trackIds[0]!;
 
     const scores = trackIds.map((id) => this.scores.get(id)?.score ?? 0);
     const minScore = Math.min(...scores);
@@ -109,11 +109,11 @@ export class PointPerSongEngine {
     for (let i = 0; i < trackIds.length; i++) {
       random -= adjustedScores[i] ?? 0;
       if (random <= 0) {
-        return trackIds[i]!; // i is bounded by trackIds.length in the loop
+        return trackIds[i]!;
       }
     }
 
-    return trackIds[trackIds.length - 1]!; // length > 0 checked at the top
+    return trackIds[trackIds.length - 1]!;
   }
 
   private calculateInitialScore(): number {

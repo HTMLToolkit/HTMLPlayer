@@ -68,7 +68,9 @@ export function useFileHandler(
           );
         })
         .catch((error) => {
-          logger.error("Failed to process queued files:", { error: String(error) });
+          logger.error("Failed to process queued files:", {
+            error: String(error),
+          });
           toast.error(
             t("filePicker.failedImport", { count: filesToProcess.length }),
           );

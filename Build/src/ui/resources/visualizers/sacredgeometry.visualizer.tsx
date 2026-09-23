@@ -1,4 +1,8 @@
-import { VisualizerType, getByteFrequencyData } from "../../../platform/visualizers";
+import {
+  getByteFrequencyData,
+  sample,
+  VisualizerType,
+} from "../../../platform/visualizers";
 
 const sacredGeometrySpectrogram: VisualizerType = {
   name: "Sacred Geometry",
@@ -37,7 +41,7 @@ const sacredGeometrySpectrogram: VisualizerType = {
       ctx.beginPath();
       for (let i = 0; i < vertices; i++) {
         const freqIndex = Math.floor((i * bufferLength) / vertices);
-        const amplitude = (freqDataArray[freqIndex] ?? 0) / 256.0;
+        const amplitude = sample(freqDataArray, freqIndex) / 256.0;
         const angle = (i * Math.PI * 2) / vertices;
 
         const x =
@@ -62,7 +66,7 @@ const sacredGeometrySpectrogram: VisualizerType = {
       if (layer > 0) {
         for (let i = 0; i < vertices; i++) {
           const freqIndex = Math.floor((i * bufferLength) / vertices);
-          const amplitude = (freqDataArray[freqIndex] ?? 0) / 256.0;
+          const amplitude = sample(freqDataArray, freqIndex) / 256.0;
           const angle = (i * Math.PI * 2) / vertices;
 
           ctx.beginPath();

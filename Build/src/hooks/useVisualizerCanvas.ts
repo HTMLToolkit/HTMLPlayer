@@ -22,16 +22,21 @@ export const useVisualizerCanvas = ({
   const animationFrameId = useRef<number | null>(null);
   const dataArrayRef = useRef<Uint8Array | null>(null);
 
-  const [availableVisualizers, setAvailableVisualizers] = useState<string[]>([]);
-  const [loadedVisualizerNames, setLoadedVisualizerNames] = useState<Map<string, string>>(new Map());
-  const [selectedVisualizerKey, setSelectedVisualizerKey] = useState<string>("");
-  const [selectedVisualizer, setSelectedVisualizer] = useState<VisualizerType | null>(null);
+  const [availableVisualizers, setAvailableVisualizers] = useState<string[]>(
+    [],
+  );
+  const [loadedVisualizerNames, setLoadedVisualizerNames] = useState<
+    Map<string, string>
+  >(new Map());
+  const [selectedVisualizerKey, setSelectedVisualizerKey] =
+    useState<string>("");
+  const [selectedVisualizer, setSelectedVisualizer] =
+    useState<VisualizerType | null>(null);
   const [visualizerSettings, setVisualizerSettings] = useState<
     Record<string, number | string | boolean>
   >({});
   const [isLoading, setIsLoading] = useState(false);
 
-  // Initialize available visualizers
   useEffect(() => {
     const visualizers = getAvailableVisualizers();
     setAvailableVisualizers(visualizers);
@@ -42,7 +47,9 @@ export const useVisualizerCanvas = ({
         return { key, name: visualizer?.name || key };
       }),
     ).then((results) => {
-      setLoadedVisualizerNames(new Map(results.map(({ key, name }) => [key, name])));
+      setLoadedVisualizerNames(
+        new Map(results.map(({ key, name }) => [key, name])),
+      );
     });
 
     if (visualizers.length > 0 && !selectedVisualizerKey) {
@@ -55,7 +62,6 @@ export const useVisualizerCanvas = ({
     }
   }, [selectedVisualizerKey]);
 
-  // Load selected visualizer
   useEffect(() => {
     if (!selectedVisualizerKey) return;
 
@@ -67,20 +73,24 @@ export const useVisualizerCanvas = ({
 
         if (visualizer?.settingsConfig) {
           setVisualizerSettings(
-            Object.entries(visualizer.settingsConfig).reduce((acc, [key, config]) => {
-              acc[key] = config.default as number | string | boolean;
-              return acc;
-            }, {} as Record<string, number | string | boolean>),
+            Object.entries(visualizer.settingsConfig).reduce(
+              (acc, [key, config]) => {
+                acc[key] = config.default as number | string | boolean;
+                return acc;
+              },
+              {} as Record<string, number | string | boolean>,
+            ),
           );
         }
       })
       .catch((error) => {
-        logger.error("Failed to load visualizer", { error: error instanceof Error ? error.message : "" });
+        logger.error("Failed to load visualizer", {
+          error: error instanceof Error ? error.message : "",
+        });
         setIsLoading(false);
       });
   }, [selectedVisualizerKey]);
 
-  // Handle drawing
   const draw = useCallback(() => {
     if (!analyserNode || !canvasRef.current || !selectedVisualizer) return;
     const canvas = canvasRef.current;
@@ -105,19 +115,19 @@ export const useVisualizerCanvas = ({
     animationFrameId.current = requestAnimationFrame(draw);
   }, [analyserNode, selectedVisualizer, visualizerSettings, canvasRef]);
 
-  // Animation lifecycle
   useEffect(() => {
     if (isPlaying && analyserNode && selectedVisualizer) {
       animationFrameId.current = requestAnimationFrame(draw);
     } else {
-      if (animationFrameId.current) cancelAnimationFrame(animationFrameId.current);
+      if (animationFrameId.current)
+        cancelAnimationFrame(animationFrameId.current);
     }
     return () => {
-      if (animationFrameId.current) cancelAnimationFrame(animationFrameId.current);
+      if (animationFrameId.current)
+        cancelAnimationFrame(animationFrameId.current);
     };
   }, [isPlaying, analyserNode, selectedVisualizer, draw]);
 
-  // Resize handling
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -130,7 +140,6 @@ export const useVisualizerCanvas = ({
     return () => resizeObserver.disconnect();
   }, [canvasRef]);
 
-  // Global cleanup
   useEffect(() => () => clearVisualizerState(), []);
 
   return {

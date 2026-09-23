@@ -51,7 +51,7 @@
 
 .playlistItemMain {
   flex: 1;
-  min-width: 0; /* Allow shrinking */
+  min-width: 0;
 }
 
 .playlistItem {
@@ -111,7 +111,7 @@
   display: block;
   border-radius: var(--radius-lg);
   transition: all var(--animation-duration-fast) ease;
-  width: 100%; /* Full width to cover entire playlist item */
+  width: 100%;
   flex: 1;
 }
 .playlistDropZone[data-droppable="true"] {

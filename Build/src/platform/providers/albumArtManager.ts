@@ -23,12 +23,14 @@ export class AlbumArtManager {
       try {
         const result = await provider.fetchAlbumArt(query);
         if (result && result.data.length > 0) {
-          const best = result.data[0]!; // result.data.length > 0 guarantees index 0 exists
+          const best = result.data[0]!;
           this.cache.set(cacheKey, best);
           return best;
         }
       } catch (error) {
-        logger.error(`Provider ${provider.name} failed:`, { error: String(error) });
+        logger.error(`Provider ${provider.name} failed:`, {
+          error: String(error),
+        });
       }
     }
 
@@ -45,7 +47,9 @@ export class AlbumArtManager {
           return result.data;
         }
       } catch (error) {
-        logger.error(`Provider ${provider.name} failed:`, { error: String(error) });
+        logger.error(`Provider ${provider.name} failed:`, {
+          error: String(error),
+        });
       }
     }
 

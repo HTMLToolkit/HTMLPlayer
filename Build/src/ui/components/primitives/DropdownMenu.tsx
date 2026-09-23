@@ -3,7 +3,6 @@ import * as DropdownMenuPrimitive from "@radix-ui/react-dropdown-menu";
 import styles from "./DropdownMenu.module.css";
 import { Icon } from "../shared/Icon";
 
-// Hook to add right-click support to DropdownMenu
 export const useRightClickMenu = (enableRightClick: boolean = false) => {
   const [open, setOpen] = React.useState(false);
   const containerRef = React.useRef<HTMLDivElement>(null);

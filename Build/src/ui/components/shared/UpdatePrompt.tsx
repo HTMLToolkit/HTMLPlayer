@@ -27,7 +27,6 @@ export function UpdatePrompt({
     ) {
       logger.info("SW registered", { swUrl });
 
-      // Set up periodic update checks
       if (registration && checkInterval > 0) {
         setInterval(() => {
           logger.info("Checking for SW updates...");
@@ -40,7 +39,6 @@ export function UpdatePrompt({
     },
   });
 
-  // Reset dismissed state when a new update becomes available
   useEffect(() => {
     if (needRefresh) {
       setDismissed(false);
@@ -56,7 +54,6 @@ export function UpdatePrompt({
     setNeedRefresh(false);
   };
 
-  // Don't show if no update or user dismissed
   if (!needRefresh || dismissed) {
     return null;
   }

@@ -18,10 +18,9 @@ export const dialogStorage = {
 
       return result?.data?.dontShowAgain !== true;
     } catch (error) {
-      logger.error(
-        `Failed to check dialog preference for ${dialogKey}:`,
-        { error: String(error) },
-      );
+      logger.error(`Failed to check dialog preference for ${dialogKey}:`, {
+        error: String(error),
+      });
       return true;
     }
   },
@@ -44,10 +43,9 @@ export const dialogStorage = {
         req.onerror = () => reject(req.error);
       });
     } catch (error) {
-      logger.error(
-        `Failed to save dialog preference for ${dialogKey}:`,
-        { error: String(error) },
-      );
+      logger.error(`Failed to save dialog preference for ${dialogKey}:`, {
+        error: String(error),
+      });
       throw error;
     }
   },
@@ -77,7 +75,9 @@ export const dialogStorage = {
           ),
       );
     } catch (error) {
-      logger.error("Failed to reset dialog preferences:", { error: String(error) });
+      logger.error("Failed to reset dialog preferences:", {
+        error: String(error),
+      });
       throw error;
     }
   },

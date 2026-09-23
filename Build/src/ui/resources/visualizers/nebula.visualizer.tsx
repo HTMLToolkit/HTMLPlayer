@@ -1,4 +1,8 @@
-import { VisualizerType, getByteFrequencyData } from "../../../platform/visualizers";
+import {
+  getByteFrequencyData,
+  sample,
+  VisualizerType,
+} from "../../../platform/visualizers";
 
 const nebulaSpectrogram: VisualizerType = {
   name: "Cosmic Nebula",
@@ -36,7 +40,7 @@ const nebulaSpectrogram: VisualizerType = {
     );
 
     for (let i = 0; i < bufferLength; i++) {
-      const amplitude = (freqDataArray[i] ?? 0) / 256.0;
+      const amplitude = sample(freqDataArray, i) / 256.0;
       const angle = (i * Math.PI * 2) / bufferLength;
 
       const x = canvas.width / 2 + Math.cos(angle) * (amplitude * radiusScale);

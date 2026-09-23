@@ -45,7 +45,6 @@ export const ScrollText = ({
   const resizeObserverRef = useRef<ResizeObserver | null>(null);
   const rafRef = useRef<number | null>(null);
 
-  // Combined state for better performance
   const [scrollState, setScrollState] = useState({
     shouldScroll: false,
     distance: 0,
@@ -57,7 +56,6 @@ export const ScrollText = ({
     [text, allowHTML],
   );
 
-  // Memoize the span props to avoid recreating on every render
   const spanProps = useMemo(() => {
     const baseProps = {
       className: styles.text,
@@ -69,7 +67,6 @@ export const ScrollText = ({
       : { ...baseProps, children: text };
   }, [allowHTML, safeText, text, gap, scrollState.shouldScroll]);
 
-  // Optimized measure function with debouncing
   const measure = useCallback(() => {
     const wrapper = wrapperRef.current;
     const inner = innerRef.current;
@@ -134,7 +131,6 @@ export const ScrollText = ({
     });
   }, [gap, minDuration, speed]);
 
-  // Initialize resize observer once
   useEffect(() => {
     if (typeof ResizeObserver === "undefined") return;
 
@@ -145,7 +141,6 @@ export const ScrollText = ({
     };
   }, [measure]);
 
-  // Observe both elements with the same observer
   useLayoutEffect(() => {
     if (!resizeObserverRef.current) return;
 
@@ -170,7 +165,6 @@ export const ScrollText = ({
     };
   }, []);
 
-  // Memoize class names to avoid recalculating on every render
   const wrapperClasses = useMemo(
     () =>
       [
@@ -196,7 +190,6 @@ export const ScrollText = ({
     [textClassName, scrollState.shouldScroll],
   );
 
-  // Memoize combined text style
   const combinedTextStyle = useMemo(
     () =>
       ({

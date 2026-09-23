@@ -2,8 +2,19 @@ import type { EngineEvent, EngineEventMap } from "./types";
 
 type EventCallback<T> = (data: T) => void;
 
+type ListenerErrorHandler = (event: EngineEvent, error: unknown) => void;
+
+const defaultErrorHandler: ListenerErrorHandler = (event, error) => {
+  console.error(`[events] listener for "${event}" threw:`, error);
+};
+
 export class KomorebiEvents {
   private listeners: Map<EngineEvent, Set<EventCallback<unknown>>> = new Map();
+  private readonly onListenerError: ListenerErrorHandler;
+
+  constructor(onListenerError: ListenerErrorHandler = defaultErrorHandler) {
+    this.onListenerError = onListenerError;
+  }
 
   on<E extends EngineEvent>(
     event: E,
@@ -27,9 +38,14 @@ export class KomorebiEvents {
 
   emit<E extends EngineEvent>(event: E, data: EngineEventMap[E]): void {
     const callbacks = this.listeners.get(event);
-    if (callbacks) {
-      callbacks.forEach((cb) => cb(data));
-    }
+    if (!callbacks) return;
+    callbacks.forEach((cb) => {
+      try {
+        cb(data);
+      } catch (error) {
+        this.onListenerError(event, error);
+      }
+    });
   }
 
   once<E extends EngineEvent>(

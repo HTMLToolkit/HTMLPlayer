@@ -28,6 +28,21 @@ export function getByteTimeDomainData(
   analyser.getByteTimeDomainData(dataArray as Uint8Array<ArrayBuffer>);
 }
 
+/**
+ * Read a single audio sample safely. The SSOT for every indexed read of the
+ * analyser buffer: out-of-range or undefined reads (noUncheckedIndexedAccess)
+ * and injected NaN/Infinity values all collapse to 0. Visualizers must use
+ * this instead of raw `buffer[i]` reads so the div-by-zero/NaN class of draw
+ * bugs stays impossible to reintroduce.
+ */
+export function sample(
+  dataArray: Uint8Array | Float32Array,
+  index: number,
+): number {
+  const value = dataArray[index];
+  return typeof value === "number" && Number.isFinite(value) ? value : 0;
+}
+
 export interface VisualizerType {
   name: string;
   draw: VisualizerDrawFunction;
@@ -66,18 +81,15 @@ interface VisualizerState {
 
 export const visualizerStates: Map<string, VisualizerState> = new Map();
 
-// Clean up visualizer state when switching visualizers
 export function clearVisualizerState(key?: string) {
   if (key) {
     const state = visualizerStates.get(key);
     if (state) {
-      // Clean up offscreen canvas if present
       if (state.offscreen) {
         state.offscreen.width = 0;
         state.offscreen.height = 0;
         state.offscreenCtx = null;
       }
-      // Clear arrays
       if (state.points) state.points.length = 0;
       if (state.particles) state.particles.length = 0;
       if (state.config?.points) {
@@ -87,7 +99,6 @@ export function clearVisualizerState(key?: string) {
       visualizerStates.delete(key);
     }
   } else {
-    // Clear all states
     for (const [, state] of visualizerStates.entries()) {
       if (state.offscreen) {
         state.offscreen.width = 0;
@@ -107,11 +118,9 @@ export function clearVisualizerState(key?: string) {
 
 const visualizerModules = import.meta.glob("../visualizers/*.tsx");
 
-// Cache for loaded visualizers: limit to prevent memory growth
 const loadedVisualizers: Map<string, VisualizerType> = new Map();
-const MAX_CACHED_VISUALIZERS = 5; // Only keep 5 visualizers in memory
+const MAX_CACHED_VISUALIZERS = 5;
 
-// Function to dynamically load a visualizer
 export async function loadVisualizer(
   key: string,
 ): Promise<VisualizerType | null> {
@@ -127,9 +136,7 @@ export async function loadVisualizer(
       const module = await moduleLoader();
       const visualizer = (module as any).default;
       if (visualizer) {
-        // Enforce cache limit to prevent memory growth
         if (loadedVisualizers.size >= MAX_CACHED_VISUALIZERS) {
-          // Remove oldest entry (first in Map)
           const firstKey = loadedVisualizers.keys().next().value;
           if (firstKey) {
             loadedVisualizers.delete(firstKey);
@@ -140,26 +147,24 @@ export async function loadVisualizer(
         loadedVisualizers.set(key, visualizer);
         return visualizer;
       }
-      } catch (error) {
-      logger.error(`Failed to load visualizer ${key}:`, { state: { error: String(error) } });
+    } catch (error) {
+      logger.error(`Failed to load visualizer ${key}:`, {
+        state: { error: String(error) },
+      });
     }
   }
 
   return null;
 }
 
-// Function to get available visualizer keys
 export function getAvailableVisualizers(): string[] {
   return Object.keys(visualizerModules)
     .map((path) => path.split("/").pop()?.replace(".visualizer.tsx", ""))
     .filter(Boolean) as string[];
 }
 
-export const spectrogramTypes: SpectrogramTypes = {
-  // This object will be populated dynamically as visualizers are loaded
-};
+export const spectrogramTypes: SpectrogramTypes = {};
 
-// Function to get a visualizer (loads it if not already loaded)
 export async function getVisualizer(
   key: string,
 ): Promise<VisualizerType | null> {

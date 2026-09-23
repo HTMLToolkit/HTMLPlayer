@@ -29,13 +29,14 @@ const TourContext = createContext<{ loaded: boolean; isOpen: boolean }>({
 
 export const useTourLoaded = () => useContext(TourContext);
 
-// Re-export useTour for external use (e.g., keyboard shortcuts)
 export { useTour };
 
 export const HelpGuideProvider = ({ children }: HelpGuideProps) => {
   function useTourStepsConfig() {
     const { i18n } = useTranslation();
-    const [tourStepsConfig, setTourStepsConfig] = useState<TourStepConfig[]>([]);
+    const [tourStepsConfig, setTourStepsConfig] = useState<TourStepConfig[]>(
+      [],
+    );
 
     useEffect(() => {
       const lang = i18n.language?.split("-")[0] || "en";
@@ -43,7 +44,6 @@ export const HelpGuideProvider = ({ children }: HelpGuideProps) => {
         en: tourEn,
       };
 
-      // Fall back to English if the selected language doesn't have a tour config.
       setTourStepsConfig(configMap[lang] ?? configMap.en ?? []);
     }, [i18n.language]);
 

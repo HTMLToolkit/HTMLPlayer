@@ -155,8 +155,9 @@ export const selectCurrentTrack = (store: KomorebiStoreState): Track | null => {
   }
 };
 
-export const selectCurrentPlaylist = (store: KomorebiStoreState): EngineState["currentPlaylist"] =>
-  store.snapshot?.currentPlaylist ?? null;
+export const selectCurrentPlaylist = (
+  store: KomorebiStoreState,
+): EngineState["currentPlaylist"] => store.snapshot?.currentPlaylist ?? null;
 
 export const selectIsPlaying = (store: KomorebiStoreState): boolean =>
   store.snapshot?.state === "playing";
@@ -167,5 +168,6 @@ export const selectVolume = (store: KomorebiStoreState): number =>
 export const selectShuffle = (store: KomorebiStoreState): boolean =>
   store.snapshot?.queue.shuffled ?? false;
 
-export const selectRepeat = (store: KomorebiStoreState): "off" | "one" | "all" =>
-  store.snapshot?.settings.repeat ?? "off";
+export const selectRepeat = (
+  store: KomorebiStoreState,
+): "off" | "one" | "all" => store.snapshot?.settings.repeat ?? "off";

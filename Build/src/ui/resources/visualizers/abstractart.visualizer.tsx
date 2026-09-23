@@ -1,4 +1,8 @@
-import { VisualizerType, getByteFrequencyData } from "../../../platform/visualizers";
+import {
+  getByteFrequencyData,
+  sample,
+  VisualizerType,
+} from "../../../platform/visualizers";
 
 const abstractArt: VisualizerType = {
   name: "Abstract Art",
@@ -26,7 +30,7 @@ const abstractArt: VisualizerType = {
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     for (let i = 0; i < shapeCount; i++) {
-      const amplitude = (freqDataArray[i] ?? 0) / 256.0;
+      const amplitude = sample(freqDataArray, i) / 256.0;
 
       ctx.fillStyle = shapeColor
         .replace("{hue}", `${(i * 360) / bufferLength}`)

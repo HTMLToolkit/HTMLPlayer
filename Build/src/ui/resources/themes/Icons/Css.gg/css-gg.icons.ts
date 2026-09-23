@@ -111,7 +111,6 @@ export const libraries: IconLibraryMap = {
   cssgg: cssggIcons,
 };
 
-// css.gg React icons typically use: className, style, color, size, etc.
 const cssggPropTransformer: IconPropTransformer = (props) => {
   const transformed: Record<string, any> = {};
 

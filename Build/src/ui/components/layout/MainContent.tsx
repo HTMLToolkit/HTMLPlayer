@@ -76,15 +76,12 @@ const SortableSongItem = React.memo(function SortableSongItem({
   const { t } = useTranslation();
   const { open, setOpen, containerRef } = useRightClickMenu(true);
 
-  // Lazy load album art - only loads when component is rendered
-  // Use song.albumArt if already loaded (for newly imported songs), otherwise lazy load
   const lazyAlbumArt = useAlbumArt(
     song.id,
     song.hasAlbumArt || !!song.albumArt,
   );
   const albumArt = song.albumArt || lazyAlbumArt;
 
-  // Use DraggableItem for clean drag functionality, and DropZone if in playlist for reordering
   const songContent = (dragHandleProps?: DragHandleProps) => (
     <div
       className={`${styles.songItem} ${isCurrent ? styles.currentSong : ""}`}
@@ -235,7 +232,7 @@ export const MainContent = ({
   const engineCurrentPlaylist = useKomorebiStore(selectCurrentPlaylist);
 
   const currentPlaylist = engineCurrentPlaylist
-    ? library.getPlaylist(engineCurrentPlaylist.id) ?? engineCurrentPlaylist
+    ? (library.getPlaylist(engineCurrentPlaylist.id) ?? engineCurrentPlaylist)
     : null;
 
   const libraryState: MusicLibrary = React.useMemo(
@@ -263,12 +260,7 @@ export const MainContent = ({
   const [showPlaylistDialog, setShowPlaylistDialog] = useState(false);
   const sortDropdownRef = React.useRef<PersistentDropdownMenuRef>(null);
 
-  const {
-    playSong,
-    addSong,
-    removeSong,
-    toggleFavorite,
-  } = komorebi;
+  const { playSong, addSong, removeSong, toggleFavorite } = komorebi;
 
   const createPlaylist = useCallback(
     (name: string) => {
@@ -293,7 +285,6 @@ export const MainContent = ({
     [library],
   );
 
-  // Clear sorting when entering playlist view
   React.useEffect(() => {
     if (currentPlaylist) {
       setSortBy(null);
@@ -303,25 +294,15 @@ export const MainContent = ({
 
   const songsToDisplay = React.useMemo(() => {
     if (navState.view === "artist" && navState.artist) {
-      return songs.filter(
-        (song: Track) => song.artist === navState.artist,
-      );
+      return songs.filter((song: Track) => song.artist === navState.artist);
     } else if (navState.view === "album" && navState.album) {
-      return songs.filter(
-        (song: Track) => song.album === navState.album,
-      );
+      return songs.filter((song: Track) => song.album === navState.album);
     } else if (currentPlaylist) {
       return currentPlaylist.songs;
     } else {
       return songs;
     }
-  }, [
-    navState.view,
-    navState.artist,
-    navState.album,
-    currentPlaylist,
-    songs,
-  ]);
+  }, [navState.view, navState.artist, navState.album, currentPlaylist, songs]);
 
   const filteredSongs = React.useMemo(() => {
     const query = songSearchQuery.toLowerCase();
@@ -387,13 +368,13 @@ export const MainContent = ({
   );
 
   const handleRating = useCallback(
-    (
-      songId: string,
-      rating: "thumbs-up" | "thumbs-down",
-    ) => {
+    (songId: string, rating: "thumbs-up" | "thumbs-down") => {
       setRatings((prev) => {
         const currentRating = prev[songId];
-        return { ...prev, [songId]: currentRating === rating ? "none" : rating };
+        return {
+          ...prev,
+          [songId]: currentRating === rating ? "none" : rating,
+        };
       });
     },
     [],
@@ -434,12 +415,10 @@ export const MainContent = ({
       return;
     }
 
-    // Check if user has chosen not to show delete confirmation
     const shouldShow = await dialogStorage.shouldShow(
       "delete-song-confirmation",
     );
     if (!shouldShow) {
-      // Delete directly without showing dialog
       const songToDelete = filteredSongs[0];
       if (!songToDelete) return;
       removeSong(songToDelete.id);
@@ -447,7 +426,6 @@ export const MainContent = ({
       return;
     }
 
-    // Show confirmation dialog
     const firstSong = filteredSongs[0];
     if (firstSong) {
       setSongToDelete(firstSong);
@@ -464,7 +442,6 @@ export const MainContent = ({
     }
   };
 
-  // Helper to import audio files (used for both manual and share target)
   const handleImportAudioFiles = async (
     audioFiles: Array<{ file: File } | File>,
   ) => {
@@ -475,7 +452,6 @@ export const MainContent = ({
     await importAudioFiles(audioFiles, wrappedAddSong, t);
   };
 
-  // Manual add music (Uppy)
   const handleAddMusic = async () => {
     try {
       toast.info(t("filePicker.selectFiles"));
@@ -561,7 +537,7 @@ export const MainContent = ({
         viewSwitcher={viewSwitcher}
       />
 
-      {/* Main content */}
+      {}
       {isHomeView ? (
         <div className={styles.homeContent}>
           <Home komorebi={komorebi} onAddMusic={handleAddMusic} />
@@ -608,7 +584,7 @@ export const MainContent = ({
         </div>
       )}
 
-      {/* Add To Popover */}
+      {}
       <AddToPopover
         songs={selectedSongs
           .map((id) => songs.find((s) => s.id === id))

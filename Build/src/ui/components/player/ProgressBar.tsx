@@ -8,7 +8,11 @@ interface ProgressBarProps {
   onSeek: (time: number) => void;
 }
 
-export function ProgressBar({ currentTime, duration, onSeek }: ProgressBarProps) {
+export function ProgressBar({
+  currentTime,
+  duration,
+  onSeek,
+}: ProgressBarProps) {
   const onMove = useCallback(
     (fraction: number) => {
       if (duration) onSeek(fraction * duration);

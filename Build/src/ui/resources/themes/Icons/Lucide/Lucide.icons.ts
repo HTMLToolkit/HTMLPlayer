@@ -6,19 +6,15 @@ import type {
   IconPropTransformer,
 } from "../../../../../types/icons";
 
-// Dynamic library loader - only imports when actually needed
 export const libraries: IconLibraryMap = {};
 
-// Lucide-react accepts: size, color, strokeWidth, absoluteStrokeWidth, etc.
 const lucidePropTransformer: IconPropTransformer = (props) => {
   const transformed: Record<string, any> = {};
 
-  // Lucide uses 'size' prop directly for both width and height
   if (props.size !== undefined) {
     transformed.size = props.size;
   }
 
-  // Pass color and stroke props as-is
   if (props.color !== undefined) transformed.color = props.color;
   if (props.stroke !== undefined) transformed.stroke = props.stroke;
   if (props.strokeWidth !== undefined)

@@ -22,7 +22,6 @@
   z-index: var(--z-overlay);
 }
 
-/* Mobile overlay: full screen sheet */
 @media (max-width: 768px) {
   .backdrop {
     display: block;

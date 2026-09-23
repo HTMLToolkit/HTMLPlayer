@@ -57,7 +57,6 @@ export const SongActionsDropdown = ({
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showInfoDialog, setShowInfoDialog] = useState(false);
 
-  // Use external state if provided, otherwise use internal state
   const [internalOpen, setInternalOpen] = useState(false);
   const open = externalOpen !== undefined ? externalOpen : internalOpen;
   const setOpen = externalOnOpenChange || setInternalOpen;
@@ -246,7 +245,6 @@ export const SongActionsDropdown = ({
   const handleShowSongInfo = () => setShowInfoDialog(true);
 
   const handleShare = async () => {
-    // Share just the song info, not the current URL
     const shareText = t("listenToSong", {
       song: song.title,
       artist: song.artist,
@@ -280,7 +278,9 @@ export const SongActionsDropdown = ({
         toast.success(t("songInfoCopied"));
       } catch (clipboardError) {
         if (clipboardError instanceof Error) {
-          logger.error("Failed to copy to clipboard:", { error: clipboardError.message });
+          logger.error("Failed to copy to clipboard:", {
+            error: clipboardError.message,
+          });
         } else {
           logger.error("Failed to copy to clipboard");
         }
@@ -306,18 +306,15 @@ export const SongActionsDropdown = ({
   };
 
   const handleDeleteSong = async () => {
-    // Check if user has chosen not to show delete confirmation
     const shouldShow = await dialogStorage.shouldShow(
       "delete-song-confirmation",
     );
     if (!shouldShow) {
-      // Delete directly without showing dialog
       onRemoveSong(song.id);
       toast.success(t("deletedFromLibrary", { song: song.title }));
       return;
     }
 
-    // Show confirmation dialog
     setShowDeleteDialog(true);
   };
 
@@ -388,7 +385,7 @@ export const SongActionsDropdown = ({
         </DropdownMenuItem>
       </DropdownMenuContent>
 
-      {/* Add To Popover */}
+      {}
       <AddToPopover
         songs={[song]}
         library={library}
@@ -400,7 +397,7 @@ export const SongActionsDropdown = ({
         onOpenChange={setShowAddToPopover}
       />
 
-      {/* Delete Confirmation Dialog */}
+      {}
       <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <DialogContent dontShowAgainKey="delete-song-confirmation">
           <DialogHeader>
@@ -423,7 +420,7 @@ export const SongActionsDropdown = ({
         </DialogContent>
       </Dialog>
 
-      {/* Song Info Dialog */}
+      {}
       <Dialog open={showInfoDialog} onOpenChange={setShowInfoDialog}>
         <DialogContent>
           <DialogHeader>

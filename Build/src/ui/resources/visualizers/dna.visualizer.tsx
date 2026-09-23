@@ -1,4 +1,8 @@
-import { VisualizerType, getByteFrequencyData } from "../../../platform/visualizers";
+import {
+  getByteFrequencyData,
+  sample,
+  VisualizerType,
+} from "../../../platform/visualizers";
 
 const dnaSpectrogram: VisualizerType = {
   name: "DNA Helix Spectrogram",
@@ -34,7 +38,7 @@ const dnaSpectrogram: VisualizerType = {
 
       for (let i = 0; i < points; i++) {
         const freqIndex = Math.floor(i + strand * points);
-        const amplitude = (freqDataArray[freqIndex] ?? 0) / 256.0;
+        const amplitude = sample(freqDataArray, freqIndex) / 256.0;
 
         const progress = i / points;
         const x = progress * canvas.width;

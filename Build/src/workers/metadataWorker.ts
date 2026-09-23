@@ -16,7 +16,6 @@ const logger = {
   },
 };
 
-// Constants for missing metadata (will be translated in main thread)
 const UNKNOWN_ARTIST = "__UNKNOWN_ARTIST__";
 const UNKNOWN_ALBUM = "__UNKNOWN_ALBUM__";
 
@@ -29,7 +28,7 @@ interface SyncedLyricsData extends BaseLyricsData {
   synced: true;
   lines: Array<{
     text: string;
-    timestamp: number; // in milliseconds
+    timestamp: number;
   }>;
 }
 
@@ -66,13 +65,12 @@ async function compressAlbumArt(
   base64: string,
   maxSize = 200,
 ): Promise<string> {
-  // Check if it's an animated format
   const isAnimatedFormat =
     base64.startsWith("data:image/webp") || base64.startsWith("data:image/gif");
 
   if (isAnimatedFormat) {
     logger.debug("Skipping compression for animated image");
-    return base64; // Return original to preserve animation
+    return base64;
   }
 
   return new Promise((resolve, reject) => {
@@ -85,7 +83,6 @@ async function compressAlbumArt(
       let width = img.width;
       let height = img.height;
 
-      // Resize if too large (maintain aspect ratio)
       if (width > maxSize || height > maxSize) {
         if (width > height) {
           height = Math.round((height / width) * maxSize);
@@ -105,17 +102,14 @@ async function compressAlbumArt(
         return;
       }
 
-      // Draw and compress
       ctx.drawImage(img, 0, 0, width, height);
 
-      // Compress to JPEG at 70% quality
       const compressed = canvas.toDataURL("image/jpeg", 0.7);
 
       logger.debug(
         `Album art compressed: ${(base64.length / 1024).toFixed(1)}KB → ${(compressed.length / 1024).toFixed(1)}KB`,
       );
 
-      // Clean up the canvas to free memory
       canvas.width = 0;
       canvas.height = 0;
 
@@ -211,9 +205,7 @@ function parseLrcValue(lrc: string): EmbeddedLyrics | null {
       lines.push({
         text: trimmed,
         timestamp:
-          lines.length > 0
-            ? (lines[lines.length - 1]?.timestamp ?? 0)
-            : 0,
+          lines.length > 0 ? (lines[lines.length - 1]?.timestamp ?? 0) : 0,
       });
     }
   }
@@ -255,7 +247,6 @@ function parseItunesGapless(value: unknown): GaplessInfo | null {
   const hexMatches = cleaned.match(/[0-9A-Fa-f]{8}/g);
   if (!hexMatches || hexMatches.length < 3) return null;
 
-  // hexMatches.length >= 3 verified above, so indices 1 and 2 exist
   const delayHex = hexMatches[1]!;
   const paddingHex = hexMatches[2]!;
 
@@ -293,7 +284,6 @@ function mergeGaplessInfo(
   return Object.keys(result).length > 0 ? result : undefined;
 }
 
-// Worker receives file and processes metadata
 self.onmessage = async (event: MessageEvent) => {
   const { file, fileName } = event.data;
 
@@ -319,12 +309,13 @@ self.onmessage = async (event: MessageEvent) => {
         reader.readAsDataURL(blob);
       });
 
-      // Compress before sending back to main thread
       try {
         albumArt = await compressAlbumArt(base64);
       } catch (error) {
-        logger.warn("Worker: Failed to compress album art:", { error: String(error) });
-        albumArt = base64; // Fallback to original
+        logger.warn("Worker: Failed to compress album art:", {
+          error: String(error),
+        });
+        albumArt = base64;
       }
     }
 

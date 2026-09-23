@@ -36,10 +36,6 @@ const ModalContainer = forwardRef<
   const { t } = useTranslation();
   const [dontShowAgain, setDontShowAgain] = useState(false);
 
-  // Reset checkbox when dialog is opened
-  // ModalPrimitive.Content receives 'open' prop via ModalPrimitive.Root context
-  // Use effect to reset when dialog opens
-  // We can use ModalPrimitive.Content's 'onOpenAutoFocus' event as a reliable trigger
   const handleOpenAutoFocus = () => {
     setDontShowAgain(false);
   };

@@ -1,4 +1,8 @@
-import { VisualizerType, getByteTimeDomainData } from "../../../platform/visualizers";
+import {
+  getByteTimeDomainData,
+  sample,
+  VisualizerType,
+} from "../../../platform/visualizers";
 
 const fracturedPrism: VisualizerType = {
   name: "Fractured Prism",
@@ -37,7 +41,7 @@ const fracturedPrism: VisualizerType = {
       ctx.lineWidth = 2;
 
       for (let i = 0; i < bufferLength; i++) {
-        const v = (timeDataArray[i] ?? 0) / 128.0;
+        const v = sample(timeDataArray, i) / 128.0;
         const displacement =
           Math.sin(i * 0.05 + (layer * Math.PI) / 3) * displacementScale;
         const y = centerY + v * displacement;

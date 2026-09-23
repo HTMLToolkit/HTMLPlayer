@@ -1,4 +1,8 @@
-import { VisualizerType, getByteFrequencyData } from "../../../platform/visualizers";
+import {
+  getByteFrequencyData,
+  sample,
+  VisualizerType,
+} from "../../../platform/visualizers";
 
 const organicSpectrogram: VisualizerType = {
   name: "Organic Growth Spectrogram",
@@ -30,7 +34,7 @@ const organicSpectrogram: VisualizerType = {
 
     for (let i = 0; i < bufferLength; i++) {
       const angle = (i * growthAngle * Math.PI) / 180;
-      const amplitude = (freqDataArray[i] ?? 0) / 256.0;
+      const amplitude = sample(freqDataArray, i) / 256.0;
       const radius = (amplitude * i) / 2;
 
       const x = centerX + radius * Math.cos(angle);

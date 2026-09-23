@@ -9,7 +9,7 @@ const AnalogClock: React.FC<{ now: Date }> = ({ now }) => {
 
   return (
     <div style={{ position: "relative", width: 300, height: 300 }}>
-      {/* Clock face */}
+      {}
       <div
         style={{
           position: "absolute",
@@ -22,7 +22,7 @@ const AnalogClock: React.FC<{ now: Date }> = ({ now }) => {
         }}
       />
 
-      {/* Hour markers */}
+      {}
       {Array.from({ length: 12 }, (_, i) => (
         <div
           key={i}
@@ -39,7 +39,7 @@ const AnalogClock: React.FC<{ now: Date }> = ({ now }) => {
         />
       ))}
 
-      {/* Minute markers */}
+      {}
       {Array.from({ length: 60 }, (_, i) => (
         <div
           key={i}
@@ -56,7 +56,7 @@ const AnalogClock: React.FC<{ now: Date }> = ({ now }) => {
         />
       ))}
 
-      {/* Hour hand */}
+      {}
       <div
         style={{
           position: "absolute",
@@ -71,7 +71,7 @@ const AnalogClock: React.FC<{ now: Date }> = ({ now }) => {
         }}
       />
 
-      {/* Minute hand */}
+      {}
       <div
         style={{
           position: "absolute",
@@ -86,7 +86,7 @@ const AnalogClock: React.FC<{ now: Date }> = ({ now }) => {
         }}
       />
 
-      {/* Second hand */}
+      {}
       <div
         style={{
           position: "absolute",
@@ -101,7 +101,7 @@ const AnalogClock: React.FC<{ now: Date }> = ({ now }) => {
         }}
       />
 
-      {/* Center dot */}
+      {}
       <div
         style={{
           position: "absolute",
@@ -135,7 +135,7 @@ const ClockWallpaper: React.FC<WallpaperProps> = () => {
   const [now, setNow] = useState(new Date());
   const [isAnalog, setIsAnalog] = useState(() => {
     const stored = localStorage.getItem("clock-mode");
-    return stored ? stored === "analog" : false; // Default to digital
+    return stored ? stored === "analog" : false;
   });
 
   useEffect(() => {

@@ -56,7 +56,7 @@ export function useDragHandler(komorebi: UseKomorebiReturn) {
       if (dragItem.type === "song" && dropZone.type === "song") {
         const enginePlaylist = currentEnginePlaylist;
         const currentPlaylist = enginePlaylist
-          ? library.getPlaylist(enginePlaylist.id) ?? enginePlaylist
+          ? (library.getPlaylist(enginePlaylist.id) ?? enginePlaylist)
           : null;
         if (currentPlaylist) {
           const songs = [...currentPlaylist.songs];

@@ -1,4 +1,8 @@
-import { VisualizerType, getByteFrequencyData } from "../../../platform/visualizers";
+import {
+  getByteFrequencyData,
+  sample,
+  VisualizerType,
+} from "../../../platform/visualizers";
 
 const quantumSpectrogram: VisualizerType = {
   name: "Quantum Field",
@@ -32,7 +36,7 @@ const quantumSpectrogram: VisualizerType = {
     for (let i = 0; i < cols; i++) {
       for (let j = 0; j < rows; j++) {
         const freqIndex = Math.floor((i + j) % bufferLength);
-        const amplitude = (freqDataArray[freqIndex] ?? 0) / 256.0;
+        const amplitude = sample(freqDataArray, freqIndex) / 256.0;
         const probability = Math.random() * amplitude;
 
         if (probability > probabilityThreshold) {

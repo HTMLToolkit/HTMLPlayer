@@ -1,4 +1,3 @@
-/* Main content container */
 .mainContent {
   flex: 1;
   padding: var(--spacing-6);
@@ -6,7 +5,7 @@
   border-radius: var(--radius-lg) var(--radius-lg) 0 0;
   background: transparent;
   backdrop-filter: blur(10px);
-  padding-bottom: 190px; /* Space for fixed player */
+  padding-bottom: 190px;
 }
 
 .mainContentWrapper {
@@ -76,7 +75,6 @@
 
 .mobileMenuButton {
   display: none;
-  /* Hidden by default on desktop */
   flex-shrink: 0;
 }
 
@@ -85,7 +83,7 @@
   font-weight: 600;
   color: var(--primary-foreground);
   margin: 0;
-  word-break: break-word; /* Prevent overflow */
+  word-break: break-word;
 }
 
 .homeTitleRail {
@@ -151,8 +149,8 @@
   display: flex;
   gap: var(--spacing-2);
   align-items: center;
-  flex-wrap: wrap; /* Wrap buttons on narrow screens */
-  min-width: 0; /* Allow shrinking */
+  flex-wrap: wrap;
+  min-width: 0;
 }
 
 .actionButton {
@@ -236,7 +234,6 @@
   color: var(--primary);
 }
 
-/* Responsive design */
 .desktopOnly {
   display: block;
 }
@@ -270,22 +267,21 @@
   }
 
   .title {
-    font-size: 1.25rem; /* Smaller title on mobile */
+    font-size: 1.25rem;
   }
 
   .viewSwitcher {
-    width: auto; /* Allow it to shrink */
+    width: auto;
     justify-content: flex-end;
   }
 
   .viewSwitchButton {
-    min-height: 36px; /* Smaller button height */
+    min-height: 36px;
     padding: 0 0.75rem;
     font-size: 0.75rem;
   }
 }
 
-/* Song list */
 .songList {
   background: var(--themecolor2-transparent);
   border-radius: var(--radius-lg);
@@ -296,7 +292,7 @@
   flex: 1;
   overflow-y: auto;
   padding: var(--spacing-6);
-  padding-bottom: 190px; /* Keep space for fixed player */
+  padding-bottom: 190px;
   max-height: calc(100vh - 220px);
   min-height: 300px;
 }
@@ -495,12 +491,10 @@
   grid-column: 1 / -1;
 }
 
-/* Responsive adjustments */
 @media (max-width: 768px) {
   .mainContent {
     padding: var(--spacing-4);
     padding-bottom: 220px;
-    /* Increased space for mobile player */
   }
 
   .header {
@@ -517,17 +511,15 @@
 
   .mobileMenuButton {
     display: flex;
-    /* Show on mobile */
     min-height: 48px;
     min-width: 48px;
-    /* Larger tap target */
     color: var(--primary-foreground);
   }
 
   .titleArea {
     gap: var(--spacing-2);
     width: 100%;
-    justify-content: space-between; /* Ensure title and switcher are spaced */
+    justify-content: space-between;
   }
 
   .buttonGroup {
@@ -536,7 +528,6 @@
     overflow-x: auto;
     width: 100%;
     padding-bottom: 4px;
-    /* Hide scrollbar */
     scrollbar-width: none;
     -ms-overflow-style: none;
   }
@@ -557,7 +548,6 @@
 
   .actionButton {
     min-height: 44px;
-    /* Touch-friendly size */
     min-width: 44px;
     flex-shrink: 0;
   }

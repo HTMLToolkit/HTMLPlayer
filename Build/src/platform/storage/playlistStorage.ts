@@ -28,9 +28,7 @@ export const playlistStorage = {
       const req = store.getAll();
       req.onsuccess = () => {
         const raw = req.result;
-        const playlists = Array.isArray(raw)
-          ? raw.filter(isPlaylistItem)
-          : [];
+        const playlists = Array.isArray(raw) ? raw.filter(isPlaylistItem) : [];
         resolve(playlists);
       };
       req.onerror = () => reject(req.error);
@@ -65,10 +63,12 @@ export const favoritesStorage = {
       req.onsuccess = () => {
         const results = req.result;
         const ids = Array.isArray(results)
-          ? results.filter(
-              (r): r is { id: string } =>
-                isPlainObject(r) && typeof r.id === "string",
-            ).map((r) => r.id)
+          ? results
+              .filter(
+                (r): r is { id: string } =>
+                  isPlainObject(r) && typeof r.id === "string",
+              )
+              .map((r) => r.id)
           : [];
         resolve(ids);
       };

@@ -1,9 +1,6 @@
 import type { SessionState } from "./utils/session";
 import type { RepeatMode, SettingsState, ThemeMode } from "./settings/types";
-import {
-  isPlainObject,
-  isRepeatMode,
-} from "../core/engine/validators";
+import { isPlainObject, isRepeatMode } from "../core/engine/validators";
 
 const THEME_MODES: readonly ThemeMode[] = ["light", "dark", "auto"];
 

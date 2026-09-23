@@ -1,4 +1,8 @@
-import { VisualizerType, getByteTimeDomainData } from "../../../platform/visualizers";
+import {
+  getByteTimeDomainData,
+  sample,
+  VisualizerType,
+} from "../../../platform/visualizers";
 
 const geometricPulse: VisualizerType = {
   name: "Geometric Pulse",
@@ -30,7 +34,7 @@ const geometricPulse: VisualizerType = {
     let x = 0;
 
     for (let i = 0; i < bufferLength; i += shapeInterval) {
-      const v = (timeDataArray[i] ?? 0) / 128.0;
+      const v = sample(timeDataArray, i) / 128.0;
       const height = v * canvas.height * heightScale;
 
       ctx.beginPath();

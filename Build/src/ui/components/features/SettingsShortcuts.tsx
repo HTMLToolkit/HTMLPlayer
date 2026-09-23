@@ -7,7 +7,9 @@ interface SettingsShortcutsProps {
   onShortcutsChanged?: () => void;
 }
 
-export const SettingsShortcuts = ({ onShortcutsChanged }: SettingsShortcutsProps) => {
+export const SettingsShortcuts = ({
+  onShortcutsChanged,
+}: SettingsShortcutsProps) => {
   const { t } = useTranslation();
 
   return (
@@ -19,9 +21,7 @@ export const SettingsShortcuts = ({ onShortcutsChanged }: SettingsShortcutsProps
           size="1.25rem"
           decorative
         />
-        <h3 className={styles.sectionTitle}>
-          {t("settings.shortcuts.title")}
-        </h3>
+        <h3 className={styles.sectionTitle}>{t("settings.shortcuts.title")}</h3>
       </div>
       <ShortcutConfig onShortcutsChanged={onShortcutsChanged} />
     </section>

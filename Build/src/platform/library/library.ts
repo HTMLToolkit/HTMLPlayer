@@ -60,8 +60,8 @@ export class LibraryManager implements LibraryActions {
     const index = this.state.songs.findIndex((s) => s.id === songId);
     if (index === -1) return;
 
-    this.state.songs[index] = { ...this.state.songs[index]!, ...updates }; // index !== -1 checked above, so songs[index] is set
-    this.emit("songupdated", this.state.songs[index]!); // just assigned on the line above
+    this.state.songs[index] = { ...this.state.songs[index]!, ...updates };
+    this.emit("songupdated", this.state.songs[index]!);
   }
 
   getSong(songId: string): Track | undefined {
@@ -217,7 +217,10 @@ export class LibraryManager implements LibraryActions {
     const target = this.findItem(this.state.playlists, targetFolderId);
     if (!target || !("children" in target.item)) return;
 
-    if ("children" in node.item && this.isDescendant(node.item, targetFolderId)) {
+    if (
+      "children" in node.item &&
+      this.isDescendant(node.item, targetFolderId)
+    ) {
       return;
     }
 

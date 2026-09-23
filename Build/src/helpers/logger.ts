@@ -41,7 +41,10 @@ export const createLogger = (scope: string) => {
   };
 };
 
-export const throwError = (message: string, data?: Record<string, unknown>): never => {
+export const throwError = (
+  message: string,
+  data?: Record<string, unknown>,
+): never => {
   satori.rootLogger.error(message, { state: { ...data, fatal: true } });
   throw new Error(message);
 };

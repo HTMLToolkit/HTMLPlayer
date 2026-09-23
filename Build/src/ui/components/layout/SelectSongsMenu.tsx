@@ -40,8 +40,15 @@ export function SelectSongsMenu({
       onClose={onToggle}
     >
       <Button variant="ghost" onClick={handleSelectAll}>
-        <Icon name="listChecks" size={16} style={{ marginRight: 8 }} decorative />
-        {selectedCount === totalCount ? t("actions.deselectAll") : t("actions.selectAll")}
+        <Icon
+          name="listChecks"
+          size={16}
+          style={{ marginRight: 8 }}
+          decorative
+        />
+        {selectedCount === totalCount
+          ? t("actions.deselectAll")
+          : t("actions.selectAll")}
       </Button>
       <Button variant="ghost" onClick={onAddToPlaylist}>
         <Icon name="plus" size={16} style={{ marginRight: 8 }} decorative />

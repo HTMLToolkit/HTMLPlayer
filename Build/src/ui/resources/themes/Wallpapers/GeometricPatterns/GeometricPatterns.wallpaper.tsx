@@ -74,7 +74,6 @@ const GeometricPatternsWallpaper: React.FC<WallpaperProps> = () => {
 
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      // Set up stroke style
       ctx.strokeStyle = `hsl(${(timeRef.current * 10) % 360}, 70%, 60%)`;
       ctx.lineWidth = 2;
 

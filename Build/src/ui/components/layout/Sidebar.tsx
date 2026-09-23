@@ -76,7 +76,6 @@ export const Sidebar = memo(
       };
     }, [komorebi.library, komorebi.settings]);
 
-    // Detect mobile viewport
     useEffect(() => {
       const checkMobile = () => {
         setIsMobile(window.innerWidth <= 768);
@@ -88,7 +87,6 @@ export const Sidebar = memo(
       return () => window.removeEventListener("resize", checkMobile);
     }, []);
 
-    // Update CSS custom property when collapsed state changes
     useLayoutEffect(() => {
       document.documentElement.style.setProperty(
         "--sidebar-width",
@@ -96,7 +94,6 @@ export const Sidebar = memo(
       );
     }, [isCollapsed]);
 
-    // Use external settings state if provided, otherwise use internal state
     const isSettingsOpen = settingsOpen !== undefined ? settingsOpen : false;
     const setSettingsOpen = onSettingsOpenChange || (() => {});
 
@@ -110,10 +107,8 @@ export const Sidebar = memo(
 
     const handleMenuClick = () => {
       if (isMobile) {
-        // On mobile, close the sidebar overlay
         onMobileOpenChange?.(false);
       } else {
-        // On desktop, toggle collapse
         const newCollapsedState = !isCollapsed;
         setIsCollapsed(newCollapsedState);
         onCollapseChange?.(newCollapsedState);
@@ -131,7 +126,6 @@ export const Sidebar = memo(
       }
     };
 
-    // On desktop, show collapsed sliver
     if (isCollapsed && !isMobile) {
       return (
         <div
@@ -153,7 +147,7 @@ export const Sidebar = memo(
 
     return (
       <>
-        {/* Backdrop for mobile overlay */}
+        {}
         {isMobile && isMobileOpen && (
           <div
             className={styles.backdrop}
@@ -213,7 +207,7 @@ export const Sidebar = memo(
             />
           </div>
 
-          {/* About Modal */}
+          {}
           <Dialog open={showAbout} onOpenChange={setShowAbout}>
             <DialogContent>
               <DialogHeader>
@@ -303,10 +297,6 @@ export const Sidebar = memo(
     );
   },
   (prevProps, nextProps) => {
-    // The library/settings managers are stable singletons created once by the
-    // hook, so identity comparison only skips when nothing this subtree renders
-    // actually changed. Content changes arrive via the internal subscriptions
-    // above, not through prop identity.
     return (
       prevProps.komorebi.library === nextProps.komorebi.library &&
       prevProps.komorebi.settings === nextProps.komorebi.settings &&

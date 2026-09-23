@@ -66,9 +66,7 @@ export interface PlaylistFolder {
 
 export type PlaylistItem = Playlist | PlaylistFolder;
 
-export type QueueCursor =
-  | { kind: "empty" }
-  | { kind: "active"; index: number };
+export type QueueCursor = { kind: "empty" } | { kind: "active"; index: number };
 
 export interface QueueState {
   tracks: Track[];

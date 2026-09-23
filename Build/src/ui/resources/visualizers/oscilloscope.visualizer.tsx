@@ -1,4 +1,8 @@
-import { VisualizerType, getByteTimeDomainData } from "../../../platform/visualizers";
+import {
+  getByteTimeDomainData,
+  sample,
+  VisualizerType,
+} from "../../../platform/visualizers";
 
 const oscilloscope: VisualizerType = {
   name: "Oscilloscope",
@@ -35,7 +39,7 @@ const oscilloscope: VisualizerType = {
     let x = 0;
 
     for (let i = 0; i < bufferLength; i++) {
-      const v = (timeDataArray[i] ?? 0) / 128.0;
+      const v = sample(timeDataArray, i) / 128.0;
       const y = (v * canvas.height) / 2;
 
       if (i === 0) ctx.moveTo(x, y);

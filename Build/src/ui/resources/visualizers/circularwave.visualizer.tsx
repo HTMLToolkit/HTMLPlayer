@@ -1,4 +1,8 @@
-import { VisualizerType, getByteTimeDomainData } from "../../../platform/visualizers";
+import {
+  getByteTimeDomainData,
+  sample,
+  VisualizerType,
+} from "../../../platform/visualizers";
 
 const circularWave: VisualizerType = {
   name: "Circular Wave",
@@ -32,7 +36,7 @@ const circularWave: VisualizerType = {
     ctx.beginPath();
     for (let i = 0; i < bufferLength; i++) {
       const angle = (i * 2 * Math.PI) / bufferLength;
-      const value = (timeDataArray[i] ?? 0) / 128.0 - 1;
+      const value = sample(timeDataArray, i) / 128.0 - 1;
       const r = radius + value * waveAmplitude;
       const x = centerX + r * Math.cos(angle);
       const y = centerY + r * Math.sin(angle);

@@ -1,4 +1,8 @@
-import { VisualizerType, getByteFrequencyData } from "../../../platform/visualizers";
+import {
+  getByteFrequencyData,
+  sample,
+  VisualizerType,
+} from "../../../platform/visualizers";
 
 const galaxySpectrogram: VisualizerType = {
   name: "Galaxy Formation",
@@ -33,7 +37,7 @@ const galaxySpectrogram: VisualizerType = {
     for (let arm = 0; arm < arms; arm++) {
       for (let i = 0; i < particlesPerArm; i++) {
         const freqIndex = Math.floor(arm * particlesPerArm + i);
-        const amplitude = (freqDataArray[freqIndex] ?? 0) / 256.0;
+        const amplitude = sample(freqDataArray, freqIndex) / 256.0;
 
         const rotation =
           (i / particlesPerArm) * 2 * Math.PI + (arm * 2 * Math.PI) / arms;

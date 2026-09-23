@@ -22,17 +22,16 @@ import { Icon } from "../shared/Icon";
 import dragStyles from "./Draggable.module.css";
 import { useTranslation } from "react-i18next";
 
-// Types for our drag operations
 export interface DragItem {
   id: string;
   type: "song" | "playlist" | "folder";
-  data: DraggableData | undefined; // The actual song/playlist/folder payload
+  data: DraggableData | undefined;
 }
 
 export interface DropZone {
   id: string;
   type: "playlist" | "folder" | "root" | "song";
-  data: DraggableData | undefined; // The target playlist/folder/song payload
+  data: DraggableData | undefined;
 }
 
 export type DragOperationHandler = (
@@ -70,28 +69,21 @@ interface DropZoneProps {
   className?: string;
 }
 
-// Context for sharing drag state
 const DragContext = React.createContext<{
   activeItem: DragItem | null;
 }>({
   activeItem: null,
 });
 
-// Main provider component
-// Custom collision detection that prioritizes based on spatial context
 const customCollisionDetection: CollisionDetection = (args) => {
-  // Try multiple collision detection strategies
-  // pointerWithin is more lenient than rectIntersection
   let intersections = pointerWithin(args);
 
-  // Fall back to closestCenter if no pointer intersections
   if (!intersections || intersections.length === 0) {
     intersections = closestCenter(args);
   }
 
   if (!intersections || !intersections.length) return intersections || [];
 
-  // If we have multiple intersections, use spatial logic to determine intent
   const songIntersections = intersections.filter((intersection) =>
     intersection.id.toString().startsWith("song::"),
   );
@@ -100,9 +92,7 @@ const customCollisionDetection: CollisionDetection = (args) => {
     intersection.id.toString().startsWith("playlist::"),
   );
 
-  // If we have both song and playlist intersections, check spatial position
   if (songIntersections.length > 0 && playlistIntersections.length > 0) {
-    // Get the pointer position from the drag event
     const { pointerCoordinates } = args;
 
     if (pointerCoordinates) {
@@ -110,7 +100,6 @@ const customCollisionDetection: CollisionDetection = (args) => {
         return playlistIntersections;
       }
 
-      // Otherwise, prefer song reordering (main content area)
       return songIntersections;
     }
   }
@@ -128,8 +117,8 @@ export const DraggableProvider: React.FC<DraggableProviderProps> = ({
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
-        distance: 10, // Enough distance to prevent accidental drags on clicks
-        delay: 100, // Small delay to distinguish clicks from drags
+        distance: 10,
+        delay: 100,
         tolerance: 5,
       },
     }),
@@ -207,7 +196,6 @@ export const DraggableProvider: React.FC<DraggableProviderProps> = ({
           ?.closest('[data-playlist-drop-zone="true"]');
 
         if (isHoveringPlaylist) {
-          // Enhanced preview for dragging TO playlists
           return (
             <div className={dragStyles.songPreview}>
               <Icon
@@ -227,14 +215,11 @@ export const DraggableProvider: React.FC<DraggableProviderProps> = ({
             </div>
           );
         } else {
-          // No preview for reordering within playlists - song titles are already visible
           return null;
         }
       case "playlist":
-        // No preview for playlists - they're in the sidebar and visible
         return null;
       case "folder":
-        // No preview for folders - they're in the sidebar and visible
         return null;
       default:
         return null;
@@ -264,7 +249,6 @@ export const DraggableProvider: React.FC<DraggableProviderProps> = ({
   );
 };
 
-// Draggable item component
 export const DraggableItem: React.FC<DraggableItemProps> = ({
   id,
   type,
@@ -286,22 +270,24 @@ export const DraggableItem: React.FC<DraggableItemProps> = ({
       }
     : undefined;
 
-  // If using drag handle, pass listeners via render prop or inject into children
   const renderChildren = (): React.ReactNode => {
     if (useDragHandle && typeof children === "function") {
-      // Render prop pattern - call the function with drag handle props
       return children({ listeners, attributes });
     } else if (
       useDragHandle &&
       typeof children !== "function" &&
       React.isValidElement(children)
     ) {
-      // Clone children and inject drag listeners for any DragHandle components
       return React.Children.map(children, (child) => {
         if (React.isValidElement(child)) {
-          return React.cloneElement(child as React.ReactElement<{ __dragListeners?: DraggableSyntheticListeners }>, {
-            __dragListeners: listeners,
-          });
+          return React.cloneElement(
+            child as React.ReactElement<{
+              __dragListeners?: DraggableSyntheticListeners;
+            }>,
+            {
+              __dragListeners: listeners,
+            },
+          );
         }
         return child;
       });
@@ -323,7 +309,6 @@ export const DraggableItem: React.FC<DraggableItemProps> = ({
   );
 };
 
-// Drag handle component, only this element initiates drag when useDragHandle is true
 export const DragHandle: React.FC<{
   children: React.ReactNode;
   className?: string;
@@ -331,7 +316,6 @@ export const DragHandle: React.FC<{
   attributes?: DragHandleProps["attributes"];
   __dragListeners?: DraggableSyntheticListeners;
 }> = ({ children, className, listeners, attributes, __dragListeners }) => {
-  // Use explicit props first, fall back to injected props
   const dragListeners = listeners || __dragListeners;
   return (
     <div
@@ -344,7 +328,6 @@ export const DragHandle: React.FC<{
   );
 };
 
-// Drop zone component
 export const DropZone: React.FC<DropZoneProps> = ({
   id,
   type,
@@ -371,7 +354,6 @@ export const DropZone: React.FC<DropZoneProps> = ({
   );
 };
 
-// Combined draggable and droppable component
 export const DraggableDropZone: React.FC<{
   dragId: string;
   dragType: "song" | "playlist" | "folder";
@@ -440,7 +422,6 @@ export const DraggableDropZone: React.FC<{
   );
 };
 
-// Hook to use drag context
 export const useDragContext = () => {
   return React.useContext(DragContext);
 };

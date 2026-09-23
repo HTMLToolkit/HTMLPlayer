@@ -25,7 +25,9 @@ export class FloMetadataExtractor extends BaseMetadataExtractor {
       this.floDecoder = flo;
       this.initialized = true;
     } catch (error) {
-      logger.error("Failed to initialize flo decoder:", { error: String(error) });
+      logger.error("Failed to initialize flo decoder:", {
+        error: String(error),
+      });
       throw error;
     }
   }

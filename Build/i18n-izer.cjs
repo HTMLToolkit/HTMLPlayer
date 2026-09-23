@@ -3,7 +3,6 @@
 const fs = require("fs");
 const path = require("path");
 
-// ANSI color codes
 const COLORS = {
   reset: "\x1b[0m",
   yellow: "\x1b[33m",
@@ -50,7 +49,6 @@ function scanFile(filePath) {
   lines.forEach((line, index) => {
     if (/^\s*(import|export)\s/.test(line) || /require\s*\(/.test(line)) return;
 
-    // Track multi-line console calls
     if (ignoreConsole) {
       if (!inConsoleCall && /console\.\w+\s*\(/.test(line)) {
         inConsoleCall = true;
@@ -58,7 +56,6 @@ function scanFile(filePath) {
       }
 
       if (inConsoleCall) {
-        // Count parentheses to track when the console call ends
         for (let char of line) {
           if (char === '(') parenDepth++;
           if (char === ')') parenDepth--;
@@ -72,7 +69,6 @@ function scanFile(filePath) {
       }
     }
 
-    // Track multi-line throw statements
     if (ignoreThrows) {
       if (!inThrowStatement && /(throw\s+new\s+\w*Error\s*\(|reject\s*\(\s*new\s+\w*Error\s*\()/.test(line)) {
         inThrowStatement = true;
@@ -80,7 +76,6 @@ function scanFile(filePath) {
       }
 
       if (inThrowStatement) {
-        // Count parentheses to track when the throw statement ends
         for (let char of line) {
           if (char === '(') parenDepth++;
           if (char === ')') parenDepth--;
@@ -101,7 +96,6 @@ function scanFile(filePath) {
       report(filePath, index + 1, text, "string");
     }
 
-    // Skip JSX text extraction for lines that look like TypeScript type annotations
     if (!/\bas\s+\w+<|Promise<|Array<|Map<|Set</.test(line)) {
       while ((match = jsxTextRegex.exec(line)) !== null) {
         const text = match[1].trim();

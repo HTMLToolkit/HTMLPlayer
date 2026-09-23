@@ -61,7 +61,9 @@ export class DuplicateDetector {
         existing.push(track);
         hashToTracks.set(hash, existing);
       } catch (error) {
-        logger.error(`Failed to hash track ${track.id}:`, { error: String(error) });
+        logger.error(`Failed to hash track ${track.id}:`, {
+          error: String(error),
+        });
       }
     }
 
@@ -70,7 +72,7 @@ export class DuplicateDetector {
     for (const [_hash, trackGroup] of hashToTracks) {
       if (trackGroup.length > 1) {
         duplicates.push({
-          representative: trackGroup[0]!, // length > 1 guarantees index 0 exists
+          representative: trackGroup[0]!,
           duplicates: trackGroup.slice(1),
         });
       }
@@ -94,7 +96,7 @@ export class DuplicateDetector {
     for (const [_signature, trackGroup] of signatureToTracks) {
       if (trackGroup.length > 1) {
         duplicates.push({
-          representative: trackGroup[0]!, // length > 1 guarantees index 0 exists
+          representative: trackGroup[0]!,
           duplicates: trackGroup.slice(1),
         });
       }

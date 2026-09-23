@@ -1,7 +1,8 @@
 import {
-  VisualizerType,
   getByteFrequencyData,
+  sample,
   visualizerStates,
+  VisualizerType,
 } from "../../../platform/visualizers";
 
 const waterSpectrogram: VisualizerType = {
@@ -67,7 +68,7 @@ const waterSpectrogram: VisualizerType = {
       if (!layerPoints) continue;
 
       for (let i = 0; i < connections; i++) {
-        const freq = (freqDataArray[i * connectionStep] ?? 0) * perspective;
+        const freq = sample(freqDataArray, i * connectionStep) * perspective;
         const point = layerPoints[i];
         if (!point) continue;
         point.x = widthStep * i;

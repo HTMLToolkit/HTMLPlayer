@@ -1,4 +1,8 @@
-import { VisualizerType, getByteFrequencyData } from "../../../platform/visualizers";
+import {
+  getByteFrequencyData,
+  sample,
+  VisualizerType,
+} from "../../../platform/visualizers";
 
 const neuralSpectrogram: VisualizerType = {
   name: "Neural Network Visualization",
@@ -29,7 +33,7 @@ const neuralSpectrogram: VisualizerType = {
 
     for (let i = 0; i < connections; i++) {
       const x = (canvas.width / connections) * i;
-      const y = canvas.height / 2 + ((freqDataArray[i] ?? 0) - 128) * 1.5;
+      const y = canvas.height / 2 + (sample(freqDataArray, i) - 128) * 1.5;
       nodes.push({ x, y });
 
       for (let j = 0; j < nodes.length; j++) {

@@ -38,7 +38,6 @@ const MusicViz: React.FC<WallpaperProps> = ({ playbackState }) => {
           ctx.fillRect(i * barWidth, canvas.height - h, Math.ceil(barWidth), h);
         }
       } else {
-        // fallback animation: pulsating circle when playing
         const t = Date.now() / 300;
         const r = 30 + (playbackState?.isPlaying ? (Math.sin(t) + 1) * 40 : 10);
         ctx.beginPath();

@@ -14,7 +14,9 @@ interface MainContentHeaderProps {
   onSearchChange: (query: string) => void;
   sortBy: "name" | "artist" | "album" | "rating" | null;
   sortOrder: "asc" | "desc";
-  onSortByChange: (sortBy: "name" | "artist" | "album" | "rating" | null) => void;
+  onSortByChange: (
+    sortBy: "name" | "artist" | "album" | "rating" | null,
+  ) => void;
   onSortOrderChange: (order: "asc" | "desc") => void;
   selectedSongs: string[];
   sortedSongsCount: number;
@@ -87,12 +89,20 @@ export function MainContentHeader({
             <Icon name="menu" size={24} decorative />
           </Button>
           {navState.view === "artist" && (
-            <Button variant="link" onClick={onBackClick} className={styles.backLink}>
+            <Button
+              variant="link"
+              onClick={onBackClick}
+              className={styles.backLink}
+            >
               {t("actions.back")}
             </Button>
           )}
           {navState.view === "album" && (
-            <Button variant="link" onClick={onBackClick} className={styles.backLink}>
+            <Button
+              variant="link"
+              onClick={onBackClick}
+              className={styles.backLink}
+            >
               {t("actions.back")}
             </Button>
           )}

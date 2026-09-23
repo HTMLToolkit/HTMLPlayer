@@ -1,6 +1,4 @@
-/* Rainbow */
 :root {
-  /* Theme */
   --themegradient: linear-gradient(
     135deg,
     #ff4d4d,
@@ -21,45 +19,34 @@
   --themecolor3: hsl(240, 80%, 65%);
   --themecolor4: hsl(300, 80%, 65%);
 
-  /* Foreground */
   --foreground: hsl(220, 15%, 20%);
 
-  /* Background */
   --background: hsl(0, 0%, 98%);
 
-  /* Surface */
   --surface: hsl(0, 0%, 95%);
 
-  /* Primary */
   --primary: hsl(240, 75%, 60%);
   --primary-foreground: hsl(0, 0%, 0%);
 
-  /* Secondary */
   --secondary: hsl(120, 70%, 45%);
   --secondary-foreground: hsl(0, 0%, 100%);
 
-  /* Sidebar */
   --sidebar: hsl(260, 25%, 25%);
   --sidebar-foreground: hsl(60, 70%, 95%);
 
-  /* Favorites */
   --favorite: hsl(0, 85%, 65%);
   --danger: hsl(0, 85%, 65%);
 
-  /* Cards */
   --card: hsl(0, 0%, 100%);
   --card-rgb: 128, 70, 255;
   --popup: hsl(0, 0%, 100%);
 
-  /* Muted */
   --muted: hsl(300, 15%, 85%);
   --muted-foreground: hsl(260, 10%, 45%);
 
-  /* Error */
   --error: hsl(358, 70%, 60%);
   --error-foreground: hsl(0, 0%, 100%);
 
-  /* Miscellaneous */
   --certain-icons: var(--themecolor3);
   --albumart-gradient: linear-gradient(
     135deg,
@@ -74,7 +61,6 @@
 }
 
 .dark {
-  /* Theme */
   --themegradient: linear-gradient(
     135deg,
     #4a1a1a,
@@ -95,45 +81,34 @@
   --themecolor3: hsl(240, 70%, 65%);
   --themecolor4: hsl(300, 70%, 60%);
 
-  /* Foreground */
   --foreground: hsl(0, 0%, 90%);
 
-  /* Background */
   --background: hsl(260, 20%, 8%);
 
-  /* Surface */
   --surface: hsl(260, 15%, 12%);
 
-  /* Primary */
   --primary: hsl(240, 70%, 65%);
   --primary-foreground: hsl(0, 0%, 100%);
 
-  /* Secondary */
   --secondary: hsl(120, 70%, 55%);
   --secondary-foreground: hsl(0, 0%, 0%);
 
-  /* Sidebar */
   --sidebar: hsl(260, 30%, 10%);
   --sidebar-foreground: hsl(60, 80%, 90%);
 
-  /* Favorites */
   --favorite: hsl(0, 80%, 65%);
   --danger: hsl(0, 80%, 65%);
 
-  /* Cards */
   --card: hsl(260, 15%, 14%);
   --card-rgb: 128, 50, 255;
   --popup: hsl(260, 15%, 14%);
 
-  /* Muted */
   --muted: hsl(260, 15%, 20%);
   --muted-foreground: hsl(0, 0%, 70%);
 
-  /* Error */
   --error: hsl(358, 70%, 55%);
   --error-foreground: hsl(0, 0%, 100%);
 
-  /* Miscellaneous */
   --certain-icons: hsl(240, 70%, 65%);
   --albumart-gradient: linear-gradient(
     135deg,

@@ -87,7 +87,7 @@ export class MusicBrainzProvider
         return null;
       }
 
-      const artistMbid = searchData.artists[0]!.id; // length > 0 checked above, so index 0 is set
+      const artistMbid = searchData.artists[0]!.id;
 
       const relResponse = await fetch(
         `https://musicbrainz.org/ws/2/artist/${artistMbid}?inc=url-rels&fmt=json`,

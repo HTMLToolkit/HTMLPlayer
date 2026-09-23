@@ -11,7 +11,11 @@ interface StoredTrack extends Omit<Track, "hasStoredAudio"> {
   lastAccessed?: number;
 }
 
-function trackToStored(track: Track, audioData?: ArrayBuffer, hasExistingAudio?: boolean): StoredTrack {
+function trackToStored(
+  track: Track,
+  audioData?: ArrayBuffer,
+  hasExistingAudio?: boolean,
+): StoredTrack {
   const hasAudio = !!audioData || hasExistingAudio === true;
   return {
     ...track,
@@ -21,11 +25,21 @@ function trackToStored(track: Track, audioData?: ArrayBuffer, hasExistingAudio?:
   };
 }
 
+/**
+ * Boundary normalization from persisted form to in-memory Track.
+ */
 function storedToTrack(stored: StoredTrack): Track {
   const { audioData, lastAccessed, ...track } = stored;
+  const hasUsableAudio =
+    stored.hasStoredAudio && audioData instanceof ArrayBuffer;
+  const orphanedBlob =
+    !hasUsableAudio &&
+    typeof track.url === "string" &&
+    track.url.startsWith("blob:");
   return {
     ...track,
-    hasStoredAudio: stored.hasStoredAudio,
+    url: orphanedBlob ? "" : track.url,
+    hasStoredAudio: hasUsableAudio,
   };
 }
 
@@ -39,17 +53,19 @@ export const trackStorage = {
     const db = await getDb();
     const tx = db.transaction(STORES.TRACKS, "readwrite");
     const store = tx.objectStore(STORES.TRACKS);
-    
-    const existing = await new Promise<StoredTrack | undefined>((resolve, reject) => {
-      const req = store.get(track.id);
-      req.onsuccess = () => resolve(req.result);
-      req.onerror = () => reject(req.error);
-    });
-    
+
+    const existing = await new Promise<StoredTrack | undefined>(
+      (resolve, reject) => {
+        const req = store.get(track.id);
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => reject(req.error);
+      },
+    );
+
     const existingAudio = existing?.audioData;
     const hasExistingAudio = !!(existing?.hasStoredAudio && existingAudio);
     const finalAudioData = hasExistingAudio ? existingAudio : audioData;
-    
+
     const stored = trackToStored(track, finalAudioData, hasExistingAudio);
     store.put(stored);
 
@@ -59,24 +75,29 @@ export const trackStorage = {
     });
   },
 
-  async saveTracks(tracks: Track[], audioDataMap?: Map<string, ArrayBuffer>): Promise<void> {
+  async saveTracks(
+    tracks: Track[],
+    audioDataMap?: Map<string, ArrayBuffer>,
+  ): Promise<void> {
     const db = await getDb();
     const tx = db.transaction(STORES.TRACKS, "readwrite");
     const store = tx.objectStore(STORES.TRACKS);
 
     for (const track of tracks) {
       const newAudioData = audioDataMap?.get(track.id);
-      
-      const existing = await new Promise<StoredTrack | undefined>((resolve, reject) => {
-        const req = store.get(track.id);
-        req.onsuccess = () => resolve(req.result);
-        req.onerror = () => reject(req.error);
-      });
-      
+
+      const existing = await new Promise<StoredTrack | undefined>(
+        (resolve, reject) => {
+          const req = store.get(track.id);
+          req.onsuccess = () => resolve(req.result);
+          req.onerror = () => reject(req.error);
+        },
+      );
+
       const existingAudio = existing?.audioData;
       const hasExistingAudio = !!(existing?.hasStoredAudio && existingAudio);
       const finalAudioData = hasExistingAudio ? existingAudio : newAudioData;
-      
+
       store.put(trackToStored(track, finalAudioData, hasExistingAudio));
     }
 
@@ -159,22 +180,25 @@ export const trackStorage = {
     const audioData = await this.getAudioData(track.id);
 
     if (audioData) {
-      const blob = new Blob([audioData], { type: track.mimeType || "audio/mpeg" });
+      const blob = new Blob([audioData], {
+        type: track.mimeType || "audio/mpeg",
+      });
       const url = URL.createObjectURL(blob);
-      logger.info("Reconstructed audio URL from stored data", { trackId: track.id });
+      logger.info("Reconstructed audio URL from stored data", {
+        trackId: track.id,
+      });
 
-      // Reclaim the previous object URL only after a working replacement exists.
       if (track.url && track.url.startsWith("blob:")) {
         try {
           URL.revokeObjectURL(track.url);
-        } catch {
-          // already revoked by a competing caller
-        }
+        } catch {}
       }
 
       return { ...track, url };
     } else {
-      logger.warn("hasStoredAudio is true but no audio data found", { trackId: track.id });
+      logger.warn("hasStoredAudio is true but no audio data found", {
+        trackId: track.id,
+      });
     }
 
     return track;

@@ -122,7 +122,6 @@ export const libraries = {
   },
 } as const;
 
-// react-icons uses: size (as string or number), color, style, etc.
 const bootstrapPropTransformer: IconPropTransformer = (props) => {
   const transformed: Record<string, any> = {};
 

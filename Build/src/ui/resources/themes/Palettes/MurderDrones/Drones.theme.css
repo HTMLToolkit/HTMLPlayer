@@ -1,6 +1,4 @@
-/* Drones */
 :root {
-  /* Theme */
   --themegradient: url("MurderDrones.jpg");
   --themecolor: hsl(262, 90%, 68%);
   --themecolor2: hsl(280, 95%, 75%);
@@ -40,7 +38,8 @@
     var(--themecolor3) 100%
   );
 
-  --shadow: 0 1px 2px hsla(255, 30%, 15%, 0.05), 0 3px 6px hsla(255, 30%, 15%, 0.07);
+  --shadow:
+    0 1px 2px hsla(255, 30%, 15%, 0.05), 0 3px 6px hsla(255, 30%, 15%, 0.07);
   --shadow-md:
     0 1px 3px hsla(255, 30%, 15%, 0.05),
     0 10px 15px -5px hsla(255, 30%, 15%, 0.05),
@@ -51,7 +50,7 @@
     0 30px 40px -5px hsla(255, 30%, 15%, 0.05);
   --shadow-focus:
     0 0 0 2px hsla(262, 85%, 58%, 0.25), 0 1px 2px hsla(255, 30%, 15%, 0.05);
-    
+
   --themegradient-animation: rotate 20s linear infinite;
 }
 
@@ -95,7 +94,8 @@
     var(--themecolor3) 100%
   );
 
-  --shadow: 0 1px 2px hsla(255, 30%, 0%, 0.1), 0 3px 6px hsla(255, 30%, 0%, 0.15);
+  --shadow:
+    0 1px 2px hsla(255, 30%, 0%, 0.1), 0 3px 6px hsla(255, 30%, 0%, 0.15);
   --shadow-md:
     0 1px 3px hsla(255, 30%, 0%, 0.1), 0 10px 15px -5px hsla(255, 30%, 0%, 0.1),
     0 20px 25px -5px hsla(255, 30%, 0%, 0.08);
@@ -110,8 +110,12 @@
 }
 
 @keyframes rotate {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 body::before {

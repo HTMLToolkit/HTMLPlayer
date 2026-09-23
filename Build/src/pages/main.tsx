@@ -16,7 +16,6 @@ import { bundledResources } from "../helpers/i18nManual";
 const isSingleFile = __IS_SINGLE_FILE__;
 const i18nInstance = i18n;
 
-// Only use HttpApi if NOT a single file build
 if (!isSingleFile) {
   i18nInstance.use(HttpApi);
 }
@@ -40,7 +39,9 @@ const App: React.FC = () => {
     <React.StrictMode>
       <I18nextProvider i18n={i18nInstance}>
         <ThemeProvider
-          onThemeChange={(data) => logger.info(`Theme changed: ${data.type} = ${data.value}`)}
+          onThemeChange={(data) =>
+            logger.info(`Theme changed: ${data.type} = ${data.value}`)
+          }
         >
           <IndexPage />
         </ThemeProvider>

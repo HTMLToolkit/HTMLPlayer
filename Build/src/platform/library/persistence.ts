@@ -33,11 +33,7 @@ async function ensureLibrarySchema(): Promise<void> {
     [STORES.TRACKS, STORES.PLAYLISTS, STORES.FAVORITES],
     "readwrite",
   );
-  for (const storeName of [
-    STORES.TRACKS,
-    STORES.PLAYLISTS,
-    STORES.FAVORITES,
-  ]) {
+  for (const storeName of [STORES.TRACKS, STORES.PLAYLISTS, STORES.FAVORITES]) {
     clearTx.objectStore(storeName).clear();
   }
   await waitForTransactionCompletion(clearTx);

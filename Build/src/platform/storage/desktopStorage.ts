@@ -117,7 +117,9 @@ export class DesktopStorageBackend extends BaseStorageBackend {
         const track = await this.loadTrack(file);
         tracks.push(track);
       } catch (error) {
-        logger.error(`Failed to load track ${file.name}:`, { error: String(error) });
+        logger.error(`Failed to load track ${file.name}:`, {
+          error: String(error),
+        });
       }
     }
     return tracks;

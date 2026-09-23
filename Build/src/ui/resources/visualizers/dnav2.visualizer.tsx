@@ -1,4 +1,8 @@
-import { VisualizerType, getByteFrequencyData } from "../../../platform/visualizers";
+import {
+  getByteFrequencyData,
+  sample,
+  VisualizerType,
+} from "../../../platform/visualizers";
 
 const dnaSpectrogramV2: VisualizerType = {
   name: "DNA Helix",
@@ -35,7 +39,7 @@ const dnaSpectrogramV2: VisualizerType = {
       const x2 = t + canvas.width / 4;
       const y2 = canvas.height / 2 + wave2;
 
-      const intensity = (freqDataArray[i] ?? 0) / 256.0;
+      const intensity = sample(freqDataArray, i) / 256.0;
 
       ctx.strokeStyle = lineColor
         .replace("{hue}", `${i}`)

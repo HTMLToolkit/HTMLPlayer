@@ -53,12 +53,22 @@ export const PlaylistToolbar = memo(function PlaylistToolbar({
             {t("playlist.addPlaylist")}
           </DropdownMenuItem>
           <DropdownMenuItem onClick={onCreateFolder}>
-            <Icon name="folderPlus" size={16} style={{ marginRight: 8 }} decorative />
+            <Icon
+              name="folderPlus"
+              size={16}
+              style={{ marginRight: 8 }}
+              decorative
+            />
             {t("playlist.addFolder")}
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={onImport}>
-            <Icon name="upload" size={16} style={{ marginRight: 8 }} decorative />
+            <Icon
+              name="upload"
+              size={16}
+              style={{ marginRight: 8 }}
+              decorative
+            />
             {t("playlist.importPlaylist")}
           </DropdownMenuItem>
         </DropdownMenuContent>

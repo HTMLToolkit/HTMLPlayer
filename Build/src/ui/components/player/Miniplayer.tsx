@@ -19,7 +19,9 @@ interface MiniplayerProps {
   controls: MiniplayerControls;
 }
 
-function currentSongFromState(playerState: MiniplayerControls["playerState"]): Track | null {
+function currentSongFromState(
+  playerState: MiniplayerControls["playerState"],
+): Track | null {
   switch (playerState.cursor.kind) {
     case "empty":
       return null;

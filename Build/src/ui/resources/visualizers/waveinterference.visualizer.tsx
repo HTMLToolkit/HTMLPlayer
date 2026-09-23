@@ -1,4 +1,4 @@
-import { VisualizerType } from "../../../platform/visualizers";
+import { sample, VisualizerType } from "../../../platform/visualizers";
 
 const interferenceSpectrogram: VisualizerType = {
   name: "Wave Interference Spectrogram",
@@ -21,16 +21,14 @@ const interferenceSpectrogram: VisualizerType = {
 
     if (dataType !== "frequency") return;
     if (!(freqDataArray instanceof Uint8Array)) return;
-    analyser.getByteFrequencyData(
-      freqDataArray as Uint8Array<ArrayBuffer>,
-    );
+    analyser.getByteFrequencyData(freqDataArray as Uint8Array<ArrayBuffer>);
 
     ctx.fillStyle = backgroundColor;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     for (let i = 0; i < bufferLength; i++) {
       const x = (i * canvas.width) / bufferLength;
-      const amplitude = (freqDataArray[i] ?? 0) / 256.0;
+      const amplitude = sample(freqDataArray, i) / 256.0;
 
       for (let j = 0; j < canvas.height; j += waveSpacing) {
         const wave1 = Math.sin(x / 50 + amplitude * 10) * 10;

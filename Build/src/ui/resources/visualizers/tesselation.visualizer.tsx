@@ -1,4 +1,8 @@
-import { VisualizerType, getByteFrequencyData } from "../../../platform/visualizers";
+import {
+  getByteFrequencyData,
+  sample,
+  VisualizerType,
+} from "../../../platform/visualizers";
 
 const tessellationSpectrogram: VisualizerType = {
   name: "Tessellation Spectrogram",
@@ -28,7 +32,7 @@ const tessellationSpectrogram: VisualizerType = {
     for (let i = 0; i < bufferLength; i++) {
       const x = (i % (canvas.width / tileSize)) * tileSize;
       const y = Math.floor(i / (canvas.width / tileSize)) * tileSize;
-      const amplitude = (freqDataArray[i] ?? 0) / 256.0;
+      const amplitude = sample(freqDataArray, i) / 256.0;
 
       ctx.fillStyle = tileColor
         .replace("{hue}", `${amplitude * 360}`)

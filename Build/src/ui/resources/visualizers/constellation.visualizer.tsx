@@ -1,4 +1,8 @@
-import { VisualizerType, getByteFrequencyData } from "../../../platform/visualizers";
+import {
+  getByteFrequencyData,
+  sample,
+  VisualizerType,
+} from "../../../platform/visualizers";
 
 const constellationSpectrogram: VisualizerType = {
   name: "Constellation Spectrogram",
@@ -29,7 +33,7 @@ const constellationSpectrogram: VisualizerType = {
     const connections = connectionCount;
 
     for (let i = 0; i < bufferLength; i += 2) {
-      const amplitude = (freqDataArray[i] ?? 0) / 256.0;
+      const amplitude = sample(freqDataArray, i) / 256.0;
       const angle = (i * 2 * Math.PI) / bufferLength;
       const radius =
         (Math.min(canvas.width, canvas.height) / 3) * (0.5 + amplitude * 0.5);

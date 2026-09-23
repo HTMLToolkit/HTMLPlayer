@@ -13,13 +13,11 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  /* Smooth transitions */
   transition:
     transform var(--animation-duration-normal) cubic-bezier(0.4, 0, 0.2, 1),
     opacity var(--animation-duration-normal) cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Only animate on initial mount */
 .lyricsOverlay[data-state="open"] {
   transform: translateY(100%);
   opacity: 0;
@@ -32,7 +30,6 @@
     cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
 
-/* State for when already visible (no animation needed) */
 .lyricsOverlay[data-state="visible"] {
   transform: translateY(0);
   opacity: 1;
@@ -140,7 +137,6 @@
   background-color: rgba(var(--primary-rgb), 0.35);
 }
 
-/* Disabled button styling */
 .lyricsHeaderControls button:disabled,
 .lyricsHeaderControls button[disabled] {
   opacity: 0.2;

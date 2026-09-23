@@ -1,7 +1,6 @@
 import React, { Suspense, useEffect, useRef } from "react";
 import { useWallpaper, useTheming } from "../../theming/hooks/useTheming";
 
-// WallpaperRenderer Component
 interface WallpaperRendererProps {
   currentSong?: unknown;
   playbackState?: unknown;
@@ -42,7 +41,6 @@ const WallpaperRenderer: React.FC<WallpaperRendererProps> = ({
   }
 
   if (!getWallpaperComponent) {
-    // No wallpaper selected - use theme gradient background
     return (
       <div
         style={{

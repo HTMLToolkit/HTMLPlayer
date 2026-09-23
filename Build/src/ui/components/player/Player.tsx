@@ -53,7 +53,11 @@ export const Player = forwardRef<PlayerRef, PlayerProps>(
       library,
     } = komorebi;
 
-    const { state: navState, goToCurrentAlbum, goToCurrentArtist } = useNavigation();
+    const {
+      state: navState,
+      goToCurrentAlbum,
+      goToCurrentArtist,
+    } = useNavigation();
     const currentSong = currentTrack;
     const libraryState = library.getState();
 
@@ -61,7 +65,8 @@ export const Player = forwardRef<PlayerRef, PlayerProps>(
     const [showLyrics, setShowLyrics] = useState(false);
     const [isVisualizerClosing, setIsVisualizerClosing] = useState(false);
     const [isLyricsClosing, setIsLyricsClosing] = useState(false);
-    const [hasVisualizerAnimatedIn, setHasVisualizerAnimatedIn] = useState(false);
+    const [hasVisualizerAnimatedIn, setHasVisualizerAnimatedIn] =
+      useState(false);
 
     useEffect(() => {
       if (showVisualizer && !isVisualizerClosing && !hasVisualizerAnimatedIn) {
@@ -223,9 +228,13 @@ export const Player = forwardRef<PlayerRef, PlayerProps>(
                 const song = library.getSong(songId);
                 if (song) library.addToPlaylist(playlistId, song);
               }}
-              onAddToFavorites={(songId: string) => komorebi.toggleFavorite(songId)}
+              onAddToFavorites={(songId: string) =>
+                komorebi.toggleFavorite(songId)
+              }
               isFavorited={(songId: string) => komorebi.isFavorite(songId)}
-              onPlaySong={(song: Track, playlist?: Playlist) => komorebi.playSong(song, playlist)}
+              onPlaySong={(song: Track, playlist?: Playlist) =>
+                komorebi.playSong(song, playlist)
+              }
               onRemoveSong={(songId: string) => komorebi.removeSong(songId)}
               size={16}
               className={styles.moreButton}

@@ -20,8 +20,6 @@ const DB_NAME = "HTMLPlayerShortcuts";
 const DB_VERSION = 1;
 const STORE_NAME = "shortcuts";
 
-// Default keyboard shortcuts configuration
-// Note: description fields contain translation keys, not hardcoded text
 export const DEFAULT_SHORTCUTS: ShortcutConfig = {
   playPause: {
     id: "playPause",
@@ -161,16 +159,13 @@ class ShortcutsIndexedDbHelper {
       request.onsuccess = async () => {
         const shortcuts = request.result;
         if (shortcuts.length === 0) {
-          // Save default shortcuts to IndexedDB on first run
           try {
             await this.saveAllShortcuts(DEFAULT_SHORTCUTS);
             resolve(DEFAULT_SHORTCUTS);
           } catch (error) {
-            // If saving fails, still return defaults
             resolve(DEFAULT_SHORTCUTS);
           }
         } else {
-          // Convert array to config object
           const config: ShortcutConfig = {};
           shortcuts.forEach((shortcut: KeyboardShortcut) => {
             config[shortcut.id] = shortcut;
@@ -188,7 +183,6 @@ class ShortcutsIndexedDbHelper {
   async saveShortcut(shortcut: KeyboardShortcut): Promise<void> {
     await this.ensureDB();
 
-    // Validate that shortcut has required properties
     if (!shortcut.id) {
       return throwError("Shortcut must have an id property");
     }
@@ -231,11 +225,9 @@ class ShortcutsIndexedDbHelper {
       const transaction = this.db.transaction([STORE_NAME], "readwrite");
       const store = transaction.objectStore(STORE_NAME);
 
-      // Clear existing shortcuts
       const clearRequest = store.clear();
 
       clearRequest.onsuccess = () => {
-        // Save all new shortcuts
         const promises: Promise<void>[] = [];
 
         Object.values(shortcuts).forEach((shortcut) => {
@@ -313,10 +305,8 @@ class ShortcutsIndexedDbHelper {
   }
 }
 
-// Export a singleton instance
 export const shortcutsDb = new ShortcutsIndexedDbHelper();
 
-// Utility functions for formatting shortcuts
 export function formatShortcutKey(shortcut: KeyboardShortcut): string {
   const parts: string[] = [];
 

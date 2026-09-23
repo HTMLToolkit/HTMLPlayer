@@ -176,10 +176,8 @@
 
 .noHover:hover {
   background: transparent;
-  /* override any hover background */
 }
 
-/* Mobile overlay styles */
 .backdrop {
   display: none;
 }

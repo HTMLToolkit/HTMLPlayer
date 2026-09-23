@@ -34,12 +34,10 @@ const PersistentDropdownMenu = forwardRef<
     onClose();
   };
 
-  // Expose close method to parent components
   useImperativeHandle(ref, () => ({
     close: closeDropdown,
   }));
 
-  // Handle right-click to open menu
   const handleContextMenu = (e: React.MouseEvent) => {
     if (enableRightClick) {
       e.preventDefault();
@@ -48,15 +46,12 @@ const PersistentDropdownMenu = forwardRef<
     }
   };
 
-  // Close the dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
         dropdownRef.current &&
         !dropdownRef.current.contains(event.target as Node)
       ) {
-        // setIsOpen(false);
-        // onClose();
       }
     };
 

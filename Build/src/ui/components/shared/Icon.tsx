@@ -82,11 +82,9 @@ export const Icon: React.FC<IconProps> = ({
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Store the resolveIcon function in a ref to avoid triggering re-renders
   const resolveIconRef = useRef(resolveIcon);
   resolveIconRef.current = resolveIcon;
 
-  // Track current set ID to only re-fetch when it actually changes
   const currentSetIdRef = useRef<string | null>(null);
   const lastFetchedKeyRef = useRef<string>("");
 
@@ -98,20 +96,16 @@ export const Icon: React.FC<IconProps> = ({
     } as React.CSSProperties;
   }, [size]);
 
-  // Stable load function that doesn't change reference
   const stableResolveIcon = useCallback(
     async (iconName: string) => resolveIconRef.current(iconName),
     [],
   );
 
-  // Derive the current set ID for dependency tracking
   const currentSetId = currentIconSet?.id ?? null;
 
   useEffect(() => {
-    // Create a cache key for this specific icon request
     const cacheKey = `${name}::${setId ?? ""}::${currentSetId ?? ""}::${fallbackOrder?.join(",") ?? ""}`;
 
-    // Skip if we already fetched this exact combination
     if (cacheKey === lastFetchedKeyRef.current && resolvedIcon !== null) {
       return;
     }
@@ -187,7 +181,6 @@ export const Icon: React.FC<IconProps> = ({
     case "component": {
       const { Component, defaultProps, propTransformer } = resolvedIcon;
 
-      // Apply prop transformer if available
       const transformedProps = propTransformer
         ? propTransformer({
             size,
@@ -200,23 +193,20 @@ export const Icon: React.FC<IconProps> = ({
           })
         : {};
 
-      // Build props object with proper typing
       const componentProps: React.SVGProps<SVGSVGElement> &
         Record<string, unknown> = {
         className,
         style: {
           display: inline ? "inline-flex" : "inline-flex",
           verticalAlign: inline ? "middle" : "middle",
-          // Only apply dimensionStyle if no prop transformer (library doesn't handle sizing)
           ...(propTransformer ? {} : dimensionStyle),
           ...style,
         },
         ...ariaProps,
         ...(defaultProps as Record<string, unknown>),
-        ...transformedProps, // Apply transformed props
+        ...transformedProps,
       };
 
-      // Add optional props only if defined and not already handled by transformer
       if (!propTransformer) {
         if (size !== undefined) componentProps.size = size;
         if (color !== undefined) componentProps.color = color;
@@ -225,7 +215,6 @@ export const Icon: React.FC<IconProps> = ({
         if (fill !== undefined) componentProps.fill = fill;
       }
 
-      // Always add event handlers
       if (onClick) componentProps.onClick = onClick;
       if (onMouseEnter) componentProps.onMouseEnter = onMouseEnter;
       if (onMouseLeave) componentProps.onMouseLeave = onMouseLeave;
@@ -283,5 +272,4 @@ export const Icon: React.FC<IconProps> = ({
   }
 };
 
-// Memoized Icon to prevent re-renders when parent re-renders
 export default memo(Icon);

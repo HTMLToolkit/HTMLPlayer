@@ -1,4 +1,8 @@
-import { VisualizerType, getByteFrequencyData } from "../../../platform/visualizers";
+import {
+  getByteFrequencyData,
+  sample,
+  VisualizerType,
+} from "../../../platform/visualizers";
 
 const waterfall: VisualizerType = {
   name: "Waterfall",
@@ -13,18 +17,16 @@ const waterfall: VisualizerType = {
     settings = {},
   ) {
     const {
-      hueBase = 240, // start with blue
+      hueBase = 240,
       saturation = 100,
       lightness = 50,
-      scrollSpeed = 1, // pixel-per-frame scroll
+      scrollSpeed = 1,
     } = settings;
 
     if (dataType !== "frequency") return;
 
-    // Get frequency data
     getByteFrequencyData(analyser, freqDataArray);
 
-    // Scroll canvas up by scrollSpeed pixels
     const imageData = ctx.getImageData(
       0,
       scrollSpeed,
@@ -33,12 +35,11 @@ const waterfall: VisualizerType = {
     );
     ctx.putImageData(imageData, 0, 0);
 
-    // Draw new line at the bottom
     const barWidth = canvas.width / bufferLength;
 
     for (let i = 0; i < bufferLength; i++) {
-      const value = freqDataArray[i] ?? 0; // 0 - 255
-      const hue = hueBase - (value / 255) * 240; // more intense = red/yellow
+      const value = sample(freqDataArray, i);
+      const hue = hueBase - (value / 255) * 240;
       const sat = saturation;
       const light = lightness;
 

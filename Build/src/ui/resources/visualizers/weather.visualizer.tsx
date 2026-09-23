@@ -1,4 +1,4 @@
-import { VisualizerType } from "../../../platform/visualizers";
+import { sample, VisualizerType } from "../../../platform/visualizers";
 
 const weatherSpectrogram: VisualizerType = {
   name: "Weather Pattern Spectrogram",
@@ -21,9 +21,7 @@ const weatherSpectrogram: VisualizerType = {
 
     if (dataType !== "frequency") return;
     if (!(freqDataArray instanceof Uint8Array)) return;
-    analyser.getByteFrequencyData(
-      freqDataArray as Uint8Array<ArrayBuffer>,
-    );
+    analyser.getByteFrequencyData(freqDataArray as Uint8Array<ArrayBuffer>);
 
     ctx.fillStyle = backgroundColor;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -31,7 +29,7 @@ const weatherSpectrogram: VisualizerType = {
     const height = canvas.height * cloudHeight;
     for (let i = 0; i < bufferLength; i++) {
       const x = (i * canvas.width) / bufferLength;
-      const amplitude = (freqDataArray[i] ?? 0) / 256.0;
+      const amplitude = sample(freqDataArray, i) / 256.0;
 
       ctx.fillStyle = cloudColor.replace("{alpha}", `${amplitude}`);
       ctx.beginPath();

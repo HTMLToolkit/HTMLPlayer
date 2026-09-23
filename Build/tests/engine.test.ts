@@ -51,11 +51,18 @@ describe("StateMachine", () => {
     expect(sm.getState()).toBe("loading");
   });
 
-  it("should not allow invalid transitions", () => {
+  it("should reject invalid transitions loudly", () => {
     const sm = new StateMachine();
     sm.transition("loading");
-    const result = sm.transition("playing");
-    expect(result).toBe(false);
+    let thrown: unknown;
+    try {
+      sm.transition("playing");
+    } catch (error) {
+      thrown = error;
+    }
+    expect(thrown).toBeInstanceOf(Error);
+    expect((thrown as Error).message).toContain("loading");
+    expect((thrown as Error).message).toContain("playing");
     expect(sm.getState()).toBe("loading");
   });
 

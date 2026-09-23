@@ -5,8 +5,8 @@ const logger = createLogger("discord");
 
 export interface DiscordPresenceData {
   userId: string;
-  details: string; // Track name
-  state: string; // Artist name
+  details: string;
+  state: string;
 }
 
 export class DiscordService {
@@ -27,10 +27,9 @@ export class DiscordService {
    * Log track update instead of sending to Discord backend
    */
   public async updatePresence(data: DiscordPresenceData): Promise<boolean> {
-    logger.info(
-      `Would POST to ${DiscordService.API_BASE_URL}/presence with:`,
-      { state: data },
-    );
+    logger.info(`Would POST to ${DiscordService.API_BASE_URL}/presence with:`, {
+      state: data,
+    });
     return true;
   }
 
@@ -55,11 +54,7 @@ export class DiscordService {
         return null;
       }
 
-      // In a real implementation, you would exchange the code for user info
-      // For now, we'll need to handle this differently since the callback goes to the backend
-      // The backend should provide the user ID somehow
-
-      return null; // This will be handled by the OAuth callback flow
+      return null;
     } catch (error) {
       logger.error("Error parsing Discord callback:", { error: String(error) });
       return null;

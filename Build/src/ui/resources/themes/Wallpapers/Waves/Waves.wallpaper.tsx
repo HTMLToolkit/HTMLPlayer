@@ -23,7 +23,6 @@ const GradientWavesWallpaper: React.FC<WallpaperProps> = () => {
     const animate = () => {
       timeRef.current += 0.01;
 
-      // Create gradient
       const gradient = ctx.createLinearGradient(
         0,
         0,
@@ -31,7 +30,6 @@ const GradientWavesWallpaper: React.FC<WallpaperProps> = () => {
         canvas.height,
       );
 
-      // Dynamic color stops based on time
       const colors = [
         `hsl(${(timeRef.current * 20) % 360}, 70%, 60%)`,
         `hsl(${(timeRef.current * 20 + 60) % 360}, 70%, 50%)`,
@@ -46,7 +44,6 @@ const GradientWavesWallpaper: React.FC<WallpaperProps> = () => {
       ctx.fillStyle = gradient;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      // Add wave overlays
       for (let i = 0; i < 3; i++) {
         ctx.beginPath();
         ctx.moveTo(0, canvas.height);

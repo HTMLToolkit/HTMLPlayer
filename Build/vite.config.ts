@@ -8,11 +8,9 @@ import { VitePWA } from "vite-plugin-pwa";
 import { viteSingleFile } from "vite-plugin-singlefile";
 import wasm from "vite-plugin-wasm";
 
-// Moved from index.html for single file builds
 import enMessages from "./src/locales/en/loading-messages-en.json";
 import frMessages from "./src/locales/fr/loading-messages-fr.json";
 
-// Check various env things
 const host = process.env.TAURI_DEV_HOST;
 const buildTarget = process.env.BUILD_TARGET || "web";
 
@@ -28,7 +26,6 @@ const iconBase64 = isSingleFile
   ? `data:image/png;base64,${fs.readFileSync(path.resolve(__dirname, "public/icon-any.png")).toString("base64")}`
   : null;
 
-// Conditional plugins based on target
 const plugins = [
   react(),
   wasm(),
@@ -58,7 +55,6 @@ if (!isStackBlitz) {
   plugins.push(topLevelAwait());
 }
 
-// Only add PWA plugin for web builds and also not for single file builds for obvious reasons
 if (isWeb && !isSingleFile) {
   plugins.push(
     VitePWA({
@@ -70,7 +66,7 @@ if (isWeb && !isSingleFile) {
       filename: "sw.ts",
       injectRegister: "script",
       injectManifest: {
-        maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // 5 MB
+        maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, 
         swSrc: "./src/workers/sw.ts",
       },
 
@@ -100,7 +96,7 @@ if (isWeb && !isSingleFile) {
                 name: "audio",
                 accept: [
                   "audio/*",
-                  "application/octet-stream", // Picks up other files as well, but we handle that anyways
+                  "application/octet-stream", 
                   ".flo",
                   ".mp3",
                   ".wav",
@@ -206,9 +202,6 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": "/src",
-      // For builds where the PWA plugin is disabled (desktop/single-file),
-      // make `virtual:pwa-register/react` resolve to a no-op stub so Vite
-      // can still bundle the code without the service worker dependency.
       ...(isWeb && !isSingleFile
         ? {}
         : {
@@ -239,7 +232,6 @@ export default defineConfig({
     exclude: ["@flo-audio/libflo-audio", "@flo-audio/reflo"],
   },
 
-  // Platform-specific server config
   server: isDesktop
     ? {
         port: 1420,
@@ -253,7 +245,6 @@ export default defineConfig({
             }
           : undefined,
         watch: {
-          // Tell vite to ignore watching `src-tauri`
           ignored: ["**/src-tauri/**"],
         },
       }
@@ -262,7 +253,6 @@ export default defineConfig({
         allowedHosts: true,
       },
 
-  // Prevent vite from obscuring rust errors (desktop only)
   clearScreen: isDesktop ? false : undefined,
 
   build: {
@@ -270,11 +260,9 @@ export default defineConfig({
     sourcemap: true,
     outDir: "./dist",
     emptyOutDir: true,
-    // Web builds need chunk splitting for better caching
-    // Desktop builds can be simpler since it's all bundled
     ...(isWeb &&
       !isSingleFile && {
-        chunkSizeWarningLimit: 1000, // Increase warning limit to 1000kb
+        chunkSizeWarningLimit: 1000, 
         rollupOptions: {
           input: {
             main: "./index.html",
@@ -283,7 +271,6 @@ export default defineConfig({
           },
           output: {
             manualChunks: {
-              // Vendor chunks for large libraries
               "vendor-react": ["react", "react-dom"],
               "vendor-ui": [
                 "@radix-ui/react-dialog",
@@ -310,7 +297,6 @@ export default defineConfig({
               "vendor-icons": ["lucide-react"],
               "vendor-flo": ["@flo-audio/libflo-audio", "@flo-audio/reflo"],
 
-              // Visualizers chunk - group all visualizers together
               visualizers: [
                 "./src/ui/resources/visualizers/abstractart.visualizer.tsx",
                 "./src/ui/resources/visualizers/architecturalblueprint.visualizer.tsx",
@@ -382,7 +368,7 @@ export default defineConfig({
         },
       }),
     ...(isSingleFile && {
-      assetsInlineLimit: 100000000, // force all assets to inline
+      assetsInlineLimit: 100000000, 
       chunkSizeWarningLimit: 100000,
       rollupOptions: {
         output: {
@@ -400,7 +386,7 @@ export default defineConfig({
   ...(isSingleFile && {
     worker: {
       format: "iife",
-      plugins: () => [wasm()], // Futureproofing
+      plugins: () => [wasm()], 
       rollupOptions: {
         output: {
           inlineDynamicImports: true,

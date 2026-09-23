@@ -37,7 +37,6 @@
   font-weight: bold;
 }
 
-/* Dark mode adjustments */
 :global(.dark) .icon {
   color: var(--foreground);
 }

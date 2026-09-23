@@ -1,4 +1,8 @@
-import { VisualizerType, getByteFrequencyData } from "../../../platform/visualizers";
+import {
+  getByteFrequencyData,
+  sample,
+  VisualizerType,
+} from "../../../platform/visualizers";
 
 const frequencyMesh: VisualizerType = {
   name: "Frequency Mesh",
@@ -30,7 +34,7 @@ const frequencyMesh: VisualizerType = {
 
     for (let i = 0; i < numPoints; i++) {
       const freqIndex = Math.floor((i * bufferLength) / numPoints);
-      const value = (freqDataArray[freqIndex] ?? 0) / 256;
+      const value = sample(freqDataArray, freqIndex) / 256;
       points.push({
         x: (canvas.width * i) / (numPoints - 1),
         y: canvas.height / 2 + (value - 0.5) * canvas.height,

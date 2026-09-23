@@ -29,7 +29,9 @@ export const audioStorage = {
         ? { fileData: result.fileData, mimeType: result.mimeType }
         : null;
     } catch (error) {
-      logger.error(`Failed to load audio data for song ${songId}:`, { error: String(error) });
+      logger.error(`Failed to load audio data for song ${songId}:`, {
+        error: String(error),
+      });
       return null;
     }
   },
@@ -51,7 +53,9 @@ export const audioStorage = {
         req.onerror = () => reject(req.error);
       });
     } catch (error) {
-      logger.error(`Failed to save audio data for song ${songId}:`, { error: String(error) });
+      logger.error(`Failed to save audio data for song ${songId}:`, {
+        error: String(error),
+      });
       throw error;
     }
   },
@@ -68,7 +72,9 @@ export const audioStorage = {
         req.onerror = () => reject(req.error);
       });
     } catch (error) {
-      logger.error(`Failed to remove audio data for song ${songId}:`, { error: String(error) });
+      logger.error(`Failed to remove audio data for song ${songId}:`, {
+        error: String(error),
+      });
       throw error;
     }
   },

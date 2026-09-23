@@ -1,7 +1,10 @@
 import { useTranslation } from "react-i18next";
 import { Button } from "../primitives/Button";
 import { Icon } from "../shared/Icon";
-import { isMiniplayerSupported, toggleMiniplayer } from "../../../platform/pip/index";
+import {
+  isMiniplayerSupported,
+  toggleMiniplayer,
+} from "../../../platform/pip/index";
 import { MiniplayerContent } from "./Miniplayer";
 import {
   selectQueueCursor,
@@ -48,7 +51,9 @@ export const PlayerSecondaryControls = ({
         size="icon-sm"
         className={`${styles.favoriteButton} ${isFavorite ? styles.favorited : ""}`}
         onClick={onFavorite}
-        title={isFavorite ? t("player.removeFavorite") : t("player.addFavorite")}
+        title={
+          isFavorite ? t("player.removeFavorite") : t("player.addFavorite")
+        }
       >
         <Icon name="heart" size={16} decorative />
       </Button>

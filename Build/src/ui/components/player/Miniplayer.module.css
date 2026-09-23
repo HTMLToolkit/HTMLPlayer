@@ -1,4 +1,3 @@
-/* Miniplayer.module.css */
 .miniplayer {
   padding: var(--spacing-3);
   display: flex;
@@ -55,7 +54,6 @@
   align-items: center;
 }
 
-/* Base button styling matching Player controls */
 .controls button {
   color: var(--foreground-subtle);
   background: var(--surface-transparent);
@@ -90,7 +88,6 @@
   stroke: currentColor;
 }
 
-/* Play button with gradient styling matching Player */
 .playBtn {
   background: linear-gradient(
     90deg,
@@ -161,7 +158,6 @@
   left: 0;
   height: 100%;
   width: 50%;
-  /* Placeholder for dynamic width */
   background: linear-gradient(
     135deg,
     var(--themecolor) 0%,

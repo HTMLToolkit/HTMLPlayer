@@ -105,7 +105,6 @@ export class WallpaperEngine {
     }
 
     try {
-      // apply() verified this component file exists before reaching here
       const module = (await wallpaperComponentFiles[
         wallpaper.componentFile
       ]!()) as WallpaperModule;

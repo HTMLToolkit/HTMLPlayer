@@ -40,9 +40,7 @@ export const PlayerTrackInfo = ({
       >
         {artist}
       </button>
-      {album && (
-        <div className={styles.albumName}>{album}</div>
-      )}
+      {album && <div className={styles.albumName}>{album}</div>}
     </div>
   );
 };

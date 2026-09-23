@@ -1,4 +1,8 @@
-import { VisualizerType, getByteFrequencyData } from "../../../platform/visualizers";
+import {
+  getByteFrequencyData,
+  sample,
+  VisualizerType,
+} from "../../../platform/visualizers";
 
 const particleField: VisualizerType = {
   name: "Particle Field",
@@ -30,7 +34,7 @@ const particleField: VisualizerType = {
 
     for (let i = 0; i < particles; i++) {
       const freqIndex = Math.floor((i / particles) * bufferLength);
-      const amplitude = (freqDataArray[freqIndex] ?? 0) / 256.0;
+      const amplitude = sample(freqDataArray, freqIndex) / 256.0;
       const angle = (i * 2 * Math.PI) / particles;
 
       const particleRadius = radius + amplitude * 100;

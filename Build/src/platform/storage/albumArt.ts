@@ -40,7 +40,9 @@ export const albumArtStorage = {
 
       return null;
     } catch (error) {
-      logger.error(`Failed to load album art for ${songId}:`, { error: String(error) });
+      logger.error(`Failed to load album art for ${songId}:`, {
+        error: String(error),
+      });
       return null;
     }
   },
@@ -107,7 +109,9 @@ export const albumArtStorage = {
       evictCache();
       albumArtCache.set(songId, albumArt);
     } catch (error) {
-      logger.error(`Failed to save album art for ${songId}:`, { error: String(error) });
+      logger.error(`Failed to save album art for ${songId}:`, {
+        error: String(error),
+      });
     }
   },
 

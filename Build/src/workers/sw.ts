@@ -35,7 +35,6 @@ registerRoute(
           );
         }
       } else {
-        // fallback for older/single share implementations
         const file = formData.get("audio");
         if (
           file &&

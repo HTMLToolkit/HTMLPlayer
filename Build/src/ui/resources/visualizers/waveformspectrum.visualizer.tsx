@@ -1,4 +1,8 @@
-import { VisualizerType, getByteFrequencyData } from "../../../platform/visualizers";
+import {
+  getByteFrequencyData,
+  sample,
+  VisualizerType,
+} from "../../../platform/visualizers";
 
 const waveformSpectrum: VisualizerType = {
   name: "Waveform Spectrum",
@@ -29,7 +33,7 @@ const waveformSpectrum: VisualizerType = {
 
     for (let i = 0; i < bufferLength; i++) {
       const x = (i * canvas.width) / bufferLength;
-      const y = ((freqDataArray[i] ?? 0) / 256.0) * canvas.height;
+      const y = (sample(freqDataArray, i) / 256.0) * canvas.height;
       ctx.lineTo(x, y);
     }
 

@@ -105,7 +105,6 @@ export const libraries: IconLibraryMap = {
   },
 };
 
-// react-icons uses: size (as string or number), color, style, etc.
 const simpleLinePropTransformer: IconPropTransformer = (props) => {
   const transformed: Record<string, any> = {};
 
@@ -156,7 +155,7 @@ const icons: IconDefinitionMap = {
   arrowUp: simpleLineIcon("SlArrowUp"),
   arrowDown: simpleLineIcon("SlArrowDown"),
   close: simpleLineIcon("SlClose", "Close"),
-  listChecks: simpleLineIcon("SlCheck"), // No direct list-checks, use check
+  listChecks: simpleLineIcon("SlCheck"),
   list: simpleLineIcon("SlList"),
   thumbsUp: simpleLineIcon("SlLike"),
   thumbsDown: simpleLineIcon("SlDislike"),
@@ -177,13 +176,13 @@ const icons: IconDefinitionMap = {
   pictureInPicture2: simpleLineIcon("SlPicture"),
   sun: simpleLineIcon("SlEnergy"),
   moon: simpleLineIcon("SlGlobe"),
-  sunMoon: simpleLineIcon("SlEnergy"), // No direct sun-moon, use sun
+  sunMoon: simpleLineIcon("SlEnergy"),
   check: simpleLineIcon("SlCheck"),
   pencil: simpleLineIcon("SlPencil"),
   save: simpleLineIcon("SlDrawer"),
-  palette: simpleLineIcon("SlLayers"), // No direct palette, use layers
+  palette: simpleLineIcon("SlLayers"),
   rotateCcw: simpleLineIcon("SlReload"),
-  keyboard: simpleLineIcon("SlCursorMove"), // No direct keyboard, use cursor
+  keyboard: simpleLineIcon("SlCursorMove"),
   messageCircle: simpleLineIcon("SlSpeech"),
   visualizerControls: simpleLineIcon("SlControlPlay"),
   sparkles: simpleLineIcon("SlMagicWand"),

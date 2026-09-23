@@ -35,7 +35,12 @@ export const useKeyboardShortcuts = ({
   });
 
   useEffect(() => {
-    shortcutsDb.getAllShortcuts().then(setShortcuts).catch((e) => logger.error("Failed to load shortcuts", { error: String(e) }));
+    shortcutsDb
+      .getAllShortcuts()
+      .then(setShortcuts)
+      .catch((e) =>
+        logger.error("Failed to load shortcuts", { error: String(e) }),
+      );
   }, []);
 
   useEffect(() => {

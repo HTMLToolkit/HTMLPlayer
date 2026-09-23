@@ -1,4 +1,9 @@
-import type { IconSet, IconLibraryMap, ResolvedIcon, ResolvedComponentIcon } from "../types";
+import type {
+  IconSet,
+  IconLibraryMap,
+  ResolvedIcon,
+  ResolvedComponentIcon,
+} from "../types";
 import type { ThemingEvents } from "../events";
 import { createLogger, throwError } from "../../../helpers/logger";
 
@@ -153,25 +158,24 @@ export class IconEngine {
     }
 
     try {
-      // apply() verified this path exists in iconModuleFiles before setting currentSet
       const module = await iconModuleFiles[this.currentSet.path]!();
       const icons = (module as { default?: IconLibraryMap }).default;
 
       if (icons && icons[this.currentSet.id]?.[name]) {
-        // The condition above confirms icons[this.currentSet.id] exists
         const icon = icons[this.currentSet.id]![name];
-        // IconDefinition - need to resolve library reference to component
         if (icon && typeof icon === "object" && "type" in icon) {
           const def = icon as { type: string; library: string; icon: string };
           if (def.type === "library" && def.library === "lucide") {
-            // Resolve library reference
             if (!this.loadedLibraries.has("lucide")) {
               const lucideLoader = builtinLibraries["lucide"];
               if (lucideLoader) {
                 this.loadedLibraries.set("lucide", await lucideLoader());
               }
             }
-            const lib = this.loadedLibraries.get("lucide") as Record<string, React.ComponentType<{ size?: number; color?: string }>>;
+            const lib = this.loadedLibraries.get("lucide") as Record<
+              string,
+              React.ComponentType<{ size?: number; color?: string }>
+            >;
             const iconComponent = lib[def.icon];
             if (iconComponent) {
               const resolved: ResolvedComponentIcon = {
@@ -196,7 +200,6 @@ export class IconEngine {
           string,
           React.ComponentType<{ size?: number; color?: string }>
         >;
-        // Try exact match first, then title case (icons defined as "Play", code passes "play")
         const exactName = name.charAt(0).toUpperCase() + name.slice(1);
         const iconComponent = lib[name] || lib[exactName];
         if (iconComponent) {
@@ -212,7 +215,9 @@ export class IconEngine {
 
       return null;
     } catch (error) {
-      logger.error(`Failed to resolve icon "${name}":`, { error: String(error) });
+      logger.error(`Failed to resolve icon "${name}":`, {
+        error: String(error),
+      });
       return null;
     }
   }

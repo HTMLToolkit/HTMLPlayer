@@ -86,7 +86,7 @@ export const AddToPopover = ({
       toast.success(
         songs.length === 1
           ? t("addedToPlaylist", {
-              song: songs[0]!.title, // songs.length === 1 above guarantees index 0 exists
+              song: songs[0]!.title,
               playlist: playlist.name,
             })
           : t("playlist.addedToExisting", { count: addedCount }),
@@ -96,7 +96,7 @@ export const AddToPopover = ({
       toast.info(
         songs.length === 1
           ? t("songAlreadyInPlaylist", {
-              song: songs[0]!.title, // songs.length === 1 above guarantees index 0 exists
+              song: songs[0]!.title,
               playlist: playlist.name,
             })
           : t("playlist.someAlreadyInPlaylist", { count: skippedCount }),
@@ -118,7 +118,7 @@ export const AddToPopover = ({
       songs.length === 1
         ? t("createdNewPlaylistAddedSong", {
             playlist: newPlaylist.name,
-            song: songs[0]!.title, // songs.length === 1 above guarantees index 0 exists
+            song: songs[0]!.title,
           })
         : t("playlist.created", {
             name: newPlaylist.name,
@@ -152,7 +152,7 @@ export const AddToPopover = ({
     if (addedCount > 0) {
       toast.success(
         songs.length === 1
-          ? t("favorites.added", { title: songs[0]!.title }) // songs.length === 1 above guarantees index 0 exists
+          ? t("favorites.added", { title: songs[0]!.title })
           : t("favorites.addedMultiple", { count: addedCount }),
       );
     }
@@ -177,14 +177,14 @@ export const AddToPopover = ({
           <DialogTitle>{t("actions.addTo")}</DialogTitle>
           <DialogDescription>
             {songs.length === 1
-              ? t("choosePlaylistOrCreate", { song: songs[0]!.title }) // songs.length === 1 above guarantees index 0 exists
+              ? t("choosePlaylistOrCreate", { song: songs[0]!.title })
               : t("choosePlaylistOrCreateMultiple", { count: songs.length })}
           </DialogDescription>
         </DialogHeader>
 
         {!isCreatingNew ? (
           <div className={modalStyles.spaceY4}>
-            {/* Create New Playlist */}
+            {}
             <Button
               variant="outline"
               className={`${modalStyles["w-full"]} ${modalStyles["justify-start"]}`}
@@ -194,7 +194,7 @@ export const AddToPopover = ({
               {t("playlist.createNewPlaylist")}
             </Button>
 
-            {/* Search playlists */}
+            {}
             {allPlaylists.length > 0 && (
               <div style={{ position: "relative" }}>
                 <Icon
@@ -222,7 +222,7 @@ export const AddToPopover = ({
               </div>
             )}
 
-            {/* Add to favorites */}
+            {}
             {onAddToFavorites && (
               <Button
                 variant="outline"
@@ -234,7 +234,7 @@ export const AddToPopover = ({
               </Button>
             )}
 
-            {/* Playlist list */}
+            {}
             {allPlaylists.length > 0 ? (
               <div
                 className={modalStyles.spaceY2}

@@ -44,13 +44,11 @@ const ParticlesWallpaper: React.FC<WallpaperProps> = () => {
       particle.x += particle.vx;
       particle.y += particle.vy;
 
-      // Wrap around edges
       if (particle.x < 0) particle.x = width;
       if (particle.x > width) particle.x = 0;
       if (particle.y < 0) particle.y = height;
       if (particle.y > height) particle.y = 0;
 
-      // Subtle opacity pulsing
       particle.opacity += (Math.random() - 0.5) * 0.01;
       particle.opacity = Math.max(0.1, Math.min(1, particle.opacity));
     });
@@ -63,7 +61,6 @@ const ParticlesWallpaper: React.FC<WallpaperProps> = () => {
   ) => {
     ctx.clearRect(0, 0, width, height);
 
-    // Draw connections between nearby particles
     particlesRef.current.forEach((particle, i) => {
       particlesRef.current.slice(i + 1).forEach((otherParticle) => {
         const dx = particle.x - otherParticle.x;
@@ -82,7 +79,6 @@ const ParticlesWallpaper: React.FC<WallpaperProps> = () => {
       });
     });
 
-    // Draw particles
     particlesRef.current.forEach((particle) => {
       ctx.globalAlpha = particle.opacity;
       ctx.fillStyle = particle.color;
@@ -90,7 +86,6 @@ const ParticlesWallpaper: React.FC<WallpaperProps> = () => {
       ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
       ctx.fill();
 
-      // Add glow effect
       ctx.shadowColor = particle.color;
       ctx.shadowBlur = particle.size * 2;
       ctx.fill();
@@ -136,7 +131,6 @@ const ParticlesWallpaper: React.FC<WallpaperProps> = () => {
     canvas.width = dimensions.width;
     canvas.height = dimensions.height;
 
-    // Initialize particles
     const particleCount = Math.min(
       150,
       Math.floor((dimensions.width * dimensions.height) / 10000),
@@ -145,7 +139,6 @@ const ParticlesWallpaper: React.FC<WallpaperProps> = () => {
       createParticle(dimensions.width, dimensions.height),
     );
 
-    // Start animation
     animate();
 
     return () => {

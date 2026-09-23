@@ -1,6 +1,5 @@
 import React from "react";
 
-// Types for wallpaper props (API exposure)
 export interface WallpaperProps {
   currentSong?: {
     title: string;
@@ -16,7 +15,6 @@ export interface WallpaperProps {
   };
 }
 
-// Static Background Wallpaper Component
 const StaticBackground: React.FC<WallpaperProps> = ({
   currentSong,
   playbackState,
@@ -30,7 +28,7 @@ const StaticBackground: React.FC<WallpaperProps> = ({
         width: "100%",
         height: "100%",
         background: "linear-gradient(135deg, #0caddeff 0%, #09e8adff 100%)",
-        zIndex: -1, // Behind everything
+        zIndex: -1,
         display: "flex",
         alignItems: "center",
         justifyContent: "center",

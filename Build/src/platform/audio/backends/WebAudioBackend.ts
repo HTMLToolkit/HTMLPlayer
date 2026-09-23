@@ -107,9 +107,7 @@ export class WebAudioBackend extends BaseAudioBackend {
 
     try {
       this.chain.source.stop();
-    } catch {
-      // ignore
-    }
+    } catch {}
 
     this.chain.pausedAt = this.audioContext.currentTime - this.chain.startTime;
     this.stopTimeUpdates();
@@ -119,9 +117,7 @@ export class WebAudioBackend extends BaseAudioBackend {
     if (this.chain.source) {
       try {
         this.chain.source.stop();
-      } catch {
-        // ignore
-      }
+      } catch {}
       this.chain.source.disconnect();
       this.chain.source = null;
     }
@@ -136,9 +132,7 @@ export class WebAudioBackend extends BaseAudioBackend {
     if (this.chain.source) {
       try {
         this.chain.source.stop();
-      } catch {
-        // ignore
-      }
+      } catch {}
       this.chain.source.disconnect();
       this.chain.source = null;
     }

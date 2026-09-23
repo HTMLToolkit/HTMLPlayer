@@ -119,6 +119,7 @@ export function useKomorebi(
       gapless: { enabled: true },
       smartShuffle: true,
       autoPlayNext: options.autoPlay ?? false,
+      trackResolver: (track) => trackStorage.reconstructUrl(track),
     });
     engineRef.current = engine;
     backendRef.current = backend;
@@ -226,7 +227,9 @@ export function useKomorebi(
           libraryPersistence
             .savePlaylists(current.getState().playlists)
             .catch((error: unknown) => {
-              logger.error("Failed to save playlists:", { error: String(error) });
+              logger.error("Failed to save playlists:", {
+                error: String(error),
+              });
             });
         }
       }, 300);

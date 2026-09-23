@@ -226,9 +226,7 @@ export class QueueManager {
       }
     }
 
-    return selectedIds
-      .map((id) => trackIds.indexOf(id))
-      .filter((i) => i >= 0);
+    return selectedIds.map((id) => trackIds.indexOf(id)).filter((i) => i >= 0);
   }
 
   unshuffle(): void {
@@ -354,8 +352,6 @@ export class QueueManager {
         if (cursorIndex > index) {
           this.state.cursor = { kind: "active", index: cursorIndex - 1 };
         } else if (cursorIndex === index) {
-          // The removed slot now holds the former next track. If the removed
-          // track was last, the slot is gone entirely and the queue is empty.
           if (cursorIndex >= this.state.tracks.length) {
             this.state.cursor = { kind: "empty" };
           }

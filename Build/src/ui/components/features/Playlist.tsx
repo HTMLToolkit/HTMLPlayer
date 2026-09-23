@@ -214,14 +214,7 @@ export const PlaylistView = memo(function PlaylistView({
       }
       setDialogOpen(false);
     },
-    [
-      dialogType,
-      dialogItem,
-      createPlaylist,
-      createFolder,
-      removePlaylist,
-      t,
-    ],
+    [dialogType, dialogItem, createPlaylist, createFolder, removePlaylist, t],
   );
 
   const handlePlaylistSelect = useCallback(
@@ -355,7 +348,7 @@ export const PlaylistView = memo(function PlaylistView({
           onToggle={() => toggleFolder(item.id)}
           onRename={() => openDialog("rename", item)}
           onMoveToFolder={() => openDialog("move", item)}
-            onMoveToRoot={() => library.moveFolder(item.id, "root")}
+          onMoveToRoot={() => library.moveFolder(item.id, "root")}
           onDelete={() => openDialog("delete", item)}
           renderPlaylistItem={renderPlaylistItem}
         />
@@ -406,9 +399,7 @@ export const PlaylistView = memo(function PlaylistView({
             handlePlaylistSelect({
               id: "favorites",
               name: t("favorites.favorites"),
-              songs: songs.filter((s) =>
-                libraryState.favorites.includes(s.id),
-              ),
+              songs: songs.filter((s) => libraryState.favorites.includes(s.id)),
             })
           }
         >

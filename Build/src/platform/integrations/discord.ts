@@ -38,7 +38,9 @@ export class DiscordIntegration extends BaseIntegration {
         state: track.artist,
       });
     } catch (error) {
-      logger.error("Failed to update Discord presence:", { error: String(error) });
+      logger.error("Failed to update Discord presence:", {
+        error: String(error),
+      });
     }
   }
 

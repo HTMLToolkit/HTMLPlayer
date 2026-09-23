@@ -32,7 +32,6 @@ export const ShortcutConfig: React.FC<ShortcutConfigProps> = ({
   useEffect(() => {
     shortcutsDb.getAllShortcuts().then((userShortcuts) => {
       setShortcuts(userShortcuts);
-      // Always merge with defaults to show all actions
       setMergedShortcuts({ ...DEFAULT_SHORTCUTS, ...userShortcuts });
     });
   }, []);
@@ -58,7 +57,6 @@ export const ShortcutConfig: React.FC<ShortcutConfigProps> = ({
   const handleSave = async () => {
     if (!editingId || !editValue.key) return;
 
-    // Ensure we have a base shortcut to work with
     const baseShortcut = shortcuts[editingId] || mergedShortcuts[editingId];
     if (!baseShortcut) {
       setConflict(t("settings.shortcuts.unableToFindConfig"));
@@ -68,7 +66,7 @@ export const ShortcutConfig: React.FC<ShortcutConfigProps> = ({
     const newShortcut: KeyboardShortcut = {
       ...baseShortcut,
       ...editValue,
-      id: editingId, // Ensure id is always set
+      id: editingId,
     };
 
     const isConflict = await shortcutsDb.isShortcutConflict(

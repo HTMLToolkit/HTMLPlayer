@@ -20,16 +20,15 @@ const icons: Record<WeatherType, string> = {
 };
 
 const getWeatherType = (weatherCode: number): WeatherType => {
-  // WMO Weather interpretation codes
-  if (weatherCode === 0) return "sunny"; // Clear sky
-  if ([1, 2, 3].includes(weatherCode)) return "cloudy"; // Mainly clear, partly cloudy, overcast
-  if ([45, 48].includes(weatherCode)) return "fog"; // Fog and depositing rime fog
-  if ([51, 53, 55, 56, 57].includes(weatherCode)) return "rain"; // Drizzle
-  if ([61, 63, 65, 66, 67].includes(weatherCode)) return "rain"; // Rain
-  if ([71, 73, 75, 77].includes(weatherCode)) return "snow"; // Snow
-  if ([80, 81, 82, 85, 86].includes(weatherCode)) return "rain"; // Rain showers, snow showers
-  if ([95, 96, 99].includes(weatherCode)) return "storm"; // Thunderstorm
-  return "sunny"; // Default
+  if (weatherCode === 0) return "sunny";
+  if ([1, 2, 3].includes(weatherCode)) return "cloudy";
+  if ([45, 48].includes(weatherCode)) return "fog";
+  if ([51, 53, 55, 56, 57].includes(weatherCode)) return "rain";
+  if ([61, 63, 65, 66, 67].includes(weatherCode)) return "rain";
+  if ([71, 73, 75, 77].includes(weatherCode)) return "snow";
+  if ([80, 81, 82, 85, 86].includes(weatherCode)) return "rain";
+  if ([95, 96, 99].includes(weatherCode)) return "storm";
+  return "sunny";
 };
 
 const getBackgroundGradient = (
@@ -68,7 +67,6 @@ const WeatherWallpaper: React.FC<WallpaperProps> = () => {
         setLoading(true);
         setError(null);
 
-        // Open-Meteo API - free, no API key required
         const response = await fetch(
           `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,weather_code,is_day&timezone=auto`,
         );
@@ -83,7 +81,6 @@ const WeatherWallpaper: React.FC<WallpaperProps> = () => {
           throwError("Invalid weather data received");
         }
 
-        // Get location name using reverse geocoding (optional)
         let locationName = "Your Location";
         try {
           const geoResponse = await fetch(
@@ -95,7 +92,9 @@ const WeatherWallpaper: React.FC<WallpaperProps> = () => {
           }
         } catch (geoError) {
           if (geoError instanceof Error) {
-            logger.warn("Could not fetch location name:", { error: geoError.message });
+            logger.warn("Could not fetch location name:", {
+              error: geoError.message,
+            });
           } else {
             logger.warn("Could not fetch location name");
           }
@@ -143,13 +142,12 @@ const WeatherWallpaper: React.FC<WallpaperProps> = () => {
         } else {
           logger.warn("Geolocation error");
         }
-        // Fallback to a default location (e.g., New York City)
         fetchWeather(40.7128, -74.006);
       },
       {
         enableHighAccuracy: false,
         timeout: 10000,
-        maximumAge: 300000, // 5 minutes
+        maximumAge: 300000,
       },
     );
   }, [fetchWeather]);
@@ -157,7 +155,6 @@ const WeatherWallpaper: React.FC<WallpaperProps> = () => {
   useEffect(() => {
     getUserLocation();
 
-    // Refresh weather every 30 minutes
     const interval = setInterval(getUserLocation, 30 * 60 * 1000);
     return () => clearInterval(interval);
   }, [getUserLocation]);

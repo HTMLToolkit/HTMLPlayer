@@ -67,9 +67,7 @@ export function Settings({
       settings.setDiscordEnabled(false);
       settings.setDiscordUserId("");
       settings.setErudaEnabled(false);
-    } catch {
-      // toast.error(t("settings.resetError"));
-    }
+    } catch {}
   };
 
   const categoryList: Array<{

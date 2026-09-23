@@ -1,4 +1,8 @@
-import { VisualizerType, getByteFrequencyData } from "../../../platform/visualizers";
+import {
+  getByteFrequencyData,
+  sample,
+  VisualizerType,
+} from "../../../platform/visualizers";
 
 const spiralSpectrogram: VisualizerType = {
   name: "Spiral Spectrogram",
@@ -31,7 +35,7 @@ const spiralSpectrogram: VisualizerType = {
 
     for (let i = 0; i < bufferLength; i++) {
       const angle = (i * 2 * Math.PI) / 64;
-      const amplitude = (freqDataArray[i] ?? 0) / 256.0;
+      const amplitude = sample(freqDataArray, i) / 256.0;
       radius += spiralTightness;
 
       const x = centerX + radius * Math.cos(angle);

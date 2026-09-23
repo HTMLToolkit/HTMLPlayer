@@ -29,7 +29,9 @@ function openDatabase(): Promise<IDBDatabase> {
       const db = (event.target as IDBOpenDBRequest).result;
 
       if (!db.objectStoreNames.contains(STORES.TRACKS)) {
-        const trackStore = db.createObjectStore(STORES.TRACKS, { keyPath: "id" });
+        const trackStore = db.createObjectStore(STORES.TRACKS, {
+          keyPath: "id",
+        });
         trackStore.createIndex("artist", "artist", { unique: false });
         trackStore.createIndex("album", "album", { unique: false });
       }
@@ -70,7 +72,7 @@ export async function closeDb(): Promise<void> {
 export async function clearAllData(): Promise<void> {
   const db = await getDb();
   const tx = db.transaction(Object.values(STORES), "readwrite");
-  
+
   for (const storeName of Object.values(STORES)) {
     tx.objectStore(storeName).clear();
   }

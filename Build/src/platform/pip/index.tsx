@@ -46,7 +46,10 @@ export function copyAllStyles(pipWindow: Window) {
         }
       } catch (e) {
         if (e instanceof Error) {
-          logger.warn("Could not access stylesheet", { href: styleSheet.href, error: e.message });
+          logger.warn("Could not access stylesheet", {
+            href: styleSheet.href,
+            error: e.message,
+          });
         } else {
           logger.warn("Could not access stylesheet", { href: styleSheet.href });
         }
@@ -163,7 +166,7 @@ export async function toggleMiniplayer(
         }
 
         const existingThemeStyles = newPipWindow.document.querySelectorAll(
-          'style[data-theme-variables], style[data-fallback-theme-variables]',
+          "style[data-theme-variables], style[data-fallback-theme-variables]",
         );
         existingThemeStyles.forEach((style) => style.remove());
 

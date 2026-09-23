@@ -93,7 +93,6 @@
     margin-bottom: var(--spacing-6);
   }
 
-  /* Add utility classes */
   .spaceY4 > *:not(:last-child) {
     margin-bottom: var(--spacing-6);
   }

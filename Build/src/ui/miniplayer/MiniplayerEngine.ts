@@ -115,13 +115,9 @@ export class MiniplayerEngine {
             style.textContent = cssRules;
             pipWindow.document.head.appendChild(style);
           }
-        } catch {
-          // Skip inaccessible stylesheets
-        }
+        } catch {}
       });
-    } catch {
-      // Ignore
-    }
+    } catch {}
   }
 
   private applyThemeVariables(pipWindow: Window): void {

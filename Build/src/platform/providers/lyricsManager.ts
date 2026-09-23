@@ -27,7 +27,9 @@ export class LyricsManager {
           return result.data;
         }
       } catch (error) {
-        logger.error(`Provider ${provider.name} failed:`, { error: String(error) });
+        logger.error(`Provider ${provider.name} failed:`, {
+          error: String(error),
+        });
       }
     }
 

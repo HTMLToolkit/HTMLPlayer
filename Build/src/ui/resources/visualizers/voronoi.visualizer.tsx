@@ -1,7 +1,8 @@
 import {
   getByteFrequencyData,
-  VisualizerType,
+  sample,
   visualizerStates,
+  VisualizerType,
 } from "../../../platform/visualizers";
 
 const voronoiSpectrum: VisualizerType = {
@@ -26,6 +27,11 @@ const voronoiSpectrum: VisualizerType = {
     if (dataType !== "frequency") return;
     let state = visualizerStates.get("voronoiSpectrum") || {};
     if (!state.points) {
+      const offscreen = document.createElement("canvas");
+      offscreen.width = canvas.width;
+      offscreen.height = canvas.height;
+      const offscreenCtx = offscreen.getContext("2d");
+      if (!offscreenCtx) return;
       state = {
         points: new Array(pointCount).fill(null).map((_, i) => ({
           x: 0,
@@ -35,12 +41,9 @@ const voronoiSpectrum: VisualizerType = {
         })),
         numPoints: pointCount,
         pixelSize: pixelSize,
-        offscreen: document.createElement("canvas"),
-        offscreenCtx: null as CanvasRenderingContext2D | null,
+        offscreen,
+        offscreenCtx,
       };
-      state.offscreen!.width = canvas.width;
-      state.offscreen!.height = canvas.height;
-      state.offscreenCtx = state.offscreen!.getContext("2d");
       visualizerStates.set("voronoiSpectrum", state);
     }
 
@@ -49,25 +52,32 @@ const voronoiSpectrum: VisualizerType = {
     ctx.fillStyle = backgroundColor;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    for (let i = 0; i < state.numPoints!; i++) {
-      const point = state.points![i];
+    const points = state.points;
+    const numPoints = state.numPoints ?? pointCount;
+    const pixel = state.pixelSize ?? pixelSize;
+    const offscreenCtx = state.offscreenCtx;
+    const offscreen = state.offscreen;
+    if (!points || !offscreenCtx || !offscreen) return;
+
+    for (let i = 0; i < numPoints; i++) {
+      const point = points[i];
       if (!point) continue;
       point.x = Math.random() * canvas.width;
       point.y = Math.random() * canvas.height;
-      const value = (freqDataArray[point.freqIndex] ?? 0) / 256;
+      const value = sample(freqDataArray, point.freqIndex) / 256;
       point.color = pointColor
         .replace("{hue}", `${(point.freqIndex * 360) / bufferLength}`)
         .replace("{lightness}", `${value * 100}`);
     }
 
-    state.offscreenCtx!.clearRect(0, 0, canvas.width, canvas.height);
+    offscreenCtx.clearRect(0, 0, canvas.width, canvas.height);
 
-    for (let x = 0; x < canvas.width; x += state.pixelSize!) {
-      for (let y = 0; y < canvas.height; y += state.pixelSize!) {
+    for (let x = 0; x < canvas.width; x += pixel) {
+      for (let y = 0; y < canvas.height; y += pixel) {
         let minDist = Infinity;
         let closestColor = "";
 
-        for (let p of state.points!) {
+        for (let p of points) {
           const dx = x - p.x;
           const dy = y - p.y;
           const dist = dx * dx + dy * dy;
@@ -77,12 +87,12 @@ const voronoiSpectrum: VisualizerType = {
           }
         }
 
-        state.offscreenCtx!.fillStyle = closestColor;
-        state.offscreenCtx!.fillRect(x, y, state.pixelSize!, state.pixelSize!);
+        offscreenCtx.fillStyle = closestColor;
+        offscreenCtx.fillRect(x, y, pixel, pixel);
       }
     }
 
-    ctx.drawImage(state.offscreen!, 0, 0);
+    ctx.drawImage(offscreen, 0, 0);
   },
 };
 

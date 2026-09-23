@@ -123,7 +123,6 @@ export const libraries: IconLibraryMap = {
   },
 };
 
-// react-icons uses: size (as string or number), color, style, etc.
 const remixPropTransformer: IconPropTransformer = (props) => {
   const transformed: Record<string, any> = {};
 

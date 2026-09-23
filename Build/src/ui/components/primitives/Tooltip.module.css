@@ -14,7 +14,6 @@
     overflow-wrap: break-word;
     word-break: keep-all;
 
-    /* Animation */
     animation-duration: var(--animation-duration-normal);
     animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
     will-change: transform, opacity;

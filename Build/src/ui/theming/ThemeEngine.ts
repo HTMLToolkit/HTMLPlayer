@@ -75,7 +75,9 @@ export class ThemeEngine {
 
       this.isReady = true;
     } catch (error) {
-      logger.error("ThemeEngine initialization error:", { error: String(error) });
+      logger.error("ThemeEngine initialization error:", {
+        error: String(error),
+      });
     } finally {
       this.isLoading = false;
     }

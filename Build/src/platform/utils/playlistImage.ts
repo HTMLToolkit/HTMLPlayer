@@ -51,7 +51,7 @@ export async function generatePlaylistImage(songs: Track[]): Promise<string> {
                 [40, 40, 40, 40],
               ];
 
-    images.forEach((img, i) => ctx.drawImage(img, ...positions[i]!)); // i < images.length, positions covers 1..4
+    images.forEach((img, i) => ctx.drawImage(img, ...positions[i]!));
     ctx.fillStyle = "rgba(0, 0, 0, 0.1)";
     ctx.fillRect(0, 0, 80, 80);
 
@@ -60,7 +60,9 @@ export async function generatePlaylistImage(songs: Track[]): Promise<string> {
     canvas.height = 0;
     return result;
   } catch (error) {
-    logger.error("Failed to generate playlist image:", { error: String(error) });
+    logger.error("Failed to generate playlist image:", {
+      error: String(error),
+    });
     canvas.width = 0;
     canvas.height = 0;
     return "";

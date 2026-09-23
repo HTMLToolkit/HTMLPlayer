@@ -1,10 +1,4 @@
-import {
-  useEffect,
-  useState,
-  useCallback,
-  useRef,
-  useMemo,
-} from "react";
+import { useEffect, useState, useCallback, useRef, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import styles from "./Lyrics.module.css";
 import { Button } from "../primitives/Button";
@@ -58,28 +52,22 @@ export const Lyrics = ({
   const { t } = useTranslation();
   const [state, setState] = useState<LyricsState>(INITIAL_STATE);
   const abortControllerRef = useRef<AbortController | null>(null);
-  // Use selectedIndex to avoid object-reference equality problems when arrays are rehydrated
   const [selectedIndex, setSelectedIndex] = useState<number>(-1);
   const [currentLineIndex, setCurrentLineIndex] = useState<number>(-1);
   const lyricsRef = useRef<HTMLDivElement | null>(null);
-  // Track which source the user prefers: "online" or "embedded"
   const [preferredSource, setPreferredSource] = useState<"online" | "embedded">(
     "online",
   );
-  // Track if this is the initial mount to show open animation only once
   const [hasAnimatedIn, setHasAnimatedIn] = useState(false);
 
-  // Reset animation state when component remounts (visible changes from false to true)
   const prevVisibleRef = useRef(visible);
   useEffect(() => {
     if (visible && !prevVisibleRef.current) {
-      // Reopening - reset animation state
       setHasAnimatedIn(false);
     }
     prevVisibleRef.current = visible;
   }, [visible]);
 
-  // Mark as animated in after initial mount animation completes
   useEffect(() => {
     if (!isClosingProp && !hasAnimatedIn) {
       const timer = setTimeout(() => setHasAnimatedIn(true), 250);
@@ -87,7 +75,6 @@ export const Lyrics = ({
     }
   }, [isClosingProp, hasAnimatedIn]);
 
-  // Handle close - just call parent handler, parent manages animation state
   const handleClose = useCallback(() => {
     onClose?.();
   }, [onClose]);
@@ -174,16 +161,13 @@ export const Lyrics = ({
 
   const showEmbeddedLyrics = !!embeddedLyrics?.length;
 
-  // Auto-fetch online lyrics when the panel becomes visible
   useEffect(() => {
     if (!visible) return;
-    // Always try to fetch online lyrics when lyrics panel opens
     if (artist && title) {
       fetchLyrics(artist, title);
     }
   }, [visible, artist, title, fetchLyrics]);
 
-  // Normalize helper: accept different shapes and ensure timestamps are ms
   const normalizeEntry = useCallback((entry?: EmbeddedLyrics) => {
     if (!entry) return null;
     const normalized: EmbeddedLyrics = {
@@ -195,7 +179,6 @@ export const Lyrics = ({
     };
 
     if (entry.lines?.length) {
-      // Map timestamps; determine if timestamps are seconds (small numbers) or ms
       const mapped = entry.lines.map((l) => ({
         text: l.text ?? "",
         timestamp:
@@ -204,22 +187,17 @@ export const Lyrics = ({
             : Number(l.timestamp) || 0,
       }));
       const maxTs = Math.max(...mapped.map((m) => m.timestamp), 0);
-      // Heuristic: if max timestamp < 10000 treat values as seconds -> convert to ms
       const needsMultiply = maxTs > 0 && maxTs < 10000;
       normalized.lines = mapped.map((m) => ({
         text: m.text,
         timestamp: needsMultiply ? m.timestamp * 1000 : m.timestamp,
       }));
-      // sort just in case
       normalized.lines.sort((a, b) => a.timestamp - b.timestamp);
     }
 
-    // If no text field but lines exist, keep lines only. If no lines but text exists, keep text.
     return normalized;
   }, []);
 
-  // Memoized normalized array for safer usage
-  // Sort to prioritize synced (SYLT) over unsynced (USLT)
   const normalizedEmbedded = useMemo(() => {
     if (!embeddedLyrics?.length) return [];
     return embeddedLyrics
@@ -227,7 +205,6 @@ export const Lyrics = ({
       .sort((a, b) => (b.synced ? 1 : 0) - (a.synced ? 1 : 0));
   }, [embeddedLyrics, normalizeEntry]);
 
-  // Manage selection index when embedded lyrics change or visibility changes
   useEffect(() => {
     if (!visible || !showEmbeddedLyrics) {
       setSelectedIndex(-1);
@@ -235,7 +212,6 @@ export const Lyrics = ({
       return;
     }
 
-    // Prefer to keep current index if still valid, otherwise pick 0
     setSelectedIndex((prevIndex) => {
       if (normalizedEmbedded.length === 0) return -1;
       if (prevIndex >= 0 && prevIndex < normalizedEmbedded.length)
@@ -243,14 +219,12 @@ export const Lyrics = ({
       return 0;
     });
     setCurrentLineIndex(-1);
-    // Debug log arrival
     logger.debug("[Lyrics] embedded lyrics arrived", {
       length: normalizedEmbedded.length,
       normalizedEmbedded,
     });
   }, [normalizedEmbedded, showEmbeddedLyrics, visible]);
 
-  // Derive selectedLyrics from index and normalized array
   const selectedLyrics = useMemo(() => {
     if (!normalizedEmbedded?.length) return null;
     if (selectedIndex < 0 || selectedIndex >= normalizedEmbedded.length)
@@ -258,7 +232,6 @@ export const Lyrics = ({
     return normalizedEmbedded[selectedIndex] ?? null;
   }, [normalizedEmbedded, selectedIndex]);
 
-  // Update current line index based on currentTime when using synced lyrics
   useEffect(() => {
     if (!visible) return;
     if (
@@ -282,7 +255,6 @@ export const Lyrics = ({
     if (index !== currentLineIndex) setCurrentLineIndex(index);
   }, [currentLineIndex, currentTime, selectedLyrics, visible]);
 
-  // Scroll into view for current line
   useEffect(() => {
     if (!visible) return;
     if (currentLineIndex < 0) return;
@@ -336,7 +308,6 @@ export const Lyrics = ({
   const { lyrics, loading, error } = state;
   const shownIndexForSelect = selectedIndex >= 0 ? selectedIndex : 0;
 
-  // Determine data-state: closing, open (initial animation), or visible (no animation)
   const dataState = isClosingProp
     ? "closing"
     : hasAnimatedIn
@@ -365,7 +336,7 @@ export const Lyrics = ({
             )}
           </div>
           <div className={styles.lyricsHeaderControls}>
-            {/* Online Lyrics Button */}
+            {}
             <Button
               variant="ghost"
               size="icon-sm"
@@ -377,7 +348,7 @@ export const Lyrics = ({
             >
               <Icon name="download" size={18} />
             </Button>
-            {/* Embedded Lyrics Button */}
+            {}
             <Button
               variant="ghost"
               size="icon-sm"

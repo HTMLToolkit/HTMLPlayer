@@ -1,4 +1,8 @@
-import { VisualizerType, getByteFrequencyData } from "../../../platform/visualizers";
+import {
+  getByteFrequencyData,
+  sample,
+  VisualizerType,
+} from "../../../platform/visualizers";
 
 const circuitBoard: VisualizerType = {
   name: "Circuit Board",
@@ -26,7 +30,7 @@ const circuitBoard: VisualizerType = {
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     for (let i = 0; i < bufferLength; i++) {
-      const amplitude = (freqDataArray[i] ?? 0) / 256.0;
+      const amplitude = sample(freqDataArray, i) / 256.0;
       const x = (i % (canvas.width / gridSize)) * gridSize;
       const y = Math.floor(i / (canvas.width / gridSize)) * gridSize;
 

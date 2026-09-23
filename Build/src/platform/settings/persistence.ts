@@ -76,7 +76,9 @@ export class SettingsPersistence {
       const request = store.get("main");
 
       request.onsuccess = () => {
-        const result = request.result as { key: string; value: SettingsState } | undefined;
+        const result = request.result as
+          | { key: string; value: SettingsState }
+          | undefined;
         resolve(
           unwrapVersioned(
             result?.value,

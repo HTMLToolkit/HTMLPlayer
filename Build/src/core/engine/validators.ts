@@ -45,10 +45,7 @@ export function isQueueCursorActive(
  */
 export function isQueueState(value: unknown): value is QueueState {
   if (!isPlainObject(value)) return false;
-  if (
-    !Array.isArray(value.tracks) ||
-    !value.tracks.every(isTrack)
-  ) {
+  if (!Array.isArray(value.tracks) || !value.tracks.every(isTrack)) {
     return false;
   }
   if (typeof value.shuffled !== "boolean") return false;
@@ -102,9 +99,7 @@ export function isPlaylistItem(value: unknown): value is PlaylistItem {
   if (typeof value.id !== "string" || typeof value.name !== "string") {
     return false;
   }
-  return (
-    Array.isArray(value.children) && value.children.every(isPlaylistItem)
-  );
+  return Array.isArray(value.children) && value.children.every(isPlaylistItem);
 }
 
 export function isPlayHistory(value: unknown): value is PlayHistory {

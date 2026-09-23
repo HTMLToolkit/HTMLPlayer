@@ -9,7 +9,12 @@ interface PlayerAlbumArtProps {
   title: string;
 }
 
-export const PlayerAlbumArt = ({ songId, hasAlbumArt, albumArt, title }: PlayerAlbumArtProps) => {
+export const PlayerAlbumArt = ({
+  songId,
+  hasAlbumArt,
+  albumArt,
+  title,
+}: PlayerAlbumArtProps) => {
   const { t } = useTranslation();
   const lazyAlbumArt = useAlbumArt(songId, !!hasAlbumArt || !!albumArt);
   const currentAlbumArt = albumArt || lazyAlbumArt;

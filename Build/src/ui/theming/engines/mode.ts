@@ -23,7 +23,7 @@ export class ThemeModeEngine {
 
   setMode(mode: ThemeMode): void {
     const shouldSkip = this.currentMode === mode && mode !== "auto";
-    
+
     this.clearMediaQueryListener();
 
     switch (mode) {
@@ -42,7 +42,7 @@ export class ThemeModeEngine {
     localStorage.setItem(MODE_STORAGE_KEY, mode);
 
     this.updateMetaThemeColor();
-    
+
     if (!shouldSkip) {
       this.events.emit("modechange", { mode: mode });
     }

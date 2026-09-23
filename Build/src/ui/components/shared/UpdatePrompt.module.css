@@ -78,7 +78,6 @@
   white-space: nowrap;
 }
 
-/* Mobile adjustments */
 @media (max-width: 600px) {
   .updatePrompt {
     flex-direction: column;
