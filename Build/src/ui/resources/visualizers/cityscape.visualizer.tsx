@@ -1,4 +1,4 @@
-import { VisualizerType } from "../../../platform/visualizers";
+import { VisualizerType, getByteFrequencyData } from "../../../platform/visualizers";
 
 const cityscape: VisualizerType = {
   name: "Dynamic Cityscape",
@@ -22,7 +22,7 @@ const cityscape: VisualizerType = {
     } = settings;
 
     if (dataType !== "frequency") return;
-    analyser.getByteFrequencyData(freqDataArray);
+    getByteFrequencyData(analyser, freqDataArray);
 
     ctx.fillStyle = backgroundColor;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -32,7 +32,7 @@ const cityscape: VisualizerType = {
 
     for (let i = 0; i < buildingCount; i++) {
       const freqIndex = Math.floor((i / buildingCount) * bufferLength);
-      const height = (freqDataArray[freqIndex] / 256.0) * canvas.height * 0.7;
+      const height = ((freqDataArray[freqIndex] ?? 0) / 256.0) * canvas.height * 0.7;
 
       ctx.fillStyle = buildingColor.replace("{blue}", `${30 + height / 2}`);
       const x = i * buildingWidth;

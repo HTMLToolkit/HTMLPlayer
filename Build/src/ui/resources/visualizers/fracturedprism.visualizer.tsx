@@ -1,4 +1,4 @@
-import { VisualizerType } from "../../../platform/visualizers";
+import { VisualizerType, getByteTimeDomainData } from "../../../platform/visualizers";
 
 const fracturedPrism: VisualizerType = {
   name: "Fractured Prism",
@@ -22,7 +22,7 @@ const fracturedPrism: VisualizerType = {
     } = settings;
 
     if (dataType !== "time") return;
-    analyser.getByteTimeDomainData(timeDataArray);
+    getByteTimeDomainData(analyser, timeDataArray);
 
     ctx.fillStyle = backgroundColor;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -37,7 +37,7 @@ const fracturedPrism: VisualizerType = {
       ctx.lineWidth = 2;
 
       for (let i = 0; i < bufferLength; i++) {
-        const v = timeDataArray[i] / 128.0;
+        const v = (timeDataArray[i] ?? 0) / 128.0;
         const displacement =
           Math.sin(i * 0.05 + (layer * Math.PI) / 3) * displacementScale;
         const y = centerY + v * displacement;

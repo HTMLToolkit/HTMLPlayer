@@ -1,6 +1,7 @@
 import {
   VisualizerType,
   visualizerStates,
+  getByteFrequencyData,
 } from "../../../platform/visualizers";
 
 const fluidSpectrogram: VisualizerType = {
@@ -37,13 +38,13 @@ const fluidSpectrogram: VisualizerType = {
       visualizerStates.set("fluidSpectrogram", state);
     }
 
-    analyser.getByteFrequencyData(freqDataArray);
+    getByteFrequencyData(analyser, freqDataArray);
     ctx.fillStyle = backgroundColor;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     state.particles!.forEach((p, index) => {
       const freqIndex = index % bufferLength;
-      const amplitude = freqDataArray[freqIndex] / 256.0;
+      const amplitude = (freqDataArray[freqIndex] ?? 0) / 256.0;
 
       p.x += p.vx * (1 + amplitude * velocityScale);
       p.y += p.vy * (1 + amplitude * velocityScale);

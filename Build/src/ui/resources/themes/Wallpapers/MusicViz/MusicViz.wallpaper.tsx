@@ -32,7 +32,7 @@ const MusicViz: React.FC<WallpaperProps> = ({ playbackState }) => {
         (analyser as any).getByteFrequencyData(dataArray);
         const barWidth = canvas.width / dataArray.length;
         for (let i = 0; i < dataArray.length; i++) {
-          const v = dataArray[i] / 255;
+          const v = (dataArray[i] ?? 0) / 255;
           const h = v * canvas.height;
           ctx.fillStyle = `hsl(${(i / dataArray.length) * 360}, 80%, ${30 + v * 50}%)`;
           ctx.fillRect(i * barWidth, canvas.height - h, Math.ceil(barWidth), h);

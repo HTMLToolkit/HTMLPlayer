@@ -1,4 +1,4 @@
-import { VisualizerType } from "../../../platform/visualizers";
+import { VisualizerType, getByteFrequencyData } from "../../../platform/visualizers";
 
 const spectrumRipple: VisualizerType = {
   name: "Spectrum Ripple",
@@ -20,7 +20,7 @@ const spectrumRipple: VisualizerType = {
     } = settings;
 
     if (dataType !== "frequency") return;
-    analyser.getByteFrequencyData(freqDataArray);
+    getByteFrequencyData(analyser, freqDataArray);
 
     ctx.fillStyle = backgroundColor;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -29,7 +29,7 @@ const spectrumRipple: VisualizerType = {
     const centerY = canvas.height / 2;
 
     for (let i = 0; i < bufferLength; i += rippleStep) {
-      const value = freqDataArray[i];
+      const value = freqDataArray[i] ?? 0;
       const radius = (value / 256) * Math.min(centerX, centerY);
 
       ctx.beginPath();

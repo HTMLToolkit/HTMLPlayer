@@ -1,4 +1,4 @@
-import { VisualizerType } from "../../../platform/visualizers";
+import { VisualizerType, getByteFrequencyData } from "../../../platform/visualizers";
 
 const neuroSpectrogram: VisualizerType = {
   name: "Neural Network Spectrogram",
@@ -20,7 +20,7 @@ const neuroSpectrogram: VisualizerType = {
     } = settings;
 
     if (dataType !== "frequency") return;
-    analyser.getByteFrequencyData(freqDataArray);
+    getByteFrequencyData(analyser, freqDataArray);
 
     ctx.fillStyle = backgroundColor;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -34,7 +34,7 @@ const neuroSpectrogram: VisualizerType = {
     for (let layer = 0; layer < layers; layer++) {
       for (let node = 0; node < nodesPerLayer; node++) {
         const freqIndex = (layer * nodesPerLayer + node) % bufferLength;
-        const amplitude = freqDataArray[freqIndex] / 256.0;
+        const amplitude = (freqDataArray[freqIndex] ?? 0) / 256.0;
 
         nodes.push({
           x: nodeSpacing * (layer + 1),
@@ -46,12 +46,14 @@ const neuroSpectrogram: VisualizerType = {
 
     for (let i = 0; i < nodes.length; i++) {
       const node1 = nodes[i];
+      if (!node1) continue;
       const layer1 = Math.floor(i / nodesPerLayer);
 
       if (layer1 < layers - 1) {
         for (let j = 0; j < nodesPerLayer; j++) {
           const nextIndex = (layer1 + 1) * nodesPerLayer + j;
           const node2 = nodes[nextIndex];
+          if (!node2) continue;
 
           const strength = (node1.amplitude + node2.amplitude) / 2;
 

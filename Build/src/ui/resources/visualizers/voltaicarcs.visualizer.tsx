@@ -1,4 +1,4 @@
-import { VisualizerType } from "../../../platform/visualizers";
+import { VisualizerType, getByteTimeDomainData } from "../../../platform/visualizers";
 
 const voltaicArcs: VisualizerType = {
   name: "Voltaic Arcs",
@@ -21,7 +21,7 @@ const voltaicArcs: VisualizerType = {
     } = settings;
 
     if (dataType !== "time") return;
-    analyser.getByteTimeDomainData(timeDataArray);
+    getByteTimeDomainData(analyser, timeDataArray);
 
     ctx.fillStyle = backgroundColor;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -31,12 +31,12 @@ const voltaicArcs: VisualizerType = {
 
     ctx.lineWidth = lineWidth;
     ctx.strokeStyle = lineColor
-      .replace("{green}", `${Math.floor(255 * (timeDataArray[0] / 128.0))}`)
-      .replace("{blue}", `${Math.floor(255 * (timeDataArray[0] / 128.0))}`);
+      .replace("{green}", `${Math.floor(255 * ((timeDataArray[0] ?? 0) / 128.0))}`)
+      .replace("{blue}", `${Math.floor(255 * ((timeDataArray[0] ?? 0) / 128.0))}`);
     ctx.beginPath();
 
     for (let i = 0; i < bufferLength; i++) {
-      const v = timeDataArray[i] / 128.0;
+      const v = (timeDataArray[i] ?? 0) / 128.0;
       let y = (v * canvas.height) / 2;
 
       if (i % arcInterval === 0) {

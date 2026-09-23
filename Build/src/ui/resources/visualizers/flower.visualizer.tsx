@@ -1,4 +1,4 @@
-import { VisualizerType } from "../../../platform/visualizers";
+import { VisualizerType, getByteFrequencyData } from "../../../platform/visualizers";
 
 const flowerSpectrogram: VisualizerType = {
   name: "Flower Spectrogram",
@@ -20,7 +20,7 @@ const flowerSpectrogram: VisualizerType = {
     } = settings;
 
     if (dataType !== "frequency") return;
-    analyser.getByteFrequencyData(freqDataArray);
+    getByteFrequencyData(analyser, freqDataArray);
 
     ctx.fillStyle = backgroundColor;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -29,7 +29,7 @@ const flowerSpectrogram: VisualizerType = {
     const centerY = canvas.height / 2;
 
     for (let i = 0; i < bufferLength; i++) {
-      const amplitude = freqDataArray[i] / 256.0;
+      const amplitude = (freqDataArray[i] ?? 0) / 256.0;
       const angle = (i * 2 * Math.PI) / bufferLength;
       const radius = Math.min(centerX, centerY) * amplitude;
 

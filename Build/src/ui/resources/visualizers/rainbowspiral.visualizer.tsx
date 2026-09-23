@@ -1,4 +1,4 @@
-import { VisualizerType } from "../../../platform/visualizers";
+import { VisualizerType, getByteFrequencyData } from "../../../platform/visualizers";
 
 const rainbowSpiral: VisualizerType = {
   name: "Rainbow Spiral",
@@ -20,7 +20,7 @@ const rainbowSpiral: VisualizerType = {
     } = settings;
 
     if (dataType !== "frequency") return;
-    analyser.getByteFrequencyData(freqDataArray);
+    getByteFrequencyData(analyser, freqDataArray);
 
     ctx.fillStyle = backgroundColor;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -29,7 +29,7 @@ const rainbowSpiral: VisualizerType = {
     const centerY = canvas.height / 2;
 
     for (let i = 0; i < bufferLength; i++) {
-      const value = freqDataArray[i];
+      const value = freqDataArray[i] ?? 0;
       const radius = (value / 256) * Math.min(centerX, centerY);
       const angle =
         (i * 2 * Math.PI) / bufferLength + Date.now() / (1000 / rotationSpeed);

@@ -1,4 +1,4 @@
-import { VisualizerType } from "../../../platform/visualizers";
+import { VisualizerType, getByteFrequencyData } from "../../../platform/visualizers";
 
 const neuralSpectrogram: VisualizerType = {
   name: "Neural Network Visualization",
@@ -19,7 +19,7 @@ const neuralSpectrogram: VisualizerType = {
     } = settings;
 
     if (dataType !== "frequency") return;
-    analyser.getByteFrequencyData(freqDataArray);
+    getByteFrequencyData(analyser, freqDataArray);
 
     ctx.fillStyle = backgroundColor;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -29,17 +29,19 @@ const neuralSpectrogram: VisualizerType = {
 
     for (let i = 0; i < connections; i++) {
       const x = (canvas.width / connections) * i;
-      const y = canvas.height / 2 + (freqDataArray[i] - 128) * 1.5;
+      const y = canvas.height / 2 + ((freqDataArray[i] ?? 0) - 128) * 1.5;
       nodes.push({ x, y });
 
       for (let j = 0; j < nodes.length; j++) {
-        const distance = Math.hypot(nodes[j].x - x, nodes[j].y - y);
+        const node = nodes[j];
+        if (!node) continue;
+        const distance = Math.hypot(node.x - x, node.y - y);
         if (distance < connectionDistance) {
           const opacity = 1 - distance / connectionDistance;
           ctx.strokeStyle = lineColor.replace("{alpha}", `${opacity}`);
           ctx.beginPath();
           ctx.moveTo(x, y);
-          ctx.lineTo(nodes[j].x, nodes[j].y);
+          ctx.lineTo(node.x, node.y);
           ctx.stroke();
         }
       }

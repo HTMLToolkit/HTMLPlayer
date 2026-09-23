@@ -1,4 +1,4 @@
-import { VisualizerType } from "../../../platform/visualizers";
+import { VisualizerType, getByteFrequencyData } from "../../../platform/visualizers";
 
 const frequencyStars: VisualizerType = {
   name: "Frequency Stars",
@@ -20,13 +20,13 @@ const frequencyStars: VisualizerType = {
     } = settings;
 
     if (dataType !== "frequency") return;
-    analyser.getByteFrequencyData(freqDataArray);
+    getByteFrequencyData(analyser, freqDataArray);
 
     ctx.fillStyle = backgroundColor;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     for (let i = 0; i < bufferLength; i++) {
-      const value = freqDataArray[i];
+      const value = freqDataArray[i] ?? 0;
       if (value > threshold) {
         const x = Math.random() * canvas.width;
         const y = Math.random() * canvas.height;

@@ -1,4 +1,4 @@
-import { VisualizerType } from "../../../platform/visualizers";
+import { VisualizerType, getByteFrequencyData } from "../../../platform/visualizers";
 
 const architecturalBlueprint: VisualizerType = {
   name: "Architectural Blueprint",
@@ -22,7 +22,7 @@ const architecturalBlueprint: VisualizerType = {
     } = settings;
 
     if (dataType !== "frequency") return;
-    analyser.getByteFrequencyData(freqDataArray);
+    getByteFrequencyData(analyser, freqDataArray);
 
     ctx.fillStyle = backgroundColor;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -30,7 +30,7 @@ const architecturalBlueprint: VisualizerType = {
     const gridSize = (canvas.width - margin * 2) / Math.sqrt(bufferLength);
 
     for (let i = 0; i < bufferLength; i++) {
-      const amplitude = freqDataArray[i] / 256.0;
+      const amplitude = (freqDataArray[i] ?? 0) / 256.0;
       const col = i % Math.floor(Math.sqrt(bufferLength));
       const row = Math.floor(i / Math.floor(Math.sqrt(bufferLength)));
 

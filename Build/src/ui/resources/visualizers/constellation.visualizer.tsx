@@ -1,4 +1,4 @@
-import { VisualizerType } from "../../../platform/visualizers";
+import { VisualizerType, getByteFrequencyData } from "../../../platform/visualizers";
 
 const constellationSpectrogram: VisualizerType = {
   name: "Constellation Spectrogram",
@@ -20,7 +20,7 @@ const constellationSpectrogram: VisualizerType = {
     } = settings;
 
     if (dataType !== "frequency") return;
-    analyser.getByteFrequencyData(freqDataArray);
+    getByteFrequencyData(analyser, freqDataArray);
 
     ctx.fillStyle = backgroundColor;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -29,7 +29,7 @@ const constellationSpectrogram: VisualizerType = {
     const connections = connectionCount;
 
     for (let i = 0; i < bufferLength; i += 2) {
-      const amplitude = freqDataArray[i] / 256.0;
+      const amplitude = (freqDataArray[i] ?? 0) / 256.0;
       const angle = (i * 2 * Math.PI) / bufferLength;
       const radius =
         (Math.min(canvas.width, canvas.height) / 3) * (0.5 + amplitude * 0.5);
@@ -43,10 +43,12 @@ const constellationSpectrogram: VisualizerType = {
 
     for (let i = 0; i < points.length; i++) {
       const p1 = points[i];
+      if (!p1) continue;
 
       for (let j = 0; j < connections; j++) {
         const nextIndex = (i + j + 1) % points.length;
         const p2 = points[nextIndex];
+        if (!p2) continue;
 
         const distance = Math.hypot(p2.x - p1.x, p2.y - p1.y);
         if (distance < 100) {

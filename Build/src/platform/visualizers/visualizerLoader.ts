@@ -14,6 +14,20 @@ interface VisualizerDrawFunction {
   ): void;
 }
 
+export function getByteFrequencyData(
+  analyser: AnalyserNode,
+  dataArray: Uint8Array | Float32Array,
+): void {
+  analyser.getByteFrequencyData(dataArray as Uint8Array<ArrayBuffer>);
+}
+
+export function getByteTimeDomainData(
+  analyser: AnalyserNode,
+  dataArray: Uint8Array | Float32Array,
+): void {
+  analyser.getByteTimeDomainData(dataArray as Uint8Array<ArrayBuffer>);
+}
+
 export interface VisualizerType {
   name: string;
   draw: VisualizerDrawFunction;

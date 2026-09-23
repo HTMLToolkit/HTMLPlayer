@@ -1,4 +1,4 @@
-import { VisualizerType } from "../../../platform/visualizers";
+import { VisualizerType, getByteFrequencyData } from "../../../platform/visualizers";
 
 const fracturedCircle: VisualizerType = {
   name: "Fractured Circle",
@@ -20,7 +20,7 @@ const fracturedCircle: VisualizerType = {
     } = settings;
 
     if (dataType !== "frequency") return;
-    analyser.getByteFrequencyData(freqDataArray);
+    getByteFrequencyData(analyser, freqDataArray);
 
     ctx.fillStyle = backgroundColor;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -31,7 +31,7 @@ const fracturedCircle: VisualizerType = {
 
     for (let i = 0; i < segments; i++) {
       const freqIndex = Math.floor((i / segments) * bufferLength);
-      const amplitude = freqDataArray[freqIndex] / 256.0;
+      const amplitude = (freqDataArray[freqIndex] ?? 0) / 256.0;
       const startAngle = (i * 2 * Math.PI) / segments;
       const endAngle = ((i + 1) * 2 * Math.PI) / segments;
 

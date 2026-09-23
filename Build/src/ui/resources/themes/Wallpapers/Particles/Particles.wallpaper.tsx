@@ -36,7 +36,7 @@ const ParticlesWallpaper: React.FC<WallpaperProps> = () => {
     vy: (Math.random() - 0.5) * 0.5,
     size: Math.random() * 3 + 1,
     opacity: Math.random() * 0.8 + 0.2,
-    color: colors[Math.floor(Math.random() * colors.length)],
+    color: colors[Math.floor(Math.random() * colors.length)] ?? "#dda0dd",
   });
 
   const updateParticles = (width: number, height: number) => {

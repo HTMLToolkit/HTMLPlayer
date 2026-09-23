@@ -1,4 +1,4 @@
-import { VisualizerType } from "../../../platform/visualizers";
+import { VisualizerType, getByteFrequencyData } from "../../../platform/visualizers";
 
 const crystalSpectrogram: VisualizerType = {
   name: "Crystal Formation",
@@ -20,7 +20,7 @@ const crystalSpectrogram: VisualizerType = {
     } = settings;
 
     if (dataType !== "frequency") return;
-    analyser.getByteFrequencyData(freqDataArray);
+    getByteFrequencyData(analyser, freqDataArray);
 
     ctx.fillStyle = backgroundColor;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -30,7 +30,7 @@ const crystalSpectrogram: VisualizerType = {
     const branches = branchCount;
 
     for (let i = 0; i < bufferLength; i++) {
-      const amplitude = freqDataArray[i] / 256.0;
+      const amplitude = (freqDataArray[i] ?? 0) / 256.0;
       const baseAngle = (i * 2 * Math.PI) / bufferLength;
 
       for (let b = 0; b < branches; b++) {

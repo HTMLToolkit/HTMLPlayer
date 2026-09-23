@@ -1,4 +1,4 @@
-import { VisualizerType } from "../../../platform/visualizers";
+import { VisualizerType, getByteFrequencyData } from "../../../platform/visualizers";
 
 const kaleidoscope: VisualizerType = {
   name: "Kaleidoscope",
@@ -20,7 +20,7 @@ const kaleidoscope: VisualizerType = {
     } = settings;
 
     if (dataType !== "frequency") return;
-    analyser.getByteFrequencyData(freqDataArray);
+    getByteFrequencyData(analyser, freqDataArray);
 
     const centerX = canvas.width / 2;
     const centerY = canvas.height / 2;
@@ -30,7 +30,7 @@ const kaleidoscope: VisualizerType = {
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     for (let i = 0; i < bufferLength; i += 4) {
-      const value = freqDataArray[i];
+      const value = freqDataArray[i] ?? 0;
       const radius = (value / 256) * Math.min(centerX, centerY);
 
       for (let s = 0; s < segments; s++) {

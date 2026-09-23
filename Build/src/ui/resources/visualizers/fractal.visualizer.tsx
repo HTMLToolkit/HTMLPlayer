@@ -1,4 +1,4 @@
-import { VisualizerType } from "../../../platform/visualizers";
+import { VisualizerType, getByteFrequencyData } from "../../../platform/visualizers";
 
 const fractalSpectrogram: VisualizerType = {
   name: "Fractal Tree",
@@ -20,7 +20,7 @@ const fractalSpectrogram: VisualizerType = {
     } = settings;
 
     if (dataType !== "frequency") return;
-    analyser.getByteFrequencyData(freqDataArray);
+    getByteFrequencyData(analyser, freqDataArray);
 
     ctx.fillStyle = backgroundColor;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -65,7 +65,7 @@ const fractalSpectrogram: VisualizerType = {
       );
     };
 
-    const baseAmplitude = freqDataArray[0] / 256.0;
+    const baseAmplitude = (freqDataArray[0] ?? 0) / 256.0;
     drawBranch(
       canvas.width / 2,
       canvas.height,

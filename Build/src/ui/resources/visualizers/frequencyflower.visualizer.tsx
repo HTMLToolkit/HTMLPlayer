@@ -1,4 +1,4 @@
-import { VisualizerType } from "../../../platform/visualizers";
+import { VisualizerType, getByteFrequencyData } from "../../../platform/visualizers";
 
 const frequencyFlower: VisualizerType = {
   name: "Frequency Flower",
@@ -20,7 +20,7 @@ const frequencyFlower: VisualizerType = {
     } = settings;
 
     if (dataType !== "frequency") return;
-    analyser.getByteFrequencyData(freqDataArray);
+    getByteFrequencyData(analyser, freqDataArray);
 
     ctx.fillStyle = backgroundColor;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -32,7 +32,7 @@ const frequencyFlower: VisualizerType = {
     ctx.beginPath();
     for (let i = 0; i < bufferLength; i++) {
       const angle = (i * 2 * Math.PI) / bufferLength;
-      const value = freqDataArray[i] / 256;
+      const value = (freqDataArray[i] ?? 0) / 256;
       const radius =
         baseRadius + value * baseRadius * Math.sin(petalCount * angle);
       const x = centerX + radius * Math.cos(angle);

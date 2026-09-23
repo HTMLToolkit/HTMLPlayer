@@ -1,4 +1,4 @@
-import { VisualizerType } from "../../../platform/visualizers";
+import { VisualizerType, getByteFrequencyData } from "../../../platform/visualizers";
 
 const ribbonDance: VisualizerType = {
   name: "Ribbon Dance",
@@ -20,7 +20,7 @@ const ribbonDance: VisualizerType = {
     } = settings;
 
     if (dataType !== "frequency") return;
-    analyser.getByteFrequencyData(freqDataArray);
+    getByteFrequencyData(analyser, freqDataArray);
 
     ctx.fillStyle = backgroundColor;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -32,7 +32,7 @@ const ribbonDance: VisualizerType = {
       ctx.beginPath();
       for (let i = 0; i < points; i++) {
         const freqIndex = Math.floor(i + r * points);
-        const amplitude = freqDataArray[freqIndex] / 256.0;
+        const amplitude = (freqDataArray[freqIndex] ?? 0) / 256.0;
 
         const x = (i / points) * canvas.width;
         const y =

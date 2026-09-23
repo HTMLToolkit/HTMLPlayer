@@ -1,4 +1,4 @@
-import { VisualizerType } from "../../../platform/visualizers";
+import { VisualizerType, getByteTimeDomainData } from "../../../platform/visualizers";
 
 const liquidMetal: VisualizerType = {
   name: "Liquid Metal",
@@ -24,7 +24,7 @@ const liquidMetal: VisualizerType = {
     } = settings;
 
     if (dataType !== "time") return;
-    analyser.getByteTimeDomainData(timeDataArray);
+    getByteTimeDomainData(analyser, timeDataArray);
 
     ctx.fillStyle = backgroundColor;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -42,7 +42,7 @@ const liquidMetal: VisualizerType = {
     let x = 0;
 
     for (let i = 0; i < bufferLength; i++) {
-      const v = timeDataArray[i] / 128.0;
+      const v = (timeDataArray[i] ?? 0) / 128.0;
       const y = (v * canvas.height) / 2;
 
       if (i === 0) ctx.moveTo(x, y);

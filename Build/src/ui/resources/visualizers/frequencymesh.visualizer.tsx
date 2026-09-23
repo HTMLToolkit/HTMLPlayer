@@ -1,4 +1,4 @@
-import { VisualizerType } from "../../../platform/visualizers";
+import { VisualizerType, getByteFrequencyData } from "../../../platform/visualizers";
 
 const frequencyMesh: VisualizerType = {
   name: "Frequency Mesh",
@@ -20,7 +20,7 @@ const frequencyMesh: VisualizerType = {
     } = settings;
 
     if (dataType !== "frequency") return;
-    analyser.getByteFrequencyData(freqDataArray);
+    getByteFrequencyData(analyser, freqDataArray);
 
     ctx.fillStyle = backgroundColor;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -30,7 +30,7 @@ const frequencyMesh: VisualizerType = {
 
     for (let i = 0; i < numPoints; i++) {
       const freqIndex = Math.floor((i * bufferLength) / numPoints);
-      const value = freqDataArray[freqIndex] / 256;
+      const value = (freqDataArray[freqIndex] ?? 0) / 256;
       points.push({
         x: (canvas.width * i) / (numPoints - 1),
         y: canvas.height / 2 + (value - 0.5) * canvas.height,
@@ -42,8 +42,12 @@ const frequencyMesh: VisualizerType = {
     ctx.beginPath();
     for (let i = 0; i < points.length; i++) {
       for (let j = i + 1; j < points.length; j++) {
-        ctx.moveTo(points[i].x, points[i].y);
-        ctx.lineTo(points[j].x, points[j].y);
+        const p1 = points[i];
+        const p2 = points[j];
+        if (!p1) continue;
+        if (!p2) continue;
+        ctx.moveTo(p1.x, p1.y);
+        ctx.lineTo(p2.x, p2.y);
       }
     }
     ctx.stroke();

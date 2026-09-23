@@ -1,5 +1,6 @@
 import {
   VisualizerType,
+  getByteFrequencyData,
   visualizerStates,
 } from "../../../platform/visualizers";
 
@@ -40,7 +41,7 @@ const waterSpectrogram: VisualizerType = {
       visualizerStates.set("waterSpectrogram", state);
     }
 
-    analyser.getByteFrequencyData(freqDataArray);
+    getByteFrequencyData(analyser, freqDataArray);
     ctx.fillStyle = backgroundColor;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
@@ -63,20 +64,22 @@ const waterSpectrogram: VisualizerType = {
       const perspective = 1 - z * 0.05;
       const zOffset = z * 20;
       const layerPoints = points[z];
+      if (!layerPoints) continue;
 
       for (let i = 0; i < connections; i++) {
-        const freq = freqDataArray[i * connectionStep] * perspective;
+        const freq = (freqDataArray[i * connectionStep] ?? 0) * perspective;
         const point = layerPoints[i];
+        if (!point) continue;
         point.x = widthStep * i;
         point.y =
           canvas.height / 2 +
           (freq - 128) * 1.5 * perspective +
-          state.config!.sinTable![
+          (state.config!.sinTable![
             Math.floor(
               ((currentTime + z / 2 + i / 10) % (Math.PI * 2)) *
                 (180 / Math.PI),
             ) % 360
-          ] *
+          ] ?? 0) *
             waveAmplitude;
         point.z = zOffset;
         point.perspective = perspective;
@@ -86,10 +89,13 @@ const waterSpectrogram: VisualizerType = {
     ctx.beginPath();
     for (let z = layers - 1; z >= 0; z--) {
       const currentLayer = points[z];
+      if (!currentLayer) continue;
 
       for (let i = 0; i < connections - 1; i++) {
         const current = currentLayer[i];
         const next = currentLayer[i + 1];
+        if (!current) continue;
+        if (!next) continue;
 
         ctx.strokeStyle = lineColor.replace(
           "{alpha}",
@@ -102,13 +108,18 @@ const waterSpectrogram: VisualizerType = {
 
       if (z > 0) {
         const previousLayer = points[z - 1];
+        if (!previousLayer) continue;
+        const firstPoint = currentLayer[0];
+        if (!firstPoint) continue;
         ctx.strokeStyle = lineColor.replace(
           "{alpha}",
-          `${currentLayer[0].perspective * 0.4}`,
+          `${firstPoint.perspective * 0.4}`,
         );
         for (let i = 0; i < connections; i += 2) {
           const current = currentLayer[i];
           const previous = previousLayer[i];
+          if (!current) continue;
+          if (!previous) continue;
           ctx.moveTo(current.x, current.y);
           ctx.lineTo(previous.x, previous.y);
         }
@@ -119,9 +130,12 @@ const waterSpectrogram: VisualizerType = {
     ctx.beginPath();
     for (let z = 0; z < layers; z++) {
       const currentLayer = points[z];
+      if (!currentLayer) continue;
       for (let i = 0; i < connections - 1; i++) {
         const current = currentLayer[i];
         const next = currentLayer[i + 1];
+        if (!current) continue;
+        if (!next) continue;
         ctx.moveTo(current.x, current.y);
         ctx.lineTo(next.x, next.y);
         ctx.lineTo(next.x, canvas.height);

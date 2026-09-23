@@ -30,7 +30,7 @@ const interferenceSpectrogram: VisualizerType = {
 
     for (let i = 0; i < bufferLength; i++) {
       const x = (i * canvas.width) / bufferLength;
-      const amplitude = freqDataArray[i] / 256.0;
+      const amplitude = (freqDataArray[i] ?? 0) / 256.0;
 
       for (let j = 0; j < canvas.height; j += waveSpacing) {
         const wave1 = Math.sin(x / 50 + amplitude * 10) * 10;

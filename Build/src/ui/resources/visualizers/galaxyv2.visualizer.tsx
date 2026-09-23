@@ -1,4 +1,4 @@
-import { VisualizerType } from "../../../platform/visualizers";
+import { VisualizerType, getByteFrequencyData } from "../../../platform/visualizers";
 
 const galaxySpectrogramV2: VisualizerType = {
   name: "Galaxy Spectrogram v2",
@@ -20,7 +20,7 @@ const galaxySpectrogramV2: VisualizerType = {
     } = settings;
 
     if (dataType !== "frequency") return;
-    analyser.getByteFrequencyData(freqDataArray);
+    getByteFrequencyData(analyser, freqDataArray);
 
     ctx.fillStyle = backgroundColor;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -33,7 +33,7 @@ const galaxySpectrogramV2: VisualizerType = {
     for (let arm = 0; arm < arms; arm++) {
       for (let i = 0; i < particlesPerArm; i++) {
         const freqIndex = Math.floor(arm * particlesPerArm + i);
-        const amplitude = freqDataArray[freqIndex] / 256.0;
+        const amplitude = (freqDataArray[freqIndex] ?? 0) / 256.0;
 
         const distance = (i / particlesPerArm) * Math.min(centerX, centerY);
         const rotation =

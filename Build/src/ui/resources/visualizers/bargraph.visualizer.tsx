@@ -28,7 +28,7 @@ const barGraph: VisualizerType = {
     let x = 0;
 
     for (let i = 0; i < bufferLength; i++) {
-      const barHeight = (dataArray[i] / 255) * canvas.height;
+      const barHeight = ((dataArray[i] ?? 0) / 255) * canvas.height;
       ctx.fillStyle = barColor.replace("{hue}", `${(i * 360) / bufferLength}`);
       ctx.shadowBlur = shadowBlur;
       ctx.shadowColor = ctx.fillStyle as string;

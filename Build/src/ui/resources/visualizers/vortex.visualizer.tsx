@@ -1,4 +1,4 @@
-import { VisualizerType } from "../../../platform/visualizers";
+import { VisualizerType, getByteFrequencyData } from "../../../platform/visualizers";
 
 const vortexSpectrogram: VisualizerType = {
   name: "Vortex Spectrogram",
@@ -20,7 +20,7 @@ const vortexSpectrogram: VisualizerType = {
     } = settings;
 
     if (dataType !== "frequency") return;
-    analyser.getByteFrequencyData(freqDataArray);
+    getByteFrequencyData(analyser, freqDataArray);
 
     ctx.fillStyle = backgroundColor;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -30,7 +30,7 @@ const vortexSpectrogram: VisualizerType = {
     const maxRadius = Math.min(centerX, centerY);
 
     for (let i = 0; i < bufferLength; i++) {
-      const amplitude = freqDataArray[i] / 256.0;
+      const amplitude = (freqDataArray[i] ?? 0) / 256.0;
       const angle = (i * 8 * Math.PI) / bufferLength;
       const radius =
         (i / bufferLength) * maxRadius * (1 + amplitude * vortexScale);

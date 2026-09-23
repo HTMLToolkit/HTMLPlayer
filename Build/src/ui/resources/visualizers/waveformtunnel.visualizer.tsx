@@ -1,4 +1,4 @@
-import { VisualizerType } from "../../../platform/visualizers";
+import { VisualizerType, getByteTimeDomainData } from "../../../platform/visualizers";
 
 const waveformTunnel: VisualizerType = {
   name: "Waveform Tunnel",
@@ -20,7 +20,7 @@ const waveformTunnel: VisualizerType = {
     } = settings;
 
     if (dataType !== "time") return;
-    analyser.getByteTimeDomainData(timeDataArray);
+    getByteTimeDomainData(analyser, timeDataArray);
 
     ctx.fillStyle = backgroundColor;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -33,7 +33,7 @@ const waveformTunnel: VisualizerType = {
       ctx.beginPath();
       for (let i = 0; i < bufferLength; i++) {
         const angle = (i * 2 * Math.PI) / bufferLength;
-        const value = timeDataArray[i] / 128.0 - 1;
+        const value = (timeDataArray[i] ?? 0) / 128.0 - 1;
         const r = radius + value * 20;
         const x = centerX + r * Math.cos(angle);
         const y = centerY + r * Math.sin(angle);

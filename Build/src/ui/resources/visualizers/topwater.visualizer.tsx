@@ -1,4 +1,5 @@
 import {
+  getByteFrequencyData,
   VisualizerType,
   visualizerStates,
 } from "../../../platform/visualizers";
@@ -39,7 +40,7 @@ const topwaterSpectrogram: VisualizerType = {
       visualizerStates.set("topwaterSpectrogram", state);
     }
 
-    analyser.getByteFrequencyData(freqDataArray);
+    getByteFrequencyData(analyser, freqDataArray);
     ctx.fillStyle = backgroundColor;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
@@ -57,15 +58,15 @@ const topwaterSpectrogram: VisualizerType = {
       for (let i = 0; i <= segments; i++) {
         const angle = (i / segments) * Math.PI * 2;
         const freqIndex = i % bufferLength;
-        const frequency = freqDataArray[freqIndex];
+        const frequency = freqDataArray[freqIndex] ?? 0;
 
         const waveOffset =
-          state.config!.sinTable![
+          (state.config!.sinTable![
             Math.floor(
               ((currentTime * 2 + ring + i / 5) % (Math.PI * 2)) *
                 (180 / Math.PI),
             ) % 360
-          ] * 10;
+          ] ?? 0) * 10;
         const radiusOffset = (frequency / 255) * waveAmplitude + waveOffset;
         const currentRadius = ringRadius + radiusOffset;
 

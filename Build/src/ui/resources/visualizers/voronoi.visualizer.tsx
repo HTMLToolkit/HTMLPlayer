@@ -1,4 +1,5 @@
 import {
+  getByteFrequencyData,
   VisualizerType,
   visualizerStates,
 } from "../../../platform/visualizers";
@@ -43,16 +44,17 @@ const voronoiSpectrum: VisualizerType = {
       visualizerStates.set("voronoiSpectrum", state);
     }
 
-    analyser.getByteFrequencyData(freqDataArray);
+    getByteFrequencyData(analyser, freqDataArray);
 
     ctx.fillStyle = backgroundColor;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     for (let i = 0; i < state.numPoints!; i++) {
       const point = state.points![i];
+      if (!point) continue;
       point.x = Math.random() * canvas.width;
       point.y = Math.random() * canvas.height;
-      const value = freqDataArray[point.freqIndex] / 256;
+      const value = (freqDataArray[point.freqIndex] ?? 0) / 256;
       point.color = pointColor
         .replace("{hue}", `${(point.freqIndex * 360) / bufferLength}`)
         .replace("{lightness}", `${value * 100}`);

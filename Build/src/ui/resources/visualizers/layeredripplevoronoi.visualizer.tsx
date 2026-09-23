@@ -1,4 +1,5 @@
 import {
+  getByteFrequencyData,
   VisualizerType,
   visualizerStates,
 } from "../../../platform/visualizers";
@@ -40,7 +41,7 @@ const LayeredRippleVoronoi: VisualizerType = {
       visualizerStates.set("LayeredRippleVoronoi", state);
     }
 
-    analyser.getByteFrequencyData(freqDataArray);
+    getByteFrequencyData(analyser, freqDataArray);
 
     const centerX = canvas.width / 2;
     const centerY = canvas.height / 2;
@@ -49,7 +50,7 @@ const LayeredRippleVoronoi: VisualizerType = {
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     for (let i = 0; i < bufferLength; i += 4) {
-      const value = freqDataArray[i];
+      const value = freqDataArray[i] ?? 0;
       const radius = (value / 256) * Math.min(centerX, centerY) * radiusScale;
 
       ctx.beginPath();
@@ -64,7 +65,8 @@ const LayeredRippleVoronoi: VisualizerType = {
 
     for (let i = 0; i < state.numPoints!; i++) {
       const point = state.points![i];
-      const value = freqDataArray[point.freqIndex];
+      if (!point) continue;
+      const value = freqDataArray[point.freqIndex] ?? 0;
       const angle = (i * 2 * Math.PI) / state.numPoints!;
       const radius = (value / 256) * Math.min(centerX, centerY) * 0.6;
 

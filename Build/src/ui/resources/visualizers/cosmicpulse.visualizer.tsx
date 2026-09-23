@@ -1,4 +1,4 @@
-import { VisualizerType } from "../../../platform/visualizers";
+import { VisualizerType, getByteTimeDomainData } from "../../../platform/visualizers";
 
 const cosmicPulse: VisualizerType = {
   name: "Cosmic Pulse",
@@ -22,7 +22,7 @@ const cosmicPulse: VisualizerType = {
     } = settings;
 
     if (dataType !== "time") return;
-    analyser.getByteTimeDomainData(timeDataArray);
+    getByteTimeDomainData(analyser, timeDataArray);
 
     ctx.fillStyle = backgroundColor;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -31,7 +31,7 @@ const cosmicPulse: VisualizerType = {
     const centerY = canvas.height / 2;
 
     for (let i = 0; i < bufferLength; i += pointInterval) {
-      const v = timeDataArray[i] / 128.0;
+      const v = (timeDataArray[i] ?? 0) / 128.0;
       const radius = v * Math.min(centerX, centerY) * radiusScale;
       const angle = (i * 2 * Math.PI) / bufferLength;
 
