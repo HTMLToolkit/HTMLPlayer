@@ -8,8 +8,12 @@ import { VitePWA } from "vite-plugin-pwa";
 import { viteSingleFile } from "vite-plugin-singlefile";
 import wasm from "vite-plugin-wasm";
 
-import enMessages from "./src/locales/en/loading-messages-en.json";
-import frMessages from "./src/locales/fr/loading-messages-fr.json";
+import enMessages from "./src/locales/en/loading-messages-en.json" with {
+  type: "json",
+};
+import frMessages from "./src/locales/fr/loading-messages-fr.json" with {
+  type: "json",
+};
 
 const host = process.env.TAURI_DEV_HOST;
 const buildTarget = process.env.BUILD_TARGET || "web";
@@ -17,13 +21,9 @@ const buildTarget = process.env.BUILD_TARGET || "web";
 const isSingleFile = process.env.SINGLE_FILE === "true";
 const isDesktop = buildTarget === "desktop";
 const isWeb = buildTarget === "web";
-const isStackBlitz =
-  process.env.STACKBLITZ === "true" ||
-  !!process.env.SHELL?.includes("jsh") ||
-  !!process.env.VITE_URL?.includes("stackblitz");
 
 const iconBase64 = isSingleFile
-  ? `data:image/png;base64,${fs.readFileSync(path.resolve(__dirname, "public/icon-any.png")).toString("base64")}`
+  ? `data:image/png;base64,${fs.readFileSync(path.resolve(import.meta.dirname, "public/icon-any.png")).toString("base64")}`
   : null;
 
 const plugins = [
@@ -49,11 +49,6 @@ const plugins = [
     },
   },
 ].filter(Boolean);
-
-if (!isStackBlitz) {
-  const topLevelAwait = (await import("vite-plugin-top-level-await")).default;
-  plugins.push(topLevelAwait());
-}
 
 if (isWeb && !isSingleFile) {
   plugins.push(
@@ -193,6 +188,48 @@ if (isWeb && !isSingleFile) {
   );
 }
 
+const VENDOR_CHUNK_GROUPS: Readonly<Record<string, readonly string[]>> = {
+  "vendor-react": ["react", "react-dom"],
+  "vendor-ui": [
+    "@radix-ui/react-dialog",
+    "@radix-ui/react-dropdown-menu",
+    "@radix-ui/react-select",
+    "@radix-ui/react-separator",
+    "@radix-ui/react-slider",
+    "@radix-ui/react-slot",
+    "@radix-ui/react-switch",
+    "@radix-ui/react-tooltip",
+  ],
+  "vendor-uppy": ["@uppy/core", "@uppy/react", "@uppy/dashboard"],
+  "vendor-i18n": [
+    "i18next",
+    "i18next-browser-languagedetector",
+    "i18next-http-backend",
+    "react-i18next",
+  ],
+  "vendor-audio": ["music-metadata", "@web-scrobbler/metadata-filter"],
+  "vendor-utils": ["lodash", "dompurify", "zustand", "sonner"],
+  "vendor-icons": ["lucide-react"],
+  "vendor-flo": ["@flo-audio/libflo-audio", "@flo-audio/reflo"],
+};
+
+function manualChunks(id: string): string | undefined {
+  const separator = "/node_modules/";
+  const index = id.indexOf(separator);
+  if (index === -1) {
+    if (id.includes("/src/ui/resources/visualizers/")) return "visualizers";
+    return undefined;
+  }
+  const rest = id.slice(index + separator.length);
+  const packageName = rest.startsWith("@")
+    ? rest.split("/").slice(0, 2).join("/")
+    : rest.split("/")[0];
+  for (const [chunk, packages] of Object.entries(VENDOR_CHUNK_GROUPS)) {
+    if (packages.some((name) => packageName === name)) return chunk;
+  }
+  return undefined;
+}
+
 export default defineConfig({
   root: isDesktop ? "" : "./",
   appType: "spa",
@@ -206,7 +243,7 @@ export default defineConfig({
         ? {}
         : {
             "virtual:pwa-register/react": path.resolve(
-              __dirname,
+              import.meta.dirname,
               "src/stubs/virtual-pwa-register-react.ts",
             ),
           }),
@@ -226,9 +263,6 @@ export default defineConfig({
   },
 
   optimizeDeps: {
-    esbuildOptions: {
-      target: isDesktop ? "es2021" : "esnext",
-    },
     exclude: ["@flo-audio/libflo-audio", "@flo-audio/reflo"],
   },
 
@@ -270,100 +304,7 @@ export default defineConfig({
             terms: "./terms.html",
           },
           output: {
-            manualChunks: {
-              "vendor-react": ["react", "react-dom"],
-              "vendor-ui": [
-                "@radix-ui/react-dialog",
-                "@radix-ui/react-dropdown-menu",
-                "@radix-ui/react-select",
-                "@radix-ui/react-separator",
-                "@radix-ui/react-slider",
-                "@radix-ui/react-slot",
-                "@radix-ui/react-switch",
-                "@radix-ui/react-tooltip",
-              ],
-              "vendor-uppy": ["@uppy/core", "@uppy/react"],
-              "vendor-i18n": [
-                "i18next",
-                "i18next-browser-languagedetector",
-                "i18next-http-backend",
-                "react-i18next",
-              ],
-              "vendor-audio": [
-                "music-metadata",
-                "@web-scrobbler/metadata-filter",
-              ],
-              "vendor-utils": ["lodash", "dompurify", "zustand", "sonner"],
-              "vendor-icons": ["lucide-react"],
-              "vendor-flo": ["@flo-audio/libflo-audio", "@flo-audio/reflo"],
-
-              visualizers: [
-                "./src/ui/resources/visualizers/abstractart.visualizer.tsx",
-                "./src/ui/resources/visualizers/architecturalblueprint.visualizer.tsx",
-                "./src/ui/resources/visualizers/bargraph.visualizer.tsx",
-                "./src/ui/resources/visualizers/biologicalcell.visualizer.tsx",
-                "./src/ui/resources/visualizers/circuitboard.visualizer.tsx",
-                "./src/ui/resources/visualizers/circularspectrogram.visualizer.tsx",
-                "./src/ui/resources/visualizers/circularwave.visualizer.tsx",
-                "./src/ui/resources/visualizers/cityscape.visualizer.tsx",
-                "./src/ui/resources/visualizers/constellation.visualizer.tsx",
-                "./src/ui/resources/visualizers/cosmicpulse.visualizer.tsx",
-                "./src/ui/resources/visualizers/crystal.visualizer.tsx",
-                "./src/ui/resources/visualizers/crystalv2.visualizer.tsx",
-                "./src/ui/resources/visualizers/dna.visualizer.tsx",
-                "./src/ui/resources/visualizers/dnav2.visualizer.tsx",
-                "./src/ui/resources/visualizers/firespectrum.visualizer.tsx",
-                "./src/ui/resources/visualizers/flower.visualizer.tsx",
-                "./src/ui/resources/visualizers/fluid.visualizer.tsx",
-                "./src/ui/resources/visualizers/fluidwave.visualizer.tsx",
-                "./src/ui/resources/visualizers/fractal.visualizer.tsx",
-                "./src/ui/resources/visualizers/fracture.visualizer.tsx",
-                "./src/ui/resources/visualizers/fracturedcircle.visualizer.tsx",
-                "./src/ui/resources/visualizers/fracturedprism.visualizer.tsx",
-                "./src/ui/resources/visualizers/frequencyflower.visualizer.tsx",
-                "./src/ui/resources/visualizers/frequencymesh.visualizer.tsx",
-                "./src/ui/resources/visualizers/frequencystars.visualizer.tsx",
-                "./src/ui/resources/visualizers/galaxy.visualizer.tsx",
-                "./src/ui/resources/visualizers/galaxyv2.visualizer.tsx",
-                "./src/ui/resources/visualizers/geometricpulse.visualizer.tsx",
-                "./src/ui/resources/visualizers/interference.visualizer.tsx",
-                "./src/ui/resources/visualizers/kaleidoscope.visualizer.tsx",
-                "./src/ui/resources/visualizers/kaleidoscopespectrogram.visualizer.tsx",
-                "./src/ui/resources/visualizers/layeredripplevoronoi.visualizer.tsx",
-                "./src/ui/resources/visualizers/liquidmetal.visualizer.tsx",
-                "./src/ui/resources/visualizers/matrixrain.visualizer.tsx",
-                "./src/ui/resources/visualizers/nebula.visualizer.tsx",
-                "./src/ui/resources/visualizers/neonwave.visualizer.tsx",
-                "./src/ui/resources/visualizers/neural.visualizer.tsx",
-                "./src/ui/resources/visualizers/neurospectogram.visualizer.tsx",
-                "./src/ui/resources/visualizers/oceanwaves.visualizer.tsx",
-                "./src/ui/resources/visualizers/organic.visualizer.tsx",
-                "./src/ui/resources/visualizers/oscilloscope.visualizer.tsx",
-                "./src/ui/resources/visualizers/particlefield.visualizer.tsx",
-                "./src/ui/resources/visualizers/pixeldust.visualizer.tsx",
-                "./src/ui/resources/visualizers/pulsingorbs.visualizer.tsx",
-                "./src/ui/resources/visualizers/quantum.visualizer.tsx",
-                "./src/ui/resources/visualizers/rainbowspiral.visualizer.tsx",
-                "./src/ui/resources/visualizers/ribbondance.visualizer.tsx",
-                "./src/ui/resources/visualizers/sacredgeometry.visualizer.tsx",
-                "./src/ui/resources/visualizers/spectrumripple.visualizer.tsx",
-                "./src/ui/resources/visualizers/spiralspectogram.visualizer.tsx",
-                "./src/ui/resources/visualizers/spiralv2.visualizer.tsx",
-                "./src/ui/resources/visualizers/starfield.visualizer.tsx",
-                "./src/ui/resources/visualizers/tesselation.visualizer.tsx",
-                "./src/ui/resources/visualizers/topwater.visualizer.tsx",
-                "./src/ui/resources/visualizers/voltaicarcs.visualizer.tsx",
-                "./src/ui/resources/visualizers/voronoi.visualizer.tsx",
-                "./src/ui/resources/visualizers/vortex.visualizer.tsx",
-                "./src/ui/resources/visualizers/water.visualizer.tsx",
-                "./src/ui/resources/visualizers/waterfall.visualizer.tsx",
-                "./src/ui/resources/visualizers/waveformrings.visualizer.tsx",
-                "./src/ui/resources/visualizers/waveformspectrum.visualizer.tsx",
-                "./src/ui/resources/visualizers/waveformtunnel.visualizer.tsx",
-                "./src/ui/resources/visualizers/waveinterference.visualizer.tsx",
-                "./src/ui/resources/visualizers/weather.visualizer.tsx",
-              ],
-            },
+            manualChunks,
           },
         },
       }),
@@ -372,8 +313,7 @@ export default defineConfig({
       chunkSizeWarningLimit: 100000,
       rollupOptions: {
         output: {
-          inlineDynamicImports: true,
-          manualChunks: undefined,
+          codeSplitting: false,
         },
       },
     }),
@@ -389,7 +329,7 @@ export default defineConfig({
       plugins: () => [wasm()], 
       rollupOptions: {
         output: {
-          inlineDynamicImports: true,
+          codeSplitting: false,
         },
       },
     },

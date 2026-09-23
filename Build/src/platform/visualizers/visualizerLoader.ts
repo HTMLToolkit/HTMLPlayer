@@ -1,4 +1,5 @@
 import { createLogger } from "../../helpers/logger";
+import { visualizerModuleLoaders } from "../../ui/resources/visualizers/_registry";
 
 const logger = createLogger("visualizerLoader");
 
@@ -116,8 +117,6 @@ export function clearVisualizerState(key?: string) {
   }
 }
 
-const visualizerModules = import.meta.glob("../visualizers/*.tsx");
-
 const loadedVisualizers: Map<string, VisualizerType> = new Map();
 const MAX_CACHED_VISUALIZERS = 5;
 
@@ -129,12 +128,11 @@ export async function loadVisualizer(
   }
 
   const path = `../visualizers/${key}.visualizer.tsx`;
-  const moduleLoader = visualizerModules[path];
+  const moduleLoader = visualizerModuleLoaders()[path];
 
   if (moduleLoader) {
     try {
-      const module = await moduleLoader();
-      const visualizer = (module as any).default;
+      const visualizer = await moduleLoader();
       if (visualizer) {
         if (loadedVisualizers.size >= MAX_CACHED_VISUALIZERS) {
           const firstKey = loadedVisualizers.keys().next().value;
@@ -158,7 +156,7 @@ export async function loadVisualizer(
 }
 
 export function getAvailableVisualizers(): string[] {
-  return Object.keys(visualizerModules)
+  return Object.keys(visualizerModuleLoaders())
     .map((path) => path.split("/").pop()?.replace(".visualizer.tsx", ""))
     .filter(Boolean) as string[];
 }
