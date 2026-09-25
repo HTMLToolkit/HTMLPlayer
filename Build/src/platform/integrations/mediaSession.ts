@@ -4,11 +4,26 @@ import { createLogger } from "../../helpers/logger";
 
 const logger = createLogger("mediaSession");
 
+export interface MediaActionHandlers {
+  play(): void | Promise<void>;
+  pause(): void;
+  next(): void | Promise<void>;
+  previous(): void | Promise<void>;
+  stop(): void;
+  seek(time: number): void;
+}
+
+type MediaPlaybackState = "playing" | "paused" | "none";
+
+interface MediaSessionWithPlaybackState extends MediaSession {
+  setPlaybackState?(state: MediaPlaybackState): void;
+}
+
 export class MediaSessionIntegration extends BaseIntegration {
   name = "Media Session";
   private session: MediaSession | null = null;
   private currentTrack: Track | null = null;
-  private onSeekHandler: ((time: number) => void) | null = null;
+  private actionHandlers: MediaActionHandlers | null = null;
 
   async initialize(): Promise<void> {
     if (!("mediaSession" in navigator)) {
@@ -19,29 +34,29 @@ export class MediaSessionIntegration extends BaseIntegration {
     this.session = navigator.mediaSession;
 
     this.session.setActionHandler("play", () => {
-      document.dispatchEvent(new CustomEvent("komorebi-play"));
+      void this.actionHandlers?.play();
     });
 
     this.session.setActionHandler("pause", () => {
-      document.dispatchEvent(new CustomEvent("komorebi-pause"));
+      this.actionHandlers?.pause();
     });
 
     this.session.setActionHandler("previoustrack", () => {
-      document.dispatchEvent(new CustomEvent("komorebi-previous"));
+      void this.actionHandlers?.previous();
     });
 
     this.session.setActionHandler("nexttrack", () => {
-      document.dispatchEvent(new CustomEvent("komorebi-next"));
+      void this.actionHandlers?.next();
     });
 
     this.session.setActionHandler("seekto", (details) => {
-      if (details.seekTime !== undefined && this.onSeekHandler) {
-        this.onSeekHandler(details.seekTime);
+      if (details.seekTime !== undefined) {
+        this.actionHandlers?.seek(details.seekTime);
       }
     });
 
     this.session.setActionHandler("stop", () => {
-      document.dispatchEvent(new CustomEvent("komorebi-stop"));
+      this.actionHandlers?.stop();
     });
 
     this.setInitialized(true);
@@ -60,7 +75,7 @@ export class MediaSessionIntegration extends BaseIntegration {
     }
 
     this.session = null;
-    this.onSeekHandler = null;
+    this.actionHandlers = null;
   }
 
   isAvailable(): boolean {
@@ -71,10 +86,15 @@ export class MediaSessionIntegration extends BaseIntegration {
     );
   }
 
-  async updateMetadata(
-    track: Track | null,
-    _isPlaying: boolean,
-  ): Promise<void> {
+  setActionHandlers(handlers: MediaActionHandlers): void {
+    this.actionHandlers = handlers;
+  }
+
+  clearActionHandlers(): void {
+    this.actionHandlers = null;
+  }
+
+  async updateMetadata(track: Track | null): Promise<void> {
     this.currentTrack = track;
 
     if (!this.session || !track) {
@@ -109,12 +129,31 @@ export class MediaSessionIntegration extends BaseIntegration {
     this.session.metadata = new MediaMetadata(metadata);
   }
 
-  setSeekHandler(handler: (time: number) => void): void {
-    this.onSeekHandler = handler;
+  setPlaybackState(state: MediaPlaybackState): void {
+    if (!this.session) return;
+    const session = this.session as MediaSessionWithPlaybackState;
+    session.setPlaybackState?.(state);
   }
 
-  clearSeekHandler(): void {
-    this.onSeekHandler = null;
+  setPositionState(
+    duration: number,
+    position: number,
+    playbackRate = 1,
+  ): void {
+    if (
+      !this.session ||
+      !Number.isFinite(duration) ||
+      duration <= 0 ||
+      !Number.isFinite(position)
+    ) {
+      return;
+    }
+
+    this.session.setPositionState({
+      duration,
+      position: Math.max(0, Math.min(position, duration)),
+      playbackRate,
+    });
   }
 
   getCurrentTrack(): Track | null {

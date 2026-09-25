@@ -25,9 +25,6 @@ function trackToStored(
   };
 }
 
-/**
- * Boundary normalization from persisted form to in-memory Track.
- */
 function storedToTrack(stored: StoredTrack): Track {
   const { audioData, lastAccessed, ...track } = stored;
   const hasUsableAudio =

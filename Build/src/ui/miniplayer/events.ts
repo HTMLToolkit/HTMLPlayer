@@ -1,10 +1,10 @@
 export type MiniplayerEvent = "open" | "close" | "error";
 
-export type MiniplayerEventMap = {
+export interface MiniplayerEventMap {
   open: { window: Window };
   close: null;
   error: { error: string };
-};
+}
 
 type EventCallback<T> = (data: T) => void;
 

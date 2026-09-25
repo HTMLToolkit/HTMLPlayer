@@ -2,6 +2,7 @@ import { BaseAudioBackend } from "./BaseBackend";
 import { HTMLAudioBackend } from "./HTMLBackend";
 import { WebAudioBackend } from "./WebAudioBackend";
 import { throwError } from "../../../helpers/logger";
+import type { Track } from "../../../core/engine/types";
 
 export class HybridBackend extends BaseAudioBackend {
   private htmlBackend: HTMLAudioBackend | null = null;
@@ -38,7 +39,7 @@ export class HybridBackend extends BaseAudioBackend {
     backend.onError((e) => this.emitError(e));
   }
 
-  async load(url: string): Promise<void> {
+  async load(url: string, track?: Track): Promise<void> {
     if (this.useHTML5Audio) {
       this.currentBackend = this.ensureHTMLBackend();
     } else if (this.useWebAudio) {
@@ -47,7 +48,7 @@ export class HybridBackend extends BaseAudioBackend {
       return throwError("No backend available");
     }
 
-    await this.currentBackend.load(url);
+    await this.currentBackend.load(url, track);
   }
 
   async play(): Promise<void> {

@@ -1,6 +1,7 @@
 import { BaseMetadataExtractor } from "./base";
 import type { ExtractedMetadata, MetadataExtractor } from "./base";
 import { createLogger } from "../../helpers/logger";
+import initFlo, { info as floInfo } from "@audiflo/libflo";
 
 const logger = createLogger("floMetadata");
 
@@ -13,23 +14,19 @@ interface FloAudioInfo {
 }
 
 export class FloMetadataExtractor extends BaseMetadataExtractor {
-  private floDecoder: typeof import("@flo-audio/libflo-audio") | null = null;
-  private initialized = false;
+  private initPromise: Promise<unknown> | null = null;
 
-  private async ensureInitialized(): Promise<void> {
-    if (this.initialized && this.floDecoder) return;
-
-    try {
-      const flo = await import("@flo-audio/libflo-audio");
-      await flo.default();
-      this.floDecoder = flo;
-      this.initialized = true;
-    } catch (error) {
-      logger.error("Failed to initialize flo decoder:", {
-        error: String(error),
+  private ensureInitialized(): Promise<unknown> {
+    if (!this.initPromise) {
+      this.initPromise = initFlo().catch((error) => {
+        this.initPromise = null;
+        logger.error("Failed to initialize flo decoder:", {
+          error: String(error),
+        });
+        throw error;
       });
-      throw error;
     }
+    return this.initPromise;
   }
 
   async extractMetadata(file: File | Blob): Promise<ExtractedMetadata> {
@@ -39,7 +36,7 @@ export class FloMetadataExtractor extends BaseMetadataExtractor {
       const arrayBuffer = await file.arrayBuffer();
       const uint8Flo = new Uint8Array(arrayBuffer);
 
-      const info = this.floDecoder!.info(uint8Flo) as FloAudioInfo;
+      const info = floInfo(uint8Flo) as FloAudioInfo;
       const duration = this.calculateDuration(info, arrayBuffer.byteLength);
 
       return {

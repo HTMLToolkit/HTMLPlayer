@@ -9,7 +9,7 @@ import type {
 export const libraries: IconLibraryMap = {};
 
 const lucidePropTransformer: IconPropTransformer = (props) => {
-  const transformed: Record<string, any> = {};
+  const transformed: Record<string, unknown> = {};
 
   if (props.size !== undefined) {
     transformed.size = props.size;

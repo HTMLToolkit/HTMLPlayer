@@ -11,7 +11,6 @@ export function createMockTrack(id: string): Track {
   };
 }
 
-/** Deterministic PRNG (mulberry32). Same seed always yields the same sequence. */
 export function mulberry32(seed: number): () => number {
   let a = seed >>> 0;
   return () => {

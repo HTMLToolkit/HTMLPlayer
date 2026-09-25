@@ -1,5 +1,6 @@
 import { HTMLAudioBackend } from "../src/platform/audio/backends/HTMLBackend";
 import { WebAudioBackend } from "../src/platform/audio/backends/WebAudioBackend";
+import { describe, it, expect, beforeEach, afterEach, jest } from "@jest/globals";
 
 describe("HTMLAudioBackend", () => {
   let backend: HTMLAudioBackend;
@@ -86,26 +87,5 @@ describe("WebAudioBackend", () => {
 
   it("should throw on invalid URL load", async () => {
     await expect(backend.load("invalid://url")).rejects.toThrow();
-  });
-});
-
-describe("Backend auto-detection", () => {
-  it("should identify flo tracks", () => {
-    const isFlo = (mimeType?: string, url?: string) => {
-      if (mimeType && ["audio/x-flo", "audio/flac", "audio/wav"].includes(mimeType)) {
-        return true;
-      }
-      if (url?.includes(".flo")) {
-        return true;
-      }
-      return false;
-    };
-
-    expect(isFlo("audio/x-flo")).toBe(true);
-    expect(isFlo("audio/flac")).toBe(true);
-    expect(isFlo("audio/wav")).toBe(true);
-    expect(isFlo("audio/mpeg")).toBe(false);
-    expect(isFlo(undefined, "song.flo")).toBe(true);
-    expect(isFlo(undefined, "song.mp3")).toBe(false);
   });
 });

@@ -1,19 +1,143 @@
+import { useState, useMemo, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { Slider } from "../primitives/Slider";
 import { Switch } from "../primitives/Switch";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../primitives/Select";
 import { Icon } from "../shared/Icon";
 import { isSafari } from "../../../platform/utils/safari";
+import type { Equalizer } from "../../../platform/audio/equalizer";
 import styles from "./Settings.module.css";
-import type { SettingsManager } from "../../../platform/settings/settings";
+import type { UseKomorebiReturn } from "../../../hooks/useKomorebi";
 
 interface SettingsAudioProps {
-  settings: SettingsManager;
-  settingsState: ReturnType<SettingsManager["getSettings"]>;
+  komorebi: UseKomorebiReturn;
 }
 
-export function SettingsAudio({ settings, settingsState }: SettingsAudioProps) {
+interface EqualizerControlsProps {
+  equalizer: Equalizer;
+  onSetEnabled: (enabled: boolean) => void;
+}
+
+function EqualizerControls({
+  equalizer,
+  onSetEnabled,
+}: EqualizerControlsProps) {
+  const { t } = useTranslation();
+  const [enabled, setEnabled] = useState(equalizer.isEnabled());
+  const [gains, setGains] = useState<number[]>(() => equalizer.getGains());
+  const [activePreset, setActivePreset] = useState<string>("Flat");
+
+  const frequencies = useMemo(() => equalizer.getFrequencies(), [equalizer]);
+  const presets = useMemo(() => equalizer.getPresets(), [equalizer]);
+
+  const handleToggle = useCallback(
+    (checked: boolean) => {
+      setEnabled(checked);
+      onSetEnabled(checked);
+    },
+    [onSetEnabled],
+  );
+
+  const handlePreset = useCallback(
+    (name: string) => {
+      setActivePreset(name);
+      const preset = presets.find((candidate) => candidate.name === name);
+      if (preset) {
+        equalizer.setPreset(preset);
+        setGains(equalizer.getGains());
+      }
+    },
+    [presets, equalizer],
+  );
+
+  const handleBandGain = useCallback(
+    (index: number) => (value: number[]) => {
+      equalizer.setGain(index, value[0] ?? 0);
+      setGains(equalizer.getGains());
+    },
+    [equalizer],
+  );
+
+  return (
+    <div className={styles.equalizerControls}>
+      <div className={styles.settingItem}>
+        <div className={styles.settingInfo}>
+          <label htmlFor="equalizer-enabled">{t("settings.audio.enableEqualizer")}</label>
+          <p className={styles.settingDescription}>
+            {t("settings.audio.enableEqualizerDesc")}
+          </p>
+        </div>
+        <Switch
+          id="equalizer-enabled"
+          checked={enabled}
+          onCheckedChange={handleToggle}
+        />
+      </div>
+
+      {enabled && (
+        <>
+          <div className={styles.settingItem}>
+            <div className={styles.settingLabel}>
+              <label htmlFor="equalizer-preset">{t("settings.audio.preset")}</label>
+            </div>
+            <Select value={activePreset} onValueChange={handlePreset}>
+              <SelectTrigger id="equalizer-preset">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {presets.map((preset) => (
+                  <SelectItem key={preset.name} value={preset.name}>
+                    {preset.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className={styles.equalizerBands}>
+            {frequencies.map((frequency, index) => (
+              <div
+                key={`${frequency}-${index}`}
+                className={styles.equalizerBand}
+              >
+                <span className={styles.equalizerFrequency}>
+                  {frequency >= 1000 ? `${frequency / 1000}k` : frequency} Hz
+                </span>
+                <Slider
+                  aria-label={t("settings.audio.band", { frequency })}
+                  value={[gains[index] ?? 0]}
+                  onValueChange={handleBandGain(index)}
+                  min={-12}
+                  max={12}
+                  step={1}
+                  className={styles.equalizerSlider}
+                />
+                <span className={styles.settingValue}>
+                  {gains[index] && gains[index]! > 0
+                    ? `+${gains[index]}`
+                    : gains[index] ?? 0}
+                  dB
+                </span>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+export function SettingsAudio({ komorebi }: SettingsAudioProps) {
   const { t } = useTranslation();
   const isOnSafari = isSafari();
+
+  const equalizer = komorebi.getEqualizer();
 
   return (
     <section className={styles.section}>
@@ -31,16 +155,16 @@ export function SettingsAudio({ settings, settingsState }: SettingsAudioProps) {
         <div className={styles.settingLabel}>
           <label htmlFor="tempo-slider">{t("settings.playback.tempo")}</label>
           <span className={styles.settingValue}>
-            {Math.round(settingsState.tempo * 100)}%
+            {Math.round(komorebi.tempo * 100)}%
           </span>
         </div>
         <Slider
           id="tempo-slider"
-          value={[settingsState.tempo * 100]}
+          value={[komorebi.tempo * 100]}
           onValueChange={(val) => {
             let newVal = val[0] ?? 100;
             if (Math.abs(newVal - 100) <= 3) newVal = 100;
-            settings.setTempo(newVal / 100);
+            komorebi.setPlaybackRate(newVal / 100);
           }}
           min={50}
           max={150}
@@ -53,20 +177,20 @@ export function SettingsAudio({ settings, settingsState }: SettingsAudioProps) {
         <div className={styles.settingLabel}>
           <label htmlFor="pitch-slider">{t("settings.playback.pitch")}</label>
           <span className={styles.settingValue}>
-            {settingsState.pitch === 0
+            {komorebi.pitch === 0
               ? "0"
-              : settingsState.pitch > 0
-                ? `+${settingsState.pitch}`
-                : settingsState.pitch}
+              : komorebi.pitch > 0
+                ? `+${komorebi.pitch}`
+                : komorebi.pitch}
           </span>
         </div>
         <Slider
           id="pitch-slider"
-          value={[settingsState.pitch ?? 0]}
+          value={[komorebi.pitch]}
           onValueChange={(val) => {
             let newVal = val[0] ?? 0;
             if (Math.abs(newVal) <= 0.5) newVal = 0;
-            settings.setPitch(newVal);
+            komorebi.setPitch(newVal);
           }}
           min={-48}
           max={48}
@@ -79,18 +203,25 @@ export function SettingsAudio({ settings, settingsState }: SettingsAudioProps) {
         <div className={styles.settingLabel}>
           <label htmlFor="volume-slider">{t("player.volume")}</label>
           <span className={styles.settingValue}>
-            {Math.round(settingsState.volume * 100)}%
+            {Math.round(komorebi.volume * 100)}%
           </span>
         </div>
         <Slider
           id="volume-slider"
-          value={[Math.round(settingsState.volume * 100)]}
-          onValueChange={(val) => settings.setVolume((val[0] ?? 0) / 100)}
+          value={[Math.round(komorebi.volume * 100)]}
+          onValueChange={(val) => komorebi.setVolume((val[0] ?? 0) / 100)}
           max={100}
           step={1}
           className={styles.slider}
         />
       </div>
+
+      {equalizer && (
+        <EqualizerControls
+          equalizer={equalizer}
+          onSetEnabled={komorebi.setEqualizerEnabled}
+        />
+      )}
 
       {!isOnSafari && (
         <>
@@ -98,7 +229,7 @@ export function SettingsAudio({ settings, settingsState }: SettingsAudioProps) {
             <div className={styles.settingLabel}>
               <label htmlFor="crossfade-slider">
                 {t("settings.audio.crossfade")}
-                {settingsState.gaplessPlayback && (
+                {komorebi.gapless && (
                   <span className={styles.settingDescription}>
                     {" "}
                     ({t("settings.audio.crossfadeDisabled")})
@@ -106,25 +237,21 @@ export function SettingsAudio({ settings, settingsState }: SettingsAudioProps) {
                 )}
               </label>
               <span className={styles.settingValue}>
-                {settingsState.gaplessPlayback
-                  ? "0s"
-                  : `${settingsState.crossfade}s`}
+                {komorebi.gapless ? "0s" : `${komorebi.crossfade}s`}
               </span>
             </div>
             <Slider
               id="crossfade-slider"
-              value={
-                settingsState.gaplessPlayback ? [0] : [settingsState.crossfade]
-              }
+              value={komorebi.gapless ? [0] : [komorebi.crossfade]}
               onValueChange={(val) => {
-                if (!settingsState.gaplessPlayback) {
-                  settings.setCrossfade(val[0] ?? 0);
+                if (!komorebi.gapless) {
+                  komorebi.setCrossfade(val[0] ?? 0);
                 }
               }}
               max={10}
               step={1}
               className={styles.slider}
-              disabled={settingsState.gaplessPlayback}
+              disabled={komorebi.gapless}
             />
           </div>
 
@@ -139,14 +266,14 @@ export function SettingsAudio({ settings, settingsState }: SettingsAudioProps) {
             </div>
             <Switch
               id="gapless-playback"
-              checked={settingsState.gaplessPlayback}
+              checked={komorebi.gapless}
               onCheckedChange={(val) => {
                 if (val) {
-                  settings.setGaplessPlayback(true);
-                  settings.setCrossfade(0);
+                  komorebi.setGapless(true);
+                  komorebi.setCrossfade(0);
                 } else {
-                  settings.setGaplessPlayback(false);
-                  settings.setCrossfade(3);
+                  komorebi.setGapless(false);
+                  komorebi.setCrossfade(3);
                 }
               }}
             />

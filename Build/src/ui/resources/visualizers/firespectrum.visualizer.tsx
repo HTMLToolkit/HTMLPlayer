@@ -34,7 +34,7 @@ const fireSpectrum: VisualizerType = {
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
-    gradientColors.forEach(({ stop, color }: any) =>
+    gradientColors.forEach(({ stop, color }: { stop: number; color: string }) =>
       gradient.addColorStop(stop, color),
     );
 

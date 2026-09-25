@@ -6,6 +6,7 @@ import {
 } from "../platform/storage/shortcuts";
 import type { UseKomorebiReturn } from "./useKomorebi";
 import { createLogger } from "../helpers/logger";
+import { clampVolume } from "../platform/audio/clamp";
 import { selectVolume, useKomorebiStore } from "../store";
 
 const logger = createLogger("keyboardShortcuts");
@@ -86,10 +87,10 @@ export const useKeyboardShortcuts = ({
           komorebi.previous();
           break;
         case "volumeUp":
-          komorebi.setVolume(Math.min(1, volume + 0.05));
+          komorebi.setVolume(clampVolume(volume + 0.05));
           break;
         case "volumeDown":
-          komorebi.setVolume(Math.max(0, volume - 0.05));
+          komorebi.setVolume(clampVolume(volume - 0.05));
           break;
         case "mute": {
           const currentVolume = volume;

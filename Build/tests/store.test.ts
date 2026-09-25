@@ -17,6 +17,12 @@ import {
   selectCurrentTime,
   selectDuration,
   selectVolume,
+  selectTempo,
+  selectPitch,
+  selectCrossfade,
+  selectGapless,
+  selectSmartShuffle,
+  selectAutoPlayNext,
 } from "../src/store";
 
 function makeTrack(id: string): Track {
@@ -132,6 +138,44 @@ describe("useKomorebiStore", () => {
     it("selectVolume falls back to 1", () => {
       const store = useKomorebiStore.getState();
       expect(selectVolume(store)).toBe(1);
+    });
+
+    it("audio settings selectors fall back to engine defaults", () => {
+      const store = useKomorebiStore.getState();
+      expect(selectTempo(store)).toBe(1);
+      expect(selectPitch(store)).toBe(0);
+      expect(selectCrossfade(store)).toBe(0);
+      expect(selectGapless(store)).toBe(true);
+      expect(selectSmartShuffle(store)).toBe(false);
+      expect(selectAutoPlayNext(store)).toBe(true);
+    });
+
+    it("audio settings selectors read from the snapshot settings", () => {
+      useKomorebiStore.setState({
+        snapshot: makeState({
+          settings: {
+            volume: 0.7,
+            crossfade: 4,
+            crossfadeBeforeGapless: 3000,
+            autoPlayNext: false,
+            tempo: 1.25,
+            pitch: 3,
+            gaplessPlayback: false,
+            smartShuffle: true,
+            repeat: "one",
+            defaultShuffle: true,
+            defaultRepeat: "all",
+          },
+        }),
+      });
+      const store = useKomorebiStore.getState();
+      expect(selectVolume(store)).toBe(0.7);
+      expect(selectTempo(store)).toBe(1.25);
+      expect(selectPitch(store)).toBe(3);
+      expect(selectCrossfade(store)).toBe(4);
+      expect(selectGapless(store)).toBe(false);
+      expect(selectSmartShuffle(store)).toBe(true);
+      expect(selectAutoPlayNext(store)).toBe(false);
     });
   });
 

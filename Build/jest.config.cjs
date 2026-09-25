@@ -10,6 +10,7 @@ module.exports = {
     "^@core/(.*)$": "<rootDir>/src/core/$1",
     "^@platform/(.*)$": "<rootDir>/src/platform/$1",
     "^.*/platform/visualizers$": "<rootDir>/tests/mocks/platformVisualizers.ts",
+    "^@audiflo/libflo$": "<rootDir>/tests/mocks/audifloLibflo.ts",
   },
   setupFiles: ["<rootDir>/tests/__mocks__/browser.ts"],
   collectCoverageFrom: [

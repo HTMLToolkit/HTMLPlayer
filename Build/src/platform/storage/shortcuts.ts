@@ -162,7 +162,7 @@ class ShortcutsIndexedDbHelper {
           try {
             await this.saveAllShortcuts(DEFAULT_SHORTCUTS);
             resolve(DEFAULT_SHORTCUTS);
-          } catch (error) {
+          } catch {
             resolve(DEFAULT_SHORTCUTS);
           }
         } else {

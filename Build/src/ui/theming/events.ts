@@ -10,7 +10,7 @@ export type ThemingEvent =
   | "themechange"
   | "themeerror";
 
-export type ThemingEventMap = {
+export interface ThemingEventMap {
   palettechange: { palette: string };
   paletteerror: { error: string };
   iconchange: { iconSet: string };
@@ -21,7 +21,7 @@ export type ThemingEventMap = {
   modeerror: { error: string };
   themechange: null;
   themeerror: { error: string };
-};
+}
 
 export type ThemeMode = "light" | "dark" | "auto";
 

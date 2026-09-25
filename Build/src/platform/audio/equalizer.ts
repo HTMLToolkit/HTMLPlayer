@@ -16,32 +16,39 @@ export const EQUALIZER_PRESETS: EqualizerPreset[] = [
   { name: "Pop", gains: [-1, 0, 2, 4, 5, 5, 4, 2, 0, -1] },
 ];
 
-const EQUALIZER_FREQUENCIES = [
+export const EQUALIZER_FREQUENCIES = [
   32, 64, 125, 250, 500, 1000, 2000, 4000, 8000, 16000,
 ];
 
+const MIN_GAIN_DB = -12;
+const MAX_GAIN_DB = 12;
+
 export class Equalizer {
-  private audioContext: AudioContext | null = null;
-  private sourceNode: MediaElementAudioSourceNode | null = null;
-  private filters: BiquadFilterNode[] = [];
-  private gainNode: GainNode | null = null;
-  private connected = false;
+  private filterNodes: BiquadFilterNode[] = [];
+  private currentGains: number[] = EQUALIZER_FREQUENCIES.map(() => 0);
   private enabled = false;
-  private currentGains: number[] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 
-  constructor() {}
+  get nodes(): BiquadFilterNode[] {
+    return [...this.filterNodes];
+  }
 
-  connect(audioElement: HTMLAudioElement, audioContext: AudioContext): void {
-    if (this.connected) return;
+  isBuilt(): boolean {
+    return this.filterNodes.length === EQUALIZER_FREQUENCIES.length;
+  }
 
-    this.audioContext = audioContext;
+  isEnabled(): boolean {
+    return this.enabled;
+  }
 
-    this.sourceNode = audioContext.createMediaElementSource(audioElement);
+  setEnabled(enabled: boolean): void {
+    this.enabled = enabled;
+  }
 
-    this.gainNode = audioContext.createGain();
+  build(context: AudioContext): void {
+    if (this.filterNodes.length > 0) return;
 
-    this.filters = EQUALIZER_FREQUENCIES.map((freq, i) => {
-      const filter = audioContext.createBiquadFilter();
+    this.filterNodes = EQUALIZER_FREQUENCIES.map((freq, i) => {
+      const filter = context.createBiquadFilter();
 
       if (i === 0) {
         filter.type = "lowshelf";
@@ -57,52 +64,29 @@ export class Equalizer {
 
       return filter;
     });
-
-    let lastNode: AudioNode = this.sourceNode;
-    for (const filter of this.filters) {
-      lastNode.connect(filter);
-      lastNode = filter;
-    }
-
-    lastNode.connect(this.gainNode);
-    this.gainNode.connect(audioContext.destination);
-
-    this.connected = true;
   }
 
   disconnect(): void {
-    if (!this.connected) return;
-
-    this.sourceNode?.disconnect();
-    this.filters.forEach((f) => f.disconnect());
-    this.gainNode?.disconnect();
-
-    this.sourceNode = null;
-    this.filters = [];
-    this.gainNode = null;
-    this.connected = false;
-  }
-
-  setEnabled(enabled: boolean): void {
-    this.enabled = enabled;
-    if (this.gainNode) {
-      this.gainNode.gain.value = enabled ? 1 : 1;
-    }
-  }
-
-  isEnabled(): boolean {
-    return this.enabled;
+    this.filterNodes.forEach((filter) => filter.disconnect());
   }
 
   setGain(index: number, gain: number): void {
-    if (index < 0 || index >= this.filters.length) return;
+    if (index < 0 || index >= this.filterNodes.length) return;
 
-    const clampedGain = Math.max(-12, Math.min(12, gain));
+    const clampedGain = Math.max(MIN_GAIN_DB, Math.min(MAX_GAIN_DB, gain));
     this.currentGains[index] = clampedGain;
-    const filter = this.filters[index];
+    const filter = this.filterNodes[index];
     if (filter) {
       filter.gain.value = clampedGain;
     }
+  }
+
+  setGainUnbuilt(index: number, gain: number): void {
+    if (index < 0 || index >= this.currentGains.length) return;
+    this.currentGains[index] = Math.max(
+      MIN_GAIN_DB,
+      Math.min(MAX_GAIN_DB, gain),
+    );
   }
 
   getGain(index: number): number {
@@ -115,7 +99,11 @@ export class Equalizer {
 
   setPreset(preset: EqualizerPreset): void {
     preset.gains.forEach((gain, i) => {
-      this.setGain(i, gain);
+      this.setGainUnbuilt(i, gain);
+      const filter = this.filterNodes[i];
+      if (filter) {
+        filter.gain.value = Math.max(MIN_GAIN_DB, Math.min(MAX_GAIN_DB, gain));
+      }
     });
   }
 
@@ -132,27 +120,6 @@ export class Equalizer {
 
   getPresets(): EqualizerPreset[] {
     return [...EQUALIZER_PRESETS];
-  }
-
-  getAnalyserNode(): AnalyserNode | null {
-    if (!this.audioContext || !this.connected) return null;
-
-    const analyser = this.audioContext.createAnalyser();
-    analyser.fftSize = 256;
-
-    if (this.filters.length > 0) {
-      const lastFilter = this.filters[this.filters.length - 1];
-      if (lastFilter) {
-        lastFilter.connect(analyser);
-      }
-    }
-
-    return analyser;
-  }
-
-  dispose(): void {
-    this.disconnect();
-    this.audioContext = null;
   }
 }
 

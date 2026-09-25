@@ -1,16 +1,28 @@
 import { useEffect, useState, useCallback, useRef, useMemo } from "react";
 import { useTranslation } from "react-i18next";
+import { useGSAP } from "@gsap/react";
+import gsap from "gsap";
 import styles from "./Lyrics.module.css";
 import { Button } from "../primitives/Button";
 import { Icon } from "../shared/Icon";
 import { cleanMetadata } from "../../../platform/lyrics";
+import {
+  LyricsManager,
+  LyricsOvhProvider,
+  LRCLyricsProvider,
+  type Lyrics as ProviderLyrics,
+} from "../../../platform/providers";
 import { logger } from "../../../helpers/logger";
+import { prefersReducedMotion } from "../../../helpers/reducedMotion";
+
+gsap.registerPlugin(useGSAP);
 
 interface LyricsProps {
   artist: string;
   title: string;
   visible: boolean;
   onClose?: () => void;
+  onCloseComplete?: () => void;
   embeddedLyrics?: EmbeddedLyrics[];
   currentTime?: number;
   isClosing?: boolean;
@@ -29,51 +41,43 @@ interface EmbeddedLyrics {
   }>;
 }
 
-interface LyricsResponse {
-  lyrics: string;
-}
-interface LyricsState {
-  lyrics: string;
+interface OnlineLyricsState {
+  lyrics: ProviderLyrics | null;
   loading: boolean;
   error: string | null;
 }
 
-const INITIAL_STATE: LyricsState = { lyrics: "", loading: false, error: null };
+const INITIAL_STATE: OnlineLyricsState = {
+  lyrics: null,
+  loading: false,
+  error: null,
+};
+
+const lyricsManager = new LyricsManager();
+lyricsManager.addProvider(new LyricsOvhProvider());
+const lrcParser = new LRCLyricsProvider();
+
+const LRC_TIME_REGEX = /\[\d{2}:\d{2}(?:[.:]\d+)?\]/;
 
 export const Lyrics = ({
   artist,
   title,
   visible,
   onClose,
+  onCloseComplete,
   embeddedLyrics,
   currentTime = 0,
   isClosing: isClosingProp = false,
 }: LyricsProps) => {
   const { t } = useTranslation();
-  const [state, setState] = useState<LyricsState>(INITIAL_STATE);
-  const abortControllerRef = useRef<AbortController | null>(null);
+  const [state, setState] = useState<OnlineLyricsState>(INITIAL_STATE);
   const [selectedIndex, setSelectedIndex] = useState<number>(-1);
   const [currentLineIndex, setCurrentLineIndex] = useState<number>(-1);
   const lyricsRef = useRef<HTMLDivElement | null>(null);
+  const overlayRef = useRef<HTMLDivElement | null>(null);
   const [preferredSource, setPreferredSource] = useState<"online" | "embedded">(
     "online",
   );
-  const [hasAnimatedIn, setHasAnimatedIn] = useState(false);
-
-  const prevVisibleRef = useRef(visible);
-  useEffect(() => {
-    if (visible && !prevVisibleRef.current) {
-      setHasAnimatedIn(false);
-    }
-    prevVisibleRef.current = visible;
-  }, [visible]);
-
-  useEffect(() => {
-    if (!isClosingProp && !hasAnimatedIn) {
-      const timer = setTimeout(() => setHasAnimatedIn(true), 250);
-      return () => clearTimeout(timer);
-    }
-  }, [isClosingProp, hasAnimatedIn]);
 
   const handleClose = useCallback(() => {
     onClose?.();
@@ -81,10 +85,6 @@ export const Lyrics = ({
 
   const fetchLyrics = useCallback(
     async (artist: string, title: string) => {
-      if (abortControllerRef.current) abortControllerRef.current.abort();
-      const controller = new AbortController();
-      abortControllerRef.current = controller;
-
       setState((prev) => ({ ...prev, loading: true, error: null }));
 
       if (
@@ -117,32 +117,22 @@ export const Lyrics = ({
         title: searchTitle,
       } of searchCombinations) {
         try {
-          const response = await fetch(
-            `https://api.lyrics.ovh/v1/${encodeURIComponent(
-              searchArtist,
-            )}/${encodeURIComponent(searchTitle)}`,
-            { signal: controller.signal },
-          );
+          const lyrics = await lyricsManager.fetchLyrics({
+            artist: searchArtist,
+            title: searchTitle,
+          });
 
-          if (response.ok) {
-            const data: LyricsResponse = await response.json();
-            if (data.lyrics?.trim()) {
-              setState({
-                lyrics: data.lyrics.trim(),
-                loading: false,
-                error: null,
-              });
-              return;
-            }
+          if (lyrics && (lyrics.plain.length > 0 || lyrics.synced.length > 0)) {
+            setState({
+              lyrics,
+              loading: false,
+              error: null,
+            });
+            return;
           }
 
-          lastError = new Error(
-            response.status === 404
-              ? t("lyrics.notFound")
-              : t("lyrics.failedToFetch", { status: response.status }),
-          );
+          lastError = new Error(t("lyrics.notFound"));
         } catch (error) {
-          if (error instanceof Error && error.name === "AbortError") return;
           lastError =
             error instanceof Error
               ? error
@@ -151,7 +141,7 @@ export const Lyrics = ({
       }
 
       setState({
-        lyrics: "",
+        lyrics: null,
         loading: false,
         error: lastError?.message || t("lyrics.failedToLoad"),
       });
@@ -193,6 +183,15 @@ export const Lyrics = ({
         timestamp: needsMultiply ? m.timestamp * 1000 : m.timestamp,
       }));
       normalized.lines.sort((a, b) => a.timestamp - b.timestamp);
+    } else if (normalized.text && LRC_TIME_REGEX.test(normalized.text)) {
+      const parsed = lrcParser.parseLRC(normalized.text);
+      if (parsed.synced.length > 0) {
+        normalized.synced = true;
+        normalized.lines = parsed.synced.map((line) => ({
+          text: line.text,
+          timestamp: line.time * 1000,
+        }));
+      }
     }
 
     return normalized;
@@ -232,20 +231,35 @@ export const Lyrics = ({
     return normalizedEmbedded[selectedIndex] ?? null;
   }, [normalizedEmbedded, selectedIndex]);
 
+  const onlineLyrics = preferredSource === "online" ? state.lyrics : null;
+  const onlineSyncedLines = useMemo(() => {
+    const synced = onlineLyrics?.synced;
+    if (!synced || synced.length === 0) return null;
+    return synced.map((line) => ({
+      text: line.text,
+      timestamp: line.time * 1000,
+    }));
+  }, [onlineLyrics]);
+
+  const embeddedSyncedLines = useMemo(() => {
+    if (preferredSource !== "embedded" || !selectedLyrics?.synced) return null;
+    return selectedLyrics.lines && selectedLyrics.lines.length > 0
+      ? selectedLyrics.lines
+      : null;
+  }, [selectedLyrics, preferredSource]);
+
+  const activeSyncedLines = embeddedSyncedLines ?? onlineSyncedLines;
+
   useEffect(() => {
     if (!visible) return;
-    if (
-      !selectedLyrics ||
-      !selectedLyrics.synced ||
-      !selectedLyrics.lines?.length
-    ) {
+    if (!activeSyncedLines) {
       if (currentLineIndex !== -1) setCurrentLineIndex(-1);
       return;
     }
 
     const currentTimeMs = currentTime * 1000;
-    const index = selectedLyrics.lines.findIndex((line, lineIndex) => {
-      const nextLine = selectedLyrics.lines?.[lineIndex + 1];
+    const index = activeSyncedLines.findIndex((line, lineIndex) => {
+      const nextLine = activeSyncedLines[lineIndex + 1];
       return (
         line.timestamp <= currentTimeMs &&
         (!nextLine || nextLine.timestamp > currentTimeMs)
@@ -253,7 +267,7 @@ export const Lyrics = ({
     });
 
     if (index !== currentLineIndex) setCurrentLineIndex(index);
-  }, [currentLineIndex, currentTime, selectedLyrics, visible]);
+  }, [currentLineIndex, currentTime, activeSyncedLines, visible]);
 
   useEffect(() => {
     if (!visible) return;
@@ -263,8 +277,55 @@ export const Lyrics = ({
     const lineElement = parent.children.item(
       currentLineIndex,
     ) as HTMLElement | null;
-    lineElement?.scrollIntoView({ behavior: "smooth", block: "center" });
+    lineElement?.scrollIntoView({
+      behavior: prefersReducedMotion() ? "auto" : "smooth",
+      block: "center",
+    });
   }, [currentLineIndex, visible]);
+
+  useGSAP(
+    () => {
+      const parent = lyricsRef.current;
+      if (!parent || !visible || currentLineIndex < 0) return;
+      const lineElement = parent.children.item(
+        currentLineIndex,
+      ) as HTMLElement | null;
+      if (!lineElement || prefersReducedMotion()) return;
+      gsap.fromTo(
+        lineElement,
+        { y: 3, opacity: 0.85 },
+        { y: 0, opacity: 1, duration: 0.3, ease: "power2.out" },
+      );
+    },
+    { dependencies: [currentLineIndex, visible], scope: lyricsRef },
+  );
+
+  useGSAP(
+    () => {
+      const overlay = overlayRef.current;
+      if (!overlay) return;
+      if (isClosingProp) {
+        if (prefersReducedMotion()) {
+          onCloseComplete?.();
+          return;
+        }
+        gsap.to(overlay, {
+          yPercent: 100,
+          opacity: 0,
+          duration: 0.25,
+          ease: "power3.in",
+          onComplete: () => onCloseComplete?.(),
+        });
+      } else if (visible && !prefersReducedMotion()) {
+        gsap.fromTo(
+          overlay,
+          { yPercent: 100, opacity: 0 },
+          { yPercent: 0, opacity: 1, duration: 0.25, ease: "power3.out" },
+        );
+      }
+    },
+    { dependencies: [isClosingProp, visible], scope: overlayRef },
+  );
 
   const handleRetry = useCallback(() => {
     if (artist && title) fetchLyrics(artist, title);
@@ -283,8 +344,6 @@ export const Lyrics = ({
       currentLineIndex,
     });
   }, [selectedIndex, selectedLyrics, currentLineIndex]);
-
-  if (!visible) return null;
 
   const handleEmbeddedSelectChange = (
     event: React.ChangeEvent<HTMLSelectElement>,
@@ -305,23 +364,17 @@ export const Lyrics = ({
       .padStart(2, "0")}.${centiseconds.toString().padStart(2, "0")}`;
   };
 
-  const { lyrics, loading, error } = state;
+  const { lyrics: onlineLyricsResult, loading, error } = state;
   const shownIndexForSelect = selectedIndex >= 0 ? selectedIndex : 0;
-
-  const dataState = isClosingProp
-    ? "closing"
-    : hasAnimatedIn
-      ? "visible"
-      : "open";
 
   return (
     <div
+      ref={overlayRef}
       className={styles.lyricsOverlay}
       onClick={handleOverlayClick}
       role="dialog"
       aria-modal="true"
       data-tour="lyrics"
-      data-state={dataState}
     >
       <div className={styles.lyricsContainer}>
         <header className={styles.lyricsHeader}>
@@ -336,7 +389,6 @@ export const Lyrics = ({
             )}
           </div>
           <div className={styles.lyricsHeaderControls}>
-            {}
             <Button
               variant="ghost"
               size="icon-sm"
@@ -348,7 +400,6 @@ export const Lyrics = ({
             >
               <Icon name="download" size={18} />
             </Button>
-            {}
             <Button
               variant="ghost"
               size="icon-sm"
@@ -447,10 +498,30 @@ export const Lyrics = ({
                 </button>
               </div>
             )}
-            {!loading && !error && lyrics && (
-              <pre className={styles.lyricsText}>{lyrics}</pre>
+            {!loading && !error && onlineLyricsResult && (
+              onlineLyricsResult.synced.length > 0 ? (
+                <div ref={lyricsRef} className={styles.syncedLyrics}>
+                  {onlineLyricsResult.synced.map((line, index) => (
+                    <div
+                      key={`online-${line.time}-${index}`}
+                      className={`${styles.lyricsLine}${index === currentLineIndex ? ` ${styles.currentLine}` : ""}`}
+                    >
+                      <span className={styles.timestamp}>
+                        {formatTimestamp(line.time * 1000)}
+                      </span>
+                      <span className={styles.lineText}>
+                        {line.text || "\u00a0"}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <pre className={styles.lyricsText}>
+                  {onlineLyricsResult.plain.join("\n")}
+                </pre>
+              )
             )}
-            {!loading && !error && !lyrics && (
+            {!loading && !error && !onlineLyricsResult && (
               <div className={styles.error}>
                 {t("lyrics.noLyricsAvailable")}
               </div>

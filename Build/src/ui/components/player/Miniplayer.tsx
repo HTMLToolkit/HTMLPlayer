@@ -56,6 +56,7 @@ export const MiniplayerContent: React.FC<MiniplayerProps> = ({ controls }) => {
       <div className={styles.controls}>
         <Button
           id="prevBtn"
+          aria-label={t("player.previousTrack")}
           title={t("player.previousTrack")}
           onClick={previous}
         >
@@ -64,7 +65,8 @@ export const MiniplayerContent: React.FC<MiniplayerProps> = ({ controls }) => {
         <Button
           id="playBtn"
           className={styles.playBtn}
-          title={isPlaying ? "Pause" : "Play"}
+          aria-label={isPlaying ? t("player.pause") : t("player.play")}
+          title={isPlaying ? t("player.pause") : t("player.play")}
           onClick={togglePlayPause}
         >
           {isPlaying ? (
@@ -73,7 +75,12 @@ export const MiniplayerContent: React.FC<MiniplayerProps> = ({ controls }) => {
             <Icon name="play" size={20} decorative />
           )}
         </Button>
-        <Button id="nextBtn" title={t("player.nextTrack")} onClick={next}>
+        <Button
+          id="nextBtn"
+          aria-label={t("player.nextTrack")}
+          title={t("player.nextTrack")}
+          onClick={next}
+        >
           <Icon name="skipForward" size={18} decorative />
         </Button>
       </div>

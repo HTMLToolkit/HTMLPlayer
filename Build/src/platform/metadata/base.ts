@@ -2,6 +2,7 @@ import type {
   EmbeddedLyrics,
   EncodingDetails,
   GaplessInfo,
+  ReplayGainInfo,
 } from "../../core/engine/types";
 
 export interface ExtractedMetadata {
@@ -13,6 +14,7 @@ export interface ExtractedMetadata {
   embeddedLyrics?: EmbeddedLyrics[];
   encoding?: EncodingDetails;
   gapless?: GaplessInfo;
+  replayGain?: ReplayGainInfo;
 }
 
 export interface MetadataExtractor {

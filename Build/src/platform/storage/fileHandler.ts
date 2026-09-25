@@ -57,10 +57,7 @@ export function setupFileHandler(
 
     for (const item of launchParams.files) {
       try {
-        const file: File =
-          "getFile" in item && typeof (item as any).getFile === "function"
-            ? await (item as FileSystemFileHandle).getFile()
-            : (item as File);
+        const file: File = "getFile" in item ? await item.getFile() : item;
         const processed = getProcessedFiles();
         const fileId = `${file.name}-${file.size}-${file.lastModified}`;
 
@@ -88,7 +85,7 @@ export function setupFileHandler(
     }
   };
 
-  window.launchQueue.setConsumer(consumer as any);
+  window.launchQueue.setConsumer(consumer);
 
   return () => {
     try {

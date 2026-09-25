@@ -10,13 +10,11 @@ interface HelpGuideProps {
   children: React.ReactNode;
 }
 
-/** A single tour step as authored in the per-language tour.json files. */
 interface TourStepConfig {
   key: string;
   title: string;
   content: string;
   extraContent?: string;
-  /** Tour library placement hint; validated against a known union at render time. */
   position: string;
 }
 
@@ -82,11 +80,11 @@ export const HelpGuideProvider = ({ children }: HelpGuideProps) => {
           popover: (base) => ({
             ...base,
             backgroundColor: "var(--primary-foreground)",
-            color: "var(--text-color)",
-            border: "1px solid var(--color-border)",
+            color: "var(--foreground)",
+            border: "1px solid var(--border)",
             borderRadius: "12px",
             boxShadow: "0 10px 25px rgba(0, 0, 0, 0.3)",
-            fontFamily: "var(--font-family)",
+            fontFamily: "var(--font-family-base)",
             animation: "fadeIn 0.3s ease-out",
           }),
           maskArea: (base) => ({
@@ -96,8 +94,8 @@ export const HelpGuideProvider = ({ children }: HelpGuideProps) => {
           }),
           badge: (base) => ({
             ...base,
-            backgroundColor: "var(--color-accent)",
-            color: "var(--color-accent-text)",
+            backgroundColor: "var(--primary)",
+            color: "var(--primary-foreground)",
           }),
           controls: (base) => ({
             ...base,
@@ -105,7 +103,7 @@ export const HelpGuideProvider = ({ children }: HelpGuideProps) => {
           }),
           close: (base) => ({
             ...base,
-            color: "var(--color-text-secondary)",
+            color: "var(--muted-foreground)",
             right: 10,
             top: 10,
           }),

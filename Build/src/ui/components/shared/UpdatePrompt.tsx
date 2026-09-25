@@ -1,13 +1,17 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { logger } from "../../../helpers/logger";
 import { useRegisterSW } from "virtual:pwa-register/react";
 import { useTranslation } from "react-i18next";
+import { useGSAP } from "@gsap/react";
+import gsap from "gsap";
 import { Button } from "../primitives/Button";
 import { Icon } from "./Icon";
+import { prefersReducedMotion } from "../../../helpers/reducedMotion";
 import styles from "./UpdatePrompt.module.css";
 
+gsap.registerPlugin(useGSAP);
+
 interface UpdatePromptProps {
-  /** How often to check for updates (in milliseconds). Default: 1 hour */
   checkInterval?: number;
 }
 
@@ -16,6 +20,20 @@ export function UpdatePrompt({
 }: UpdatePromptProps) {
   const { t } = useTranslation();
   const [dismissed, setDismissed] = useState(false);
+  const promptRef = useRef<HTMLDivElement>(null);
+
+  useGSAP(
+    () => {
+      const prompt = promptRef.current;
+      if (!prompt || prefersReducedMotion()) return;
+      gsap.fromTo(
+        prompt,
+        { opacity: 0, y: 20, x: "-50%" },
+        { opacity: 1, y: 0, x: "-50%", duration: 0.3, ease: "power2.out" },
+      );
+    },
+    { scope: promptRef },
+  );
 
   const {
     needRefresh: [needRefresh, setNeedRefresh],
@@ -59,7 +77,7 @@ export function UpdatePrompt({
   }
 
   return (
-    <div className={styles.updatePrompt} role="alert" aria-live="polite">
+    <div ref={promptRef} className={styles.updatePrompt} role="alert" aria-live="polite">
       <div className={styles.content}>
         <div className={styles.iconWrapper}>
           <Icon name="refreshCw" size={20} decorative />

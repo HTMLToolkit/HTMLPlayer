@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import Uppy from "@uppy/core";
+import Uppy, { type UppyFile } from "@uppy/core";
 import Dashboard from "@uppy/react/dashboard";
 import "@uppy/core/css/style.min.css";
 import "@uppy/dashboard/css/style.min.css";
@@ -75,7 +75,7 @@ export function pickAudioFiles(): Promise<AudioFile[]> {
       useEffect(() => {
         const audioFiles: AudioFile[] = [];
 
-        const onFileAdded = (file: any) => {
+        const onFileAdded = (file: UppyFile<Record<string, unknown>, Record<string, unknown>>) => {
           const processed = processFiles([file.data as File]);
           if (processed.length === 0) {
             uppy.removeFile(file.id);

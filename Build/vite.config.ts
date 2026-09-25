@@ -210,7 +210,7 @@ const VENDOR_CHUNK_GROUPS: Readonly<Record<string, readonly string[]>> = {
   "vendor-audio": ["music-metadata", "@web-scrobbler/metadata-filter"],
   "vendor-utils": ["lodash", "dompurify", "zustand", "sonner"],
   "vendor-icons": ["lucide-react"],
-  "vendor-flo": ["@flo-audio/libflo-audio", "@flo-audio/reflo"],
+  "vendor-flo": ["@audiflo/libflo"],
 };
 
 function manualChunks(id: string): string | undefined {
@@ -263,7 +263,7 @@ export default defineConfig({
   },
 
   optimizeDeps: {
-    exclude: ["@flo-audio/libflo-audio", "@flo-audio/reflo"],
+    exclude: ["@audiflo/libflo"],
   },
 
   server: isDesktop

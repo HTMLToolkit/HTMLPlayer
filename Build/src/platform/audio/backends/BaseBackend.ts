@@ -1,11 +1,12 @@
 import type { IAudioBackend } from "../../audio/index";
+import type { Track } from "../../../core/engine/types";
 
 export abstract class BaseAudioBackend implements IAudioBackend {
   protected timeUpdateCallbacks: Set<(time: number) => void> = new Set();
   protected endedCallbacks: Set<() => void> = new Set();
   protected errorCallbacks: Set<(error: Error) => void> = new Set();
 
-  abstract load(url: string): Promise<void>;
+  abstract load(url: string, track?: Track): Promise<void>;
   abstract play(): Promise<void>;
   abstract pause(): void;
   abstract stop(): void;

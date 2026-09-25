@@ -8,40 +8,6 @@ describe("SettingsManager", () => {
     settings = new SettingsManager();
   });
 
-  describe("Volume", () => {
-    it("should set volume", () => {
-      settings.setVolume(0.5);
-      expect(settings.getSettings().volume).toBe(0.5);
-    });
-
-    it("should clamp volume to 0-1", () => {
-      settings.setVolume(1.5);
-      expect(settings.getSettings().volume).toBe(1);
-
-      settings.setVolume(-0.5);
-      expect(settings.getSettings().volume).toBe(0);
-    });
-
-    it("should emit settingschange", () => {
-      const callback = jest.fn();
-      settings.on("settingschange", callback);
-      settings.setVolume(0.8);
-      expect(callback).toHaveBeenCalledWith({ volume: 0.8 });
-    });
-  });
-
-  describe("Crossfade", () => {
-    it("should set crossfade duration", () => {
-      settings.setCrossfade(3000);
-      expect(settings.getSettings().crossfade).toBe(3000);
-    });
-
-    it("should not allow negative crossfade", () => {
-      settings.setCrossfade(-100);
-      expect(settings.getSettings().crossfade).toBe(0);
-    });
-  });
-
   describe("Theme", () => {
     it("should set color theme", () => {
       settings.setColorTheme("Obsidian");
@@ -65,51 +31,6 @@ describe("SettingsManager", () => {
       settings.on("wallpaperchange", callback);
       settings.setWallpaper("geometric");
       expect(callback).toHaveBeenCalledWith("geometric");
-    });
-  });
-
-  describe("Playback settings", () => {
-    it("should set default shuffle", () => {
-      settings.setDefaultShuffle(true);
-      expect(settings.getSettings().defaultShuffle).toBe(true);
-    });
-
-    it("should set default repeat", () => {
-      settings.setDefaultRepeat("all");
-      expect(settings.getSettings().defaultRepeat).toBe("all");
-    });
-
-    it("should set auto play next", () => {
-      settings.setAutoPlayNext(false);
-      expect(settings.getSettings().autoPlayNext).toBe(false);
-    });
-
-    it("should set gapless playback", () => {
-      settings.setGaplessPlayback(true);
-      expect(settings.getSettings().gaplessPlayback).toBe(true);
-    });
-
-    it("should set smart shuffle", () => {
-      settings.setSmartShuffle(false);
-      expect(settings.getSettings().smartShuffle).toBe(false);
-    });
-  });
-
-  describe("Tempo and Pitch", () => {
-    it("should clamp tempo", () => {
-      settings.setTempo(5);
-      expect(settings.getSettings().tempo).toBe(4);
-
-      settings.setTempo(0.1);
-      expect(settings.getSettings().tempo).toBe(0.25);
-    });
-
-    it("should clamp pitch to -12 to 12 semitones", () => {
-      settings.setPitch(20);
-      expect(settings.getSettings().pitch).toBe(12);
-
-      settings.setPitch(-20);
-      expect(settings.getSettings().pitch).toBe(-12);
     });
   });
 
@@ -174,43 +95,55 @@ describe("SettingsManager", () => {
     });
   });
 
+  describe("Eruda", () => {
+    it("should set eruda enabled", () => {
+      settings.setErudaEnabled(true);
+      expect(settings.getSettings().erudaEnabled).toBe(true);
+    });
+  });
+
   describe("updateSettings", () => {
     it("should update multiple settings at once", () => {
       settings.updateSettings({
-        volume: 0.9,
-        crossfade: 5000,
-        pitch: 2,
+        themeMode: "dark",
+        compactMode: true,
+        showLyrics: true,
       });
       const result = settings.getSettings();
-      expect(result.volume).toBe(0.9);
-      expect(result.crossfade).toBe(5000);
-      expect(result.pitch).toBe(2);
+      expect(result.themeMode).toBe("dark");
+      expect(result.compactMode).toBe(true);
+      expect(result.showLyrics).toBe(true);
     });
 
     it("should ignore unknown keys", () => {
-      settings.updateSettings({ volume: 0.5, unknownKey: "test" } as unknown as Partial<SettingsState>);
-      expect(settings.getSettings().volume).toBe(0.5);
+      settings.updateSettings({
+        compactMode: true,
+        unknownKey: "test",
+      } as unknown as Partial<SettingsState>);
+      expect(settings.getSettings().compactMode).toBe(true);
     });
   });
 
   describe("resetToDefaults", () => {
     it("should reset all settings to defaults", () => {
-      settings.setVolume(0.9);
       settings.setColorTheme("Red");
-      settings.setPitch(5);
-      settings.setSmartShuffle(false);
-      
+      settings.setCompactMode(true);
+      settings.setShowLyrics(true);
+      settings.setDiscordEnabled(true);
+      settings.setErudaEnabled(true);
+
       settings.resetToDefaults();
-      
+
       const result = settings.getSettings();
-      expect(result.volume).toBe(1);
       expect(result.colorTheme).toBe("Blue");
-      expect(result.pitch).toBe(0);
-      expect(result.smartShuffle).toBe(true);
+      expect(result.compactMode).toBe(false);
+      expect(result.showLyrics).toBe(false);
+      expect(result.discordEnabled).toBe(false);
+      expect(result.erudaEnabled).toBe(false);
     });
 
     it("should emit settingschange on reset", () => {
-      settings.setVolume(0.5);
+      settings.setShowLyrics(true);
       const callback = jest.fn();
       settings.on("settingschange", callback);
       settings.resetToDefaults();
@@ -223,7 +156,7 @@ describe("SettingsManager", () => {
       const callback = jest.fn();
       settings.on("settingschange", callback);
       settings.off("settingschange", callback);
-      settings.setVolume(0.5);
+      settings.setShowLyrics(true);
       expect(callback).not.toHaveBeenCalled();
     });
   });

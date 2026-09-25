@@ -48,22 +48,22 @@ export function Settings({
     const defaultThemeName = "Blue";
     try {
       await setPalette(defaultThemeName);
-      settings.setVolume(0.75);
-      settings.setCrossfade(3);
-      settings.setDefaultShuffle(false);
-      settings.setDefaultRepeat("off");
-      settings.setAutoPlayNext(true);
+      komorebi.setVolume(0.75);
+      komorebi.setCrossfade(3);
+      komorebi.setShuffle(false);
+      komorebi.setRepeat("off");
+      komorebi.setAutoPlayNext(true);
+      komorebi.setGapless(false);
+      komorebi.setShuffleMode("smart");
+      komorebi.setPlaybackRate(1);
+      komorebi.setPitch(0);
       settings.setCompactMode(false);
       settings.setShowAlbumArt(true);
       settings.setShowLyrics(false);
       settings.setSessionRestore(true);
-      settings.setGaplessPlayback(false);
-      settings.setSmartShuffle(true);
       settings.setColorTheme(defaultThemeName);
       settings.setWallpaper("None");
       settings.setLanguage("English");
-      settings.setTempo(1);
-      settings.setPitch(0);
       settings.setDiscordEnabled(false);
       settings.setDiscordUserId("");
       settings.setErudaEnabled(false);
@@ -162,14 +162,8 @@ export function Settings({
               <div className={styles.categoryContent}>
                 {activeCategory === "playback" && (
                   <>
-                    <SettingsAudio
-                      settings={settings}
-                      settingsState={settingsState}
-                    />
-                    <SettingsPlayback
-                      settings={settings}
-                      settingsState={settingsState}
-                    />
+                    <SettingsAudio komorebi={komorebi} />
+                    <SettingsPlayback komorebi={komorebi} />
                   </>
                 )}
                 {activeCategory === "interface" && (

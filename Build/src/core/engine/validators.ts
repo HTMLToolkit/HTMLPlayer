@@ -9,11 +9,6 @@ import type {
   Track,
 } from "./types";
 
-/**
- * Runtime shape checks for engine domain types. These are the guards used at
- * every deserialization boundary so that corrupted or stale persisted data
- * degrades to safe defaults instead of crashing on property access later.
- */
 
 export function isPlainObject(
   value: unknown,
@@ -38,11 +33,6 @@ export function isQueueCursorActive(
   );
 }
 
-/**
- * Validates the whole queue state, including the cross-field invariant that an
- * active cursor index is within the track list. A state that violates this
- * invariant is rejected outright.
- */
 export function isQueueState(value: unknown): value is QueueState {
   if (!isPlainObject(value)) return false;
   if (!Array.isArray(value.tracks) || !value.tracks.every(isTrack)) {

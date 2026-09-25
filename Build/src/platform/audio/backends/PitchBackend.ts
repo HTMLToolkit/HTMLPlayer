@@ -1,51 +1,28 @@
 import type { IAudioBackend } from "../index";
-import { throwError } from "../../../helpers/logger";
-
-let Tone: typeof import("tone") | null = null;
-let pitchShift: import("tone").PitchShift | null = null;
-
-async function loadTone(): Promise<typeof import("tone")> {
-  if (!Tone) {
-    Tone = await import("tone");
-    await Tone.start();
-  }
-  return Tone;
-}
+import type { Track } from "../../../core/engine/types";
 
 export class PitchBackend implements IAudioBackend {
   private inner: IAudioBackend | null = null;
-  private currentPitch = 0;
-  private isToneLoaded = false;
-  private pendingLoad: (() => Promise<void>) | null = null;
+
+  constructor(inner?: IAudioBackend) {
+    if (inner) {
+      this.inner = inner;
+    }
+  }
 
   setInnerBackend(backend: IAudioBackend): void {
     this.inner = backend;
   }
 
-  async load(url: string): Promise<void> {
+  async load(url: string, track?: Track): Promise<void> {
     if (!this.inner) {
-      return throwError("No inner backend configured");
+      throw new Error("No inner backend configured");
     }
-
-    if (this.pendingLoad) {
-      this.pendingLoad = null;
-    }
-
-    this.pendingLoad = async () => {
-      await this.inner!.load(url);
-    };
-
-    await this.pendingLoad();
+    await this.inner.load(url, track);
   }
 
   async play(): Promise<void> {
-    if (!this.inner) return;
-
-    if (!this.isToneLoaded && this.currentPitch !== 0) {
-      await this.initializeTone();
-    }
-
-    await this.inner.play();
+    await this.inner?.play();
   }
 
   pause(): void {
@@ -69,15 +46,7 @@ export class PitchBackend implements IAudioBackend {
   }
 
   async setPitch(semitones: number): Promise<void> {
-    this.currentPitch = semitones;
-
-    if (semitones !== 0 && !this.isToneLoaded) {
-      await this.initializeTone();
-    }
-
-    if (pitchShift) {
-      pitchShift.pitch = semitones;
-    }
+    await this.inner?.setPitch?.(semitones);
   }
 
   getCurrentTime(): number {
@@ -92,50 +61,32 @@ export class PitchBackend implements IAudioBackend {
     this.inner?.onTimeUpdate(callback);
   }
 
-  offTimeUpdate(_callback: (time: number) => void): void {}
+  offTimeUpdate(callback: (time: number) => void): void {
+    this.inner?.offTimeUpdate(callback);
+  }
 
   onEnded(callback: () => void): void {
     this.inner?.onEnded(callback);
   }
 
-  offEnded(_callback: () => void): void {}
+  offEnded(callback: () => void): void {
+    this.inner?.offEnded(callback);
+  }
 
   onError(callback: (error: Error) => void): void {
     this.inner?.onError(callback);
   }
 
-  offError(_callback: (error: Error) => void): void {}
+  offError(callback: (error: Error) => void): void {
+    this.inner?.offError(callback);
+  }
 
   dispose(): void {
-    if (pitchShift) {
-      pitchShift.dispose();
-      pitchShift = null;
-    }
-
     this.inner?.dispose();
     this.inner = null;
-    this.isToneLoaded = false;
-  }
-
-  private async initializeTone(): Promise<void> {
-    const tone = await loadTone();
-    this.isToneLoaded = true;
-
-    pitchShift = new tone.PitchShift({
-      pitch: this.currentPitch,
-      windowSize: 0.1,
-    });
-  }
-
-  getPitchShift(): import("tone").PitchShift | null {
-    return pitchShift;
   }
 }
 
 export function createPitchBackend(inner?: IAudioBackend): PitchBackend {
-  const backend = new PitchBackend();
-  if (inner) {
-    backend.setInnerBackend(inner);
-  }
-  return backend;
+  return new PitchBackend(inner);
 }

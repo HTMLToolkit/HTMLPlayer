@@ -4,9 +4,13 @@ import {
   useCallback,
   useImperativeHandle,
   forwardRef,
+  useRef,
 } from "react";
 import { useTranslation } from "react-i18next";
+import { useGSAP } from "@gsap/react";
+import gsap from "gsap";
 import { isSafari } from "../../../platform/utils/safari";
+import { prefersReducedMotion } from "../../../helpers/reducedMotion";
 import { Visualizer } from "./Visualizer";
 import { Lyrics } from "./Lyrics";
 import styles from "./Player.module.css";
@@ -20,6 +24,8 @@ import { PlayerTrackInfo } from "./PlayerTrackInfo";
 import { PlayerSecondaryControls } from "./PlayerSecondaryControls";
 import type { UseKomorebiReturn } from "../../../hooks/useKomorebi";
 import type { Track, Playlist } from "../../../core/engine/types";
+
+gsap.registerPlugin(useGSAP);
 
 interface PlayerProps {
   komorebi: UseKomorebiReturn;
@@ -65,18 +71,41 @@ export const Player = forwardRef<PlayerRef, PlayerProps>(
     const [showLyrics, setShowLyrics] = useState(false);
     const [isVisualizerClosing, setIsVisualizerClosing] = useState(false);
     const [isLyricsClosing, setIsLyricsClosing] = useState(false);
-    const [hasVisualizerAnimatedIn, setHasVisualizerAnimatedIn] =
-      useState(false);
+    const visualizerOverlayRef = useRef<HTMLDivElement>(null);
 
-    useEffect(() => {
-      if (showVisualizer && !isVisualizerClosing && !hasVisualizerAnimatedIn) {
-        const timer = setTimeout(() => setHasVisualizerAnimatedIn(true), 250);
-        return () => clearTimeout(timer);
-      }
-      if (!showVisualizer) {
-        setHasVisualizerAnimatedIn(false);
-      }
-    }, [showVisualizer, isVisualizerClosing, hasVisualizerAnimatedIn]);
+    useGSAP(
+      () => {
+        const overlay = visualizerOverlayRef.current;
+        if (!overlay) return;
+        if (isVisualizerClosing) {
+          if (prefersReducedMotion()) {
+            setShowVisualizer(false);
+            setIsVisualizerClosing(false);
+          } else {
+            gsap.to(overlay, {
+              yPercent: -100,
+              opacity: 0,
+              duration: 0.25,
+              ease: "power3.in",
+              onComplete: () => {
+                setShowVisualizer(false);
+                setIsVisualizerClosing(false);
+              },
+            });
+          }
+        } else if (showVisualizer && !prefersReducedMotion()) {
+          gsap.fromTo(
+            overlay,
+            { yPercent: -100, opacity: 0 },
+            { yPercent: 0, opacity: 1, duration: 0.25, ease: "power3.out" },
+          );
+        }
+      },
+      {
+        dependencies: [showVisualizer, isVisualizerClosing],
+        scope: visualizerOverlayRef,
+      },
+    );
 
     const handleVolumeToggle = useCallback(() => {
       setVolume(volume === 0 ? 0.7 : 0);
@@ -90,10 +119,6 @@ export const Player = forwardRef<PlayerRef, PlayerProps>(
     const handleVisualizerToggle = useCallback(() => {
       if (showVisualizer || isVisualizerClosing) {
         setIsVisualizerClosing(true);
-        setTimeout(() => {
-          setIsVisualizerClosing(false);
-          setShowVisualizer(false);
-        }, 250);
       } else {
         setShowVisualizer(true);
       }
@@ -102,14 +127,15 @@ export const Player = forwardRef<PlayerRef, PlayerProps>(
     const handleLyricsToggle = useCallback(() => {
       if (showLyrics || isLyricsClosing) {
         setIsLyricsClosing(true);
-        setTimeout(() => {
-          setIsLyricsClosing(false);
-          setShowLyrics(false);
-        }, 250);
       } else {
         setShowLyrics(true);
       }
     }, [showLyrics, isLyricsClosing]);
+
+    const handleLyricsCloseComplete = useCallback(() => {
+      setShowLyrics(false);
+      setIsLyricsClosing(false);
+    }, []);
 
     useImperativeHandle(
       ref,
@@ -140,21 +166,20 @@ export const Player = forwardRef<PlayerRef, PlayerProps>(
     }
 
     const isFavorite = libraryState.favorites.includes(currentSong.id);
-    const visualizerDataState = isVisualizerClosing
-      ? "closing"
-      : hasVisualizerAnimatedIn
-        ? "visible"
-        : "open";
 
     return (
       <>
         {(showVisualizer || isVisualizerClosing) && (
           <div
+            ref={visualizerOverlayRef}
             className={styles.visualizerOverlay}
             data-tour="visualizer"
-            data-state={visualizerDataState}
           >
-            <Visualizer isPlaying={isPlaying} className={styles.visualizer} />
+            <Visualizer
+              analyserNode={komorebi.getAnalyser()}
+              isPlaying={isPlaying}
+              className={styles.visualizer}
+            />
           </div>
         )}
         <div
@@ -247,6 +272,7 @@ export const Player = forwardRef<PlayerRef, PlayerProps>(
               title={currentSong.title}
               visible={showLyrics && !isLyricsClosing}
               onClose={handleLyricsToggle}
+              onCloseComplete={handleLyricsCloseComplete}
               embeddedLyrics={currentSong.embeddedLyrics}
               currentTime={currentTime}
               isClosing={isLyricsClosing}

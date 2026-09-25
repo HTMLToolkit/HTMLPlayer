@@ -69,7 +69,9 @@
   color: var(--primary-foreground);
   font-family: var(--font-family-base);
   cursor: pointer;
-  transition: all var(--animation-duration-fast) ease;
+  transition:
+    background-color var(--animation-duration-fast) ease,
+    border-color var(--animation-duration-fast) ease;
   text-align: left;
   width: 100%;
   margin-bottom: var(--spacing-2);
@@ -110,7 +112,11 @@
 .playlistDropZone {
   display: block;
   border-radius: var(--radius-lg);
-  transition: all var(--animation-duration-fast) ease;
+  transition:
+    background-color var(--animation-duration-fast) ease,
+    border-color var(--animation-duration-fast) ease,
+    transform var(--animation-duration-fast) ease,
+    box-shadow var(--animation-duration-fast) ease;
   width: 100%;
   flex: 1;
 }
@@ -227,7 +233,7 @@
   background: var(--surface-transparent-1);
   color: white;
   cursor: pointer;
-  transition: all var(--animation-duration-fast) ease;
+  transition: background-color var(--animation-duration-fast) ease;
 }
 
 .createPlaylistButtons button:hover {

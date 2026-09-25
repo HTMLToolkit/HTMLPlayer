@@ -418,7 +418,7 @@
   width: calc(100vw - var(--sidebar-width) - var(--spacing-layout));
   height: calc(100vh - 90px - 180px);
   max-height: 300px;
-  background: black;
+  background: var(--menu-background);
   backdrop-filter: blur(10px);
   border: 1px solid var(--primary-border);
   border-top: none;
@@ -429,45 +429,9 @@
   opacity: 1;
 }
 
-.visualizerOverlay[data-state="open"] {
-  animation: visualizerSlideDown var(--animation-duration-normal) ease-out
-    forwards;
-}
-
-.visualizerOverlay[data-state="closing"] {
-  animation: visualizerSlideUp var(--animation-duration-normal) ease-in forwards;
-}
-
-.visualizerOverlay[data-state="visible"] {
-  transform: translateY(0);
-  opacity: 1;
-}
-
 .visualizer {
   width: 100%;
   height: 100%;
-}
-
-@keyframes visualizerSlideDown {
-  from {
-    transform: translateY(-100%);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
-}
-
-@keyframes visualizerSlideUp {
-  from {
-    transform: translateY(0);
-    opacity: 1;
-  }
-  to {
-    transform: translateY(-100%);
-    opacity: 0;
-  }
 }
 
 @media (max-width: 900px) {

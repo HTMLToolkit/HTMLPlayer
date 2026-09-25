@@ -18,8 +18,15 @@
     cursor: pointer;
     margin: 0;
     padding: 0;
-    transition: all var(--animation-duration-normal)
-      cubic-bezier(0.16, 1, 0.3, 1);
+    transition:
+      background-color var(--animation-duration-normal)
+        cubic-bezier(0.16, 1, 0.3, 1),
+      border-color var(--animation-duration-normal)
+        cubic-bezier(0.16, 1, 0.3, 1),
+      box-shadow var(--animation-duration-normal)
+        cubic-bezier(0.16, 1, 0.3, 1),
+      transform var(--animation-duration-normal)
+        cubic-bezier(0.16, 1, 0.3, 1);
   }
 
   .checkbox:hover {
@@ -37,8 +44,6 @@
     background-color: var(--primary);
     border-color: var(--primary);
     transform: scale(1);
-    animation: checkboxPulse var(--animation-duration-normal)
-      cubic-bezier(0.16, 1, 0.3, 1);
   }
 
   .checkbox:disabled {
@@ -68,20 +73,5 @@
 
   .checkbox:disabled + .checkmark {
     color: var(--muted-foreground);
-  }
-
-  @keyframes checkboxPulse {
-    0% {
-      transform: scale(0.95);
-      box-shadow: 0 0 0 0 color-mix(in srgb, var(--primary) 40%, transparent);
-    }
-    70% {
-      transform: scale(1.02);
-      box-shadow: 0 0 0 6px color-mix(in srgb, var(--primary) 0%, transparent);
-    }
-    100% {
-      transform: scale(1);
-      box-shadow: 0 0 0 0 color-mix(in srgb, var(--primary) 0%, transparent);
-    }
   }
 }

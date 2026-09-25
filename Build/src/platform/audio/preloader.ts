@@ -115,7 +115,12 @@ export class PreloadManager {
 
     for (const index of indices) {
       const track = tracks[index];
-      if (track && !this.isLoaded(track.id) && !this.loading.has(track.id)) {
+      if (
+        track &&
+        track.url &&
+        !this.isLoaded(track.id) &&
+        !this.loading.has(track.id)
+      ) {
         this.preload(track).catch((e) =>
           logger.error("Preload failed", { error: String(e) }),
         );

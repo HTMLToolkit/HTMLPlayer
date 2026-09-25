@@ -1,5 +1,8 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useRef } from "react";
+import { useGSAP } from "@gsap/react";
+import gsap from "gsap";
 import { logger } from "../../../helpers/logger";
+import { prefersReducedMotion } from "../../../helpers/reducedMotion";
 import {
   DndContext,
   DragEndEvent,
@@ -52,7 +55,6 @@ interface DraggableItemProps {
     | React.ReactNode
     | ((dragHandleProps: DragHandleProps) => React.ReactNode);
   disabled?: boolean;
-  /** If true, only the DragHandle child will initiate drag (allows text selection) */
   useDragHandle?: boolean;
 }
 
@@ -107,12 +109,37 @@ const customCollisionDetection: CollisionDetection = (args) => {
   return intersections;
 };
 
+gsap.registerPlugin(useGSAP);
+
 export const DraggableProvider: React.FC<DraggableProviderProps> = ({
   children,
   onDragOperation,
 }) => {
   const { t } = useTranslation();
   const [activeItem, setActiveItem] = useState<DragItem | null>(null);
+  const previewRef = useRef<HTMLDivElement>(null);
+
+  useGSAP(
+    () => {
+      const preview = previewRef.current;
+      if (!preview || prefersReducedMotion()) return;
+      const glow = getComputedStyle(preview)
+        .getPropertyValue("--themecolor2-transparent")
+        .trim();
+      gsap.fromTo(
+        preview,
+        { boxShadow: "0 8px 24px rgba(0, 0, 0, 0.3)" },
+        {
+          boxShadow: `0 12px 32px rgba(0, 0, 0, 0.4), 0 0 20px ${glow}`,
+          yoyo: true,
+          repeat: -1,
+          duration: 1,
+          ease: "sine.inOut",
+        },
+      );
+    },
+    { dependencies: [activeItem], scope: previewRef },
+  );
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -197,7 +224,7 @@ export const DraggableProvider: React.FC<DraggableProviderProps> = ({
 
         if (isHoveringPlaylist) {
           return (
-            <div className={dragStyles.songPreview}>
+            <div ref={previewRef} className={dragStyles.songPreview}>
               <Icon
                 name="music"
                 size={18}
@@ -409,7 +436,7 @@ export const DraggableDropZone: React.FC<{
       style={{
         ...style,
         ...(isOver && {
-          backgroundColor: "var(--accent-transparent)",
+          backgroundColor: "var(--primary-transparent-2)",
           borderRadius: "6px",
         }),
       }}

@@ -389,6 +389,67 @@ describe("KomorebiEngine", () => {
     expect(engine.getState().settings.repeat).toBe("off");
   });
 
+  it("should set repeat mode directly and emit settingschange", () => {
+    const changes: Array<string | undefined> = [];
+    engine.on("settingschange", (e) => changes.push(e.settings.repeat));
+
+    engine.setRepeat("one");
+    expect(engine.getState().settings.repeat).toBe("one");
+    engine.setRepeat("all");
+    expect(engine.getState().settings.repeat).toBe("all");
+    expect(changes).toEqual(["one", "all"]);
+  });
+
+  it("should set auto play next and emit settingschange", () => {
+    const changes: Array<boolean | undefined> = [];
+    engine.on("settingschange", (e) =>
+      changes.push(e.settings.autoPlayNext),
+    );
+
+    engine.setAutoPlayNext(false);
+    expect(engine.getState().settings.autoPlayNext).toBe(false);
+    expect(changes).toEqual([false]);
+  });
+
+  it("should set shuffle state directly", () => {
+    engine.setShuffle(true);
+    expect(engine.getState().queue.shuffled).toBe(true);
+    expect(engine.getState().settings.defaultShuffle).toBe(true);
+
+    engine.setShuffle(true);
+    expect(engine.getState().queue.shuffled).toBe(true);
+
+    engine.setShuffle(false);
+    expect(engine.getState().queue.shuffled).toBe(false);
+    expect(engine.getState().settings.defaultShuffle).toBe(false);
+  });
+
+  it("should set shuffle mode and emit settingschange for smart shuffle", () => {
+    const changes: Array<boolean | undefined> = [];
+    engine.on("settingschange", (e) =>
+      changes.push(e.settings.smartShuffle),
+    );
+
+    engine.setShuffleMode("smart");
+    expect(engine.getState().settings.smartShuffle).toBe(true);
+    engine.setShuffleMode("random");
+    expect(engine.getState().settings.smartShuffle).toBe(false);
+
+    expect(changes).toEqual([true, false]);
+  });
+
+  it("updateSettings should propagate smartShuffle and repeat", () => {
+    engine.updateSettings({
+      smartShuffle: true,
+      repeat: "one",
+      autoPlayNext: false,
+    });
+    const settings = engine.getState().settings;
+    expect(settings.smartShuffle).toBe(true);
+    expect(settings.repeat).toBe("one");
+    expect(settings.autoPlayNext).toBe(false);
+  });
+
   it("should seek to position", async () => {
     const track = createMockTrack("test-1", 300);
     engine.load(track);

@@ -4,6 +4,7 @@ import { createWebAudioBackend, WebAudioBackend } from "./WebAudioBackend";
 import { createPitchBackend, PitchBackend } from "./PitchBackend";
 import { createFloBackend, FloBackend } from "./FloBackend";
 import { createHybridBackend, HybridBackend } from "./HybridBackend";
+import { BackendRouter } from "./BackendRouter";
 import type { Track } from "../../../core/engine/types";
 
 const FLO_MIME_TYPES = ["audio/x-flo", "audio/flac", "audio/wav"];
@@ -106,6 +107,7 @@ export {
   PitchBackend,
   FloBackend,
   HybridBackend,
+  BackendRouter,
 };
 export {
   createHTMLBackend,

@@ -1,5 +1,7 @@
 import { useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useGSAP } from "@gsap/react";
+import gsap from "gsap";
 import { useVisualizerCanvas } from "../../../hooks/useVisualizerCanvas";
 import { Button } from "../primitives/Button";
 import { Icon } from "../shared/Icon";
@@ -12,7 +14,10 @@ import {
 } from "../primitives/DropdownMenu";
 import { Slider } from "../primitives/Slider";
 import { Input } from "../primitives/Input";
+import { prefersReducedMotion } from "../../../helpers/reducedMotion";
 import styles from "./Visualizer.module.css";
+
+gsap.registerPlugin(useGSAP);
 
 interface VisualizerProps {
   analyserNode?: AnalyserNode | null;
@@ -27,7 +32,21 @@ export const Visualizer = ({
 }: VisualizerProps) => {
   const { t } = useTranslation();
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const settingsPanelRef = useRef<HTMLDivElement>(null);
   const [showSettings, setShowSettings] = useState(false);
+
+  useGSAP(
+    () => {
+      const panel = settingsPanelRef.current;
+      if (!panel || prefersReducedMotion()) return;
+      gsap.fromTo(
+        panel,
+        { opacity: 0, y: -10, scale: 0.98 },
+        { opacity: 1, y: 0, scale: 1, duration: 0.25, ease: "power2.out" },
+      );
+    },
+    { dependencies: [showSettings], scope: settingsPanelRef },
+  );
 
   const {
     availableVisualizers,
@@ -95,7 +114,7 @@ export const Visualizer = ({
         )}
       </div>
       {showSettings && selectedVisualizer?.settingsConfig && (
-        <div className={styles.settingsPanel}>
+        <div ref={settingsPanelRef} className={styles.settingsPanel}>
           <h4>
             {selectedVisualizer.name} {t("settings.title")}
           </h4>

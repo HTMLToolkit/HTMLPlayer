@@ -3,10 +3,12 @@ import {
   useContext,
   useState,
   useCallback,
+  useRef,
   type ReactNode,
 } from "react";
 import type { NavigationView } from "../../types/custom-events";
 import { throwError } from "../../helpers/logger";
+import { prefersReducedMotion } from "../../helpers/reducedMotion";
 import {
   selectCurrentPlaylist,
   selectCurrentTrack,
@@ -50,20 +52,51 @@ export function NavigationProvider({ children }: { children: ReactNode }) {
   const [history, setHistory] = useState<NavigationState[]>([initialState]);
   const [historyIndex, setHistoryIndex] = useState(0);
 
+  const transitionEpoch = useRef(0);
+
+  const runWithViewTransition = useCallback(
+    (direction: "forward" | "back", update: () => void) => {
+      const root =
+        typeof document !== "undefined" ? document.documentElement : null;
+      const canTransition =
+        root &&
+        typeof document.startViewTransition === "function" &&
+        !prefersReducedMotion();
+      if (!canTransition) {
+        update();
+        return;
+      }
+      const epoch = ++transitionEpoch.current;
+      root.dataset.vtDirection = direction;
+      const transition = document.startViewTransition(update);
+      transition.finished
+        .catch(() => {
+        })
+        .finally(() => {
+          if (transitionEpoch.current === epoch) {
+            delete root.dataset.vtDirection;
+          }
+        });
+    },
+    [],
+  );
+
   const navigate = useCallback(
     (newState: NavigationState) => {
-      setState(newState);
-      setHistory((prev) => {
-        const newHistory = prev.slice(0, historyIndex + 1);
-        newHistory.push(newState);
-        if (newHistory.length > HISTORY_LIMIT) {
-          newHistory.shift();
-        }
-        return newHistory;
+      runWithViewTransition("forward", () => {
+        setState(newState);
+        setHistory((prev) => {
+          const newHistory = prev.slice(0, historyIndex + 1);
+          newHistory.push(newState);
+          if (newHistory.length > HISTORY_LIMIT) {
+            newHistory.shift();
+          }
+          return newHistory;
+        });
+        setHistoryIndex((prev) => Math.min(prev + 1, HISTORY_LIMIT - 1));
       });
-      setHistoryIndex((prev) => Math.min(prev + 1, HISTORY_LIMIT - 1));
     },
-    [historyIndex],
+    [historyIndex, runWithViewTransition],
   );
 
   const goHome = useCallback(() => navigate({ view: "home" }), [navigate]);
@@ -117,10 +150,12 @@ export function NavigationProvider({ children }: { children: ReactNode }) {
     if (historyIndex > 0) {
       const newIndex = historyIndex - 1;
       const previous = history[newIndex];
-      setHistoryIndex(newIndex);
-      if (previous) setState(previous);
+      runWithViewTransition("back", () => {
+        setHistoryIndex(newIndex);
+        if (previous) setState(previous);
+      });
     }
-  }, [historyIndex, history]);
+  }, [historyIndex, history, runWithViewTransition]);
 
   return (
     <NavigationContext.Provider

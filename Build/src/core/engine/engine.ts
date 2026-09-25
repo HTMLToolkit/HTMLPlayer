@@ -6,6 +6,7 @@ import type {
   PlayerState,
   EngineEventMap,
   EngineError,
+  RepeatMode,
 } from "./types";
 import { KomorebiEvents } from "./events";
 import { StateMachine } from "./state";
@@ -18,6 +19,8 @@ import { Scheduler } from "./scheduler";
 import { AsyncOp } from "./asyncOp";
 import { assertNever } from "./invariants";
 import type { IAudioBackend } from "../../platform/audio";
+import type { PreloadManager } from "../../platform/audio/preloader";
+import { clampRate, clampVolume } from "../../platform/audio/clamp";
 
 export interface IAudioEngineConfig {
   crossfade: {
@@ -30,15 +33,11 @@ export interface IAudioEngineConfig {
   };
   smartShuffle: boolean;
   autoPlayNext: boolean;
-  /**
-   * Resolves a track to a playable source before it reaches the backend. The
-   * app wires this to stored-audio reconstruction, so the engine always loads
-   * a real url (or fails loudly) regardless of which UI path picked the track.
-   */
   trackResolver?: (track: Track) => Promise<Track>;
+  preloadManager?: PreloadManager;
 }
 
-const DEFAULT_SETTINGS: EngineSettings = {
+export const DEFAULT_ENGINE_SETTINGS: EngineSettings = {
   volume: 1,
   crossfade: 0,
   crossfadeBeforeGapless: 3000,
@@ -59,7 +58,7 @@ export class KomorebiEngine {
   private scheduler = new Scheduler();
 
   private backend: IAudioBackend;
-  private settings: EngineSettings = { ...DEFAULT_SETTINGS };
+  private settings: EngineSettings = { ...DEFAULT_ENGINE_SETTINGS };
   private currentTime = 0;
   private duration = 0;
   private currentError: EngineError | null = null;
@@ -68,20 +67,17 @@ export class KomorebiEngine {
   private timeUpdateInterval: number | null = null;
   private scheduledTransitionId: number | null = null;
 
-  /**
-   * Cancellation slot for load/play ops. load() calls next() to supersede any
-   * in-flight load, and every settle path re-checks isCurrent() before
-   * committing state, so results from a stale op are dropped. stop() calls
-   * invalidate() so a pending load completion cannot clobber the idle state.
-   */
   private readonly loadOp = new AsyncOp();
   private readonly trackResolver:
     | ((track: Track) => Promise<Track>)
     | undefined;
+  private readonly preloadManager: PreloadManager | null;
+  private prefetchSentinel = false;
 
   constructor(backend: IAudioBackend, config?: Partial<IAudioEngineConfig>) {
     this.backend = backend;
     this.trackResolver = config?.trackResolver;
+    this.preloadManager = config?.preloadManager ?? null;
     this.backend.onTimeUpdate((time) => {
       this.handleTimeUpdate(time);
     });
@@ -125,6 +121,9 @@ export class KomorebiEngine {
   setShuffleMode(mode: ShuffleMode): void {
     this.queue.setShuffleMode(mode);
     this.settings.smartShuffle = mode === "smart";
+    this.events.emit("settingschange", {
+      settings: { smartShuffle: this.settings.smartShuffle },
+    });
   }
 
   getShuffleMode(): ShuffleMode {
@@ -161,7 +160,7 @@ export class KomorebiEngine {
 
     let target: Track;
     try {
-      target = this.trackResolver ? await this.trackResolver(track) : track;
+      target = await this.resolveSource(track);
     } catch (error) {
       if (this.loadOp.isCurrent(generation)) {
         this.emitError(
@@ -190,17 +189,20 @@ export class KomorebiEngine {
       }
 
       this.backend
-        .load(target.url)
+        .load(target.url, target)
         .then(() => {
           if (!this.loadOp.isCurrent(generation)) {
             resolve();
             return;
           }
+          this.prefetchSentinel = false;
+          this.backend.setReplayGain?.(this.replayGainForTrack(target));
           this.duration = this.backend.getDuration() ?? track.duration;
           this.stateMachine.transition("ready");
           this.events.emit("durationchange", { duration: this.duration });
           this.events.emit("ready", { track });
           this.emitStateChange();
+          this.prefetchUpcoming(target);
           resolve();
         })
         .catch((error) => {
@@ -208,6 +210,7 @@ export class KomorebiEngine {
             resolve();
             return;
           }
+          this.prefetchSentinel = false;
           this.emitError("LOAD_ERROR", error.message, track);
           resolve();
         });
@@ -262,6 +265,8 @@ export class KomorebiEngine {
     if (this.stateMachine.isIdle()) return;
     this.loadOp.invalidate();
     this.backend.stop();
+    this.backend.setReplayGain?.(null);
+    this.prefetchSentinel = false;
     this.cancelScheduledTransition();
     this.stateMachine.transition("idle");
     this.currentTime = 0;
@@ -341,7 +346,7 @@ export class KomorebiEngine {
   }
 
   setVolume(volume: number): void {
-    const clamped = Math.max(0, Math.min(1, volume));
+    const clamped = clampVolume(volume);
     this.settings.volume = clamped;
 
     this.backend.setVolume(clamped);
@@ -350,7 +355,7 @@ export class KomorebiEngine {
   }
 
   setTempo(tempo: number): void {
-    const clamped = Math.max(0.25, Math.min(4, tempo));
+    const clamped = clampRate(tempo);
     this.settings.tempo = clamped;
 
     this.backend.setPlaybackRate(clamped);
@@ -361,6 +366,8 @@ export class KomorebiEngine {
   setPitch(semitones: number): void {
     this.settings.pitch = semitones;
     this.events.emit("settingschange", { settings: { pitch: semitones } });
+
+    void this.backend.setPitch?.(semitones);
   }
 
   toggleShuffle(): void {
@@ -372,6 +379,31 @@ export class KomorebiEngine {
 
     this.settings.defaultShuffle = this.queue.isShuffled();
     this.events.emit("queuechange", { queue: this.queue.getState() });
+  }
+
+  setShuffle(shuffled: boolean): void {
+    if (shuffled && !this.queue.isShuffled()) {
+      this.queue.shuffle(true);
+    } else if (!shuffled && this.queue.isShuffled()) {
+      this.queue.unshuffle();
+    }
+
+    this.settings.defaultShuffle = shuffled;
+    this.events.emit("queuechange", { queue: this.queue.getState() });
+  }
+
+  setRepeat(mode: RepeatMode): void {
+    this.settings.repeat = mode;
+    this.events.emit("settingschange", {
+      settings: { repeat: mode },
+    });
+  }
+
+  setAutoPlayNext(enabled: boolean): void {
+    this.settings.autoPlayNext = enabled;
+    this.events.emit("settingschange", {
+      settings: { autoPlayNext: enabled },
+    });
   }
 
   toggleRepeat(): void {
@@ -415,6 +447,12 @@ export class KomorebiEngine {
     if (newSettings.pitch !== undefined) {
       this.setPitch(newSettings.pitch);
     }
+    if (newSettings.smartShuffle !== undefined) {
+      this.setShuffleMode(newSettings.smartShuffle ? "smart" : "random");
+    }
+    if (newSettings.repeat !== undefined) {
+      this.setRepeat(newSettings.repeat);
+    }
 
     this.events.emit("settingschange", { settings: newSettings });
   }
@@ -446,6 +484,10 @@ export class KomorebiEngine {
 
   getQueue(): QueueManager {
     return this.queue;
+  }
+
+  getAnalyser(): AnalyserNode | null {
+    return this.backend.getAnalyser?.() ?? null;
   }
 
   getScheduler(): Scheduler {
@@ -528,9 +570,50 @@ export class KomorebiEngine {
 
     if (this.stateMachine.isPlaying()) {
       this.checkScheduledTransition(time);
+      this.maybePrefetchDuringPlayback();
     }
 
     this.emitTimeUpdate();
+  }
+
+  private maybePrefetchDuringPlayback(): void {
+    if (this.prefetchSentinel || !this.preloadManager) return;
+    if (!this.scheduler.shouldPreload(this.currentTime, this.duration)) return;
+
+    this.prefetchSentinel = true;
+    const track = this.queue.getCurrentTrack();
+    if (track) {
+      this.prefetchUpcoming(track);
+    }
+  }
+
+  private prefetchUpcoming(track: Track): void {
+    const preloadManager = this.preloadManager;
+    if (!preloadManager) return;
+
+    const tracks = this.queue.getTracks();
+    const index = tracks.findIndex((candidate) => candidate.id === track.id);
+    if (index < 0) return;
+
+    preloadManager.preloadNext(tracks, index);
+  }
+
+  private async resolveSource(track: Track): Promise<Track> {
+    const preloadedUrl = this.preloadManager?.getUrl(track.id);
+    if (preloadedUrl) {
+      return { ...track, url: preloadedUrl };
+    }
+    return this.trackResolver ? await this.trackResolver(track) : track;
+  }
+
+  private replayGainForTrack(track: Track): number | null {
+    const replayGain = track.replayGain;
+    if (!replayGain) return null;
+
+    const gainDb = replayGain.trackGain ?? replayGain.albumGain;
+    return typeof gainDb === "number" && Number.isFinite(gainDb)
+      ? gainDb
+      : null;
   }
 
   private checkScheduledTransition(currentTime: number): void {
@@ -542,7 +625,6 @@ export class KomorebiEngine {
     }
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   private scheduleTransition(_track: Track): void {
     if (this.scheduledTransitionId !== null) return;
 

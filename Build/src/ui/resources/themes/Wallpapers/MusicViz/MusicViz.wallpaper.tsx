@@ -1,4 +1,8 @@
 import React, { useRef, useEffect } from "react";
+import {
+  getByteFrequencyData,
+  sample,
+} from "../../../../../platform/visualizers/visualizerLoader";
 
 const MusicViz: React.FC<WallpaperProps> = ({ playbackState }) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -29,10 +33,10 @@ const MusicViz: React.FC<WallpaperProps> = ({ playbackState }) => {
       if (!ctx || !canvas) return;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       if (analyser && dataArray) {
-        (analyser as any).getByteFrequencyData(dataArray);
+        getByteFrequencyData(analyser, dataArray);
         const barWidth = canvas.width / dataArray.length;
         for (let i = 0; i < dataArray.length; i++) {
-          const v = (dataArray[i] ?? 0) / 255;
+          const v = sample(dataArray, i) / 255;
           const h = v * canvas.height;
           ctx.fillStyle = `hsl(${(i / dataArray.length) * 360}, 80%, ${30 + v * 50}%)`;
           ctx.fillRect(i * barWidth, canvas.height - h, Math.ceil(barWidth), h);

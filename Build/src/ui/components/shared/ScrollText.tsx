@@ -1,16 +1,17 @@
 import {
+  useCallback,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
-  useCallback,
-  useLayoutEffect,
-  useEffect,
   type CSSProperties,
   type HTMLAttributes,
 } from "react";
+import Marquee from "react-fast-marquee";
 import DOMPurify from "dompurify";
 import { useTranslation } from "react-i18next";
 import styles from "./ScrollText.module.css";
+import { prefersReducedMotion } from "../../../helpers/reducedMotion";
 
 interface ScrollTextProps extends HTMLAttributes<HTMLDivElement> {
   text: string;
@@ -24,6 +25,9 @@ interface ScrollTextProps extends HTMLAttributes<HTMLDivElement> {
   containerClassName?: string;
   wrapperStyle?: CSSProperties;
 }
+
+const OVERFLOW_START_THRESHOLD = 14;
+const OVERFLOW_STOP_THRESHOLD = 6;
 
 export const ScrollText = ({
   text,
@@ -41,14 +45,11 @@ export const ScrollText = ({
 }: ScrollTextProps) => {
   const { t } = useTranslation();
   const wrapperRef = useRef<HTMLDivElement>(null);
-  const innerRef = useRef<HTMLDivElement>(null);
   const resizeObserverRef = useRef<ResizeObserver | null>(null);
-  const rafRef = useRef<number | null>(null);
 
   const [scrollState, setScrollState] = useState({
     shouldScroll: false,
-    distance: 0,
-    duration: minDuration,
+    contentWidth: 0,
   });
 
   const safeText = useMemo(
@@ -56,153 +57,75 @@ export const ScrollText = ({
     [text, allowHTML],
   );
 
-  const spanProps = useMemo(() => {
-    const baseProps = {
-      className: styles.text,
-      style: scrollState.shouldScroll ? { marginRight: `${gap}px` } : undefined,
-    };
-
-    return allowHTML
-      ? { ...baseProps, dangerouslySetInnerHTML: { __html: safeText } }
-      : { ...baseProps, children: text };
-  }, [allowHTML, safeText, text, gap, scrollState.shouldScroll]);
-
   const measure = useCallback(() => {
     const wrapper = wrapperRef.current;
-    const inner = innerRef.current;
-    if (!wrapper || !inner) return;
-
-    const base = inner.querySelector(
-      "[data-scroll-text='primary']",
+    const span = wrapper?.querySelector(
+      "[data-scroll-text]",
     ) as HTMLElement | null;
-    if (!base) return;
+    if (!wrapper || !span) return;
 
-    const contentWidth = base.scrollWidth;
-    const wrapperWidth = wrapper.clientWidth;
-
-    if (wrapperWidth <= 0) {
-      if (typeof window !== "undefined") {
-        if (rafRef.current) window.cancelAnimationFrame(rafRef.current);
-        rafRef.current = window.requestAnimationFrame(() => {
-          rafRef.current = null;
-          measure();
-        });
-      }
+    const viewport = wrapper.clientWidth;
+    if (viewport <= 0) {
+      setScrollState({ shouldScroll: false, contentWidth: 0 });
       return;
     }
 
-    const overflow = contentWidth - wrapperWidth;
-    const startThreshold = 14;
-    const stopThreshold = 6;
+    const contentWidth = span.scrollWidth;
+    const overflow = contentWidth - viewport;
 
-    setScrollState((prev) => {
-      const shouldScroll = prev.shouldScroll
-        ? overflow > stopThreshold
-        : overflow > startThreshold;
-
-      if (shouldScroll) {
-        const loopDistance = contentWidth + gap;
-        const derivedDuration = Math.max(minDuration, loopDistance / speed);
-
-        if (
-          prev.shouldScroll &&
-          Math.abs(prev.distance - loopDistance) < 1 &&
-          Math.abs(prev.duration - derivedDuration) < 0.1
-        ) {
-          return prev;
-        }
-
-        return {
-          shouldScroll: true,
-          distance: loopDistance,
-          duration: derivedDuration,
-        };
-      }
-
-      if (!prev.shouldScroll && Math.abs(prev.distance - contentWidth) < 1) {
-        return prev;
-      }
-
-      return {
-        shouldScroll: false,
-        distance: contentWidth,
-        duration: minDuration,
-      };
-    });
-  }, [gap, minDuration, speed]);
-
-  useEffect(() => {
-    if (typeof ResizeObserver === "undefined") return;
-
-    resizeObserverRef.current = new ResizeObserver(() => measure());
-
-    return () => {
-      resizeObserverRef.current?.disconnect();
-    };
-  }, [measure]);
+    setScrollState((prev) => ({
+      shouldScroll: prev.shouldScroll
+        ? overflow > OVERFLOW_STOP_THRESHOLD
+        : overflow > OVERFLOW_START_THRESHOLD,
+      contentWidth,
+    }));
+  }, []);
 
   useLayoutEffect(() => {
-    if (!resizeObserverRef.current) return;
-
     const wrapper = wrapperRef.current;
-    const inner = innerRef.current;
+    if (!wrapper) return;
 
-    if (wrapper) resizeObserverRef.current.observe(wrapper);
-    if (inner) resizeObserverRef.current.observe(inner);
+    if (typeof ResizeObserver === "undefined") {
+      measure();
+      return;
+    }
+
+    resizeObserverRef.current = new ResizeObserver(() => measure());
+    resizeObserverRef.current.observe(wrapper);
     measure();
 
     return () => {
-      if (wrapper) resizeObserverRef.current?.unobserve(wrapper);
-      if (inner) resizeObserverRef.current?.unobserve(inner);
+      resizeObserverRef.current?.disconnect();
+      resizeObserverRef.current = null;
     };
   }, [measure, safeText]);
 
-  useEffect(() => {
-    return () => {
-      if (rafRef.current && typeof window !== "undefined") {
-        window.cancelAnimationFrame(rafRef.current);
-      }
-    };
-  }, []);
-
   const wrapperClasses = useMemo(
     () =>
-      [
-        styles.wrapper,
-        pauseOnHover && scrollState.shouldScroll ? styles.pauseOnHover : "",
-        className,
-        containerClassName,
-      ]
-        .filter(Boolean)
-        .join(" "),
-    [className, containerClassName, pauseOnHover, scrollState.shouldScroll],
+      [styles.wrapper, className, containerClassName].filter(Boolean).join(" "),
+    [className, containerClassName],
   );
 
   const innerClasses = useMemo(
-    () =>
-      [
-        styles.inner,
-        textClassName,
-        scrollState.shouldScroll ? styles.scrolling : "",
-      ]
-        .filter(Boolean)
-        .join(" "),
-    [textClassName, scrollState.shouldScroll],
+    () => [styles.inner, textClassName].filter(Boolean).join(" "),
+    [textClassName],
   );
 
-  const combinedTextStyle = useMemo(
+  const textProps = useMemo(
     () =>
-      ({
-        ...(scrollState.shouldScroll
-          ? {
-              "--scroll-distance": `${scrollState.distance}px`,
-              "--scroll-duration": `${scrollState.duration}s`,
-              "--scroll-gap": `${gap}px`,
-            }
-          : {}),
-        ...textStyle,
-      }) as CSSProperties,
-    [scrollState, gap, textStyle],
+      allowHTML
+        ? { dangerouslySetInnerHTML: { __html: safeText } }
+        : { children: text },
+    [allowHTML, safeText, text],
+  );
+
+  const reducedMotion = prefersReducedMotion();
+  const shouldScroll = scrollState.shouldScroll && !reducedMotion;
+
+  const copyWidth = scrollState.contentWidth + gap;
+  const effectiveSpeed = Math.max(
+    1,
+    Math.min(speed, copyWidth / Math.max(1, minDuration)),
   );
 
   return (
@@ -214,12 +137,28 @@ export const ScrollText = ({
       aria-label={t("accessibility.scrollingText")}
       {...rest}
     >
-      <div ref={innerRef} className={innerClasses} style={combinedTextStyle}>
-        <span data-scroll-text="primary" {...spanProps} />
-        {scrollState.shouldScroll && (
-          <span data-scroll-text="clone" aria-hidden="true" {...spanProps} />
-        )}
-      </div>
+      {shouldScroll ? (
+        <Marquee
+          className={textClassName}
+          style={textStyle}
+          speed={effectiveSpeed}
+          autoFill
+          pauseOnHover={pauseOnHover}
+          loop={0}
+          gradient={false}
+        >
+          <span
+            data-scroll-text
+            className={styles.text}
+            style={{ marginRight: `${gap}px` }}
+            {...textProps}
+          />
+        </Marquee>
+      ) : (
+        <div className={innerClasses} style={textStyle}>
+          <span data-scroll-text className={styles.text} {...textProps} />
+        </div>
+      )}
     </div>
   );
 };

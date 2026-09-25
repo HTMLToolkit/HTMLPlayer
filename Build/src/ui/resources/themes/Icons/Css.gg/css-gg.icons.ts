@@ -112,7 +112,7 @@ export const libraries: IconLibraryMap = {
 };
 
 const cssggPropTransformer: IconPropTransformer = (props) => {
-  const transformed: Record<string, any> = {};
+  const transformed: Record<string, unknown> = {};
 
   if (props.size !== undefined) {
     transformed.size = props.size;

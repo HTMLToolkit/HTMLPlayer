@@ -1,12 +1,5 @@
 import type { PlayerState } from "../types";
 
-/**
- * Reachable state transitions for the player. This is the approved list: any
- * transition not listed here is a programmer error and throws
- * InvalidStateTransitionError. Additions require a reason - e.g. loading->loading
- * covers rapid user skips before a load settles, playing->loading covers
- * skip-during-playback, and *->idle covers stop() from any state.
- */
 const VALID_TRANSITIONS: Record<PlayerState, PlayerState[]> = {
   idle: ["loading", "ready", "error"],
   loading: ["ready", "error", "loading", "idle"],
@@ -17,7 +10,6 @@ const VALID_TRANSITIONS: Record<PlayerState, PlayerState[]> = {
   error: ["loading", "ready", "idle"],
 };
 
-/** Thrown when a state transition outside VALID_TRANSITIONS is attempted. */
 export class InvalidStateTransitionError extends Error {
   readonly from: PlayerState;
   readonly to: PlayerState;
@@ -42,11 +34,6 @@ export class StateMachine {
     return VALID_TRANSITIONS[this.state]?.includes(to) ?? false;
   }
 
-  /**
-   * Move to `to` if allowed. Invalid transitions throw
-   * InvalidStateTransitionError instead of failing silently; use `force` only
-   * where the caller has an explicit reason to bypass the table.
-   */
   transition(to: PlayerState, force = false): boolean {
     if (!force && !this.canTransition(to)) {
       throw new InvalidStateTransitionError(this.state, to);

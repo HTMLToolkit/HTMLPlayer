@@ -1,8 +1,3 @@
-/**
- * Fails loudly when an assumption that the code treats as impossible is
- * violated at runtime. Used to convert silent degeneracy into a crash with a
- * message, never for expected, recoverable conditions.
- */
 
 export function assertInvariant(
   condition: boolean,

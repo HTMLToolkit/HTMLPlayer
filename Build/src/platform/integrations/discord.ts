@@ -9,6 +9,7 @@ export class DiscordIntegration extends BaseIntegration {
   name = "Discord RPC";
   private currentTrack: Track | null = null;
   private service: DiscordService;
+  private userId: string | null = null;
 
   constructor() {
     super();
@@ -19,9 +20,18 @@ export class DiscordIntegration extends BaseIntegration {
     this.setInitialized(true);
   }
 
+  setUserId(userId: string | null): void {
+    this.userId = userId;
+  }
+
   dispose(): void {
     this.disposed = true;
-    this.clearPresence();
+    const userId = this.userId;
+    void this.service.clearPresence(userId).catch((error: unknown) => {
+      logger.error("Failed to clear presence on dispose:", {
+        error: String(error),
+      });
+    });
   }
 
   async updatePresence(
@@ -29,14 +39,20 @@ export class DiscordIntegration extends BaseIntegration {
     _isPlaying: boolean,
   ): Promise<void> {
     this.currentTrack = track;
-    if (!track || !this.isAvailable()) return;
+
+    const userId = this.userId;
+    if (!track || !userId || !this.isAvailable()) return;
+    if (!DiscordService.isDiscordAvailable(userId)) return;
 
     try {
-      await this.service.updatePresence({
-        userId: "anonymous",
+      const updated = await this.service.updatePresence({
+        userId,
         details: track.title,
         state: track.artist,
       });
+      if (!updated) {
+        logger.warn("Discord presence update reported failure");
+      }
     } catch (error) {
       logger.error("Failed to update Discord presence:", {
         error: String(error),
@@ -44,8 +60,9 @@ export class DiscordIntegration extends BaseIntegration {
     }
   }
 
-  clearPresence(): void {
+  clearPresence(): Promise<boolean> {
     this.currentTrack = null;
+    return this.service.clearPresence(this.userId);
   }
 
   getCurrentTrack(): Track | null {

@@ -16,16 +16,6 @@ export class SettingsManager implements SettingsActions {
     return { ...this.settings };
   }
 
-  setVolume(volume: number): void {
-    this.settings.volume = Math.max(0, Math.min(1, volume));
-    this.emitSettingsChange({ volume: this.settings.volume });
-  }
-
-  setCrossfade(duration: number): void {
-    this.settings.crossfade = Math.max(0, duration);
-    this.emitSettingsChange({ crossfade: this.settings.crossfade });
-  }
-
   setColorTheme(theme: string): void {
     this.settings.colorTheme = theme;
     this.emitSettingsChange({ colorTheme: theme });
@@ -36,21 +26,6 @@ export class SettingsManager implements SettingsActions {
     this.settings.wallpaper = wallpaper;
     this.emitSettingsChange({ wallpaper });
     this.emit("wallpaperchange", wallpaper);
-  }
-
-  setDefaultShuffle(shuffle: boolean): void {
-    this.settings.defaultShuffle = shuffle;
-    this.emitSettingsChange({ defaultShuffle: shuffle });
-  }
-
-  setDefaultRepeat(repeat: SettingsState["defaultRepeat"]): void {
-    this.settings.defaultRepeat = repeat;
-    this.emitSettingsChange({ defaultRepeat: repeat });
-  }
-
-  setAutoPlayNext(autoPlay: boolean): void {
-    this.settings.autoPlayNext = autoPlay;
-    this.emitSettingsChange({ autoPlayNext: autoPlay });
   }
 
   setThemeMode(mode: SettingsState["themeMode"]): void {
@@ -90,26 +65,6 @@ export class SettingsManager implements SettingsActions {
   setLanguage(language: string): void {
     this.settings.language = language;
     this.emitSettingsChange({ language });
-  }
-
-  setTempo(tempo: number): void {
-    this.settings.tempo = Math.max(0.25, Math.min(4, tempo));
-    this.emitSettingsChange({ tempo: this.settings.tempo });
-  }
-
-  setPitch(pitch: number): void {
-    this.settings.pitch = Math.max(-12, Math.min(12, pitch));
-    this.emitSettingsChange({ pitch: this.settings.pitch });
-  }
-
-  setGaplessPlayback(enabled: boolean): void {
-    this.settings.gaplessPlayback = enabled;
-    this.emitSettingsChange({ gaplessPlayback: enabled });
-  }
-
-  setSmartShuffle(enabled: boolean): void {
-    this.settings.smartShuffle = enabled;
-    this.emitSettingsChange({ smartShuffle: enabled });
   }
 
   setDiscordEnabled(enabled: boolean): void {

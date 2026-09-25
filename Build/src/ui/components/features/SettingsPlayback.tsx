@@ -10,17 +10,13 @@ import {
 import { Icon } from "../shared/Icon";
 import styles from "./Settings.module.css";
 import type { RepeatMode } from "../../../core/engine/types";
-import type { SettingsManager } from "../../../platform/settings/settings";
+import type { UseKomorebiReturn } from "../../../hooks/useKomorebi";
 
 interface SettingsPlaybackProps {
-  settings: SettingsManager;
-  settingsState: ReturnType<SettingsManager["getSettings"]>;
+  komorebi: UseKomorebiReturn;
 }
 
-export function SettingsPlayback({
-  settings,
-  settingsState,
-}: SettingsPlaybackProps) {
+export function SettingsPlayback({ komorebi }: SettingsPlaybackProps) {
   const { t } = useTranslation();
 
   return (
@@ -46,8 +42,8 @@ export function SettingsPlayback({
         </div>
         <Switch
           id="default-shuffle"
-          checked={settingsState.defaultShuffle}
-          onCheckedChange={settings.setDefaultShuffle}
+          checked={komorebi.shuffle}
+          onCheckedChange={(val) => komorebi.setShuffle(val)}
         />
       </div>
 
@@ -62,8 +58,10 @@ export function SettingsPlayback({
         </div>
         <Switch
           id="smart-shuffle"
-          checked={settingsState.smartShuffle}
-          onCheckedChange={settings.setSmartShuffle}
+          checked={komorebi.smartShuffle}
+          onCheckedChange={(val) =>
+            komorebi.setShuffleMode(val ? "smart" : "random")
+          }
         />
       </div>
 
@@ -74,8 +72,8 @@ export function SettingsPlayback({
           </label>
         </div>
         <Select
-          value={settingsState.defaultRepeat}
-          onValueChange={(val) => settings.setDefaultRepeat(val as RepeatMode)}
+          value={komorebi.repeat}
+          onValueChange={(val) => komorebi.setRepeat(val as RepeatMode)}
         >
           <SelectTrigger id="default-repeat">
             <SelectValue />
@@ -99,8 +97,8 @@ export function SettingsPlayback({
         </div>
         <Switch
           id="auto-play-next"
-          checked={settingsState.autoPlayNext}
-          onCheckedChange={settings.setAutoPlayNext}
+          checked={komorebi.autoPlayNext}
+          onCheckedChange={(val) => komorebi.setAutoPlayNext(val)}
         />
       </div>
 
@@ -115,8 +113,8 @@ export function SettingsPlayback({
         </div>
         <Switch
           id="session-restore"
-          checked={settingsState.sessionRestore}
-          onCheckedChange={settings.setSessionRestore}
+          checked={komorebi.settings.getSettings().sessionRestore}
+          onCheckedChange={(val) => komorebi.settings.setSessionRestore(val)}
         />
       </div>
     </section>

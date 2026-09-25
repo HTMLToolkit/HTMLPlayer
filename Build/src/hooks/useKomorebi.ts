@@ -7,26 +7,41 @@ import type {
   EngineState,
 } from "../core/engine/types";
 import type { IAudioBackend } from "../platform/audio";
-import { HTMLAudioBackend } from "../platform/audio/backends/HTMLBackend";
+import { BackendRouter } from "../platform/audio/backends";
+import { PreloadManager } from "../platform/audio/preloader";
+import type { Equalizer } from "../platform/audio/equalizer";
+import {
+  createMediaSessionIntegration,
+  createDiscordIntegration,
+  DiscordService,
+} from "../platform/integrations";
 import { LibraryManager } from "../platform/library/library";
 import { libraryPersistence } from "../platform/library/persistence";
 import { trackStorage } from "../platform/storage/trackStorage";
 import { SettingsManager } from "../platform/settings/settings";
+import type { SettingsState } from "../platform/settings/types";
+import { engineSettingsPersistence } from "../platform/settings/enginePersistence";
 import { createLogger } from "../helpers/logger";
 import {
   useKomorebiStore,
   EMPTY_ENGINE_STATE,
+  selectAutoPlayNext,
+  selectCrossfade,
   selectCurrentTrack,
   selectCurrentTime,
   selectDuration,
   selectError,
+  selectGapless,
   selectIsLoading,
   selectIsPlaying,
   selectIsReady,
+  selectPitch,
   selectRepeat,
   selectShuffle,
+  selectSmartShuffle,
   selectSnapshot,
   selectSongs,
+  selectTempo,
   selectVolume,
 } from "../store";
 
@@ -35,7 +50,6 @@ const logger = createLogger("useKomorebi");
 export interface UseKomorebiOptions {
   autoPlay?: boolean;
   persistLibrary?: boolean;
-  persistSettings?: boolean;
 }
 
 export interface UseKomorebiReturn {
@@ -53,6 +67,12 @@ export interface UseKomorebiReturn {
   currentTime: number;
   duration: number;
   volume: number;
+  tempo: number;
+  pitch: number;
+  crossfade: number;
+  gapless: boolean;
+  smartShuffle: boolean;
+  autoPlayNext: boolean;
   repeat: "off" | "one" | "all";
   shuffle: boolean;
   error: string | null;
@@ -67,6 +87,15 @@ export interface UseKomorebiReturn {
   setVolume: (volume: number) => void;
   setPlaybackRate: (rate: number) => void;
   setPitch: (semitones: number) => void;
+  setCrossfade: (duration: number) => void;
+  setGapless: (enabled: boolean) => void;
+  setShuffle: (shuffled: boolean) => void;
+  setShuffleMode: (mode: "random" | "smart") => void;
+  setRepeat: (mode: "off" | "one" | "all") => void;
+  setAutoPlayNext: (enabled: boolean) => void;
+  getAnalyser: () => AnalyserNode | null;
+  getEqualizer: () => Equalizer | null;
+  setEqualizerEnabled: (enabled: boolean) => void;
   toggleShuffle: () => void;
   toggleRepeat: () => void;
 
@@ -102,6 +131,32 @@ declare global {
 
 const LOAD_WAIT_TIMEOUT_MS = 5000;
 
+function restoreEngineSettings(engine: KomorebiEngine): void {
+  const stored = engineSettingsPersistence.load();
+  if (!stored) return;
+
+  if (stored.volume !== undefined) engine.setVolume(stored.volume);
+  if (stored.tempo !== undefined) engine.setTempo(stored.tempo);
+  if (stored.pitch !== undefined) engine.setPitch(stored.pitch);
+  if (stored.crossfade !== undefined) engine.setCrossfade(stored.crossfade);
+  if (stored.gaplessPlayback !== undefined) {
+    engine.setGapless(stored.gaplessPlayback);
+  }
+  if (stored.smartShuffle !== undefined) {
+    engine.setShuffleMode(stored.smartShuffle ? "smart" : "random");
+  }
+  if (stored.repeat !== undefined) engine.setRepeat(stored.repeat);
+  if (stored.autoPlayNext !== undefined) {
+    engine.setAutoPlayNext(stored.autoPlayNext);
+  }
+  if (stored.defaultShuffle !== undefined) {
+    engine.setShuffle(stored.defaultShuffle);
+  }
+  if (stored.defaultRepeat !== undefined) {
+    engine.updateSettings({ defaultRepeat: stored.defaultRepeat });
+  }
+}
+
 export function useKomorebi(
   options: UseKomorebiOptions = {},
 ): UseKomorebiReturn {
@@ -113,16 +168,19 @@ export function useKomorebi(
   const initializedRef = useRef(false);
 
   if (!initializedRef.current) {
-    const backend = new HTMLAudioBackend();
+    const backend = new BackendRouter();
     const engine = new KomorebiEngine(backend, {
       crossfade: { enabled: false, duration: 0, shape: "linear" },
       gapless: { enabled: true },
       smartShuffle: true,
       autoPlayNext: options.autoPlay ?? false,
       trackResolver: (track) => trackStorage.reconstructUrl(track),
+      preloadManager: new PreloadManager(),
     });
     engineRef.current = engine;
     backendRef.current = backend;
+
+    restoreEngineSettings(engine);
 
     libraryRef.current = new LibraryManager();
     settingsRef.current = new SettingsManager();
@@ -140,6 +198,12 @@ export function useKomorebi(
   const currentTime = useKomorebiStore(selectCurrentTime);
   const duration = useKomorebiStore(selectDuration);
   const volume = useKomorebiStore(selectVolume);
+  const tempo = useKomorebiStore(selectTempo);
+  const pitch = useKomorebiStore(selectPitch);
+  const crossfade = useKomorebiStore(selectCrossfade);
+  const gapless = useKomorebiStore(selectGapless);
+  const smartShuffle = useKomorebiStore(selectSmartShuffle);
+  const autoPlayNext = useKomorebiStore(selectAutoPlayNext);
   const repeat = useKomorebiStore(selectRepeat);
   const shuffle = useKomorebiStore(selectShuffle);
 
@@ -149,6 +213,12 @@ export function useKomorebi(
     if (!engine || !library) return;
 
     const detachEngine = useKomorebiStore.getState().attachEngine(engine);
+
+    const persistEngineSettings = () => {
+      engineSettingsPersistence.save(engine.getState().settings);
+    };
+    engine.on("settingschange", persistEngineSettings);
+    engine.on("volumechange", persistEngineSettings);
 
     const pushLibraryToStore = () => {
       useKomorebiStore.getState().setSongs([...library.getState().songs]);
@@ -161,6 +231,92 @@ export function useKomorebi(
     library.on("playlistupdated", pushLibraryToStore);
     library.on("playlistsupdated", pushLibraryToStore);
     library.on("favoritechanged", pushLibraryToStore);
+
+    const mediaSession = createMediaSessionIntegration();
+    const discord = createDiscordIntegration();
+    void mediaSession.initialize();
+    void discord.initialize();
+
+    mediaSession.setActionHandlers({
+      play: () => {
+        void engine.play();
+      },
+      pause: () => engine.pause(),
+      next: () => {
+        void engine.next();
+      },
+      previous: () => {
+        void engine.previous();
+      },
+      stop: () => engine.stop(),
+      seek: (time) => engine.seek(time),
+    });
+
+    const syncMediaSession = () => {
+      const engineState = engine.getState();
+      mediaSession.setPlaybackState(
+        engineState.state === "playing"
+          ? "playing"
+          : engineState.state === "paused"
+            ? "paused"
+            : "none",
+      );
+      if (engineState.duration > 0) {
+        mediaSession.setPositionState(
+          engineState.duration,
+          engineState.currentTime,
+          engineState.settings.tempo,
+        );
+      }
+    };
+
+    let discordActive = false;
+    const updateDiscordPresence = (track: Track | null) => {
+      const settings = settingsRef.current?.getSettings();
+      const userId = settings?.discordUserId ?? null;
+      const enabled = Boolean(settings?.discordEnabled);
+      const shouldSync =
+        enabled &&
+        userId !== null &&
+        DiscordService.isDiscordAvailable(userId) &&
+        track !== null;
+
+      if (shouldSync && userId) {
+        discord.setUserId(userId);
+        discordActive = true;
+        void discord.updatePresence(
+          track,
+          engine.getState().state === "playing",
+        );
+      } else if (discordActive) {
+        discordActive = false;
+        void discord.clearPresence();
+      }
+    };
+
+    const handleTrackChange = (data: { from: Track | null; to: Track | null }) => {
+      void mediaSession.updateMetadata(data.to);
+      syncMediaSession();
+      updateDiscordPresence(data.to);
+    };
+    engine.on("trackchange", handleTrackChange);
+    engine.on("statechange", syncMediaSession);
+    engine.on("durationchange", syncMediaSession);
+
+    const handleSettingsChange = (changes: Partial<SettingsState>) => {
+      if (
+        changes.discordEnabled !== undefined ||
+        changes.discordUserId !== undefined
+      ) {
+        updateDiscordPresence(engine.getState().currentTrack);
+      }
+    };
+    settingsRef.current?.on("settingschange", handleSettingsChange);
+
+    const initialTrack = engine.getState().currentTrack;
+    void mediaSession.updateMetadata(initialTrack);
+    updateDiscordPresence(initialTrack);
+    syncMediaSession();
 
     const loadLibrary = async () => {
       try {
@@ -196,6 +352,14 @@ export function useKomorebi(
       library.off("playlistupdated", pushLibraryToStore);
       library.off("playlistsupdated", pushLibraryToStore);
       library.off("favoritechanged", pushLibraryToStore);
+      engine.off("settingschange", persistEngineSettings);
+      engine.off("volumechange", persistEngineSettings);
+      engine.off("trackchange", handleTrackChange);
+      engine.off("statechange", syncMediaSession);
+      engine.off("durationchange", syncMediaSession);
+      settingsRef.current?.off("settingschange", handleSettingsChange);
+      mediaSession.dispose();
+      discord.dispose();
       backendRef.current?.dispose();
     };
   }, []);
@@ -377,17 +541,54 @@ export function useKomorebi(
 
   const setVolume = useCallback((volume: number) => {
     engineRef.current?.setVolume(volume);
-    settingsRef.current?.setVolume(volume);
   }, []);
 
   const setPlaybackRate = useCallback((rate: number) => {
     engineRef.current?.setTempo(rate);
-    settingsRef.current?.setTempo(rate);
   }, []);
 
   const setPitch = useCallback((semitones: number) => {
     engineRef.current?.setPitch(semitones);
-    settingsRef.current?.setPitch(semitones);
+  }, []);
+
+  const setCrossfade = useCallback((duration: number) => {
+    engineRef.current?.setCrossfade(duration);
+  }, []);
+
+  const setGapless = useCallback((enabled: boolean) => {
+    engineRef.current?.setGapless(enabled);
+  }, []);
+
+  const setShuffle = useCallback((shuffled: boolean) => {
+    engineRef.current?.setShuffle(shuffled);
+  }, []);
+
+  const setShuffleMode = useCallback((mode: "random" | "smart") => {
+    engineRef.current?.setShuffleMode(mode);
+  }, []);
+
+  const setRepeat = useCallback((mode: "off" | "one" | "all") => {
+    engineRef.current?.setRepeat(mode);
+  }, []);
+
+  const setAutoPlayNext = useCallback((enabled: boolean) => {
+    engineRef.current?.setAutoPlayNext(enabled);
+  }, []);
+
+  const getAnalyser = useCallback(() => {
+    return engineRef.current?.getAnalyser() ?? null;
+  }, []);
+
+  const getEqualizer = useCallback(() => {
+    const backend = backendRef.current;
+    return backend instanceof BackendRouter ? backend.getEqualizer() : null;
+  }, []);
+
+  const setEqualizerEnabled = useCallback((enabled: boolean) => {
+    const backend = backendRef.current;
+    if (backend instanceof BackendRouter) {
+      backend.setEqualizer(enabled);
+    }
   }, []);
 
   const toggleShuffle = useCallback(() => {
@@ -469,6 +670,12 @@ export function useKomorebi(
     currentTime,
     duration,
     volume,
+    tempo,
+    pitch,
+    crossfade,
+    gapless,
+    smartShuffle,
+    autoPlayNext,
     repeat,
     shuffle,
     error,
@@ -483,6 +690,15 @@ export function useKomorebi(
     setVolume,
     setPlaybackRate,
     setPitch,
+    setCrossfade,
+    setGapless,
+    setShuffle,
+    setShuffleMode,
+    setRepeat,
+    setAutoPlayNext,
+    getAnalyser,
+    getEqualizer,
+    setEqualizerEnabled,
     toggleShuffle,
     toggleRepeat,
 

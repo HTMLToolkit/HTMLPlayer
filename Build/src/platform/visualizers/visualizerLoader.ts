@@ -3,6 +3,9 @@ import { visualizerModuleLoaders } from "../../ui/resources/visualizers/_registr
 
 const logger = createLogger("visualizerLoader");
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type VisualizerSettings = Record<string, any>;
+
 interface VisualizerDrawFunction {
   (
     analyser: AnalyserNode,
@@ -11,7 +14,7 @@ interface VisualizerDrawFunction {
     bufferLength: number,
     dataArray: Uint8Array | Float32Array,
     dataType: "time" | "frequency",
-    settings: Record<string, any> | undefined,
+    settings: VisualizerSettings | undefined,
   ): void;
 }
 
@@ -29,13 +32,6 @@ export function getByteTimeDomainData(
   analyser.getByteTimeDomainData(dataArray as Uint8Array<ArrayBuffer>);
 }
 
-/**
- * Read a single audio sample safely. The SSOT for every indexed read of the
- * analyser buffer: out-of-range or undefined reads (noUncheckedIndexedAccess)
- * and injected NaN/Infinity values all collapse to 0. Visualizers must use
- * this instead of raw `buffer[i]` reads so the div-by-zero/NaN class of draw
- * bugs stays impossible to reintroduce.
- */
 export function sample(
   dataArray: Uint8Array | Float32Array,
   index: number,
@@ -56,7 +52,7 @@ export interface VisualizerType {
       max?: number;
       step?: number;
       options?: string[];
-      default: any;
+      default: unknown;
     }
   >;
 }

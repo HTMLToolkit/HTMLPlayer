@@ -48,6 +48,11 @@
   --player-art-size: 115px;
   --sidebar-width: 250px;
   --sidebar-collapsed-width: 40px;
+  --miniplayer-control-size: 2rem;
+  --miniplayer-main-control-size: 2.25rem;
+  --settings-sheet-max-width: 860px;
+  --settings-sidebar-min-width: 230px;
+  --settings-sidebar-max-width: 240px;
 
 }
 
@@ -129,6 +134,54 @@ html {
   }
 }
 
+html[data-vt-direction="forward"]::view-transition-old(root) {
+  --vt-slide-offset: -60px;
+  animation:
+    var(--animation-duration-fast) ease-in both vtFade reverse,
+    var(--animation-duration-normal) ease-in-out both vtSlide reverse;
+}
+
+html[data-vt-direction="forward"]::view-transition-new(root) {
+  --vt-slide-offset: 60px;
+  animation:
+    var(--animation-duration-fast) ease-out var(--animation-duration-fast)
+      both vtFade,
+    var(--animation-duration-normal) ease-in-out both vtSlide;
+}
+
+html[data-vt-direction="back"]::view-transition-old(root) {
+  --vt-slide-offset: 60px;
+  animation:
+    var(--animation-duration-fast) ease-in both vtFade reverse,
+    var(--animation-duration-normal) ease-in-out both vtSlide reverse;
+}
+
+html[data-vt-direction="back"]::view-transition-new(root) {
+  --vt-slide-offset: -60px;
+  animation:
+    var(--animation-duration-fast) ease-out var(--animation-duration-fast)
+      both vtFade,
+    var(--animation-duration-normal) ease-in-out both vtSlide;
+}
+
+@keyframes vtFade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes vtSlide {
+  from {
+    translate: var(--vt-slide-offset);
+  }
+  to {
+    translate: 0;
+  }
+}
+
 @layer utilities {
   .search-wrapper {
     position: relative;
@@ -161,7 +214,7 @@ html {
   }
 
   .action-button-lift {
-    transition: all var(--animation-duration-fast) ease;
+    transition: transform var(--animation-duration-fast) ease;
   }
 
   .action-button-lift:hover {

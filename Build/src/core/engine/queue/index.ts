@@ -15,9 +15,6 @@ export interface WeightedRandomizer {
 
 type Direction = "next" | "previous";
 
-/**
- * Owns the play queue around a discriminated cursor.
- */
 export class QueueManager {
   private state: QueueState = {
     tracks: [],
@@ -91,10 +88,6 @@ export class QueueManager {
     }
   }
 
-  /**
-   * Move the cursor to an index unconditionally. Negative or out-of-bounds
-   * indices (including the old `-1` sentinel) collapse to the empty state.
-   */
   jumpToIndex(index: number | null): void {
     this.setCursor(
       index === null ? { kind: "empty" } : { kind: "active", index },

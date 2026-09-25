@@ -61,13 +61,14 @@
   cursor: pointer;
   padding: var(--spacing-2);
   border-radius: var(--radius);
-  font-size: 0;
-  width: 32px;
-  height: 32px;
+  width: var(--miniplayer-control-size);
+  height: var(--miniplayer-control-size);
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all var(--animation-duration-fast) ease;
+  transition: color var(--animation-duration-fast) ease,
+    background-color var(--animation-duration-fast) ease,
+    transform var(--animation-duration-fast) ease;
   position: relative;
 }
 
@@ -95,8 +96,8 @@
     var(--themecolor3) 70%
   );
   color: var(--primary-foreground);
-  width: 36px;
-  height: 36px;
+  width: var(--miniplayer-main-control-size);
+  height: var(--miniplayer-main-control-size);
   box-shadow: 0 4px 12px var(--primary-transparent-1);
 }
 

@@ -55,11 +55,6 @@ interface AppErrorBoundaryState {
   message: string;
 }
 
-/**
- * Last line of defense. Catches render-time failures anywhere under the root,
- * resets the store to a safe empty snapshot so stale UI state cannot pin the
- * app in a broken subtree, and offers a reload instead of a blank screen.
- */
 class AppErrorBoundary extends Component<
   AppErrorBoundaryProps,
   AppErrorBoundaryState
@@ -249,7 +244,10 @@ function AppShellContent({ komorebi }: AppShellProps) {
       <DraggableProvider onDragOperation={handleDragOperation}>
         <WallpaperRenderer
           currentSong={currentSong}
-          playbackState={{ isPlaying }}
+          playbackState={{
+            isPlaying,
+            analyserNode: komorebi.getAnalyser(),
+          }}
         />
         <div className={styles.container}>
           <Sidebar

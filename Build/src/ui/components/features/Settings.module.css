@@ -13,7 +13,7 @@
 
 .sheetContent {
   width: 100%;
-  max-width: 860px;
+  max-width: var(--settings-sheet-max-width);
   background-color: var(--popup);
   border-radius: 0 1.5rem 1.5rem 0;
   display: flex;
@@ -44,8 +44,8 @@
 
 .sidebarShell {
   flex-shrink: 0;
-  min-width: 230px;
-  max-width: 240px;
+  min-width: var(--settings-sidebar-min-width);
+  max-width: var(--settings-sidebar-max-width);
   display: flex;
   align-items: flex-start;
   padding-right: var(--spacing-2);
@@ -385,7 +385,9 @@
   background: var(--surface-transparent-05);
   border-radius: var(--radius);
   border: 1px solid var(--border);
-  transition: all var(--animation-duration-fast) ease;
+  transition:
+    background-color var(--animation-duration-fast) ease,
+    border-color var(--animation-duration-fast) ease;
 }
 
 .shortcutItem:hover {
@@ -442,7 +444,9 @@
   background: var(--surface-transparent-05);
   border-radius: var(--radius);
   border: 1px solid var(--border);
-  transition: all var(--animation-duration-fast) ease;
+  transition:
+    background-color var(--animation-duration-fast) ease,
+    border-color var(--animation-duration-fast) ease;
 }
 
 .shortcutConfigItem:hover {
@@ -487,7 +491,9 @@
   color: var(--foreground);
   text-align: center;
   cursor: pointer;
-  transition: all var(--animation-duration-fast) ease;
+  transition:
+    border-color var(--animation-duration-fast) ease,
+    box-shadow var(--animation-duration-fast) ease;
 }
 
 .shortcutConfigInput:focus {
@@ -500,4 +506,38 @@
   font-size: 0.75rem;
   color: var(--destructive);
   font-weight: 500;
+}
+
+.equalizerControls {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+  margin-bottom: var(--spacing-8);
+}
+
+.equalizerBands {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(8rem, 1fr));
+  gap: var(--spacing-3);
+}
+
+.equalizerBand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-2);
+  padding: var(--spacing-3);
+  background: var(--card);
+  border-radius: var(--radius-md);
+}
+
+.equalizerSlider {
+  width: 100%;
+  min-width: 0;
+}
+
+.equalizerFrequency {
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+  font-weight: 600;
 }

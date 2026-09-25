@@ -64,7 +64,11 @@
   justify-content: flex-start;
   gap: 8px;
   padding: 8px 12px;
-  transition: all 0.2s ease;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease,
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
   color: var(--primary-foreground);
   position: relative;
   overflow: hidden;

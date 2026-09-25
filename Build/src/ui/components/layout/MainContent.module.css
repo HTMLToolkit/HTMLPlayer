@@ -454,7 +454,10 @@
 .songDropZone {
   width: 100%;
   border-radius: var(--radius);
-  transition: all var(--animation-duration-fast) ease;
+  transition:
+    background-color var(--animation-duration-fast) ease,
+    border-color var(--animation-duration-fast) ease,
+    transform var(--animation-duration-fast) ease;
   display: block;
 }
 

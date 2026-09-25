@@ -13,10 +13,6 @@ import type {
 } from "../../src/core/engine/types";
 import { createMockTrack, mulberry32, randomInt } from "../helpers";
 
-/**
- * Controllable backend for the engine fuzz. All failures are drawn from the
- * seeded PRNG, so a given seed reproduces the exact same backend behaviour.
- */
 class FuzzBackend implements IAudioBackend {
   load: jest.Mock<Promise<void>, [string]>;
   play: jest.Mock<Promise<void>, []>;

@@ -5,7 +5,6 @@ export default function IndexPage() {
   const komorebi = useKomorebi({
     autoPlay: false,
     persistLibrary: true,
-    persistSettings: true,
   });
   return <AppShell komorebi={komorebi} />;
 }

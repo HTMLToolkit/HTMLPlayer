@@ -20,7 +20,7 @@ const barGraph: VisualizerType = {
     } = settings;
 
     if (dataType !== "frequency") return;
-    analyser.getByteFrequencyData(dataArray as any);
+    analyser.getByteFrequencyData(dataArray as Uint8Array<ArrayBuffer>);
     ctx.fillStyle = backgroundColor;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 

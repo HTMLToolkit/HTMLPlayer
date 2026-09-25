@@ -1,18 +1,28 @@
 import { BaseAudioBackend } from "./BaseBackend";
+import { AudioGraph } from "../graph";
+import { clampRate } from "../clamp";
 import { throwError } from "../../../helpers/logger";
 
 export class HTMLAudioBackend extends BaseAudioBackend {
   private audio: HTMLAudioElement;
+  private graph: AudioGraph;
+  private ownsGraph: boolean;
   private boundOnTimeUpdate: () => void;
   private boundOnEnded: () => void;
   private boundOnError: () => void;
   private boundOnLoadedMetadata: () => void;
   private duration = 0;
 
-  constructor() {
+  constructor(graph?: AudioGraph) {
     super();
+    this.graph = graph ?? new AudioGraph();
+    this.ownsGraph = !graph;
+
     this.audio = new Audio();
     this.audio.preload = "auto";
+    this.audio.volume = 1;
+
+    this.routeAudioElement();
 
     this.boundOnTimeUpdate = this.handleTimeUpdate.bind(this);
     this.boundOnEnded = this.handleEnded.bind(this);
@@ -48,6 +58,7 @@ export class HTMLAudioBackend extends BaseAudioBackend {
   }
 
   async play(): Promise<void> {
+    this.graph.resume();
     if (this.audio.paused) {
       try {
         await this.audio.play();
@@ -77,15 +88,19 @@ export class HTMLAudioBackend extends BaseAudioBackend {
   }
 
   setVolume(volume: number): void {
-    this.audio.volume = Math.max(0, Math.min(1, volume));
+    this.graph.setVolume(volume);
   }
 
   setPlaybackRate(rate: number): void {
-    this.audio.playbackRate = Math.max(0.25, Math.min(4, rate));
+    this.audio.playbackRate = clampRate(rate);
   }
 
   getCurrentTime(): number {
     return this.audio.currentTime;
+  }
+
+  getAnalyser(): AnalyserNode | null {
+    return this.graph.getAnalyser();
   }
 
   getDuration(): number {
@@ -104,6 +119,18 @@ export class HTMLAudioBackend extends BaseAudioBackend {
     this.audio.pause();
     this.audio.src = "";
     this.audio.load();
+
+    if (this.ownsGraph) {
+      this.graph.dispose();
+    }
+    super.dispose();
+  }
+
+  private routeAudioElement(): void {
+    try {
+      this.graph.connectMediaElement(this.audio);
+    } catch {
+    }
   }
 
   private handleTimeUpdate(): void {

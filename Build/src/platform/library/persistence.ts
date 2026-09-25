@@ -14,11 +14,6 @@ function waitForTransactionCompletion(tx: IDBTransaction): Promise<void> {
   });
 }
 
-/**
- * Discards the library when the persisted schema is unknown (older build or
- * unversioned data). Entry-level sanitizers in the storage layer already drop
- * malformed records; this guards against whole-shape changes between builds.
- */
 async function ensureLibrarySchema(): Promise<void> {
   const db = await getDb();
   const readTx = db.transaction(STORES.META, "readonly");

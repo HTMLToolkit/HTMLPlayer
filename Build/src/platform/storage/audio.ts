@@ -15,7 +15,7 @@ export const audioStorage = {
       const tx = db.transaction(STORES.AUDIO_DATA, "readwrite");
       const store = tx.objectStore(STORES.AUDIO_DATA);
 
-      const result = await new Promise<any>((resolve, reject) => {
+      const result = await new Promise<AudioData | null>((resolve, reject) => {
         const req = store.get(songId);
         req.onsuccess = () => resolve(req.result);
         req.onerror = () => reject(req.error);

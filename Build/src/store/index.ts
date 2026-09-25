@@ -42,12 +42,6 @@ export const EMPTY_ENGINE_STATE: EngineState = {
   error: null,
 };
 
-/**
- * UI-side mirror of the engine. The store is the compile-time contract between
- * the engine and React: consumers select a typed slice (e.g.
- * {@link selectQueueCursor}) and the type system forces exhaustive handling of
- * every cursor kind instead of relying on a `-1` sentinel.
- */
 export interface KomorebiStoreState {
   snapshot: EngineState | null;
   songs: Track[];
@@ -164,6 +158,24 @@ export const selectIsPlaying = (store: KomorebiStoreState): boolean =>
 
 export const selectVolume = (store: KomorebiStoreState): number =>
   store.snapshot?.settings.volume ?? 1;
+
+export const selectTempo = (store: KomorebiStoreState): number =>
+  store.snapshot?.settings.tempo ?? 1;
+
+export const selectPitch = (store: KomorebiStoreState): number =>
+  store.snapshot?.settings.pitch ?? 0;
+
+export const selectCrossfade = (store: KomorebiStoreState): number =>
+  store.snapshot?.settings.crossfade ?? 0;
+
+export const selectGapless = (store: KomorebiStoreState): boolean =>
+  store.snapshot?.settings.gaplessPlayback ?? true;
+
+export const selectSmartShuffle = (store: KomorebiStoreState): boolean =>
+  store.snapshot?.settings.smartShuffle ?? false;
+
+export const selectAutoPlayNext = (store: KomorebiStoreState): boolean =>
+  store.snapshot?.settings.autoPlayNext ?? true;
 
 export const selectShuffle = (store: KomorebiStoreState): boolean =>
   store.snapshot?.queue.shuffled ?? false;

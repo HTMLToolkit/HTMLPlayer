@@ -6,7 +6,9 @@
   position: relative;
 }
 
-.songPreview {
+.songPreview,
+.playlistPreview,
+.folderPreview {
   padding: 12px 16px;
   background: var(--menu-background);
   border: 2px solid var(--themecolor2);
@@ -27,8 +29,6 @@
 
   transform: rotate(-2deg) scale(1.05);
   transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
-
-  animation: dragPulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
 .songPreview:active {
@@ -46,31 +46,6 @@
   margin-top: 2px;
 }
 
-.playlistPreview,
-.folderPreview {
-  padding: 12px 16px;
-  background: var(--menu-background);
-  border: 2px solid var(--themecolor2);
-  border-radius: 12px;
-  color: var(--primary-foreground);
-  font-size: 14px;
-  font-family: var(--font-family-base);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
-  max-width: 250px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  backdrop-filter: blur(20px);
-
-  transform: rotate(-2deg) scale(1.05);
-  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
-
-  animation: dragPulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-}
-
 .playlistTitle,
 .folderTitle {
   font-size: 14px;
@@ -82,18 +57,6 @@
   font-size: 12px;
   color: var(--foreground-subtle);
   margin-top: 2px;
-}
-
-@keyframes dragPulse {
-  0%,
-  100% {
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
-  }
-  50% {
-    box-shadow:
-      0 12px 32px rgba(0, 0, 0, 0.4),
-      0 0 20px var(--themecolor2-transparent);
-  }
 }
 
 .dragging {

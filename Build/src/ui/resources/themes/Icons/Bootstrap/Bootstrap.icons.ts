@@ -123,7 +123,7 @@ export const libraries = {
 } as const;
 
 const bootstrapPropTransformer: IconPropTransformer = (props) => {
-  const transformed: Record<string, any> = {};
+  const transformed: Record<string, unknown> = {};
 
   if (props.size !== undefined) {
     transformed.size = props.size;

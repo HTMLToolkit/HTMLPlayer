@@ -13,48 +13,6 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  transition:
-    transform var(--animation-duration-normal) cubic-bezier(0.4, 0, 0.2, 1),
-    opacity var(--animation-duration-normal) cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.lyricsOverlay[data-state="open"] {
-  transform: translateY(100%);
-  opacity: 0;
-  animation: slideUpSmooth var(--animation-duration-normal)
-    cubic-bezier(0.4, 0, 0.2, 1) forwards;
-}
-
-.lyricsOverlay[data-state="closing"] {
-  animation: slideDownSmooth var(--animation-duration-normal)
-    cubic-bezier(0.4, 0, 0.2, 1) forwards;
-}
-
-.lyricsOverlay[data-state="visible"] {
-  transform: translateY(0);
-  opacity: 1;
-}
-
-@keyframes slideUpSmooth {
-  0% {
-    transform: translateY(100%);
-    opacity: 0;
-  }
-  100% {
-    transform: translateY(0);
-    opacity: 1;
-  }
-}
-
-@keyframes slideDownSmooth {
-  0% {
-    transform: translateY(0);
-    opacity: 1;
-  }
-  100% {
-    transform: translateY(100%);
-    opacity: 0;
-  }
 }
 
 .lyricsContainer {
@@ -125,16 +83,16 @@
 }
 
 .activeButton {
-  background-color: rgba(var(--primary-rgb), 0.15);
+  background-color: var(--primary-transparent-2);
   color: var(--primary-foreground);
 }
 
 .activeButton:hover:not(:disabled) {
-  background-color: rgba(var(--primary-rgb), 0.25);
+  background-color: var(--primary-transparent);
 }
 
 .activeButton:active:not(:disabled) {
-  background-color: rgba(var(--primary-rgb), 0.35);
+  background-color: var(--primary-transparent-5);
 }
 
 .lyricsHeaderControls button:disabled,
@@ -183,7 +141,7 @@
   padding: var(--spacing-2);
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
-  background: rgba(var(--background-rgb), 0.9);
+  background: rgba(var(--card-rgb), 0.9);
   color: var(--foreground);
   font-size: 0.9rem;
 }
@@ -204,7 +162,7 @@
 }
 
 .currentLine {
-  background: rgba(var(--primary-rgb), 0.12);
+  background: var(--primary-transparent-1);
   color: var(--primary-foreground);
 }
 

@@ -1,4 +1,3 @@
-// WIP WARNING
 import { createLogger } from "../../helpers/logger";
 
 const logger = createLogger("discord");
@@ -7,6 +6,10 @@ export interface DiscordPresenceData {
   userId: string;
   details: string;
   state: string;
+}
+
+interface PresenceResponse {
+  ok?: boolean;
 }
 
 export class DiscordService {
@@ -23,47 +26,62 @@ export class DiscordService {
     return DiscordService.instance;
   }
 
-  /**
-   * Log track update instead of sending to Discord backend
-   */
   public async updatePresence(data: DiscordPresenceData): Promise<boolean> {
-    logger.info(`Would POST to ${DiscordService.API_BASE_URL}/presence with:`, {
-      state: data,
-    });
-    return true;
+    try {
+      const response = await fetch(`${DiscordService.API_BASE_URL}/presence`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        logger.warn("Presence update rejected by backend:", {
+          status: response.status,
+        });
+        return false;
+      }
+
+      const payload = (await response.json().catch(() => null)) as
+        | PresenceResponse
+        | null;
+      return payload?.ok !== false;
+    } catch (error) {
+      logger.info("Presence update couldn't reach backend:", {
+        error: String(error),
+      });
+      return false;
+    }
   }
 
-  /**
-   * Log clear presence instead of sending to Discord backend
-   */
-  public async clearPresence(userId: string): Promise<boolean> {
-    logger.info(`Would clear presence for userId: ${userId}`);
-    return true;
+  public async clearPresence(userId: string | null): Promise<boolean> {
+    try {
+      const response = await fetch(
+        `${DiscordService.API_BASE_URL}/presence/clear`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ userId }),
+        },
+      );
+      return response.ok;
+    } catch (error) {
+      logger.info("Presence clear couldn't reach backend:", {
+        error: String(error),
+      });
+      return false;
+    }
   }
 
-  /**
-   * Parse Discord user ID from OAuth callback URL
-   * This would be called when the OAuth callback is handled
-   */
   public static parseUserIdFromCallback(url: string): string | null {
     try {
       const urlObj = new URL(url);
-      const code = urlObj.searchParams.get("code");
-
-      if (!code) {
-        return null;
-      }
-
-      return null;
+      return urlObj.searchParams.get("userId");
     } catch (error) {
       logger.error("Error parsing Discord callback:", { error: String(error) });
       return null;
     }
   }
 
-  /**
-   * Check if Discord integration is available and user is connected
-   */
   public static isDiscordAvailable(userId?: string): boolean {
     return Boolean(userId && userId.length > 0);
   }
