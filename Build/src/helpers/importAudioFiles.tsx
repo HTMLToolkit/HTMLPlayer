@@ -1,12 +1,113 @@
 import { toast } from "sonner";
-import { extractAudioMetadata, generateUniqueId } from "./filePickerHelper";
-import { musicIndexedDbHelper } from "./musicIndexedDbHelper";
-import { setAlbumArtInCache } from "../hooks/useAlbumArt";
+import { logger } from "./logger";
+import {
+  createMetadataExtractor,
+  createFloMetadataExtractor,
+  compressAlbumArt,
+  generateUniqueId,
+} from "../platform/metadata";
+import { albumArtStorage } from "../platform/storage";
+import {
+  AlbumArtManager,
+  MusicBrainzProvider,
+  DiscogsProvider,
+} from "../platform/providers";
+import type { ExtractedMetadata } from "../platform/metadata";
+import type { Track } from "../core/engine/types";
+
+type Translate = (key: string, options?: Record<string, unknown>) => string;
+
+function getMetadataExtractor(file: File) {
+  const ext = file.name.split(".").pop()?.toLowerCase();
+  if (ext === "flo") {
+    return createFloMetadataExtractor();
+  }
+  return createMetadataExtractor();
+}
+
+function createAlbumArtManager(): AlbumArtManager {
+  const manager = new AlbumArtManager();
+  manager.addProvider(new MusicBrainzProvider());
+  manager.addProvider(new DiscogsProvider());
+  return manager;
+}
+
+async function blobToDataUrl(blob: Blob): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = () =>
+      reject(reader.error ?? new Error("Failed to read blob"));
+    reader.readAsDataURL(blob);
+  });
+}
+
+async function fetchRemoteAlbumArt(
+  artist: string,
+  album: string,
+  manager: AlbumArtManager,
+): Promise<string | undefined> {
+  try {
+    const result = await manager.fetchAlbumArt({ artist, album });
+    if (!result) return undefined;
+
+    const response = await fetch(result.url, { mode: "cors" });
+    if (!response.ok) return undefined;
+
+    const blob = await response.blob();
+    if (!blob.type.startsWith("image/")) return undefined;
+
+    return await blobToDataUrl(blob);
+  } catch (error) {
+    logger.warn("Failed to fetch remote album art", {
+      error: String(error),
+    });
+    return undefined;
+  }
+}
+
+async function extractAudioMetadata(
+  file: File,
+  t: Translate,
+): Promise<{
+  metadata: ExtractedMetadata;
+  albumArt: string | undefined;
+}> {
+  const extractor = getMetadataExtractor(file);
+  const metadata = await extractor.extractMetadata(file);
+
+  let albumArt = metadata.albumArt;
+  if (albumArt) {
+    try {
+      albumArt = await compressAlbumArt(albumArt);
+    } catch (e) {
+      if (e instanceof Error) {
+        logger.warn("Failed to compress album art:", { error: e.message });
+      } else {
+        logger.warn("Failed to compress album art");
+      }
+    }
+  }
+
+  const translated: ExtractedMetadata = {
+    ...metadata,
+    artist:
+      metadata.artist === "Unknown Artist"
+        ? t("common.unknownArtist")
+        : metadata.artist,
+    album:
+      metadata.album === "Unknown Album"
+        ? t("common.unknownAlbum")
+        : metadata.album,
+  };
+
+  return { metadata: translated, albumArt };
+}
 
 export async function importAudioFiles(
-  audioFiles: Array<{ file: File } | File>,
-  addSong: (song: Song, file: File) => Promise<void>,
-  t: any,
+  audioFiles: Array<{ file: File | null } | File>,
+  addSong: (song: Track, file: File) => Promise<void>,
+  t: Translate,
 ) {
   if (!audioFiles || audioFiles.length === 0) return;
 
@@ -15,19 +116,21 @@ export async function importAudioFiles(
   let errorCount = 0;
   let currentBatch = 1;
   const totalBatches = Math.ceil(audioFiles.length / BATCH_SIZE);
+  const albumArtManager = createAlbumArtManager();
 
   for (let i = 0; i < audioFiles.length; i += BATCH_SIZE) {
     const batch = audioFiles.slice(i, i + BATCH_SIZE);
     toast.loading(t("batch.processing", { currentBatch, totalBatches }));
 
-    // Process sequentially to reduce memory pressure
     for (const audioFile of batch) {
       try {
-        const file: File = (audioFile as any).file || (audioFile as File);
-        const metadata = await extractAudioMetadata(file);
+        const sourceFile = "file" in audioFile ? audioFile.file : audioFile;
+        if (sourceFile === null) continue;
+        const file: File = sourceFile;
+        const { metadata, albumArt: compressedArt } =
+          await extractAudioMetadata(file, t);
         const songId = generateUniqueId();
 
-        // Pre-decode flo files for better performance
         let processedFile = file;
         let processedMimeType = file.type;
 
@@ -36,86 +139,43 @@ export async function importAudioFiles(
           metadata.encoding?.codec === "flo";
 
         if (isFlo) {
-          try {
-            const arrayBuffer = await file.arrayBuffer();
-            const isSafari = /^((?!chrome|android).)*safari/i.test(
-              navigator.userAgent,
-            );
+          processedMimeType = "audio/x-flo";
+        }
 
-            if (isSafari) {
-              // Safari: Pre-decode to WAV for compatibility
-              const { decodeFloToWav } = await import("./refloWavHelper");
-              const wavBytes = await decodeFloToWav(arrayBuffer);
-              const wavBlob = new Blob([wavBytes], { type: "audio/wav" });
-              processedFile = new File(
-                [wavBlob],
-                file.name.replace(/\.flo$/i, ".wav"),
-                { type: "audio/wav" },
-              );
-              processedMimeType = "audio/wav";
-              console.log(`Pre-decoded flo to WAV for Safari: ${file.name}`);
-            } else {
-              // Non-Safari: Pre-decode to PCM for Web Audio API
-              const { decodeFloToAudioBuffer } = await import("./floProcessor");
-              const audioContext = new AudioContext();
-              const audioBuffer = await decodeFloToAudioBuffer(
-                arrayBuffer,
-                audioContext,
-              );
+        let albumArtDataUrl = compressedArt;
+        let hasAlbumArt = !!compressedArt;
 
-              // Store as interleaved Float32Array PCM
-              const frameCount = audioBuffer.length;
-              const channels = audioBuffer.numberOfChannels;
-              const pcmData = new Float32Array(frameCount * channels);
+        const isUnknownArtist = metadata.artist === t("common.unknownArtist");
+        const isUnknownAlbum = metadata.album === t("common.unknownAlbum");
 
-              // Interleave channels
-              for (let i = 0; i < frameCount; i++) {
-                for (let ch = 0; ch < channels; ch++) {
-                  pcmData[i * channels + ch] =
-                    audioBuffer.getChannelData(ch)[i];
-                }
+        if (!hasAlbumArt && !isUnknownArtist && !isUnknownAlbum) {
+          const remoteArt = await fetchRemoteAlbumArt(
+            metadata.artist,
+            metadata.album,
+            albumArtManager,
+          );
+
+          if (remoteArt) {
+            try {
+              albumArtDataUrl = await compressAlbumArt(remoteArt);
+              hasAlbumArt = true;
+            } catch (e) {
+              if (e instanceof Error) {
+                logger.warn("Failed to compress remote album art", {
+                  error: e.message,
+                });
+              } else {
+                logger.warn("Failed to compress remote album art");
               }
-
-              const pcmBlob = new Blob([pcmData.buffer], { type: "audio/pcm" });
-              processedFile = new File(
-                [pcmBlob],
-                file.name.replace(/\.flo$/i, ".pcm"),
-                { type: "audio/pcm" },
-              );
-              processedMimeType = "audio/pcm";
-
-              // Store AudioBuffer properties for reconstruction
-              metadata.encoding = {
-                ...metadata.encoding,
-                sampleRate: audioBuffer.sampleRate,
-                channels: audioBuffer.numberOfChannels,
-                bitsPerSample: 32, // Float32
-                codec: "pcm-float32",
-              };
-
-              // Close the temporary AudioContext
-              await audioContext.close();
-
-              console.log(`Pre-decoded flo to PCM: ${file.name}`);
             }
-          } catch (error) {
-            console.warn(
-              "Failed to pre-decode flo file, storing original:",
-              error,
-            );
-            // Keep original file if pre-decoding fails
-            processedMimeType = "audio/x-flo";
           }
         }
 
-        // Save album art separately if present
-        const hasAlbumArt = !!metadata.albumArt;
-        if (hasAlbumArt && metadata.albumArt) {
-          await musicIndexedDbHelper.saveAlbumArt(songId, metadata.albumArt);
-          setAlbumArtInCache(songId, metadata.albumArt);
+        if (hasAlbumArt && albumArtDataUrl) {
+          await albumArtStorage.save(songId, albumArtDataUrl);
         }
 
-        const song: Song = {
+        const song: Track = {
           id: songId,
           title: metadata.title,
           artist: metadata.artist,
@@ -123,32 +183,35 @@ export async function importAudioFiles(
             metadata.album ||
             t("songInfo.album", { title: t("common.unknownAlbum") }),
           duration: metadata.duration,
-          url: "", // Will be set by addSong
-          albumArt: metadata.albumArt, // Keep for immediate display
+          url: "",
+          albumArt: albumArtDataUrl,
           hasAlbumArt,
           embeddedLyrics: metadata.embeddedLyrics,
           encoding: metadata.encoding,
           gapless: metadata.gapless,
+          replayGain: metadata.replayGain,
           mimeType: processedMimeType,
         };
 
         await addSong(song, processedFile);
 
-        // Clear file reference to help GC
         if (typeof audioFile === "object" && "file" in audioFile) {
-          (audioFile as { file: File }).file = null as any;
+          audioFile.file = null;
         }
 
         successCount++;
       } catch (error) {
-        console.error("Failed to process song:", error);
+        if (error instanceof Error) {
+          logger.error("Failed to process song:", { error: error.message });
+        } else {
+          logger.error("Failed to process song");
+        }
         errorCount++;
       }
     }
 
     currentBatch++;
 
-    // Give browser time to garbage collect between batches
     await new Promise((r) => setTimeout(r, 100));
   }
 

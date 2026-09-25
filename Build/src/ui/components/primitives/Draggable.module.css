@@ -1,0 +1,109 @@
+.dragOverlay {
+  pointer-events: none;
+  will-change: transform;
+  transform-origin: center;
+  z-index: 9999;
+  position: relative;
+}
+
+.songPreview,
+.playlistPreview,
+.folderPreview {
+  padding: 12px 16px;
+  background: var(--menu-background);
+  border: 2px solid var(--themecolor2);
+  border-radius: 12px;
+  color: var(--primary-foreground);
+  font-size: 14px;
+  font-family: var(--font-family-base);
+  font-weight: 500;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  max-width: 250px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  backdrop-filter: blur(20px);
+
+  transform: rotate(-2deg) scale(1.05);
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.songPreview:active {
+  transform: rotate(-2deg) scale(1.08);
+}
+
+.songTitle {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.songArtist {
+  font-size: 12px;
+  color: var(--foreground-subtle);
+  margin-top: 2px;
+}
+
+.playlistTitle,
+.folderTitle {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.playlistCount,
+.folderCount {
+  font-size: 12px;
+  color: var(--foreground-subtle);
+  margin-top: 2px;
+}
+
+.dragging {
+  cursor: grabbing !important;
+}
+
+.dragOverlay * {
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.dropZone {
+  transition:
+    background-color 0.15s ease,
+    border 0.15s ease,
+    transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.dropZone[data-droppable="true"] {
+  background-color: var(--primary-transparent-2);
+  border-radius: 6px;
+  border: 2px dashed var(--themecolor2);
+  transform: scale(1.02);
+}
+
+.draggableItem {
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease;
+  will-change: transform, opacity;
+}
+
+.draggableItem[data-dragging="true"] {
+  opacity: 0.5;
+  cursor: grabbing;
+  user-select: none;
+}
+
+.dragHandle {
+  cursor: grab;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: none;
+}
+
+.dragHandle:active {
+  cursor: grabbing;
+}

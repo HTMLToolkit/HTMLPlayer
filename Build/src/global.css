@@ -2,34 +2,20 @@
 @import "@fontsource/poppins";
 @import "@fontsource/jetbrains-mono";
 @import "@fontsource/caveat";
+@import "./ui/theming/base-theme.css";
 
-/* This root block is kept separate as these values do not change between light and dark mode */
 /* prettier-ignore */
 :root {
-  /* Layers */
-  /* Content */
-  /* Low content */
   --z-content-low: 10;
-  /* Standard content */
   --z-content: 20;
-  /* High standard content (has high standards :P) */
   --z-content-high: 30;
-  /* Navigation */
-  /* Low navigation */
   --z-nav-low: 100;
-  /* Primary navigation */
   --z-nav: 200;
-  /* Sticky navigation */
   --z-nav-sticky: 300;
-  /* Dialogs, Dropdowns, etc. */
   --z-overlay: 400;
-  /* Tutorials, Guides */
   --z-spotlight: 1000;
-  /* Other */
-  /* Critical stuff */
   --z-critical: 2000;
 
-  /* Fonts */
   --font-family-base: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI",
     Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
   --font-family-heading: "Poppins", -apple-system, BlinkMacSystemFont,
@@ -39,19 +25,16 @@
     "Liberation Mono", Menlo, monospace;
   --font-family-cursive: "Caveat", cursive;
 
-  /* Radii */
   --radius-sm: 0.25rem;
   --radius: 0.5rem;
   --radius-md: 0.75rem;
   --radius-lg: 1rem;
   --radius-full: 9999px;
 
-  /* Animation */
   --animation-duration-fast: 150ms;
   --animation-duration-normal: 250ms;
   --animation-duration-slow: 350ms;
 
-  /* Spacing */
   --spacing-1: 0.25rem;
   --spacing-2: 0.5rem;
   --spacing-3: 0.75rem;
@@ -61,9 +44,15 @@
   --spacing-12: 3rem;
   --spacing-16: 4rem;
 
-  /* Miscellaneous */
+  --spacing-layout: 15px;
+  --player-art-size: 115px;
   --sidebar-width: 250px;
   --sidebar-collapsed-width: 40px;
+  --miniplayer-control-size: 2rem;
+  --miniplayer-main-control-size: 2.25rem;
+  --settings-sheet-max-width: 860px;
+  --settings-sidebar-min-width: 230px;
+  --settings-sidebar-max-width: 240px;
 
 }
 
@@ -71,21 +60,17 @@ body {
   font-family: var(--font-family-base);
   margin: 0;
   padding: 0;
-  /* background: var(--themegradient); */
   overflow: hidden;
 }
 
-/* html {
-  background: var(--themegradient);
-} */
+html {
+  overflow-y: auto;
+}
 
 #root {
   min-height: 100vh;
-  /* background: var(--themegradient); */
 }
 
-/* Loading screen is global for now */
-/* Loading Screen */
 .loadingScreen {
   position: fixed;
   inset: 0;
@@ -143,10 +128,100 @@ body {
   margin: 0;
 }
 
-/* Mobile-specific CSS variable overrides */
 @media (max-width: 768px) {
   :root {
     --sidebar-width: 0px;
-    /* Sidebar is overlay on mobile, doesn't affect layout */
+  }
+}
+
+html[data-vt-direction="forward"]::view-transition-old(root) {
+  --vt-slide-offset: -60px;
+  animation:
+    var(--animation-duration-fast) ease-in both vtFade reverse,
+    var(--animation-duration-normal) ease-in-out both vtSlide reverse;
+}
+
+html[data-vt-direction="forward"]::view-transition-new(root) {
+  --vt-slide-offset: 60px;
+  animation:
+    var(--animation-duration-fast) ease-out var(--animation-duration-fast) both
+      vtFade,
+    var(--animation-duration-normal) ease-in-out both vtSlide;
+}
+
+html[data-vt-direction="back"]::view-transition-old(root) {
+  --vt-slide-offset: 60px;
+  animation:
+    var(--animation-duration-fast) ease-in both vtFade reverse,
+    var(--animation-duration-normal) ease-in-out both vtSlide reverse;
+}
+
+html[data-vt-direction="back"]::view-transition-new(root) {
+  --vt-slide-offset: -60px;
+  animation:
+    var(--animation-duration-fast) ease-out var(--animation-duration-fast) both
+      vtFade,
+    var(--animation-duration-normal) ease-in-out both vtSlide;
+}
+
+@keyframes vtFade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes vtSlide {
+  from {
+    translate: var(--vt-slide-offset);
+  }
+  to {
+    translate: 0;
+  }
+}
+
+@layer utilities {
+  .search-wrapper {
+    position: relative;
+  }
+
+  .search-icon {
+    position: absolute;
+    left: var(--spacing-3);
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+  }
+
+  .search-input {
+    background: var(--surface-transparent-1);
+    border: 1px solid var(--surface-transparent-2);
+    color: var(--primary-foreground);
+    padding-left: calc(var(--spacing-3) * 2 + 16px);
+    border-radius: var(--radius);
+  }
+
+  .search-input::placeholder {
+    color: var(--primary-foreground);
+  }
+
+  .search-input:focus {
+    outline: var(--shadow);
+    border-color: var(--primary-border-strong);
+    box-shadow: 0 0 0 2px var(--primary-transparent-2);
+  }
+
+  .action-button-lift {
+    transition: transform var(--animation-duration-fast) ease;
+  }
+
+  .action-button-lift:hover {
+    transform: translateY(-1px);
+  }
+
+  .action-button-lift:active {
+    transform: translateY(0);
   }
 }

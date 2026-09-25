@@ -1,0 +1,106 @@
+:root {
+  --themegradient: radial-gradient(
+    circle at center,
+    #2c1810 20%,
+    #5a2c1a 40%,
+    #8b3a3a 60%,
+    #cc6666 80%
+  );
+  --themecolor: hsl(15, 45%, 25%);
+  --themecolor2: hsl(15, 55%, 35%);
+  --themecolor3: hsl(0, 35%, 45%);
+  --themecolor4: hsl(0, 50%, 60%);
+
+  --foreground: hsl(15, 25%, 20%);
+
+  --background: hsl(15, 10%, 96%);
+
+  --surface: hsl(15, 15%, 93%);
+
+  --primary: hsl(15, 55%, 35%);
+  --primary-foreground: hsl(0, 0%, 100%);
+
+  --secondary: hsl(0, 50%, 60%);
+  --secondary-foreground: hsl(0, 0%, 100%);
+
+  --sidebar: hsl(15, 40%, 25%);
+  --sidebar-foreground: hsl(15, 20%, 90%);
+
+  --favorite: hsl(0, 50%, 60%);
+
+  --danger: hsl(0, 70%, 55%);
+
+  --card: hsl(0, 0%, 100%);
+  --card-rgb: 139, 58, 58;
+
+  --popup: hsl(0, 0%, 100%);
+
+  --muted: hsl(15, 20%, 82%);
+  --muted-foreground: hsl(15, 15%, 35%);
+
+  --error: hsl(0, 70%, 55%);
+  --error-foreground: hsl(0, 0%, 100%);
+
+  --certain-icons: var(--themecolor2);
+  --albumart-gradient: radial-gradient(
+    circle at center,
+    var(--themecolor) 25%,
+    var(--themecolor2) 50%,
+    var(--themecolor3) 75%,
+    var(--themecolor4) 100%
+  );
+}
+
+.dark {
+  --themegradient: radial-gradient(
+    circle at center,
+    #0a0a0a 15%,
+    #1a0f0a 30%,
+    #2c1810 45%,
+    #5a2c1a 65%,
+    #8b3a3a 85%
+  );
+  --themecolor: hsl(15, 60%, 40%);
+  --themecolor2: hsl(15, 70%, 50%);
+  --themecolor3: hsl(0, 60%, 55%);
+  --themecolor4: hsl(0, 70%, 65%);
+
+  --foreground: hsl(15, 30%, 85%);
+
+  --background: hsl(15, 20%, 5%);
+
+  --surface: hsl(15, 25%, 8%);
+
+  --primary: hsl(15, 70%, 50%);
+  --primary-foreground: hsl(0, 0%, 100%);
+
+  --secondary: hsl(0, 70%, 65%);
+  --secondary-foreground: hsl(0, 0%, 100%);
+
+  --sidebar: hsl(15, 40%, 6%);
+  --sidebar-foreground: hsl(15, 30%, 80%);
+
+  --favorite: hsl(0, 70%, 65%);
+
+  --danger: hsl(0, 80%, 60%);
+
+  --card: hsl(15, 25%, 10%);
+  --card-rgb: 139, 58, 58;
+
+  --popup: hsl(15, 25%, 10%);
+
+  --muted: hsl(15, 20%, 15%);
+  --muted-foreground: hsl(15, 20%, 65%);
+
+  --error: hsl(0, 80%, 60%);
+  --error-foreground: hsl(0, 0%, 100%);
+
+  --certain-icons: hsl(15, 70%, 50%);
+  --albumart-gradient: radial-gradient(
+    circle at center,
+    hsl(15, 20%, 8%) 10%,
+    hsl(15, 60%, 40%) 30%,
+    hsl(15, 70%, 50%) 60%,
+    hsl(0, 70%, 65%) 90%
+  );
+}

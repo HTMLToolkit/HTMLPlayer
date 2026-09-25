@@ -1,9 +1,15 @@
-interface WallpaperProps {
-  currentSong: Song | null;
-  playbackState: PlayerState | null;
+import type { Track } from "../core/engine/types";
+
+declare global {
+  interface WallpaperProps {
+    currentSong: Track | null;
+    playbackState: {
+      analyserNode?: AnalyserNode | null;
+      isPlaying?: boolean;
+    } | null;
+  }
 }
 
-// Allow developers to optionally export more advanced types later
 declare module "htmlplayer/wallpaper" {
   export type { WallpaperProps };
 }

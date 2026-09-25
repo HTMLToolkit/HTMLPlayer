@@ -1,0 +1,96 @@
+:root {
+  --themegradient: linear-gradient(135deg, #8b5cf6, #06b6d4, #ec4899);
+  --themecolor: hsl(262, 83%, 58%);
+  --themecolor2: hsl(188, 94%, 43%);
+  --themecolor3: hsl(322, 84%, 60%);
+  --themecolor4: hsl(275, 70%, 45%);
+
+  --foreground: hsl(220, 15%, 20%);
+
+  --background: hsl(250, 20%, 98%);
+
+  --surface: hsl(260, 15%, 96%);
+
+  --primary: hsl(262, 83%, 58%);
+  --primary-foreground: hsl(0, 0%, 100%);
+
+  --secondary: hsl(322, 84%, 60%);
+  --secondary-foreground: hsl(0, 0%, 100%);
+
+  --sidebar: hsl(270, 35%, 25%);
+  --sidebar-foreground: hsl(260, 15%, 95%);
+
+  --favorite: hsl(322, 84%, 60%);
+
+  --danger: hsl(0, 100%, 67%);
+
+  --card: hsl(0, 0%, 100%);
+  --card-rgb: 139, 92, 246;
+
+  --popup: hsl(0, 0%, 100%);
+
+  --muted: hsl(260, 15%, 85%);
+  --muted-foreground: hsl(260, 10%, 40%);
+
+  --error: hsl(358, 75%, 55%);
+  --error-foreground: hsl(0, 0%, 100%);
+
+  --certain-icons: var(--themecolor);
+  --albumart-gradient: linear-gradient(
+    135deg,
+    var(--themecolor) 0%,
+    var(--themecolor2) 50%,
+    var(--themecolor3) 100%
+  );
+}
+
+.dark {
+  --themegradient: linear-gradient(
+    135deg,
+    #2e1065 0%,
+    #0c4a6e 50%,
+    #831843 100%
+  );
+  --themecolor: hsl(262, 83%, 45%);
+  --themecolor2: hsl(188, 94%, 30%);
+  --themecolor3: hsl(322, 84%, 45%);
+  --themecolor4: hsl(275, 70%, 35%);
+
+  --foreground: hsl(260, 15%, 90%);
+
+  --background: hsl(262, 25%, 8%);
+
+  --surface: hsl(262, 20%, 12%);
+
+  --primary: hsl(262, 83%, 65%);
+  --primary-foreground: hsl(0, 0%, 100%);
+
+  --secondary: hsl(322, 84%, 70%);
+  --secondary-foreground: hsl(0, 0%, 100%);
+
+  --sidebar: hsl(270, 35%, 12%);
+  --sidebar-foreground: hsl(260, 15%, 90%);
+
+  --favorite: hsl(322, 84%, 70%);
+
+  --danger: hsl(0, 100%, 67%);
+
+  --card: hsl(262, 20%, 14%);
+  --card-rgb: 139, 92, 246;
+
+  --popup: hsl(262, 20%, 14%);
+
+  --muted: hsl(262, 15%, 20%);
+  --muted-foreground: hsl(260, 10%, 70%);
+
+  --error: hsl(358, 75%, 60%);
+  --error-foreground: hsl(0, 0%, 100%);
+
+  --certain-icons: hsl(262, 83%, 65%);
+  --albumart-gradient: linear-gradient(
+    135deg,
+    #2e1065 0%,
+    #0c4a6e 50%,
+    #831843 100%
+  );
+}

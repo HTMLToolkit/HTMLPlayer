@@ -8,15 +8,12 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// In-memory token storage
 const userTokens = {};
 
-// --- Root
 app.get("/", (req, res) => {
   res.send("HTMLPlayer Backend is running");
 });
 
-// --- OAuth2 callback
 app.get("/oauth/callback", async (req, res) => {
   const code = req.query.code;
   if (!code) return res.status(400).send("No code provided");
@@ -25,7 +22,6 @@ app.get("/oauth/callback", async (req, res) => {
     const tokenData = await exchangeCodeForToken(code);
     const user = await getUserInfo(tokenData.access_token);
 
-    // Store token data (including refresh token if available)
     userTokens[user.id] = {
       access_token: tokenData.access_token,
       refresh_token: tokenData.refresh_token,
@@ -52,7 +48,6 @@ app.get("/oauth/callback", async (req, res) => {
   }
 });
 
-// --- Update Rich Presence
 app.post("/presence", async (req, res) => {
   const { userId, details, state } = req.body;
   const tokenData = userTokens[userId];
@@ -60,10 +55,8 @@ app.post("/presence", async (req, res) => {
   if (!tokenData) return res.status(400).send("User not authorized");
 
   try {
-    // Check if token is expired and needs refresh
     let accessToken = tokenData.access_token;
     if (tokenData.expires_at && Date.now() > tokenData.expires_at) {
-      // Token expired - would need refresh logic here
       return res.status(401).send("Token expired - please re-authorize");
     }
 
@@ -85,7 +78,6 @@ app.post("/presence", async (req, res) => {
   }
 });
 
-// --- Check authorization status
 app.get("/auth/status/:userId", async (req, res) => {
   const { userId } = req.params;
   const tokenData = userTokens[userId];

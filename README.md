@@ -71,7 +71,7 @@ HTMLPlayer started as a single HTML file in v1.0. Version 2.0 is a ground-up rew
 
 ### Personalization
 
-* Dynamic themes live in `helpers/themeLoader.tsx` and automatically import CSS from `themes/`. You can switch theme mode (light, dark, auto), icon sets (`helpers/iconLoader.tsx`), wallpapers (`helpers/wallpaperLoader.tsx`), font sizing, and compact layout directly inside Settings.
+* Dynamic themes live in `ui/themeLoader.tsx` and automatically import CSS from `ui/resources/themes/Palettes/`. You can switch theme mode (light, dark, auto), icon sets (`ui/iconLoader.tsx`), wallpapers (`ui/wallpaperLoader.tsx`), font sizing, and compact layout directly inside Settings.
 * Keyboard shortcuts are editable through `components/ShortcutConfig.tsx` and saved to a dedicated IndexedDB database via `helpers/shortcutsIndexedDbHelper.ts`.
 * Tempo, pitch, volume, crossfade, gapless playback, autoplay, session restore, and other playback defaults are all managed within `components/Settings.tsx`.
 

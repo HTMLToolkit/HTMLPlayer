@@ -1,0 +1,89 @@
+:root {
+  --themegradient: linear-gradient(135deg, #b22222, #ff6347);
+  --themecolor: hsl(0, 75%, 45%);
+  --themecolor2: hsl(0, 80%, 50%);
+  --themecolor3: hsl(0, 70%, 55%);
+  --themecolor4: hsl(0, 65%, 60%);
+
+  --foreground: hsl(0, 0%, 20%);
+
+  --background: hsl(0, 20%, 98%);
+
+  --surface: hsl(0, 15%, 96%);
+
+  --primary: hsl(0, 80%, 50%);
+  --primary-foreground: hsl(0, 0%, 0%);
+
+  --secondary: hsl(350, 70%, 60%);
+  --secondary-foreground: hsl(0, 0%, 100%);
+
+  --sidebar: hsl(0, 25%, 92%);
+  --sidebar-foreground: hsl(0, 0%, 20%);
+
+  --favorite: hsl(0, 100%, 71%);
+
+  --danger: hsl(0, 85%, 60%);
+
+  --card: hsl(0, 95%, 98%);
+  --card-rgb: 178, 34, 34;
+
+  --popup: hsl(0, 95%, 98%);
+
+  --muted: hsl(0, 15%, 85%);
+  --muted-foreground: hsl(0, 10%, 40%);
+
+  --error: hsl(358, 75%, 55%);
+  --error-foreground: hsl(0, 0%, 100%);
+
+  --certain-icons: var(--themecolor);
+  --albumart-gradient: linear-gradient(
+    135deg,
+    var(--themecolor) 0%,
+    var(--themecolor2) 100%
+  );
+}
+
+.dark {
+  --themegradient: linear-gradient(135deg, #5c0b0b, #a83232);
+  --themecolor: hsl(0, 70%, 25%);
+  --themecolor2: hsl(0, 75%, 35%);
+  --themecolor3: hsl(0, 60%, 30%);
+  --themecolor4: hsl(0, 55%, 25%);
+
+  --foreground: hsl(0, 0%, 95%);
+
+  --background: hsl(0, 60%, 10%);
+
+  --surface: hsl(0, 55%, 13%);
+
+  --primary: hsl(0, 75%, 35%);
+  --primary-foreground: hsl(0, 0%, 100%);
+
+  --secondary: hsl(350, 65%, 45%);
+  --secondary-foreground: hsl(0, 0%, 100%);
+
+  --sidebar: hsl(0, 60%, 15%);
+  --sidebar-foreground: hsl(0, 0%, 95%);
+
+  --favorite: hsl(0, 100%, 71%);
+
+  --danger: hsl(0, 85%, 60%);
+
+  --card: hsl(0, 65%, 15%);
+  --card-rgb: 92, 11, 11;
+
+  --popup: hsl(0, 65%, 15%);
+
+  --muted: hsl(0, 55%, 25%);
+  --muted-foreground: hsl(0, 50%, 70%);
+
+  --error: hsl(0, 75%, 55%);
+  --error-foreground: hsl(0, 0%, 100%);
+
+  --certain-icons: hsl(0, 75%, 45%);
+  --albumart-gradient: linear-gradient(
+    135deg,
+    var(--themecolor) 0%,
+    var(--themecolor2) 100%
+  );
+}

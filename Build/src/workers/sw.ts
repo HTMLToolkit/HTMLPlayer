@@ -35,7 +35,6 @@ registerRoute(
           );
         }
       } else {
-        // fallback for older/single share implementations
         const file = formData.get("audio");
         if (
           file &&
@@ -73,10 +72,12 @@ registerRoute(
         self.location.origin,
       );
       return Response.redirect(redirectUrl.href, 303);
-    } catch (e: any) {
-      return new Response("Failed to process share: " + (e?.message || e), {
-        status: 400,
-      });
+    } catch (e: unknown) {
+      return new Response(
+        "Failed to process share: " +
+          (e instanceof Error ? e.message : String(e)),
+        { status: 400 },
+      );
     }
   },
   "POST",

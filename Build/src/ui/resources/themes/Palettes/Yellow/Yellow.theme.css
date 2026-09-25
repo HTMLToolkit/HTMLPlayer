@@ -1,0 +1,89 @@
+:root {
+  --themegradient: linear-gradient(135deg, #f1c40f, #f39c12);
+  --themecolor: hsl(45, 90%, 50%);
+  --themecolor2: hsl(45, 90%, 40%);
+  --themecolor3: hsl(45, 80%, 55%);
+  --themecolor4: hsl(45, 75%, 65%);
+
+  --foreground: hsl(45, 20%, 20%);
+
+  --background: hsl(45, 30%, 98%);
+
+  --surface: hsl(45, 25%, 96%);
+
+  --primary: hsl(45, 90%, 50%);
+  --primary-foreground: hsl(52, 100%, 17%);
+
+  --secondary: hsl(50, 80%, 60%);
+  --secondary-foreground: hsl(0, 0%, 100%);
+
+  --sidebar: hsl(45, 40%, 92%);
+  --sidebar-foreground: hsl(45, 20%, 20%);
+
+  --favorite: hsl(50, 100%, 60%);
+
+  --danger: hsl(0, 85%, 60%);
+
+  --card: hsl(45, 30%, 98%);
+  --card-rgb: 241, 196, 15;
+
+  --popup: hsl(45, 30%, 98%);
+
+  --muted: hsl(45, 20%, 85%);
+  --muted-foreground: hsl(45, 15%, 40%);
+
+  --error: hsl(358, 75%, 55%);
+  --error-foreground: hsl(0, 0%, 100%);
+
+  --certain-icons: var(--themecolor);
+  --albumart-gradient: linear-gradient(
+    135deg,
+    var(--themecolor1) 0%,
+    var(--themecolor2) 100%
+  );
+}
+
+.dark {
+  --themegradient: linear-gradient(135deg, #8c6d1f, #d4af37);
+  --themecolor: hsl(45, 70%, 25%);
+  --themecolor2: hsl(45, 75%, 35%);
+  --themecolor3: hsl(45, 60%, 30%);
+  --themecolor4: hsl(45, 55%, 25%);
+
+  --foreground: hsl(45, 15%, 95%);
+
+  --background: hsl(45, 60%, 10%);
+
+  --surface: hsl(45, 55%, 13%);
+
+  --primary: hsl(45, 75%, 35%);
+  --primary-foreground: hsl(0, 0%, 100%);
+
+  --secondary: hsl(50, 65%, 45%);
+  --secondary-foreground: hsl(0, 0%, 100%);
+
+  --sidebar: hsl(45, 50%, 15%);
+  --sidebar-foreground: hsl(45, 15%, 95%);
+
+  --favorite: hsl(50, 100%, 60%);
+
+  --danger: hsl(0, 85%, 60%);
+
+  --card: hsl(45, 50%, 15%);
+  --card-rgb: 140, 109, 31;
+
+  --popup: hsl(45, 50%, 15%);
+
+  --muted: hsl(45, 45%, 25%);
+  --muted-foreground: hsl(45, 40%, 70%);
+
+  --error: hsl(358, 75%, 55%);
+  --error-foreground: hsl(0, 0%, 100%);
+
+  --certain-icons: hsl(45, 75%, 35%);
+  --albumart-gradient: linear-gradient(
+    135deg,
+    var(--themecolor1) 0%,
+    var(--themecolor2) 100%
+  );
+}
