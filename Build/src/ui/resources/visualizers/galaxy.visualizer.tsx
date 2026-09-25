@@ -4,7 +4,14 @@ import {
   VisualizerType,
 } from "../../../platform/visualizers";
 
-const galaxySpectrogram: VisualizerType = {
+interface GalaxySpectrogramSettings {
+  particleColor?: string;
+  backgroundColor?: string;
+  armCount?: number;
+  particleSize?: number;
+}
+
+const galaxySpectrogram: VisualizerType<GalaxySpectrogramSettings> = {
   name: "Galaxy Formation",
   dataType: "frequency",
   draw: function (

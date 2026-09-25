@@ -16,8 +16,7 @@ interface IconFallbackState {
 }
 
 export type IconFallback =
-  | React.ReactNode
-  | ((state: IconFallbackState) => React.ReactNode);
+  React.ReactNode | ((state: IconFallbackState) => React.ReactNode);
 
 export interface IconProps {
   name: string;

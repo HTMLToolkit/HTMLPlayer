@@ -77,7 +77,12 @@ export function UpdatePrompt({
   }
 
   return (
-    <div ref={promptRef} className={styles.updatePrompt} role="alert" aria-live="polite">
+    <div
+      ref={promptRef}
+      className={styles.updatePrompt}
+      role="alert"
+      aria-live="polite"
+    >
       <div className={styles.content}>
         <div className={styles.iconWrapper}>
           <Icon name="refreshCw" size={20} decorative />

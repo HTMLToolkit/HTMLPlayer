@@ -4,7 +4,14 @@ import {
   VisualizerType,
 } from "../../../platform/visualizers";
 
-const spectrumRipple: VisualizerType = {
+interface SpectrumRippleSettings {
+  rippleColor?: string;
+  backgroundColor?: string;
+  lineWidth?: number;
+  rippleStep?: number;
+}
+
+const spectrumRipple: VisualizerType<SpectrumRippleSettings> = {
   name: "Spectrum Ripple",
   dataType: "frequency",
   draw: function (

@@ -5,7 +5,17 @@ import {
   VisualizerType,
 } from "../../../platform/visualizers";
 
-const topwaterSpectrogram: VisualizerType = {
+interface TopwaterSpectrogramSettings {
+  lineColor?: string;
+  gradientColor?: string;
+  backgroundColor?: string;
+  ringCount?: number;
+  radiusScale?: number;
+  waveAmplitude?: number;
+  segmentStep?: number;
+}
+
+const topwaterSpectrogram: VisualizerType<TopwaterSpectrogramSettings> = {
   name: "Top-Down Water Spectrogram",
   dataType: "frequency",
   draw: function (

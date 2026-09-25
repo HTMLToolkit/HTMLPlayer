@@ -69,8 +69,7 @@ export class KomorebiEngine {
 
   private readonly loadOp = new AsyncOp();
   private readonly trackResolver:
-    | ((track: Track) => Promise<Track>)
-    | undefined;
+    ((track: Track) => Promise<Track>) | undefined;
   private readonly preloadManager: PreloadManager | null;
   private prefetchSentinel = false;
 

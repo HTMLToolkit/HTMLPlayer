@@ -74,7 +74,8 @@ registerRoute(
       return Response.redirect(redirectUrl.href, 303);
     } catch (e: unknown) {
       return new Response(
-        "Failed to process share: " + (e instanceof Error ? e.message : String(e)),
+        "Failed to process share: " +
+          (e instanceof Error ? e.message : String(e)),
         { status: 400 },
       );
     }

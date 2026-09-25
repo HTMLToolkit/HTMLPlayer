@@ -61,6 +61,10 @@ export class AudioGraph {
     return source;
   }
 
+  connectToChain(node: AudioNode): void {
+    node.connect(this.ensureChainInput());
+  }
+
   setVolume(volume: number): void {
     this.volume = clampVolume(volume);
     if (this.masterGain) {
@@ -78,7 +82,13 @@ export class AudioGraph {
     const linear =
       gainDb === null || !Number.isFinite(gainDb)
         ? 1
-        : Math.pow(10, Math.max(-MAX_REPLAY_GAIN_DB, Math.min(MAX_REPLAY_GAIN_DB, gainDb)) / 20);
+        : Math.pow(
+            10,
+            Math.max(
+              -MAX_REPLAY_GAIN_DB,
+              Math.min(MAX_REPLAY_GAIN_DB, gainDb),
+            ) / 20,
+          );
 
     if (this.replayGainNode) {
       this.replayGainNode.gain.value = linear;

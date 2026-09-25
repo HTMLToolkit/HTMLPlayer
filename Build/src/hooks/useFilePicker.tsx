@@ -75,7 +75,9 @@ export function pickAudioFiles(): Promise<AudioFile[]> {
       useEffect(() => {
         const audioFiles: AudioFile[] = [];
 
-        const onFileAdded = (file: UppyFile<Record<string, unknown>, Record<string, unknown>>) => {
+        const onFileAdded = (
+          file: UppyFile<Record<string, unknown>, Record<string, unknown>>,
+        ) => {
           const processed = processFiles([file.data as File]);
           if (processed.length === 0) {
             uppy.removeFile(file.id);

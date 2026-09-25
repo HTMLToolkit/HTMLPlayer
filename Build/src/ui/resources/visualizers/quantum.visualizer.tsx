@@ -4,7 +4,15 @@ import {
   VisualizerType,
 } from "../../../platform/visualizers";
 
-const quantumSpectrogram: VisualizerType = {
+interface QuantumSpectrogramSettings {
+  pointColor?: string;
+  lineColor?: string;
+  backgroundColor?: string;
+  fieldSize?: number;
+  probabilityThreshold?: number;
+}
+
+const quantumSpectrogram: VisualizerType<QuantumSpectrogramSettings> = {
   name: "Quantum Field",
   dataType: "frequency",
   draw: function (

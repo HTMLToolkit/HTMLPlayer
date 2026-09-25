@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import gsap from "gsap";
 
 interface Particle {
   x: number;
@@ -12,7 +13,6 @@ interface Particle {
 
 const ParticlesWallpaper: React.FC<WallpaperProps> = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const animationRef = useRef<number | null>(null);
   const particlesRef = useRef<Particle[]>([]);
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
 
@@ -40,16 +40,17 @@ const ParticlesWallpaper: React.FC<WallpaperProps> = () => {
   });
 
   const updateParticles = (width: number, height: number) => {
+    const ratio = gsap.ticker.deltaRatio(60);
     particlesRef.current.forEach((particle) => {
-      particle.x += particle.vx;
-      particle.y += particle.vy;
+      particle.x += particle.vx * ratio;
+      particle.y += particle.vy * ratio;
 
       if (particle.x < 0) particle.x = width;
       if (particle.x > width) particle.x = 0;
       if (particle.y < 0) particle.y = height;
       if (particle.y > height) particle.y = 0;
 
-      particle.opacity += (Math.random() - 0.5) * 0.01;
+      particle.opacity += (Math.random() - 0.5) * 0.01 * ratio;
       particle.opacity = Math.max(0.1, Math.min(1, particle.opacity));
     });
   };
@@ -95,19 +96,6 @@ const ParticlesWallpaper: React.FC<WallpaperProps> = () => {
     ctx.globalAlpha = 1;
   };
 
-  const animate = () => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-
-    updateParticles(canvas.width, canvas.height);
-    drawParticles(ctx, canvas.width, canvas.height);
-
-    animationRef.current = requestAnimationFrame(animate);
-  };
-
   useEffect(() => {
     const updateDimensions = () => {
       setDimensions({
@@ -139,12 +127,19 @@ const ParticlesWallpaper: React.FC<WallpaperProps> = () => {
       createParticle(dimensions.width, dimensions.height),
     );
 
-    animate();
+    const tickerId = gsap.ticker.add(() => {
+      const canvas = canvasRef.current;
+      if (!canvas) return;
+
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return;
+
+      updateParticles(canvas.width, canvas.height);
+      drawParticles(ctx, canvas.width, canvas.height);
+    });
 
     return () => {
-      if (animationRef.current) {
-        cancelAnimationFrame(animationRef.current);
-      }
+      gsap.ticker.remove(tickerId);
     };
   }, [dimensions]);
 

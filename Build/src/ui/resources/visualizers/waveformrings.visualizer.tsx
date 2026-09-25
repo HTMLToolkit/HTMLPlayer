@@ -4,7 +4,14 @@ import {
   VisualizerType,
 } from "../../../platform/visualizers";
 
-const waveformRings: VisualizerType = {
+interface WaveformRingsSettings {
+  ringColor?: string;
+  backgroundColor?: string;
+  ringCount?: number;
+  lineWidth?: number;
+}
+
+const waveformRings: VisualizerType<WaveformRingsSettings> = {
   name: "Waveform Rings",
   dataType: "frequency",
   draw: function (

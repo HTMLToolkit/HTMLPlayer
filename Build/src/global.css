@@ -144,8 +144,8 @@ html[data-vt-direction="forward"]::view-transition-old(root) {
 html[data-vt-direction="forward"]::view-transition-new(root) {
   --vt-slide-offset: 60px;
   animation:
-    var(--animation-duration-fast) ease-out var(--animation-duration-fast)
-      both vtFade,
+    var(--animation-duration-fast) ease-out var(--animation-duration-fast) both
+      vtFade,
     var(--animation-duration-normal) ease-in-out both vtSlide;
 }
 
@@ -159,8 +159,8 @@ html[data-vt-direction="back"]::view-transition-old(root) {
 html[data-vt-direction="back"]::view-transition-new(root) {
   --vt-slide-offset: -60px;
   animation:
-    var(--animation-duration-fast) ease-out var(--animation-duration-fast)
-      both vtFade,
+    var(--animation-duration-fast) ease-out var(--animation-duration-fast) both
+      vtFade,
     var(--animation-duration-normal) ease-in-out both vtSlide;
 }
 

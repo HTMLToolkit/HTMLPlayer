@@ -4,7 +4,16 @@ import {
   VisualizerType,
 } from "../../../platform/visualizers";
 
-const biologicalCell: VisualizerType = {
+interface BiologicalCellSettings {
+  membraneColor?: string;
+  organelleColor?: string;
+  connectionColor?: string;
+  backgroundColor?: string;
+  cellRadiusScale?: number;
+  organelleSize?: number;
+}
+
+const biologicalCell: VisualizerType<BiologicalCellSettings> = {
   name: "Biological Cell",
   dataType: "frequency",
   draw: function (

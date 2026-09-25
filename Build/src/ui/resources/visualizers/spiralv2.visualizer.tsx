@@ -4,7 +4,14 @@ import {
   VisualizerType,
 } from "../../../platform/visualizers";
 
-const spiralSpectrogramV2: VisualizerType = {
+interface SpiralSpectrogramV2Settings {
+  pointColor?: string;
+  backgroundColor?: string;
+  pointSize?: number;
+  spiralTightness?: number;
+}
+
+const spiralSpectrogramV2: VisualizerType<SpiralSpectrogramV2Settings> = {
   name: "Spiral Spectrogram v2",
   dataType: "frequency",
   draw: function (

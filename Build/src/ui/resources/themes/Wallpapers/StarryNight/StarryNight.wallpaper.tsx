@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import gsap from "gsap";
 
 interface Star {
   x: number;
@@ -11,7 +12,6 @@ interface Star {
 
 const StarryNightWallpaper: React.FC<WallpaperProps> = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const animationRef = useRef<number | null>(null);
   const starsRef = useRef<Star[]>([]);
   const timeRef = useRef(0);
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
@@ -56,8 +56,8 @@ const StarryNightWallpaper: React.FC<WallpaperProps> = () => {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    const animate = () => {
-      timeRef.current += 0.02;
+    const tickerId = gsap.ticker.add(() => {
+      timeRef.current += 0.02 * gsap.ticker.deltaRatio(60);
 
       const gradient = ctx.createRadialGradient(
         dimensions.width / 2,
@@ -97,7 +97,7 @@ const StarryNightWallpaper: React.FC<WallpaperProps> = () => {
 
       ctx.globalAlpha = 1;
 
-      if (Math.random() < 0.005) {
+      if (Math.random() < 0.005 * gsap.ticker.deltaRatio(60)) {
         const startX = Math.random() * dimensions.width;
         const startY = Math.random() * dimensions.height * 0.3;
         const endX = startX + 200;
@@ -115,16 +115,10 @@ const StarryNightWallpaper: React.FC<WallpaperProps> = () => {
 
         ctx.shadowBlur = 0;
       }
-
-      animationRef.current = requestAnimationFrame(animate);
-    };
-
-    animate();
+    });
 
     return () => {
-      if (animationRef.current) {
-        cancelAnimationFrame(animationRef.current);
-      }
+      gsap.ticker.remove(tickerId);
     };
   }, [dimensions]);
 

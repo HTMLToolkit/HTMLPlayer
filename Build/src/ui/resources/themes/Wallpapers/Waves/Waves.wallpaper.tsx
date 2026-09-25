@@ -1,8 +1,8 @@
 import React, { useEffect, useRef } from "react";
+import gsap from "gsap";
 
 const GradientWavesWallpaper: React.FC<WallpaperProps> = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const animationRef = useRef<number | null>(null);
   const timeRef = useRef(0);
 
   useEffect(() => {
@@ -20,8 +20,8 @@ const GradientWavesWallpaper: React.FC<WallpaperProps> = () => {
     resizeCanvas();
     window.addEventListener("resize", resizeCanvas);
 
-    const animate = () => {
-      timeRef.current += 0.01;
+    const tickerId = gsap.ticker.add(() => {
+      timeRef.current += 0.01 * gsap.ticker.deltaRatio(60);
 
       const gradient = ctx.createLinearGradient(
         0,
@@ -67,17 +67,11 @@ const GradientWavesWallpaper: React.FC<WallpaperProps> = () => {
         ctx.fillStyle = waveGradient;
         ctx.fill();
       }
-
-      animationRef.current = requestAnimationFrame(animate);
-    };
-
-    animate();
+    });
 
     return () => {
       window.removeEventListener("resize", resizeCanvas);
-      if (animationRef.current) {
-        cancelAnimationFrame(animationRef.current);
-      }
+      gsap.ticker.remove(tickerId);
     };
   }, []);
 

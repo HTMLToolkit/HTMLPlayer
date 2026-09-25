@@ -68,7 +68,9 @@ function EqualizerControls({
     <div className={styles.equalizerControls}>
       <div className={styles.settingItem}>
         <div className={styles.settingInfo}>
-          <label htmlFor="equalizer-enabled">{t("settings.audio.enableEqualizer")}</label>
+          <label htmlFor="equalizer-enabled">
+            {t("settings.audio.enableEqualizer")}
+          </label>
           <p className={styles.settingDescription}>
             {t("settings.audio.enableEqualizerDesc")}
           </p>
@@ -84,7 +86,9 @@ function EqualizerControls({
         <>
           <div className={styles.settingItem}>
             <div className={styles.settingLabel}>
-              <label htmlFor="equalizer-preset">{t("settings.audio.preset")}</label>
+              <label htmlFor="equalizer-preset">
+                {t("settings.audio.preset")}
+              </label>
             </div>
             <Select value={activePreset} onValueChange={handlePreset}>
               <SelectTrigger id="equalizer-preset">
@@ -121,7 +125,7 @@ function EqualizerControls({
                 <span className={styles.settingValue}>
                   {gains[index] && gains[index]! > 0
                     ? `+${gains[index]}`
-                    : gains[index] ?? 0}
+                    : (gains[index] ?? 0)}
                   dB
                 </span>
               </div>

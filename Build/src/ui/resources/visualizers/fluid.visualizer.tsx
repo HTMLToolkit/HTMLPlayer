@@ -5,7 +5,16 @@ import {
   VisualizerType,
 } from "../../../platform/visualizers";
 
-const fluidSpectrogram: VisualizerType = {
+interface FluidSpectrogramSettings {
+  particleColor?: string;
+  backgroundColor?: string;
+  particleSize?: number;
+  particleLife?: number;
+  particleCount?: number;
+  velocityScale?: number;
+}
+
+const fluidSpectrogram: VisualizerType<FluidSpectrogramSettings> = {
   name: "Fluid Dynamics",
   dataType: "frequency",
   draw: function (

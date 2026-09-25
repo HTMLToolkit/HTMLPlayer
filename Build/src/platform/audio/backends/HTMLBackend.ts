@@ -129,8 +129,7 @@ export class HTMLAudioBackend extends BaseAudioBackend {
   private routeAudioElement(): void {
     try {
       this.graph.connectMediaElement(this.audio);
-    } catch {
-    }
+    } catch {}
   }
 
   private handleTimeUpdate(): void {

@@ -4,7 +4,14 @@ import {
   VisualizerType,
 } from "../../../platform/visualizers";
 
-const waterfall: VisualizerType = {
+interface WaterfallSettings {
+  hueBase?: number;
+  saturation?: number;
+  lightness?: number;
+  scrollSpeed?: number;
+}
+
+const waterfall: VisualizerType<WaterfallSettings> = {
   name: "Waterfall",
   dataType: "frequency",
   draw: function (

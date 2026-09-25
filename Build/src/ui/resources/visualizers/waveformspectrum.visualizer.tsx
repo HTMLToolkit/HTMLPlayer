@@ -4,7 +4,14 @@ import {
   VisualizerType,
 } from "../../../platform/visualizers";
 
-const waveformSpectrum: VisualizerType = {
+interface WaveformSpectrumSettings {
+  lineColor?: string;
+  backgroundColor?: string;
+  lineWidth?: number;
+  glowIntensity?: number;
+}
+
+const waveformSpectrum: VisualizerType<WaveformSpectrumSettings> = {
   name: "Waveform Spectrum",
   dataType: "frequency",
   draw: function (

@@ -10,13 +10,13 @@ export const dialogStorage = {
       const tx = db.transaction(STORES.SETTINGS, "readonly");
       const store = tx.objectStore(STORES.SETTINGS);
 
-      const result = await new Promise<{ data?: { dontShowAgain?: boolean } } | null>(
-        (resolve, reject) => {
-          const req = store.get(`dialog-${dialogKey}`);
-          req.onsuccess = () => resolve(req.result);
-          req.onerror = () => reject(req.error);
-        },
-      );
+      const result = await new Promise<{
+        data?: { dontShowAgain?: boolean };
+      } | null>((resolve, reject) => {
+        const req = store.get(`dialog-${dialogKey}`);
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => reject(req.error);
+      });
 
       return result?.data?.dontShowAgain !== true;
     } catch (error) {

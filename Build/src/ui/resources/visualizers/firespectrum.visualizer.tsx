@@ -4,7 +4,14 @@ import {
   VisualizerType,
 } from "../../../platform/visualizers";
 
-const fireSpectrum: VisualizerType = {
+interface FireSpectrumSettings {
+  gradientColors?: Array<{ stop: number; color: string }>;
+  backgroundColor?: string;
+  lineWidth?: number;
+  glowIntensity?: number;
+}
+
+const fireSpectrum: VisualizerType<FireSpectrumSettings> = {
   name: "Fire Spectrum",
   dataType: "time",
   draw: function (

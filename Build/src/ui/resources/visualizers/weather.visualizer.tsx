@@ -1,6 +1,13 @@
 import { sample, VisualizerType } from "../../../platform/visualizers";
 
-const weatherSpectrogram: VisualizerType = {
+interface WeatherSpectrogramSettings {
+  cloudColor?: string;
+  backgroundColor?: string;
+  cloudHeight?: number;
+  curveScale?: number;
+}
+
+const weatherSpectrogram: VisualizerType<WeatherSpectrogramSettings> = {
   name: "Weather Pattern Spectrogram",
   dataType: "frequency",
   draw: function (

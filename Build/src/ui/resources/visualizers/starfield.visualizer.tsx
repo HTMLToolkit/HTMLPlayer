@@ -4,7 +4,16 @@ import {
   VisualizerType,
 } from "../../../platform/visualizers";
 
-const starField: VisualizerType = {
+interface StarFieldSettings {
+  lineColor?: string;
+  starColor?: string;
+  backgroundColor?: string;
+  lineWidth?: number;
+  starInterval?: number;
+  starSize?: number;
+}
+
+const starField: VisualizerType<StarFieldSettings> = {
   name: "Star Field",
   dataType: "time",
   draw: function (

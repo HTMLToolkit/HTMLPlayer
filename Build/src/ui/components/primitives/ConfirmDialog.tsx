@@ -14,12 +14,7 @@ import modalStyles from "./Dialog.module.css";
 import type { Playlist, PlaylistFolder } from "../../../core/engine/types";
 
 export type DialogType =
-  | "createPlaylist"
-  | "createFolder"
-  | "delete"
-  | "rename"
-  | "move"
-  | "confirm";
+  "createPlaylist" | "createFolder" | "delete" | "rename" | "move" | "confirm";
 
 interface ConfirmDialogProps {
   type: DialogType;

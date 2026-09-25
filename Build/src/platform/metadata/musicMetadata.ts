@@ -162,8 +162,7 @@ export class MusicMetadataExtractor extends BaseMetadataExtractor {
         embeddedLyrics: embeddedLyrics.length > 0 ? embeddedLyrics : undefined,
         encoding,
         gapless: Object.keys(gapless).length > 0 ? gapless : undefined,
-        replayGain:
-          Object.keys(replayGain).length > 0 ? replayGain : undefined,
+        replayGain: Object.keys(replayGain).length > 0 ? replayGain : undefined,
       };
     } catch (error) {
       logger.error("Failed to extract metadata:", { error: String(error) });

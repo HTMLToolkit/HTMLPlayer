@@ -5,21 +5,33 @@ const visualizerModules = {
   ["../visualizers/abstractart.visualizer.tsx"]: () =>
     import("./abstractart.visualizer").then((m) => m.default as VisualizerType),
   ["../visualizers/architecturalblueprint.visualizer.tsx"]: () =>
-    import("./architecturalblueprint.visualizer").then((m) => m.default as VisualizerType),
+    import("./architecturalblueprint.visualizer").then(
+      (m) => m.default as VisualizerType,
+    ),
   ["../visualizers/bargraph.visualizer.tsx"]: () =>
     import("./bargraph.visualizer").then((m) => m.default as VisualizerType),
   ["../visualizers/biologicalcell.visualizer.tsx"]: () =>
-    import("./biologicalcell.visualizer").then((m) => m.default as VisualizerType),
+    import("./biologicalcell.visualizer").then(
+      (m) => m.default as VisualizerType,
+    ),
   ["../visualizers/circuitboard.visualizer.tsx"]: () =>
-    import("./circuitboard.visualizer").then((m) => m.default as VisualizerType),
+    import("./circuitboard.visualizer").then(
+      (m) => m.default as VisualizerType,
+    ),
   ["../visualizers/circularspectrogram.visualizer.tsx"]: () =>
-    import("./circularspectrogram.visualizer").then((m) => m.default as VisualizerType),
+    import("./circularspectrogram.visualizer").then(
+      (m) => m.default as VisualizerType,
+    ),
   ["../visualizers/circularwave.visualizer.tsx"]: () =>
-    import("./circularwave.visualizer").then((m) => m.default as VisualizerType),
+    import("./circularwave.visualizer").then(
+      (m) => m.default as VisualizerType,
+    ),
   ["../visualizers/cityscape.visualizer.tsx"]: () =>
     import("./cityscape.visualizer").then((m) => m.default as VisualizerType),
   ["../visualizers/constellation.visualizer.tsx"]: () =>
-    import("./constellation.visualizer").then((m) => m.default as VisualizerType),
+    import("./constellation.visualizer").then(
+      (m) => m.default as VisualizerType,
+    ),
   ["../visualizers/cosmicpulse.visualizer.tsx"]: () =>
     import("./cosmicpulse.visualizer").then((m) => m.default as VisualizerType),
   ["../visualizers/crystal.visualizer.tsx"]: () =>
@@ -31,7 +43,9 @@ const visualizerModules = {
   ["../visualizers/dnav2.visualizer.tsx"]: () =>
     import("./dnav2.visualizer").then((m) => m.default as VisualizerType),
   ["../visualizers/firespectrum.visualizer.tsx"]: () =>
-    import("./firespectrum.visualizer").then((m) => m.default as VisualizerType),
+    import("./firespectrum.visualizer").then(
+      (m) => m.default as VisualizerType,
+    ),
   ["../visualizers/flower.visualizer.tsx"]: () =>
     import("./flower.visualizer").then((m) => m.default as VisualizerType),
   ["../visualizers/fluid.visualizer.tsx"]: () =>
@@ -43,29 +57,49 @@ const visualizerModules = {
   ["../visualizers/fracture.visualizer.tsx"]: () =>
     import("./fracture.visualizer").then((m) => m.default as VisualizerType),
   ["../visualizers/fracturedcircle.visualizer.tsx"]: () =>
-    import("./fracturedcircle.visualizer").then((m) => m.default as VisualizerType),
+    import("./fracturedcircle.visualizer").then(
+      (m) => m.default as VisualizerType,
+    ),
   ["../visualizers/fracturedprism.visualizer.tsx"]: () =>
-    import("./fracturedprism.visualizer").then((m) => m.default as VisualizerType),
+    import("./fracturedprism.visualizer").then(
+      (m) => m.default as VisualizerType,
+    ),
   ["../visualizers/frequencyflower.visualizer.tsx"]: () =>
-    import("./frequencyflower.visualizer").then((m) => m.default as VisualizerType),
+    import("./frequencyflower.visualizer").then(
+      (m) => m.default as VisualizerType,
+    ),
   ["../visualizers/frequencymesh.visualizer.tsx"]: () =>
-    import("./frequencymesh.visualizer").then((m) => m.default as VisualizerType),
+    import("./frequencymesh.visualizer").then(
+      (m) => m.default as VisualizerType,
+    ),
   ["../visualizers/frequencystars.visualizer.tsx"]: () =>
-    import("./frequencystars.visualizer").then((m) => m.default as VisualizerType),
+    import("./frequencystars.visualizer").then(
+      (m) => m.default as VisualizerType,
+    ),
   ["../visualizers/galaxy.visualizer.tsx"]: () =>
     import("./galaxy.visualizer").then((m) => m.default as VisualizerType),
   ["../visualizers/galaxyv2.visualizer.tsx"]: () =>
     import("./galaxyv2.visualizer").then((m) => m.default as VisualizerType),
   ["../visualizers/geometricpulse.visualizer.tsx"]: () =>
-    import("./geometricpulse.visualizer").then((m) => m.default as VisualizerType),
+    import("./geometricpulse.visualizer").then(
+      (m) => m.default as VisualizerType,
+    ),
   ["../visualizers/interference.visualizer.tsx"]: () =>
-    import("./interference.visualizer").then((m) => m.default as VisualizerType),
+    import("./interference.visualizer").then(
+      (m) => m.default as VisualizerType,
+    ),
   ["../visualizers/kaleidoscope.visualizer.tsx"]: () =>
-    import("./kaleidoscope.visualizer").then((m) => m.default as VisualizerType),
+    import("./kaleidoscope.visualizer").then(
+      (m) => m.default as VisualizerType,
+    ),
   ["../visualizers/kaleidoscopespectrogram.visualizer.tsx"]: () =>
-    import("./kaleidoscopespectrogram.visualizer").then((m) => m.default as VisualizerType),
+    import("./kaleidoscopespectrogram.visualizer").then(
+      (m) => m.default as VisualizerType,
+    ),
   ["../visualizers/layeredripplevoronoi.visualizer.tsx"]: () =>
-    import("./layeredripplevoronoi.visualizer").then((m) => m.default as VisualizerType),
+    import("./layeredripplevoronoi.visualizer").then(
+      (m) => m.default as VisualizerType,
+    ),
   ["../visualizers/liquidmetal.visualizer.tsx"]: () =>
     import("./liquidmetal.visualizer").then((m) => m.default as VisualizerType),
   ["../visualizers/matrixrain.visualizer.tsx"]: () =>
@@ -77,15 +111,21 @@ const visualizerModules = {
   ["../visualizers/neural.visualizer.tsx"]: () =>
     import("./neural.visualizer").then((m) => m.default as VisualizerType),
   ["../visualizers/neurospectogram.visualizer.tsx"]: () =>
-    import("./neurospectogram.visualizer").then((m) => m.default as VisualizerType),
+    import("./neurospectogram.visualizer").then(
+      (m) => m.default as VisualizerType,
+    ),
   ["../visualizers/oceanwaves.visualizer.tsx"]: () =>
     import("./oceanwaves.visualizer").then((m) => m.default as VisualizerType),
   ["../visualizers/organic.visualizer.tsx"]: () =>
     import("./organic.visualizer").then((m) => m.default as VisualizerType),
   ["../visualizers/oscilloscope.visualizer.tsx"]: () =>
-    import("./oscilloscope.visualizer").then((m) => m.default as VisualizerType),
+    import("./oscilloscope.visualizer").then(
+      (m) => m.default as VisualizerType,
+    ),
   ["../visualizers/particlefield.visualizer.tsx"]: () =>
-    import("./particlefield.visualizer").then((m) => m.default as VisualizerType),
+    import("./particlefield.visualizer").then(
+      (m) => m.default as VisualizerType,
+    ),
   ["../visualizers/pixeldust.visualizer.tsx"]: () =>
     import("./pixeldust.visualizer").then((m) => m.default as VisualizerType),
   ["../visualizers/pulsingorbs.visualizer.tsx"]: () =>
@@ -93,15 +133,23 @@ const visualizerModules = {
   ["../visualizers/quantum.visualizer.tsx"]: () =>
     import("./quantum.visualizer").then((m) => m.default as VisualizerType),
   ["../visualizers/rainbowspiral.visualizer.tsx"]: () =>
-    import("./rainbowspiral.visualizer").then((m) => m.default as VisualizerType),
+    import("./rainbowspiral.visualizer").then(
+      (m) => m.default as VisualizerType,
+    ),
   ["../visualizers/ribbondance.visualizer.tsx"]: () =>
     import("./ribbondance.visualizer").then((m) => m.default as VisualizerType),
   ["../visualizers/sacredgeometry.visualizer.tsx"]: () =>
-    import("./sacredgeometry.visualizer").then((m) => m.default as VisualizerType),
+    import("./sacredgeometry.visualizer").then(
+      (m) => m.default as VisualizerType,
+    ),
   ["../visualizers/spectrumripple.visualizer.tsx"]: () =>
-    import("./spectrumripple.visualizer").then((m) => m.default as VisualizerType),
+    import("./spectrumripple.visualizer").then(
+      (m) => m.default as VisualizerType,
+    ),
   ["../visualizers/spiralspectogram.visualizer.tsx"]: () =>
-    import("./spiralspectogram.visualizer").then((m) => m.default as VisualizerType),
+    import("./spiralspectogram.visualizer").then(
+      (m) => m.default as VisualizerType,
+    ),
   ["../visualizers/spiralv2.visualizer.tsx"]: () =>
     import("./spiralv2.visualizer").then((m) => m.default as VisualizerType),
   ["../visualizers/starfield.visualizer.tsx"]: () =>
@@ -121,18 +169,29 @@ const visualizerModules = {
   ["../visualizers/waterfall.visualizer.tsx"]: () =>
     import("./waterfall.visualizer").then((m) => m.default as VisualizerType),
   ["../visualizers/waveformrings.visualizer.tsx"]: () =>
-    import("./waveformrings.visualizer").then((m) => m.default as VisualizerType),
+    import("./waveformrings.visualizer").then(
+      (m) => m.default as VisualizerType,
+    ),
   ["../visualizers/waveformspectrum.visualizer.tsx"]: () =>
-    import("./waveformspectrum.visualizer").then((m) => m.default as VisualizerType),
+    import("./waveformspectrum.visualizer").then(
+      (m) => m.default as VisualizerType,
+    ),
   ["../visualizers/waveformtunnel.visualizer.tsx"]: () =>
-    import("./waveformtunnel.visualizer").then((m) => m.default as VisualizerType),
+    import("./waveformtunnel.visualizer").then(
+      (m) => m.default as VisualizerType,
+    ),
   ["../visualizers/waveinterference.visualizer.tsx"]: () =>
-    import("./waveinterference.visualizer").then((m) => m.default as VisualizerType),
+    import("./waveinterference.visualizer").then(
+      (m) => m.default as VisualizerType,
+    ),
   ["../visualizers/weather.visualizer.tsx"]: () =>
     import("./weather.visualizer").then((m) => m.default as VisualizerType),
 } as Record<string, () => Promise<VisualizerType>>;
 
-export function visualizerModuleLoaders(): Record<string, () => Promise<VisualizerType>> {
+export function visualizerModuleLoaders(): Record<
+  string,
+  () => Promise<VisualizerType>
+> {
   return visualizerModules;
 }
 

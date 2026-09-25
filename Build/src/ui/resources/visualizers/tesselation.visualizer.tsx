@@ -4,54 +4,62 @@ import {
   VisualizerType,
 } from "../../../platform/visualizers";
 
-const tessellationSpectrogram: VisualizerType = {
-  name: "Tessellation Spectrogram",
-  dataType: "frequency",
-  draw: function (
-    analyser,
-    canvas,
-    ctx,
-    bufferLength,
-    freqDataArray,
-    dataType,
-    settings = {},
-  ) {
-    const {
-      tileColor = "hsla({hue}, 70%, 50%, {alpha})",
-      backgroundColor = "rgb(20, 20, 20)",
-      tileSize = 30,
-      tileShape = "hexagon",
-    } = settings;
+interface TessellationSpectrogramSettings {
+  tileColor?: string;
+  backgroundColor?: string;
+  tileSize?: number;
+  tileShape?: string;
+}
 
-    if (dataType !== "frequency") return;
-    getByteFrequencyData(analyser, freqDataArray);
+const tessellationSpectrogram: VisualizerType<TessellationSpectrogramSettings> =
+  {
+    name: "Tessellation Spectrogram",
+    dataType: "frequency",
+    draw: function (
+      analyser,
+      canvas,
+      ctx,
+      bufferLength,
+      freqDataArray,
+      dataType,
+      settings = {},
+    ) {
+      const {
+        tileColor = "hsla({hue}, 70%, 50%, {alpha})",
+        backgroundColor = "rgb(20, 20, 20)",
+        tileSize = 30,
+        tileShape = "hexagon",
+      } = settings;
 
-    ctx.fillStyle = backgroundColor;
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+      if (dataType !== "frequency") return;
+      getByteFrequencyData(analyser, freqDataArray);
 
-    for (let i = 0; i < bufferLength; i++) {
-      const x = (i % (canvas.width / tileSize)) * tileSize;
-      const y = Math.floor(i / (canvas.width / tileSize)) * tileSize;
-      const amplitude = sample(freqDataArray, i) / 256.0;
+      ctx.fillStyle = backgroundColor;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      ctx.fillStyle = tileColor
-        .replace("{hue}", `${amplitude * 360}`)
-        .replace("{alpha}", `${amplitude}`);
-      ctx.beginPath();
-      if (tileShape === "hexagon") {
-        for (let j = 0; j < 6; j++) {
-          const angle = (j * Math.PI) / 3;
-          const px = x + tileSize * Math.cos(angle);
-          const py = y + tileSize * Math.sin(angle);
-          j === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
+      for (let i = 0; i < bufferLength; i++) {
+        const x = (i % (canvas.width / tileSize)) * tileSize;
+        const y = Math.floor(i / (canvas.width / tileSize)) * tileSize;
+        const amplitude = sample(freqDataArray, i) / 256.0;
+
+        ctx.fillStyle = tileColor
+          .replace("{hue}", `${amplitude * 360}`)
+          .replace("{alpha}", `${amplitude}`);
+        ctx.beginPath();
+        if (tileShape === "hexagon") {
+          for (let j = 0; j < 6; j++) {
+            const angle = (j * Math.PI) / 3;
+            const px = x + tileSize * Math.cos(angle);
+            const py = y + tileSize * Math.sin(angle);
+            j === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
+          }
+        } else {
+          ctx.rect(x, y, tileSize, tileSize);
         }
-      } else {
-        ctx.rect(x, y, tileSize, tileSize);
+        ctx.closePath();
+        ctx.fill();
       }
-      ctx.closePath();
-      ctx.fill();
-    }
-  },
-};
+    },
+  };
 
 export default tessellationSpectrogram;

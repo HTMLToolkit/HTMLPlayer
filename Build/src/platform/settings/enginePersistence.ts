@@ -5,10 +5,7 @@ import {
   clampRate as sharedClampRate,
 } from "../audio/clamp";
 import { createLogger } from "../../helpers/logger";
-import {
-  deserializeVersionedJson,
-  serializeVersioned,
-} from "../validators";
+import { deserializeVersionedJson, serializeVersioned } from "../validators";
 
 const logger = createLogger("engineSettingsPersistence");
 
@@ -38,9 +35,7 @@ function toOptionalBoolean(value: unknown): boolean | undefined {
   return typeof value === "boolean" ? value : undefined;
 }
 
-export function sanitizeEngineSettings(
-  raw: unknown,
-): Partial<EngineSettings> {
+export function sanitizeEngineSettings(raw: unknown): Partial<EngineSettings> {
   if (!isPlainObject(raw)) return {};
 
   const candidate = raw as Record<string, unknown>;

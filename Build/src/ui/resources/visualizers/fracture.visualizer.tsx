@@ -4,7 +4,14 @@ import {
   VisualizerType,
 } from "../../../platform/visualizers";
 
-const fractureSpectrogram: VisualizerType = {
+interface FractureSpectrogramSettings {
+  segmentColor?: string;
+  backgroundColor?: string;
+  segmentCount?: number;
+  layerCount?: number;
+}
+
+const fractureSpectrogram: VisualizerType<FractureSpectrogramSettings> = {
   name: "Fracture Spectrogram",
   dataType: "frequency",
   draw: function (

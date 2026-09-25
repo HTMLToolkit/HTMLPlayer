@@ -4,7 +4,14 @@ import {
   VisualizerType,
 } from "../../../platform/visualizers";
 
-const circuitBoard: VisualizerType = {
+interface CircuitBoardSettings {
+  circuitColor?: string;
+  backgroundColor?: string;
+  gridSize?: number;
+  nodeSize?: number;
+}
+
+const circuitBoard: VisualizerType<CircuitBoardSettings> = {
   name: "Circuit Board",
   dataType: "frequency",
   draw: function (

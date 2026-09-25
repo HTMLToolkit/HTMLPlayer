@@ -4,7 +4,13 @@ import {
   VisualizerType,
 } from "../../../platform/visualizers";
 
-const neuralSpectrogram: VisualizerType = {
+interface NeuralSpectrogramSettings {
+  lineColor?: string;
+  backgroundColor?: string;
+  connectionDistance?: number;
+}
+
+const neuralSpectrogram: VisualizerType<NeuralSpectrogramSettings> = {
   name: "Neural Network Visualization",
   dataType: "frequency",
   draw: function (

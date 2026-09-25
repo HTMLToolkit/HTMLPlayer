@@ -4,7 +4,14 @@ import {
   VisualizerType,
 } from "../../../platform/visualizers";
 
-const fluidWaveSpectrogram: VisualizerType = {
+interface FluidWaveSpectrogramSettings {
+  waveColor?: string;
+  backgroundColor?: string;
+  layerCount?: number;
+  lineWidth?: number;
+}
+
+const fluidWaveSpectrogram: VisualizerType<FluidWaveSpectrogramSettings> = {
   name: "Fluid Wave",
   dataType: "frequency",
   draw: function (

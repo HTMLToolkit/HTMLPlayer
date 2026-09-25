@@ -145,8 +145,7 @@ export async function importAudioFiles(
         let albumArtDataUrl = compressedArt;
         let hasAlbumArt = !!compressedArt;
 
-        const isUnknownArtist =
-          metadata.artist === t("common.unknownArtist");
+        const isUnknownArtist = metadata.artist === t("common.unknownArtist");
         const isUnknownAlbum = metadata.album === t("common.unknownAlbum");
 
         if (!hasAlbumArt && !isUnknownArtist && !isUnknownAlbum) {

@@ -1,24 +1,69 @@
 import { BaseMetadataExtractor } from "./base";
 import type { ExtractedMetadata, MetadataExtractor } from "./base";
 import { createLogger } from "../../helpers/logger";
-import initFlo, { info as floInfo } from "@audiflo/libflo";
+import initFlo, {
+  info as floInfo,
+  get_metadata as floGetMetadata,
+  get_cover_art as floGetCoverArt,
+} from "@audiflo/libflo";
 
 const logger = createLogger("floMetadata");
 
+const BASE64_CHUNK_SIZE = 0x8000;
+
+const bytesToBase64 = (bytes: Uint8Array): string => {
+  let binary = "";
+  for (let i = 0; i < bytes.length; i += BASE64_CHUNK_SIZE) {
+    binary += String.fromCharCode(...bytes.subarray(i, i + BASE64_CHUNK_SIZE));
+  }
+  return btoa(binary);
+};
+
 interface FloAudioInfo {
+  sample_rate: number;
+  channels: number;
+  bit_depth: number;
+  duration_secs: number;
+  total_samples: bigint;
+}
+
+interface FloTags {
+  title?: string;
   artist?: string;
   album?: string;
-  sample_rate?: number;
-  channels?: number;
-  bit_depth?: number;
 }
+
+export interface FloCoverArt {
+  mime_type: string;
+  data: Uint8Array;
+}
+
+export interface FloLibApi {
+  init(): Promise<unknown>;
+  info(data: Uint8Array): FloAudioInfo;
+  getMetadata(data: Uint8Array): FloTags | null;
+  getCoverArt(data: Uint8Array): FloCoverArt | null;
+}
+
+const realFloLib: FloLibApi = {
+  init: initFlo,
+  info: (data) => floInfo(data) as FloAudioInfo,
+  getMetadata: (data) => floGetMetadata(data) as FloTags | null,
+  getCoverArt: (data) => floGetCoverArt(data) as FloCoverArt | null,
+};
 
 export class FloMetadataExtractor extends BaseMetadataExtractor {
   private initPromise: Promise<unknown> | null = null;
+  private readonly flo: FloLibApi;
+
+  constructor(flolib: FloLibApi = realFloLib) {
+    super();
+    this.flo = flolib;
+  }
 
   private ensureInitialized(): Promise<unknown> {
     if (!this.initPromise) {
-      this.initPromise = initFlo().catch((error) => {
+      this.initPromise = this.flo.init().catch((error) => {
         this.initPromise = null;
         logger.error("Failed to initialize flo decoder:", {
           error: String(error),
@@ -36,18 +81,29 @@ export class FloMetadataExtractor extends BaseMetadataExtractor {
       const arrayBuffer = await file.arrayBuffer();
       const uint8Flo = new Uint8Array(arrayBuffer);
 
-      const info = floInfo(uint8Flo) as FloAudioInfo;
-      const duration = this.calculateDuration(info, arrayBuffer.byteLength);
+      const audioInfo = this.flo.info(uint8Flo);
+      const tags = this.flo.getMetadata(uint8Flo);
+      const cover = this.flo.getCoverArt(uint8Flo);
+      const duration = this.calculateDuration(
+        audioInfo,
+        arrayBuffer.byteLength,
+      );
+
+      let albumArt: string | undefined;
+      if (cover?.data.length && cover.mime_type.startsWith("image/")) {
+        albumArt = `data:${cover.mime_type};base64,${bytesToBase64(cover.data)}`;
+      }
 
       return {
-        title: this.getDefaultTitle(file as File),
-        artist: info.artist || "Unknown Artist",
-        album: info.album || "Unknown Album",
+        title: tags?.title || this.getDefaultTitle(file as File),
+        artist: tags?.artist || "Unknown Artist",
+        album: tags?.album || "Unknown Album",
         duration,
+        albumArt,
         encoding: {
-          sampleRate: info.sample_rate || 44100,
-          channels: info.channels || 2,
-          bitsPerSample: info.bit_depth || 16,
+          sampleRate: audioInfo.sample_rate || 44100,
+          channels: audioInfo.channels || 2,
+          bitsPerSample: audioInfo.bit_depth || 16,
           lossless: true,
         },
       };
@@ -63,6 +119,14 @@ export class FloMetadataExtractor extends BaseMetadataExtractor {
   }
 
   private calculateDuration(info: FloAudioInfo, byteLength: number): number {
+    if (info.duration_secs > 0) {
+      return info.duration_secs;
+    }
+
+    if (info.total_samples > 0 && info.sample_rate > 0) {
+      return Number(info.total_samples) / info.sample_rate;
+    }
+
     const sampleRate = info.sample_rate;
     const channels = info.channels;
     const bitDepth = info.bit_depth;

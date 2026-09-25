@@ -4,7 +4,14 @@ import {
   VisualizerType,
 } from "../../../platform/visualizers";
 
-const flowerSpectrogram: VisualizerType = {
+interface FlowerSpectrogramSettings {
+  pointColor?: string;
+  backgroundColor?: string;
+  pointSize?: number;
+  petalCount?: number;
+}
+
+const flowerSpectrogram: VisualizerType<FlowerSpectrogramSettings> = {
   name: "Flower Spectrogram",
   dataType: "frequency",
   draw: function (

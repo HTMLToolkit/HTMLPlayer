@@ -9,7 +9,6 @@ import type {
   Track,
 } from "./types";
 
-
 export function isPlainObject(
   value: unknown,
 ): value is Record<string, unknown> {

@@ -4,7 +4,14 @@ import {
   VisualizerType,
 } from "../../../platform/visualizers";
 
-const dnaSpectrogramV2: VisualizerType = {
+interface DnaSpectrogramV2Settings {
+  lineColor?: string;
+  backgroundColor?: string;
+  frequency?: number;
+  amplitudeScale?: number;
+}
+
+const dnaSpectrogramV2: VisualizerType<DnaSpectrogramV2Settings> = {
   name: "DNA Helix",
   dataType: "frequency",
   draw: function (

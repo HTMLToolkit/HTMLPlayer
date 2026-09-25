@@ -5,7 +5,14 @@ import {
   VisualizerType,
 } from "../../../platform/visualizers";
 
-const voronoiSpectrum: VisualizerType = {
+interface VoronoiSpectrumSettings {
+  pointCount?: number;
+  pixelSize?: number;
+  backgroundColor?: string;
+  pointColor?: string;
+}
+
+const voronoiSpectrum: VisualizerType<VoronoiSpectrumSettings> = {
   name: "Voronoi Spectrum",
   dataType: "frequency",
   draw: function (

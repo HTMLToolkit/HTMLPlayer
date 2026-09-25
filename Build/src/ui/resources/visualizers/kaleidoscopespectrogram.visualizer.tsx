@@ -4,55 +4,63 @@ import {
   VisualizerType,
 } from "../../../platform/visualizers";
 
-const kaleidoscopeSpectrogram: VisualizerType = {
-  name: "Kaleidoscope Spectrogram",
-  dataType: "frequency",
-  draw: function (
-    analyser,
-    canvas,
-    ctx,
-    bufferLength,
-    freqDataArray,
-    dataType,
-    settings = {},
-  ) {
-    const {
-      pointColor = "hsla({hue}, 85%, 50%, 0.5)",
-      backgroundColor = "rgb(20, 20, 20)",
-      mirrorCount = 8,
-      pointSize = 3,
-    } = settings;
+interface KaleidoscopeSpectrogramSettings {
+  pointColor?: string;
+  backgroundColor?: string;
+  mirrorCount?: number;
+  pointSize?: number;
+}
 
-    if (dataType !== "frequency") return;
-    getByteFrequencyData(analyser, freqDataArray);
+const kaleidoscopeSpectrogram: VisualizerType<KaleidoscopeSpectrogramSettings> =
+  {
+    name: "Kaleidoscope Spectrogram",
+    dataType: "frequency",
+    draw: function (
+      analyser,
+      canvas,
+      ctx,
+      bufferLength,
+      freqDataArray,
+      dataType,
+      settings = {},
+    ) {
+      const {
+        pointColor = "hsla({hue}, 85%, 50%, 0.5)",
+        backgroundColor = "rgb(20, 20, 20)",
+        mirrorCount = 8,
+        pointSize = 3,
+      } = settings;
 
-    ctx.fillStyle = backgroundColor;
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+      if (dataType !== "frequency") return;
+      getByteFrequencyData(analyser, freqDataArray);
 
-    const centerX = canvas.width / 2;
-    const centerY = canvas.height / 2;
-    const mirrors = mirrorCount;
+      ctx.fillStyle = backgroundColor;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    for (let i = 0; i < bufferLength; i++) {
-      const amplitude = sample(freqDataArray, i) / 256.0;
-      const baseAngle = (i * 2 * Math.PI) / bufferLength;
-      const radius = Math.min(centerX, centerY) * amplitude;
+      const centerX = canvas.width / 2;
+      const centerY = canvas.height / 2;
+      const mirrors = mirrorCount;
 
-      for (let m = 0; m < mirrors; m++) {
-        const angle = baseAngle + (m * 2 * Math.PI) / mirrors;
-        const x = centerX + radius * Math.cos(angle);
-        const y = centerY + radius * Math.sin(angle);
+      for (let i = 0; i < bufferLength; i++) {
+        const amplitude = sample(freqDataArray, i) / 256.0;
+        const baseAngle = (i * 2 * Math.PI) / bufferLength;
+        const radius = Math.min(centerX, centerY) * amplitude;
 
-        ctx.fillStyle = pointColor.replace(
-          "{hue}",
-          `${(i * 360) / bufferLength}`,
-        );
-        ctx.beginPath();
-        ctx.arc(x, y, pointSize, 0, 2 * Math.PI);
-        ctx.fill();
+        for (let m = 0; m < mirrors; m++) {
+          const angle = baseAngle + (m * 2 * Math.PI) / mirrors;
+          const x = centerX + radius * Math.cos(angle);
+          const y = centerY + radius * Math.sin(angle);
+
+          ctx.fillStyle = pointColor.replace(
+            "{hue}",
+            `${(i * 360) / bufferLength}`,
+          );
+          ctx.beginPath();
+          ctx.arc(x, y, pointSize, 0, 2 * Math.PI);
+          ctx.fill();
+        }
       }
-    }
-  },
-};
+    },
+  };
 
 export default kaleidoscopeSpectrogram;

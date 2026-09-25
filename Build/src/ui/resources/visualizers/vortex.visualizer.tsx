@@ -4,7 +4,14 @@ import {
   VisualizerType,
 } from "../../../platform/visualizers";
 
-const vortexSpectrogram: VisualizerType = {
+interface VortexSpectrogramSettings {
+  pointColor?: string;
+  backgroundColor?: string;
+  pointSize?: number;
+  vortexScale?: number;
+}
+
+const vortexSpectrogram: VisualizerType<VortexSpectrogramSettings> = {
   name: "Vortex Spectrogram",
   dataType: "frequency",
   draw: function (

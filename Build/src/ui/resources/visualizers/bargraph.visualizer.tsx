@@ -1,6 +1,13 @@
 import { sample, VisualizerType } from "../../../platform/visualizers";
 
-const barGraph: VisualizerType = {
+interface BarGraphSettings {
+  barColor?: string;
+  backgroundColor?: string;
+  barSpacing?: number;
+  shadowBlur?: number;
+}
+
+const barGraph: VisualizerType<BarGraphSettings> = {
   name: "Bar Graph",
   dataType: "frequency",
   draw: function (

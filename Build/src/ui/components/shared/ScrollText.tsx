@@ -1,5 +1,6 @@
 import {
   useCallback,
+  useId,
   useLayoutEffect,
   useMemo,
   useRef,
@@ -7,7 +8,11 @@ import {
   type CSSProperties,
   type HTMLAttributes,
 } from "react";
-import Marquee from "react-fast-marquee";
+import { useMachine, normalizeProps } from "@zag-js/react";
+import {
+  connect as connectMarquee,
+  machine as marqueeMachine,
+} from "@zag-js/marquee";
 import DOMPurify from "dompurify";
 import { useTranslation } from "react-i18next";
 import styles from "./ScrollText.module.css";
@@ -128,6 +133,17 @@ export const ScrollText = ({
     Math.min(speed, copyWidth / Math.max(1, minDuration)),
   );
 
+  const marqueeId = useId().replace(/[:/]/g, "");
+  const service = useMachine(marqueeMachine, {
+    id: marqueeId,
+    side: "start",
+    autoFill: true,
+    pauseOnInteraction: pauseOnHover,
+    speed: effectiveSpeed,
+    loopCount: 0,
+  });
+  const api = connectMarquee(service, normalizeProps);
+
   return (
     <div
       ref={wrapperRef}
@@ -138,22 +154,22 @@ export const ScrollText = ({
       {...rest}
     >
       {shouldScroll ? (
-        <Marquee
-          className={textClassName}
-          style={textStyle}
-          speed={effectiveSpeed}
-          autoFill
-          pauseOnHover={pauseOnHover}
-          loop={0}
-          gradient={false}
-        >
-          <span
-            data-scroll-text
-            className={styles.text}
-            style={{ marginRight: `${gap}px` }}
-            {...textProps}
-          />
-        </Marquee>
+        <div {...api.getRootProps()} className={styles.marqueeRoot}>
+          <div {...api.getViewportProps()}>
+            {Array.from({ length: api.contentCount }).map((_, index) => (
+              <div key={index} {...api.getContentProps({ index })}>
+                <span
+                  data-scroll-text
+                  className={[styles.text, textClassName]
+                    .filter(Boolean)
+                    .join(" ")}
+                  style={{ marginRight: `${gap}px`, ...textStyle }}
+                  {...textProps}
+                />
+              </div>
+            ))}
+          </div>
+        </div>
       ) : (
         <div className={innerClasses} style={textStyle}>
           <span data-scroll-text className={styles.text} {...textProps} />

@@ -4,7 +4,14 @@ import {
   VisualizerType,
 } from "../../../platform/visualizers";
 
-const fracturedCircle: VisualizerType = {
+interface FracturedCircleSettings {
+  segmentColor?: string;
+  backgroundColor?: string;
+  segmentCount?: number;
+  lineWidth?: number;
+}
+
+const fracturedCircle: VisualizerType<FracturedCircleSettings> = {
   name: "Fractured Circle",
   dataType: "frequency",
   draw: function (

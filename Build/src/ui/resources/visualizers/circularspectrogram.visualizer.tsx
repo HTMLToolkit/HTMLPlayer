@@ -4,7 +4,14 @@ import {
   VisualizerType,
 } from "../../../platform/visualizers";
 
-const circularSpectrogram: VisualizerType = {
+interface CircularSpectrogramSettings {
+  baseColor?: string;
+  backgroundColor?: string;
+  pointSize?: number;
+  radiusScale?: number;
+}
+
+const circularSpectrogram: VisualizerType<CircularSpectrogramSettings> = {
   name: "Circular Spectrogram",
   dataType: "frequency",
   draw: function (

@@ -4,7 +4,14 @@ import {
   VisualizerType,
 } from "../../../platform/visualizers";
 
-const frequencyMesh: VisualizerType = {
+interface FrequencyMeshSettings {
+  lineColor?: string;
+  backgroundColor?: string;
+  pointCount?: number;
+  lineWidth?: number;
+}
+
+const frequencyMesh: VisualizerType<FrequencyMeshSettings> = {
   name: "Frequency Mesh",
   dataType: "frequency",
   draw: function (

@@ -4,7 +4,14 @@ import {
   VisualizerType,
 } from "../../../platform/visualizers";
 
-const rainbowSpiral: VisualizerType = {
+interface RainbowSpiralSettings {
+  pointColor?: string;
+  backgroundColor?: string;
+  pointSize?: number;
+  rotationSpeed?: number;
+}
+
+const rainbowSpiral: VisualizerType<RainbowSpiralSettings> = {
   name: "Rainbow Spiral",
   dataType: "frequency",
   draw: function (

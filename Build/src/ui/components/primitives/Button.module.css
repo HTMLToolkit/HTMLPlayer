@@ -13,11 +13,12 @@
     outline: none;
     border: 1px solid transparent;
     border-radius: var(--radius);
-    transition: color var(--animation-duration-fast) ease,
-    background-color var(--animation-duration-fast) ease,
-    border-color var(--animation-duration-fast) ease,
-    box-shadow var(--animation-duration-fast) ease,
-    transform var(--animation-duration-fast) ease;
+    transition:
+      color var(--animation-duration-fast) ease,
+      background-color var(--animation-duration-fast) ease,
+      border-color var(--animation-duration-fast) ease,
+      box-shadow var(--animation-duration-fast) ease,
+      transform var(--animation-duration-fast) ease;
   }
 
   .button:focus-visible {

@@ -3,10 +3,45 @@ import { visualizerModuleLoaders } from "../../ui/resources/visualizers/_registr
 
 const logger = createLogger("visualizerLoader");
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type VisualizerSettings = Record<string, any>;
+export type VisualizerSettingsValue = number | string | boolean;
 
-interface VisualizerDrawFunction {
+export type VisualizerSettings = Record<string, VisualizerSettingsValue>;
+
+export interface NumericVisualizerControlConfig {
+  type: "range" | "number";
+  min?: number;
+  max?: number;
+  step?: number;
+  default: number;
+}
+
+export interface ColorVisualizerControlConfig {
+  type: "color";
+  default: string;
+}
+
+export interface SelectVisualizerControlConfig {
+  type: "select";
+  options: string[];
+  default: string;
+}
+
+export type VisualizerControlConfig =
+  | NumericVisualizerControlConfig
+  | ColorVisualizerControlConfig
+  | SelectVisualizerControlConfig;
+
+type ControlConfigFor<TSetting> = TSetting extends number
+  ? NumericVisualizerControlConfig
+  : TSetting extends string
+    ? ColorVisualizerControlConfig | SelectVisualizerControlConfig
+    : never;
+
+export type VisualizerSettingsConfig<TSettings extends object> = {
+  readonly [K in keyof TSettings]?: ControlConfigFor<TSettings[K]>;
+};
+
+export interface VisualizerDrawFunction<TSettings extends object> {
   (
     analyser: AnalyserNode,
     canvas: HTMLCanvasElement,
@@ -14,8 +49,17 @@ interface VisualizerDrawFunction {
     bufferLength: number,
     dataArray: Uint8Array | Float32Array,
     dataType: "time" | "frequency",
-    settings: VisualizerSettings | undefined,
+    settings: Partial<TSettings> | undefined,
   ): void;
+}
+
+export interface VisualizerType<
+  TSettings extends object = Record<string, VisualizerSettingsValue>,
+> {
+  name: string;
+  draw: VisualizerDrawFunction<TSettings>;
+  dataType: "time" | "frequency";
+  settingsConfig?: VisualizerSettingsConfig<TSettings>;
 }
 
 export function getByteFrequencyData(
@@ -38,23 +82,6 @@ export function sample(
 ): number {
   const value = dataArray[index];
   return typeof value === "number" && Number.isFinite(value) ? value : 0;
-}
-
-export interface VisualizerType {
-  name: string;
-  draw: VisualizerDrawFunction;
-  dataType: "time" | "frequency";
-  settingsConfig?: Record<
-    string,
-    {
-      type: "range" | "color" | "number" | "select";
-      min?: number;
-      max?: number;
-      step?: number;
-      options?: string[];
-      default: unknown;
-    }
-  >;
 }
 
 interface SpectrogramTypes {

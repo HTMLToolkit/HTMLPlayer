@@ -70,8 +70,7 @@ export function NavigationProvider({ children }: { children: ReactNode }) {
       root.dataset.vtDirection = direction;
       const transition = document.startViewTransition(update);
       transition.finished
-        .catch(() => {
-        })
+        .catch(() => {})
         .finally(() => {
           if (transitionEpoch.current === epoch) {
             delete root.dataset.vtDirection;

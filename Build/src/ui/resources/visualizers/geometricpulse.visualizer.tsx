@@ -4,7 +4,14 @@ import {
   VisualizerType,
 } from "../../../platform/visualizers";
 
-const geometricPulse: VisualizerType = {
+interface GeometricPulseSettings {
+  shapeColor?: string;
+  backgroundColor?: string;
+  shapeInterval?: number;
+  heightScale?: number;
+}
+
+const geometricPulse: VisualizerType<GeometricPulseSettings> = {
   name: "Geometric Pulse",
   dataType: "time",
   draw: function (

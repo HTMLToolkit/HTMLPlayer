@@ -4,7 +4,16 @@ import {
   VisualizerType,
 } from "../../../platform/visualizers";
 
-const fracturedPrism: VisualizerType = {
+interface FracturedPrismSettings {
+  lineColor?: string;
+  backgroundColor?: string;
+  layerCount?: number;
+  displacementScale?: number;
+  jitterInterval?: number;
+  jitterAmplitude?: number;
+}
+
+const fracturedPrism: VisualizerType<FracturedPrismSettings> = {
   name: "Fractured Prism",
   dataType: "time",
   draw: function (

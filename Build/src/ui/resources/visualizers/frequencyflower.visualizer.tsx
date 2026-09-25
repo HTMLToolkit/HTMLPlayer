@@ -4,7 +4,14 @@ import {
   VisualizerType,
 } from "../../../platform/visualizers";
 
-const frequencyFlower: VisualizerType = {
+interface FrequencyFlowerSettings {
+  lineColor?: string;
+  backgroundColor?: string;
+  lineWidth?: number;
+  petalCount?: number;
+}
+
+const frequencyFlower: VisualizerType<FrequencyFlowerSettings> = {
   name: "Frequency Flower",
   dataType: "frequency",
   draw: function (

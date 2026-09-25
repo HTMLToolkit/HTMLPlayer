@@ -135,11 +135,7 @@ export class MediaSessionIntegration extends BaseIntegration {
     session.setPlaybackState?.(state);
   }
 
-  setPositionState(
-    duration: number,
-    position: number,
-    playbackRate = 1,
-  ): void {
+  setPositionState(duration: number, position: number, playbackRate = 1): void {
     if (
       !this.session ||
       !Number.isFinite(duration) ||

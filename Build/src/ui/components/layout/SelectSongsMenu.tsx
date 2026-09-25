@@ -7,7 +7,8 @@ import styles from "./MainContent.module.css";
 interface SelectSongsMenuProps {
   selectedCount: number;
   totalCount: number;
-  onToggle: () => void;
+  onSelectAll: () => void;
+  onExitSelectMode: () => void;
   onAddToPlaylist: () => void;
   onDeleteSelected: () => void;
 }
@@ -15,15 +16,13 @@ interface SelectSongsMenuProps {
 export function SelectSongsMenu({
   selectedCount,
   totalCount,
-  onToggle,
+  onSelectAll,
+  onExitSelectMode,
   onAddToPlaylist,
   onDeleteSelected,
 }: SelectSongsMenuProps) {
   const { t } = useTranslation();
-
-  const handleSelectAll = () => {
-    onToggle();
-  };
+  const allSelected = totalCount > 0 && selectedCount === totalCount;
 
   return (
     <PersistentDropdownMenu
@@ -37,18 +36,16 @@ export function SelectSongsMenu({
           <Icon name="listChecks" size={16} decorative />
         </Button>
       }
-      onClose={onToggle}
+      onClose={onExitSelectMode}
     >
-      <Button variant="ghost" onClick={handleSelectAll}>
+      <Button variant="ghost" onClick={onSelectAll}>
         <Icon
           name="listChecks"
           size={16}
           style={{ marginRight: 8 }}
           decorative
         />
-        {selectedCount === totalCount
-          ? t("actions.deselectAll")
-          : t("actions.selectAll")}
+        {allSelected ? t("actions.deselectAll") : t("actions.selectAll")}
       </Button>
       <Button variant="ghost" onClick={onAddToPlaylist}>
         <Icon name="plus" size={16} style={{ marginRight: 8 }} decorative />

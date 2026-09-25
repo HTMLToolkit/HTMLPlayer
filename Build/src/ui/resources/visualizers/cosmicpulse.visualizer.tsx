@@ -4,7 +4,16 @@ import {
   VisualizerType,
 } from "../../../platform/visualizers";
 
-const cosmicPulse: VisualizerType = {
+interface CosmicPulseSettings {
+  pointColor?: string;
+  lineColor?: string;
+  backgroundColor?: string;
+  pointInterval?: number;
+  pointSize?: number;
+  radiusScale?: number;
+}
+
+const cosmicPulse: VisualizerType<CosmicPulseSettings> = {
   name: "Cosmic Pulse",
   dataType: "time",
   draw: function (

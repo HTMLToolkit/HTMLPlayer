@@ -19,7 +19,10 @@ export abstract class BufferSourceBackend extends BaseAudioBackend {
     this.ownsGraph = !graph;
   }
 
-  protected abstract decode(url: string, context: AudioContext): Promise<AudioBuffer>;
+  protected abstract decode(
+    url: string,
+    context: AudioContext,
+  ): Promise<AudioBuffer>;
 
   async load(url: string): Promise<void> {
     this.resetPlayback();

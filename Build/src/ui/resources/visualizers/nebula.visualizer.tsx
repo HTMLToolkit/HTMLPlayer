@@ -4,7 +4,14 @@ import {
   VisualizerType,
 } from "../../../platform/visualizers";
 
-const nebulaSpectrogram: VisualizerType = {
+interface NebulaSpectrogramSettings {
+  nebulaColor?: string;
+  backgroundColor?: string;
+  radiusScale?: number;
+  pointSize?: number;
+}
+
+const nebulaSpectrogram: VisualizerType<NebulaSpectrogramSettings> = {
   name: "Cosmic Nebula",
   dataType: "frequency",
   draw: function (

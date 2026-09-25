@@ -4,7 +4,14 @@ import {
   VisualizerType,
 } from "../../../platform/visualizers";
 
-const galaxySpectrogramV2: VisualizerType = {
+interface GalaxySpectrogramV2Settings {
+  particleColor?: string;
+  backgroundColor?: string;
+  armCount?: number;
+  particleSize?: number;
+}
+
+const galaxySpectrogramV2: VisualizerType<GalaxySpectrogramV2Settings> = {
   name: "Galaxy Spectrogram v2",
   dataType: "frequency",
   draw: function (

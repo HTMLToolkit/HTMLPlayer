@@ -4,7 +4,15 @@ import {
   VisualizerType,
 } from "../../../platform/visualizers";
 
-const voltaicArcs: VisualizerType = {
+interface VoltaicArcsSettings {
+  lineColor?: string;
+  backgroundColor?: string;
+  lineWidth?: number;
+  arcInterval?: number;
+  arcHeightScale?: number;
+}
+
+const voltaicArcs: VisualizerType<VoltaicArcsSettings> = {
   name: "Voltaic Arcs",
   dataType: "time",
   draw: function (

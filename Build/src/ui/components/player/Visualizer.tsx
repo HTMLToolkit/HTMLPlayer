@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import { useVisualizerCanvas } from "../../../hooks/useVisualizerCanvas";
+import type { VisualizerControlConfig } from "../../../platform/visualizers";
 import { Button } from "../primitives/Button";
 import { Icon } from "../shared/Icon";
 import {
@@ -118,8 +119,12 @@ export const Visualizer = ({
           <h4>
             {selectedVisualizer.name} {t("settings.title")}
           </h4>
-          {Object.entries(selectedVisualizer.settingsConfig).map(
-            ([key, config]) => (
+          {Object.entries(selectedVisualizer.settingsConfig)
+            .filter(
+              (entry): entry is [string, VisualizerControlConfig] =>
+                entry[1] !== undefined,
+            )
+            .map(([key, config]) => (
               <div key={key} className={styles.setting}>
                 <label htmlFor={key}>
                   {t(`visualizers.${selectedVisualizerKey}.settings.${key}`)}
@@ -150,8 +155,7 @@ export const Visualizer = ({
                   />
                 )}
               </div>
-            ),
-          )}
+            ))}
         </div>
       )}
     </div>

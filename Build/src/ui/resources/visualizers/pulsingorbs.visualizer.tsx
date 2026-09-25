@@ -4,7 +4,14 @@ import {
   VisualizerType,
 } from "../../../platform/visualizers";
 
-const pulsingOrbs: VisualizerType = {
+interface PulsingOrbsSettings {
+  orbColor?: string;
+  backgroundColor?: string;
+  orbCount?: number;
+  maxRadius?: number;
+}
+
+const pulsingOrbs: VisualizerType<PulsingOrbsSettings> = {
   name: "Pulsing Orbs",
   dataType: "frequency",
   draw: function (

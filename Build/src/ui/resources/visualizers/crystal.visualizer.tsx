@@ -4,7 +4,14 @@ import {
   VisualizerType,
 } from "../../../platform/visualizers";
 
-const crystalSpectrogram: VisualizerType = {
+interface CrystalSpectrogramSettings {
+  branchColor?: string;
+  backgroundColor?: string;
+  branchCount?: number;
+  subBranchCount?: number;
+}
+
+const crystalSpectrogram: VisualizerType<CrystalSpectrogramSettings> = {
   name: "Crystal Formation",
   dataType: "frequency",
   draw: function (

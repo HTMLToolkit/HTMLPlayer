@@ -4,7 +4,16 @@ import {
   VisualizerType,
 } from "../../../platform/visualizers";
 
-const cityscape: VisualizerType = {
+interface CityscapeSettings {
+  buildingColor?: string;
+  windowColor?: string;
+  backgroundColor?: string;
+  buildingCount?: number;
+  baseHeightScale?: number;
+  windowRows?: number;
+}
+
+const cityscape: VisualizerType<CityscapeSettings> = {
   name: "Dynamic Cityscape",
   dataType: "frequency",
   draw: function (

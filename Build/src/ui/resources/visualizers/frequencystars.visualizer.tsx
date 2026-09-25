@@ -4,7 +4,14 @@ import {
   VisualizerType,
 } from "../../../platform/visualizers";
 
-const frequencyStars: VisualizerType = {
+interface FrequencyStarsSettings {
+  starColor?: string;
+  backgroundColor?: string;
+  starSize?: number;
+  threshold?: number;
+}
+
+const frequencyStars: VisualizerType<FrequencyStarsSettings> = {
   name: "Frequency Stars",
   dataType: "frequency",
   draw: function (

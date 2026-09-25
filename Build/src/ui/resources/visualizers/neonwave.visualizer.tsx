@@ -4,7 +4,14 @@ import {
   VisualizerType,
 } from "../../../platform/visualizers";
 
-const neonWave: VisualizerType = {
+interface NeonWaveSettings {
+  lineColor?: string;
+  backgroundColor?: string;
+  lineWidth?: number;
+  glowIntensity?: number;
+}
+
+const neonWave: VisualizerType<NeonWaveSettings> = {
   name: "Neon Wave",
   dataType: "time",
   draw: function (

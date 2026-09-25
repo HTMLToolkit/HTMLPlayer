@@ -4,7 +4,14 @@ import {
   VisualizerType,
 } from "../../../platform/visualizers";
 
-const fractalSpectrogram: VisualizerType = {
+interface FractalSpectrogramSettings {
+  branchColor?: string;
+  backgroundColor?: string;
+  branchDepth?: number;
+  branchLength?: number;
+}
+
+const fractalSpectrogram: VisualizerType<FractalSpectrogramSettings> = {
   name: "Fractal Tree",
   dataType: "frequency",
   draw: function (

@@ -4,7 +4,16 @@ import {
   VisualizerType,
 } from "../../../platform/visualizers";
 
-const architecturalBlueprint: VisualizerType = {
+interface ArchitecturalBlueprintSettings {
+  lineColor?: string;
+  fillColor?: string;
+  backgroundColor?: string;
+  margin?: number;
+  amplitudeThreshold?: number;
+  fontSize?: number;
+}
+
+const architecturalBlueprint: VisualizerType<ArchitecturalBlueprintSettings> = {
   name: "Architectural Blueprint",
   dataType: "frequency",
   draw: function (

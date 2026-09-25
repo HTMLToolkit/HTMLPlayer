@@ -4,7 +4,14 @@ import {
   VisualizerType,
 } from "../../../platform/visualizers";
 
-const ribbonDance: VisualizerType = {
+interface RibbonDanceSettings {
+  ribbonColor?: string;
+  backgroundColor?: string;
+  ribbonCount?: number;
+  lineWidth?: number;
+}
+
+const ribbonDance: VisualizerType<RibbonDanceSettings> = {
   name: "Ribbon Dance",
   dataType: "frequency",
   draw: function (

@@ -108,9 +108,7 @@ export interface ResolvedInlineSvgIcon {
 }
 
 export type ResolvedIcon =
-  | ResolvedComponentIcon
-  | ResolvedImageIcon
-  | ResolvedInlineSvgIcon;
+  ResolvedComponentIcon | ResolvedImageIcon | ResolvedInlineSvgIcon;
 
 export interface IconLookupOptions {
   setId?: string;

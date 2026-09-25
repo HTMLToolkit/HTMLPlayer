@@ -4,7 +4,14 @@ import {
   VisualizerType,
 } from "../../../platform/visualizers";
 
-const crystalSpectrogramV2: VisualizerType = {
+interface CrystalSpectrogramV2Settings {
+  lineColor?: string;
+  backgroundColor?: string;
+  lineCount?: number;
+  radiusScale?: number;
+}
+
+const crystalSpectrogramV2: VisualizerType<CrystalSpectrogramV2Settings> = {
   name: "Crystalline Formation",
   dataType: "frequency",
   draw: function (

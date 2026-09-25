@@ -16,3 +16,19 @@
   display: inline-block;
   white-space: nowrap;
 }
+
+.marqueeRoot [data-part="content"] {
+  animation: scroll-text-marquee var(--marquee-duration) linear infinite;
+  animation-delay: var(--marquee-delay);
+  animation-iteration-count: var(--marquee-loop-count);
+}
+
+.marqueeRoot[data-paused] [data-part="content"] {
+  animation-play-state: paused;
+}
+
+@keyframes scroll-text-marquee {
+  to {
+    transform: translateX(var(--marquee-translate));
+  }
+}

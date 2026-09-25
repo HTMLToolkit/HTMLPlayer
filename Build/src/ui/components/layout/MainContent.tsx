@@ -463,10 +463,19 @@ export const MainContent = ({
     }
   };
 
-  const handleSelectSongsToggle = () => {
-    setIsSelectSongsActive((prev) => !prev);
+  const exitSelectMode = useCallback(() => {
+    setIsSelectSongsActive(false);
     setSelectedSongs([]);
-  };
+  }, []);
+
+  const handleSelectAllSongs = useCallback(() => {
+    setIsSelectSongsActive(true);
+    setSelectedSongs((prev) =>
+      prev.length === sortedSongs.length
+        ? []
+        : sortedSongs.map((song: Track) => song.id),
+    );
+  }, [sortedSongs]);
 
   const handleAddToPlaylist = () => setShowPlaylistDialog(true);
 
@@ -520,7 +529,8 @@ export const MainContent = ({
         onSortOrderChange={setSortOrder}
         selectedSongs={selectedSongs}
         sortedSongsCount={sortedSongs.length}
-        onToggleSelect={handleSelectSongsToggle}
+        onSelectAll={handleSelectAllSongs}
+        onExitSelectMode={exitSelectMode}
         onAddToPlaylist={handleAddToPlaylist}
         onDeleteSelected={handleDeleteSelectedSongs}
         onDeleteSong={handleDeleteSong}

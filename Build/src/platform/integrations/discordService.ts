@@ -41,9 +41,9 @@ export class DiscordService {
         return false;
       }
 
-      const payload = (await response.json().catch(() => null)) as
-        | PresenceResponse
-        | null;
+      const payload = (await response
+        .json()
+        .catch(() => null)) as PresenceResponse | null;
       return payload?.ok !== false;
     } catch (error) {
       logger.info("Presence update couldn't reach backend:", {

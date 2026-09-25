@@ -4,7 +4,14 @@ import {
   VisualizerType,
 } from "../../../platform/visualizers";
 
-const kaleidoscope: VisualizerType = {
+interface KaleidoscopeSettings {
+  pointColor?: string;
+  backgroundColor?: string;
+  segmentCount?: number;
+  pointSize?: number;
+}
+
+const kaleidoscope: VisualizerType<KaleidoscopeSettings> = {
   name: "Kaleidoscope",
   dataType: "frequency",
   draw: function (

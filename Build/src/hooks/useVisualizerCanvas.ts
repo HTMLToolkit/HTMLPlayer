@@ -4,6 +4,7 @@ import {
   getVisualizer,
   getAvailableVisualizers,
   VisualizerType,
+  VisualizerSettings,
   clearVisualizerState,
 } from "../platform/visualizers";
 
@@ -32,9 +33,8 @@ export const useVisualizerCanvas = ({
     useState<string>("");
   const [selectedVisualizer, setSelectedVisualizer] =
     useState<VisualizerType | null>(null);
-  const [visualizerSettings, setVisualizerSettings] = useState<
-    Record<string, number | string | boolean>
-  >({});
+  const [visualizerSettings, setVisualizerSettings] =
+    useState<VisualizerSettings>({});
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
@@ -75,10 +75,11 @@ export const useVisualizerCanvas = ({
           setVisualizerSettings(
             Object.entries(visualizer.settingsConfig).reduce(
               (acc, [key, config]) => {
-                acc[key] = config.default as number | string | boolean;
+                if (config === undefined) return acc;
+                acc[key] = config.default;
                 return acc;
               },
-              {} as Record<string, number | string | boolean>,
+              {} as VisualizerSettings,
             ),
           );
         }

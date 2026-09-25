@@ -1,8 +1,8 @@
 import React, { useEffect, useRef } from "react";
+import gsap from "gsap";
 
 const GeometricPatternsWallpaper: React.FC<WallpaperProps> = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const animationRef = useRef<number | null>(null);
   const timeRef = useRef(0);
 
   useEffect(() => {
@@ -69,8 +69,8 @@ const GeometricPatternsWallpaper: React.FC<WallpaperProps> = () => {
       ctx.stroke();
     };
 
-    const animate = () => {
-      timeRef.current += 0.02;
+    const tickerId = gsap.ticker.add(() => {
+      timeRef.current += 0.02 * gsap.ticker.deltaRatio(60);
 
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -111,17 +111,11 @@ const GeometricPatternsWallpaper: React.FC<WallpaperProps> = () => {
           }
         }
       }
-
-      animationRef.current = requestAnimationFrame(animate);
-    };
-
-    animate();
+    });
 
     return () => {
       window.removeEventListener("resize", resizeCanvas);
-      if (animationRef.current) {
-        cancelAnimationFrame(animationRef.current);
-      }
+      gsap.ticker.remove(tickerId);
     };
   }, []);
 

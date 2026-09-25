@@ -294,7 +294,10 @@ export function useKomorebi(
       }
     };
 
-    const handleTrackChange = (data: { from: Track | null; to: Track | null }) => {
+    const handleTrackChange = (data: {
+      from: Track | null;
+      to: Track | null;
+    }) => {
       void mediaSession.updateMetadata(data.to);
       syncMediaSession();
       updateDiscordPresence(data.to);

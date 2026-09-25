@@ -23,10 +23,8 @@
         cubic-bezier(0.16, 1, 0.3, 1),
       border-color var(--animation-duration-normal)
         cubic-bezier(0.16, 1, 0.3, 1),
-      box-shadow var(--animation-duration-normal)
-        cubic-bezier(0.16, 1, 0.3, 1),
-      transform var(--animation-duration-normal)
-        cubic-bezier(0.16, 1, 0.3, 1);
+      box-shadow var(--animation-duration-normal) cubic-bezier(0.16, 1, 0.3, 1),
+      transform var(--animation-duration-normal) cubic-bezier(0.16, 1, 0.3, 1);
   }
 
   .checkbox:hover {

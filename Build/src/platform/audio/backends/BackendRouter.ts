@@ -1,7 +1,7 @@
 import { BaseAudioBackend } from "./BaseBackend";
 import { HTMLAudioBackend } from "./HTMLBackend";
 import { WebAudioBackend } from "./WebAudioBackend";
-import { FloBackend } from "./FloBackend";
+import { StreamingFloBackend } from "./StreamingFloBackend";
 import { AudioGraph } from "../graph";
 import type { IAudioBackend } from "../index";
 import type { Track } from "../../../core/engine/types";
@@ -16,10 +16,7 @@ export type BackendKind = "flo" | "webaudio" | "html";
 
 const DECODE_MIME_TYPES = ["audio/x-flo", "audio/flac", "audio/wav"];
 
-export function chooseBackendKind(
-  track?: Track,
-  url?: string,
-): BackendKind {
+export function chooseBackendKind(track?: Track, url?: string): BackendKind {
   if (track) {
     const mimeType = track.mimeType;
     if (mimeType && DECODE_MIME_TYPES.includes(mimeType)) {
@@ -46,8 +43,9 @@ export class BackendRouter extends BaseAudioBackend {
     this.graph = graph ?? new AudioGraph();
 
     this.htmlBackend = backends?.html ?? new HTMLAudioBackend(this.graph);
-    this.webAudioBackend = backends?.webAudio ?? new WebAudioBackend(this.graph);
-    this.floBackend = backends?.flo ?? new FloBackend(this.graph);
+    this.webAudioBackend =
+      backends?.webAudio ?? new WebAudioBackend(this.graph);
+    this.floBackend = backends?.flo ?? new StreamingFloBackend(this.graph);
     this.current = this.htmlBackend;
   }
 

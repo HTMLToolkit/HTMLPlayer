@@ -4,7 +4,16 @@ import {
   VisualizerType,
 } from "../../../platform/visualizers";
 
-const matrixRain: VisualizerType = {
+interface MatrixRainSettings {
+  lineColor?: string;
+  textColor?: string;
+  backgroundColor?: string;
+  lineWidth?: number;
+  textInterval?: number;
+  fontSize?: number;
+}
+
+const matrixRain: VisualizerType<MatrixRainSettings> = {
   name: "Matrix Rain",
   dataType: "time",
   draw: function (

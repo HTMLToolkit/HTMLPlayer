@@ -4,7 +4,14 @@ import {
   VisualizerType,
 } from "../../../platform/visualizers";
 
-const waveformTunnel: VisualizerType = {
+interface WaveformTunnelSettings {
+  lineColor?: string;
+  backgroundColor?: string;
+  lineWidth?: number;
+  radiusStep?: number;
+}
+
+const waveformTunnel: VisualizerType<WaveformTunnelSettings> = {
   name: "Waveform Tunnel",
   dataType: "time",
   draw: function (

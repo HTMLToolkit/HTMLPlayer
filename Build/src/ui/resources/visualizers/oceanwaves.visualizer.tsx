@@ -4,7 +4,14 @@ import {
   VisualizerType,
 } from "../../../platform/visualizers";
 
-const oceanWaves: VisualizerType = {
+interface OceanWavesSettings {
+  lineColor?: string;
+  backgroundColor?: string;
+  lineWidth?: number;
+  curveDepth?: number;
+}
+
+const oceanWaves: VisualizerType<OceanWavesSettings> = {
   name: "Ocean Waves",
   dataType: "time",
   draw: function (

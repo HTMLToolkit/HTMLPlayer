@@ -4,7 +4,14 @@ import {
   VisualizerType,
 } from "../../../platform/visualizers";
 
-const particleField: VisualizerType = {
+interface ParticleFieldSettings {
+  particleColor?: string;
+  backgroundColor?: string;
+  particleCount?: number;
+  baseRadius?: number;
+}
+
+const particleField: VisualizerType<ParticleFieldSettings> = {
   name: "Particle Field",
   dataType: "frequency",
   draw: function (

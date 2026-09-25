@@ -4,7 +4,14 @@ import {
   VisualizerType,
 } from "../../../platform/visualizers";
 
-const oscilloscope: VisualizerType = {
+interface OscilloscopeSettings {
+  lineColor?: string;
+  backgroundColor?: string;
+  lineWidth?: number;
+  glowIntensity?: number;
+}
+
+const oscilloscope: VisualizerType<OscilloscopeSettings> = {
   name: "Oscilloscope",
   dataType: "time",
   draw: function (

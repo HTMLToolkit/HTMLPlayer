@@ -4,7 +4,14 @@ import {
   VisualizerType,
 } from "../../../platform/visualizers";
 
-const organicSpectrogram: VisualizerType = {
+interface OrganicSpectrogramSettings {
+  pointColor?: string;
+  backgroundColor?: string;
+  pointSize?: number;
+  growthAngle?: number;
+}
+
+const organicSpectrogram: VisualizerType<OrganicSpectrogramSettings> = {
   name: "Organic Growth Spectrogram",
   dataType: "frequency",
   draw: function (

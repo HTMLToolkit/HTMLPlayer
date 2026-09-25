@@ -1,7 +1,7 @@
 import { AudioGraph } from "../src/platform/audio/graph";
 import { HTMLAudioBackend } from "../src/platform/audio/backends/HTMLBackend";
 import { BufferSourceBackend } from "../src/platform/audio/backends/BufferSourceBackend";
-import { FloBackend } from "../src/platform/audio/backends/FloBackend";
+import { StreamingFloBackend } from "../src/platform/audio/backends/StreamingFloBackend";
 import { BackendRouter } from "../src/platform/audio/backends/BackendRouter";
 import { describe, it, expect, beforeEach, afterEach, jest } from "@jest/globals";
 
@@ -126,7 +126,7 @@ describe("analyser parity across backends", () => {
 
       html.push(new HTMLAudioBackend(graph));
       const buffered = new BufferSourceBackend(graph);
-      const flo = new FloBackend(graph);
+      const flo = new StreamingFloBackend(graph);
       const router = new BackendRouter(graph);
 
       expect(html[0]!.getAnalyser()).toBe(analyserNode);

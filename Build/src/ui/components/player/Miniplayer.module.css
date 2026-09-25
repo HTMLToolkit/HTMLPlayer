@@ -66,7 +66,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: color var(--animation-duration-fast) ease,
+  transition:
+    color var(--animation-duration-fast) ease,
     background-color var(--animation-duration-fast) ease,
     transform var(--animation-duration-fast) ease;
   position: relative;

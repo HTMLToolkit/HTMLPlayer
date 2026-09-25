@@ -3,21 +3,10 @@ import { Slot } from "@radix-ui/react-slot";
 import styles from "./Button.module.css";
 
 type ButtonVariant =
-  | "primary"
-  | "outline"
-  | "ghost"
-  | "link"
-  | "secondary"
-  | "destructive";
+  "primary" | "outline" | "ghost" | "link" | "secondary" | "destructive";
 
 type ButtonSize =
-  | "sm"
-  | "md"
-  | "lg"
-  | "icon"
-  | "icon-sm"
-  | "icon-md"
-  | "icon-lg";
+  "sm" | "md" | "lg" | "icon" | "icon-sm" | "icon-md" | "icon-lg";
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: ButtonVariant;

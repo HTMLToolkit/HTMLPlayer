@@ -5,7 +5,16 @@ import {
   VisualizerType,
 } from "../../../platform/visualizers";
 
-const waterSpectrogram: VisualizerType = {
+interface WaterSpectrogramSettings {
+  lineColor?: string;
+  fillColor?: string;
+  backgroundColor?: string;
+  layerCount?: number;
+  connectionStep?: number;
+  waveAmplitude?: number;
+}
+
+const waterSpectrogram: VisualizerType<WaterSpectrogramSettings> = {
   name: "3D Water Spectrogram",
   dataType: "frequency",
   draw: function (

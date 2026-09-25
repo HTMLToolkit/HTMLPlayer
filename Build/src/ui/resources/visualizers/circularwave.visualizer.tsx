@@ -4,7 +4,14 @@ import {
   VisualizerType,
 } from "../../../platform/visualizers";
 
-const circularWave: VisualizerType = {
+interface CircularWaveSettings {
+  lineColor?: string;
+  backgroundColor?: string;
+  lineWidth?: number;
+  waveAmplitude?: number;
+}
+
+const circularWave: VisualizerType<CircularWaveSettings> = {
   name: "Circular Wave",
   dataType: "time",
   draw: function (

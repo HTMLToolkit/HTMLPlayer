@@ -4,7 +4,14 @@ import {
   VisualizerType,
 } from "../../../platform/visualizers";
 
-const abstractArt: VisualizerType = {
+interface AbstractArtSettings {
+  shapeColor?: string;
+  backgroundColor?: string;
+  curveScale?: number;
+  shapeCount?: number;
+}
+
+const abstractArt: VisualizerType<AbstractArtSettings> = {
   name: "Abstract Art",
   dataType: "frequency",
   draw: function (

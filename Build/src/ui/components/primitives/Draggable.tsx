@@ -52,8 +52,7 @@ interface DraggableItemProps {
   type: "song" | "playlist" | "folder";
   data: DraggableData;
   children:
-    | React.ReactNode
-    | ((dragHandleProps: DragHandleProps) => React.ReactNode);
+    React.ReactNode | ((dragHandleProps: DragHandleProps) => React.ReactNode);
   disabled?: boolean;
   useDragHandle?: boolean;
 }

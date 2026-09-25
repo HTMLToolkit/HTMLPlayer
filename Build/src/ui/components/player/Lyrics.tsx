@@ -498,8 +498,10 @@ export const Lyrics = ({
                 </button>
               </div>
             )}
-            {!loading && !error && onlineLyricsResult && (
-              onlineLyricsResult.synced.length > 0 ? (
+            {!loading &&
+              !error &&
+              onlineLyricsResult &&
+              (onlineLyricsResult.synced.length > 0 ? (
                 <div ref={lyricsRef} className={styles.syncedLyrics}>
                   {onlineLyricsResult.synced.map((line, index) => (
                     <div
@@ -519,8 +521,7 @@ export const Lyrics = ({
                 <pre className={styles.lyricsText}>
                   {onlineLyricsResult.plain.join("\n")}
                 </pre>
-              )
-            )}
+              ))}
             {!loading && !error && !onlineLyricsResult && (
               <div className={styles.error}>
                 {t("lyrics.noLyricsAvailable")}

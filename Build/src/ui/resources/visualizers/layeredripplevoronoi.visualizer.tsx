@@ -5,7 +5,16 @@ import {
   VisualizerType,
 } from "../../../platform/visualizers";
 
-const LayeredRippleVoronoi: VisualizerType = {
+interface LayeredRippleVoronoiSettings {
+  rippleColor?: string;
+  pointColor?: string;
+  backgroundColor?: string;
+  pointCount?: number;
+  pixelSize?: number;
+  radiusScale?: number;
+}
+
+const LayeredRippleVoronoi: VisualizerType<LayeredRippleVoronoiSettings> = {
   name: "Layered Ripple Voronoi",
   dataType: "frequency",
   draw: function (

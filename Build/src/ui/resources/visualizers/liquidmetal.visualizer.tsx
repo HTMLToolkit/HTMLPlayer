@@ -4,7 +4,14 @@ import {
   VisualizerType,
 } from "../../../platform/visualizers";
 
-const liquidMetal: VisualizerType = {
+interface LiquidMetalSettings {
+  gradientColors?: Array<{ stop: number; color: string }>;
+  backgroundColor?: string;
+  lineWidth?: number;
+  curveAmplitude?: number;
+}
+
+const liquidMetal: VisualizerType<LiquidMetalSettings> = {
   name: "Liquid Metal",
   dataType: "time",
   draw: function (

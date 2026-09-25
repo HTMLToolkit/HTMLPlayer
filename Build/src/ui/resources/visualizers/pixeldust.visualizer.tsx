@@ -4,7 +4,14 @@ import {
   VisualizerType,
 } from "../../../platform/visualizers";
 
-const pixelDust: VisualizerType = {
+interface PixelDustSettings {
+  pixelColor?: string;
+  backgroundColor?: string;
+  pixelSizeScale?: number;
+  pixelOpacity?: number;
+}
+
+const pixelDust: VisualizerType<PixelDustSettings> = {
   name: "Pixel Dust",
   dataType: "time",
   draw: function (
