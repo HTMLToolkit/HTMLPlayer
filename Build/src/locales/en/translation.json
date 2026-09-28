@@ -376,6 +376,12 @@
   },
   "allSongs": "All Songs",
   "moreOptions": "More options",
+  "rating": {
+    "like": "Like",
+    "removeLike": "Remove like",
+    "dislike": "Dislike",
+    "removeDislike": "Remove dislike"
+  },
   "sort": {
     "name": "Name",
     "artist": "Artist",

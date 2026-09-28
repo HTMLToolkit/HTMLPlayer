@@ -11,6 +11,10 @@
 
 .panel {
   position: relative;
+  --foreground: var(--primary-foreground);
+  --foreground-muted: var(--primary-foreground);
+  --foreground-subtle: var(--primary-foreground);
+  --muted: var(--surface-transparent-2);
   background: var(--menu-background);
   border: 1px solid var(--surface-transparent-2);
   border-right: none;

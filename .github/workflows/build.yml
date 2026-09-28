@@ -28,6 +28,28 @@ jobs:
         working-directory: Build
         run: npm i
 
+      - name: Install Rust toolchain (wasm32)
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+
+      - name: Install wasm-pack
+        uses: jetli/wasm-pack-action@v0.4.0
+        with:
+          version: "latest"
+
+      - name: Build Symphonia WASM decoder
+        working-directory: Build
+        run: npm run build:wasm
+
+      - name: Unit tests
+        working-directory: Build
+        run: npx jest --ci
+
+      - name: WASM E2E decode gates
+        working-directory: Build
+        run: npm run test:e2e
+
       - name: Build
         working-directory: Build
         run: npm run build

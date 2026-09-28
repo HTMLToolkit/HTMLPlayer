@@ -1,7 +1,6 @@
 import { AudioGraph } from "../src/platform/audio/graph";
 import { HTMLAudioBackend } from "../src/platform/audio/backends/HTMLBackend";
-import { BufferSourceBackend } from "../src/platform/audio/backends/BufferSourceBackend";
-import { StreamingFloBackend } from "../src/platform/audio/backends/StreamingFloBackend";
+import { StreamingDecoderBackend } from "../src/platform/audio/backends/StreamingDecoderBackend";
 import { BackendRouter } from "../src/platform/audio/backends/BackendRouter";
 import { describe, it, expect, beforeEach, afterEach, jest } from "@jest/globals";
 
@@ -125,16 +124,14 @@ describe("analyser parity across backends", () => {
       expect(graph.getAnalyser()).toBe(analyserNode);
 
       html.push(new HTMLAudioBackend(graph));
-      const buffered = new BufferSourceBackend(graph);
-      const flo = new StreamingFloBackend(graph);
+      const flo = new StreamingDecoderBackend(graph, "flo");
       const router = new BackendRouter(graph);
 
       expect(html[0]!.getAnalyser()).toBe(analyserNode);
-      expect(buffered.getAnalyser()).toBe(analyserNode);
       expect(flo.getAnalyser()).toBe(analyserNode);
       expect(router.getAnalyser()).toBe(analyserNode);
 
-      buffered.dispose();
+      flo.dispose();
       flo.dispose();
       router.dispose();
     } finally {
@@ -150,16 +147,13 @@ describe("analyser parity across backends", () => {
     const graph = new AudioGraph();
 
     const html = new HTMLAudioBackend(graph);
-    const buffered = new BufferSourceBackend(graph);
     const router = new BackendRouter(graph);
 
     try {
       expect(html.getAnalyser()).toBeNull();
-      expect(buffered.getAnalyser()).toBeNull();
       expect(router.getAnalyser()).toBeNull();
     } finally {
       html.dispose();
-      buffered.dispose();
       router.dispose();
     }
   });

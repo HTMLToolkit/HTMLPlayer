@@ -1,5 +1,6 @@
 import {
   getByteTimeDomainData,
+  applyTimeDomainSmoothing,
   sample,
   VisualizerType,
 } from "../../../platform/visualizers";
@@ -36,6 +37,7 @@ const fireSpectrum: VisualizerType<FireSpectrumSettings> = {
 
     if (dataType !== "time") return;
     getByteTimeDomainData(analyser, timeDataArray);
+    applyTimeDomainSmoothing(canvas, timeDataArray);
 
     ctx.fillStyle = backgroundColor;
     ctx.fillRect(0, 0, canvas.width, canvas.height);

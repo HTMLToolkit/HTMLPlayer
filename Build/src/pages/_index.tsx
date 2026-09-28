@@ -3,7 +3,7 @@ import { AppShell } from "../ui/AppShell";
 
 export default function IndexPage() {
   const komorebi = useKomorebi({
-    autoPlay: false,
+    autoPlay: true,
     persistLibrary: true,
   });
   return <AppShell komorebi={komorebi} />;

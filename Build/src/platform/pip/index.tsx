@@ -1,6 +1,7 @@
 import { createRoot } from "react-dom/client";
 import { logger } from "../../helpers/logger";
 import { getCurrentThemeCSS } from "../../ui/theming";
+import { useKomorebiStore } from "../../store";
 import type { QueueCursor, Track } from "../../core/engine/types";
 import {
   PIP_WINDOW_WIDTH,
@@ -147,9 +148,34 @@ export async function toggleMiniplayer(
     newPipWindow.document.body.style.overflow = "hidden";
 
     const rootElement = createRoot(newPipWindow.document.body);
-    rootElement.render(<MiniplayerContent controls={controls} />);
+    let unsubscribe: (() => void) | null = null;
+
+    const renderMiniplayer = () => {
+      const state = useKomorebiStore.getState();
+      rootElement.render(
+        <MiniplayerContent
+          controls={{
+            playerState: {
+              cursor:
+                state.snapshot?.queue.cursor ??
+                ({ kind: "empty" } as QueueCursor),
+              tracks: state.snapshot?.queue.tracks ?? [],
+              isPlaying: state.snapshot?.state === "playing",
+            },
+            togglePlayPause: controls.togglePlayPause,
+            next: controls.next,
+            previous: controls.previous,
+          }}
+        />,
+      );
+    };
+
+    renderMiniplayer();
+    unsubscribe = useKomorebiStore.subscribe(renderMiniplayer);
 
     newPipWindow.addEventListener("pagehide", () => {
+      unsubscribe?.();
+      unsubscribe = null;
       rootElement.unmount();
       pipThemeChannel.close();
       pipWindow = null;

@@ -1,4 +1,7 @@
 import type { VisualizerType } from "../../src/platform/visualizers";
+import { applyTimeDomainSmoothing } from "../../src/platform/visualizers/smoothing";
+
+export { applyTimeDomainSmoothing };
 
 export function getByteFrequencyData(
   analyser: AnalyserNode,

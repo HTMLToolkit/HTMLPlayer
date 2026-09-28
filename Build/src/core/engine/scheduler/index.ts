@@ -174,10 +174,10 @@ export class Scheduler {
   }
 
   private updateMode(): void {
-    if (this.gapless.isEnabled() && this.gapless.getConfig().enabled) {
-      this.currentMode = "gapless";
-    } else if (this.crossfade.isEnabled()) {
+    if (this.crossfade.isEnabled()) {
       this.currentMode = "crossfade";
+    } else if (this.gapless.isEnabled() && this.gapless.getConfig().enabled) {
+      this.currentMode = "gapless";
     } else {
       this.currentMode = "none";
     }

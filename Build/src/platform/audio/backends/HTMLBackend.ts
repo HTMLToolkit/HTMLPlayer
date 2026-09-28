@@ -2,11 +2,14 @@ import { BaseAudioBackend } from "./BaseBackend";
 import { AudioGraph } from "../graph";
 import { clampRate } from "../clamp";
 import { throwError } from "../../../helpers/logger";
+import { sniffAudioFailure, trackCodecFailure } from "../playability";
+import type { Track } from "../../../core/engine/types";
 
 export class HTMLAudioBackend extends BaseAudioBackend {
   private audio: HTMLAudioElement;
   private graph: AudioGraph;
   private ownsGraph: boolean;
+  private outputGain: GainNode | null = null;
   private boundOnTimeUpdate: () => void;
   private boundOnEnded: () => void;
   private boundOnError: () => void;
@@ -35,7 +38,16 @@ export class HTMLAudioBackend extends BaseAudioBackend {
     this.audio.addEventListener("loadedmetadata", this.boundOnLoadedMetadata);
   }
 
-  async load(url: string): Promise<void> {
+  async load(url: string, track?: Track): Promise<void> {
+    const failure =
+      (track ? trackCodecFailure(track) : null) ??
+      (await sniffAudioFailure(url));
+    if (failure) {
+      throw new Error(
+        `Cannot play "${track?.title ?? "this track"}": ${failure.codecName} is not supported by ${failure.browser}. Convert the file to FLAC, MP3, or AAC, or use Safari.`,
+      );
+    }
+
     return new Promise((resolve, reject) => {
       const onCanPlayThrough = () => {
         this.audio.removeEventListener("canplaythrough", onCanPlayThrough);
@@ -91,6 +103,12 @@ export class HTMLAudioBackend extends BaseAudioBackend {
     this.graph.setVolume(volume);
   }
 
+  setOutputGain(value: number): void {
+    if (this.outputGain) {
+      this.outputGain.gain.value = value;
+    }
+  }
+
   setPlaybackRate(rate: number): void {
     this.audio.playbackRate = clampRate(rate);
   }
@@ -128,7 +146,8 @@ export class HTMLAudioBackend extends BaseAudioBackend {
 
   private routeAudioElement(): void {
     try {
-      this.graph.connectMediaElement(this.audio);
+      this.outputGain = this.graph.createSlot();
+      this.graph.connectMediaElement(this.audio, this.outputGain);
     } catch {}
   }
 

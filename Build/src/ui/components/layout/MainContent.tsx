@@ -145,6 +145,9 @@ const SortableSongItem = React.memo(function SortableSongItem({
           variant="ghost"
           size="icon-sm"
           className={`${styles.songActionButton} ${isFavorited ? styles.favorited : ""}`}
+          aria-label={
+            isFavorited ? t("player.removeFavorite") : t("player.addFavorite")
+          }
           onClick={(e) => {
             e.stopPropagation();
             onToggleFavorite(song.id);
@@ -161,6 +164,11 @@ const SortableSongItem = React.memo(function SortableSongItem({
           variant="ghost"
           size="icon-sm"
           className={`${styles.songActionButton} ${ratings[song.id] === "thumbs-up" ? styles.active : ""}`}
+          aria-label={
+            ratings[song.id] === "thumbs-up"
+              ? t("rating.removeLike")
+              : t("rating.like")
+          }
           onClick={(e) => {
             e.stopPropagation();
             onRateSong(song.id, "thumbs-up");
@@ -172,6 +180,11 @@ const SortableSongItem = React.memo(function SortableSongItem({
           variant="ghost"
           size="icon-sm"
           className={`${styles.songActionButton} ${ratings[song.id] === "thumbs-down" ? styles.active : ""}`}
+          aria-label={
+            ratings[song.id] === "thumbs-down"
+              ? t("rating.removeDislike")
+              : t("rating.dislike")
+          }
           onClick={(e) => {
             e.stopPropagation();
             onRateSong(song.id, "thumbs-down");

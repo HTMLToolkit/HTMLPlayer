@@ -45,7 +45,6 @@ export const Player = forwardRef<PlayerRef, PlayerProps>(
     const {
       currentTrack,
       isPlaying,
-      currentTime,
       volume,
       shuffle,
       repeat,
@@ -213,11 +212,7 @@ export const Player = forwardRef<PlayerRef, PlayerProps>(
               onToggleRepeat={toggleRepeat}
             />
 
-            <ProgressBar
-              currentTime={currentTime}
-              duration={currentSong?.duration || 0}
-              onSeek={seek}
-            />
+            <ProgressBar duration={currentSong?.duration || 0} onSeek={seek} />
           </div>
 
           <div className={styles.rightSection}>
@@ -274,7 +269,6 @@ export const Player = forwardRef<PlayerRef, PlayerProps>(
               onClose={handleLyricsToggle}
               onCloseComplete={handleLyricsCloseComplete}
               embeddedLyrics={currentSong.embeddedLyrics}
-              currentTime={currentTime}
               isClosing={isLyricsClosing}
             />
           )}

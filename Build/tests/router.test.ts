@@ -119,12 +119,24 @@ describe("chooseBackendKind", () => {
     );
   });
 
-  it("routes flac and wav straight to the decoder backend", () => {
+  it("routes any stored non-flo audio through Symphonia", () => {
+    expect(chooseBackendKind(makeTrack({ hasStoredAudio: true }))).toBe(
+      "symphonia",
+    );
+    expect(
+      chooseBackendKind(makeTrack({ hasStoredAudio: true, mimeType: "audio/mpeg" })),
+    ).toBe("symphonia");
+    expect(
+      chooseBackendKind(makeTrack({ hasStoredAudio: true, mimeType: "audio/flac" })),
+    ).toBe("symphonia");
+  });
+
+  it("keeps remote (non-stored) tracks on the platform backends", () => {
     expect(chooseBackendKind(makeTrack({ mimeType: "audio/flac" }))).toBe(
-      "webaudio",
+      "html",
     );
     expect(chooseBackendKind(makeTrack({ mimeType: "audio/wav" }))).toBe(
-      "webaudio",
+      "html",
     );
   });
 
@@ -135,17 +147,58 @@ describe("chooseBackendKind", () => {
   });
 });
 
+const SAFARI_UA =
+  "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/605.1.15";
+
+function withSafariUa(assert: () => void): void {
+  const original = navigator.userAgent;
+  Object.defineProperty(navigator, "userAgent", {
+    value: SAFARI_UA,
+    configurable: true,
+  });
+  try {
+    assert();
+  } finally {
+    Object.defineProperty(navigator, "userAgent", {
+      value: original,
+      configurable: true,
+    });
+  }
+}
+
+describe("chooseBackendKind on Safari", () => {
+  it("routes stored non-flo audio through the platform html backend", () => {
+    withSafariUa(() => {
+      expect(
+        chooseBackendKind(
+          makeTrack({ hasStoredAudio: true, mimeType: "audio/mpeg" }),
+        ),
+      ).toBe("html");
+    });
+  });
+
+  it("still routes flo tracks through the flo backend", () => {
+    withSafariUa(() => {
+      expect(
+        chooseBackendKind(
+          makeTrack({ hasStoredAudio: true, mimeType: "audio/x-flo" }),
+        ),
+      ).toBe("flo");
+    });
+  });
+});
+
 describe("BackendRouter", () => {
   let html: StubBackend;
-  let webAudio: StubBackend;
   let flo: StubBackend;
+  let symphonia: StubBackend;
   let router: BackendRouter;
 
   beforeEach(() => {
     html = new StubBackend();
-    webAudio = new StubBackend();
     flo = new StubBackend();
-    router = new BackendRouter(undefined, { html, webAudio, flo });
+    symphonia = new StubBackend();
+    router = new BackendRouter(undefined, { html, flo, symphonia });
   });
 
   afterEach(() => {
@@ -159,53 +212,65 @@ describe("BackendRouter", () => {
     expect(flo.calls).toHaveLength(1);
     expect(flo.calls[0]).toEqual({ url: "blob:flo-url", track });
     expect(html.calls).toHaveLength(0);
-    expect(webAudio.calls).toHaveLength(0);
+    expect(symphonia.calls).toHaveLength(0);
   });
 
-  it("routes a regular track to the html backend", async () => {
+  it("routes a regular remote track to the html backend", async () => {
     const track = makeTrack({ mimeType: "audio/mpeg" });
     await router.load("blob:mp3-url", track);
 
     expect(html.calls).toHaveLength(1);
     expect(flo.calls).toHaveLength(0);
+    expect(symphonia.calls).toHaveLength(0);
   });
 
-  it("routes flac straight to the Web Audio decoder", async () => {
-    const track = makeTrack({ mimeType: "audio/flac" });
-    await router.load("blob:flac-url", track);
+  it("routes stored audio through Symphonia", async () => {
+    const track = makeTrack({ hasStoredAudio: true, mimeType: "audio/mpeg" });
+    await router.load("blob:alac-url", track);
 
+    expect(symphonia.calls).toHaveLength(1);
+    expect(symphonia.calls[0]).toEqual({ url: "blob:alac-url", track });
     expect(html.calls).toHaveLength(0);
-    expect(webAudio.calls).toHaveLength(1);
-    expect(webAudio.calls[0]).toEqual({ url: "blob:flac-url", track });
     expect(flo.calls).toHaveLength(0);
   });
 
-  it("falls back to Web Audio when the html load fails", async () => {
+  it("declines crossfade when no partner backend can be created", async () => {
+    const track = makeTrack({ hasStoredAudio: true, mimeType: "audio/mpeg" });
+    await expect(
+      router.beginCrossfade("blob:alac-url", track, {
+        durationMs: 3000,
+        shape: "linear",
+      }),
+    ).resolves.toBe(false);
+    expect(symphonia.calls).toHaveLength(0);
+  });
+
+  it("falls back through Symphonia to HTML", async () => {
+    symphonia.failLoad = true;
+    const track = makeTrack({ hasStoredAudio: true });
+    await router.load("blob:stored-url", track);
+
+    expect(symphonia.calls).toHaveLength(1);
+    expect(html.calls).toHaveLength(1);
+  });
+
+  it("rethrows the html error when Symphonia and HTML also fail", async () => {
+    symphonia.failLoad = true;
+    html.failLoad = true;
+    const track = makeTrack({ hasStoredAudio: true });
+
+    await expect(router.load("blob:stored-url", track)).rejects.toThrow(
+      "stub load failed: blob:stored-url",
+    );
+  });
+
+  it("propagates the html error when the html load fails", async () => {
     html.failLoad = true;
     const track = makeTrack({ mimeType: "audio/mpeg" });
-    await router.load("blob:mp3-url", track);
 
-    expect(html.calls).toHaveLength(1);
-    expect(webAudio.calls).toHaveLength(1);
-    expect(webAudio.calls[0]).toEqual({ url: "blob:mp3-url", track });
-  });
-
-  it("falls back to HTML streaming when the decode path fails", async () => {
-    webAudio.failLoad = true;
-    const track = makeTrack({ mimeType: "audio/flac" });
-    await router.load("blob:flac-url", track);
-
-    expect(webAudio.calls).toHaveLength(1);
-    expect(html.calls).toHaveLength(1);
-  });
-
-  it("rethrows the html error when Web Audio also fails", async () => {
-    html.failLoad = true;
-    webAudio.failLoad = true;
-
-    await expect(
-      router.load("blob:mp3-url", makeTrack({ mimeType: "audio/mpeg" })),
-    ).rejects.toThrow("stub load failed: blob:mp3-url");
+    await expect(router.load("blob:mp3-url", track)).rejects.toThrow(
+      "stub load failed: blob:mp3-url",
+    );
   });
 
   it("replays volume, rate, and pitch on the newly active backend", async () => {
@@ -260,14 +325,14 @@ describe("BackendRouter", () => {
     expect(router.getDuration()).toBe(0);
   });
 
-  it("returns no analyser when Web Audio is unavailable", () => {
+  it("returns no analyser before a live backend exists", () => {
     expect(router.getAnalyser()).toBeNull();
   });
 
   it("disposes every inner backend at most once", () => {
     router.dispose();
     expect(html.isDisposed()).toBe(true);
-    expect(webAudio.isDisposed()).toBe(true);
     expect(flo.isDisposed()).toBe(true);
+    expect(symphonia.isDisposed()).toBe(true);
   });
 });

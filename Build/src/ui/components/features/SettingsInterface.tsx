@@ -149,7 +149,11 @@ export function SettingsInterface({
           </p>
         </div>
         <Select
-          value={settingsState.wallpaper || "None"}
+          value={
+            !settingsState.wallpaper || settingsState.wallpaper === "none"
+              ? "None"
+              : settingsState.wallpaper
+          }
           onValueChange={async (val) => {
             try {
               await setWallpaper(val);

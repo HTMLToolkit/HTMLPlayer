@@ -14,6 +14,8 @@ import {
 } from "../../../platform/providers";
 import { logger } from "../../../helpers/logger";
 import { prefersReducedMotion } from "../../../helpers/reducedMotion";
+import { useKomorebiStore } from "../../../store";
+import { selectCurrentTime } from "../../../store";
 
 gsap.registerPlugin(useGSAP);
 
@@ -24,7 +26,6 @@ interface LyricsProps {
   onClose?: () => void;
   onCloseComplete?: () => void;
   embeddedLyrics?: EmbeddedLyrics[];
-  currentTime?: number;
   isClosing?: boolean;
 }
 
@@ -66,10 +67,10 @@ export const Lyrics = ({
   onClose,
   onCloseComplete,
   embeddedLyrics,
-  currentTime = 0,
   isClosing: isClosingProp = false,
 }: LyricsProps) => {
   const { t } = useTranslation();
+  const currentTime = useKomorebiStore(selectCurrentTime);
   const [state, setState] = useState<OnlineLyricsState>(INITIAL_STATE);
   const [selectedIndex, setSelectedIndex] = useState<number>(-1);
   const [currentLineIndex, setCurrentLineIndex] = useState<number>(-1);

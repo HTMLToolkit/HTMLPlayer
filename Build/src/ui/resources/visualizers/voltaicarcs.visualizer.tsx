@@ -1,5 +1,6 @@
 import {
   getByteTimeDomainData,
+  applyTimeDomainSmoothing,
   sample,
   VisualizerType,
 } from "../../../platform/visualizers";
@@ -34,6 +35,7 @@ const voltaicArcs: VisualizerType<VoltaicArcsSettings> = {
 
     if (dataType !== "time") return;
     getByteTimeDomainData(analyser, timeDataArray);
+    applyTimeDomainSmoothing(canvas, timeDataArray);
 
     ctx.fillStyle = backgroundColor;
     ctx.fillRect(0, 0, canvas.width, canvas.height);

@@ -253,10 +253,10 @@ describe("Scheduler", () => {
     scheduler = new Scheduler();
   });
 
-  it("should prioritize gapless over crossfade", () => {
+  it("should prioritize crossfade over gapless when both are enabled", () => {
     scheduler.setCrossfadeConfig({ enabled: true, duration: 3000, shape: "linear" });
     scheduler.setGaplessConfig({ enabled: true });
-    expect(scheduler.getMode()).toBe("gapless");
+    expect(scheduler.getMode()).toBe("crossfade");
   });
 
   it("should use crossfade when gapless disabled", () => {
@@ -546,5 +546,68 @@ describe("KomorebiEngine", () => {
 
     await expect(engine.play()).resolves.toBeUndefined();
     expect(engine.getState().state).toBe("error");
+  });
+
+  it("should crossfade to the next track when the backend supports it", async () => {
+    let timeCallback: ((time: number) => void) | null = null;
+    const xfadeBackend = createMockBackend();
+    xfadeBackend.onTimeUpdate = jest.fn((callback) => {
+      timeCallback = callback;
+    });
+    const beginCrossfade = jest.fn().mockResolvedValue(true);
+    xfadeBackend.beginCrossfade = beginCrossfade;
+    xfadeBackend.getDuration = () => 180;
+
+    engine = new KomorebiEngine(xfadeBackend, {
+      crossfade: { enabled: true, duration: 3000, shape: "linear" },
+      gapless: { enabled: false },
+      smartShuffle: true,
+      autoPlayNext: true,
+    });
+    const playlist = createMockPlaylist(["a", "b", "c"]);
+    engine.setPlaylist(playlist);
+    await engine.load(playlist.songs[0]);
+    await engine.play();
+
+    timeCallback?.(178);
+    await new Promise((resolve) => setTimeout(resolve, 20));
+
+    expect(beginCrossfade).toHaveBeenCalledTimes(1);
+    expect(beginCrossfade).toHaveBeenCalledWith(
+      "file:///test/b.mp3",
+      expect.anything(),
+      expect.objectContaining({ durationMs: 3000, shape: "linear" }),
+    );
+    expect(engine.getCurrentTrack()?.id).toBe("b");
+    expect(engine.getState().state).toBe("playing");
+  });
+
+  it("should fall back to a hard switch when crossfade is declined", async () => {
+    let timeCallback: ((time: number) => void) | null = null;
+    const xfadeBackend = createMockBackend();
+    xfadeBackend.onTimeUpdate = jest.fn((callback) => {
+      timeCallback = callback;
+    });
+    xfadeBackend.beginCrossfade = jest.fn().mockResolvedValue(false);
+    xfadeBackend.getDuration = () => 180;
+
+    engine = new KomorebiEngine(xfadeBackend, {
+      crossfade: { enabled: true, duration: 3000, shape: "linear" },
+      gapless: { enabled: false },
+      smartShuffle: true,
+      autoPlayNext: true,
+    });
+    const playlist = createMockPlaylist(["a", "b", "c"]);
+    engine.setPlaylist(playlist);
+    await engine.load(playlist.songs[0]);
+    await engine.play();
+
+    timeCallback?.(178);
+    await new Promise((resolve) => setTimeout(resolve, 20));
+
+    expect(xfadeBackend.beginCrossfade).toHaveBeenCalledTimes(1);
+    expect(xfadeBackend.load).toHaveBeenCalledTimes(2);
+    expect(engine.getCurrentTrack()?.id).toBe("b");
+    expect(engine.getState().state).toBe("playing");
   });
 });

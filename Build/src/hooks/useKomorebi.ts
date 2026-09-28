@@ -1,4 +1,5 @@
-import { useEffect, useRef, useCallback } from "react";
+import { useCallback, useEffect, useRef } from "react";
+import { toast } from "sonner";
 import { KomorebiEngine } from "../core/engine/engine";
 import type {
   Track,
@@ -28,7 +29,6 @@ import {
   selectAutoPlayNext,
   selectCrossfade,
   selectCurrentTrack,
-  selectCurrentTime,
   selectDuration,
   selectError,
   selectGapless,
@@ -173,7 +173,7 @@ export function useKomorebi(
       crossfade: { enabled: false, duration: 0, shape: "linear" },
       gapless: { enabled: true },
       smartShuffle: true,
-      autoPlayNext: options.autoPlay ?? false,
+      autoPlayNext: options.autoPlay ?? true,
       trackResolver: (track) => trackStorage.reconstructUrl(track),
       preloadManager: new PreloadManager(),
     });
@@ -183,7 +183,14 @@ export function useKomorebi(
     restoreEngineSettings(engine);
 
     libraryRef.current = new LibraryManager();
-    settingsRef.current = new SettingsManager();
+    const initialSettings: Partial<SettingsState> = {};
+    if (typeof localStorage !== "undefined") {
+      const storedWallpaper = localStorage.getItem("selected-wallpaper");
+      if (storedWallpaper) {
+        initialSettings.wallpaper = storedWallpaper;
+      }
+    }
+    settingsRef.current = new SettingsManager(initialSettings);
     initializedRef.current = true;
   }
 
@@ -195,7 +202,7 @@ export function useKomorebi(
   const error = useKomorebiStore(selectError);
   const currentTrack = useKomorebiStore(selectCurrentTrack);
   const isPlaying = useKomorebiStore(selectIsPlaying);
-  const currentTime = useKomorebiStore(selectCurrentTime);
+  const currentTime = useKomorebiStore.getState().currentTime;
   const duration = useKomorebiStore(selectDuration);
   const volume = useKomorebiStore(selectVolume);
   const tempo = useKomorebiStore(selectTempo);
@@ -527,6 +534,11 @@ export function useKomorebi(
     const playerState = engine.getState().state;
     if (playerState === "ready" || playerState === "paused") {
       await engine.play();
+    } else if (playerState === "error") {
+      const message = engine.getState().error?.message;
+      if (message) {
+        toast.error(message);
+      }
     }
   }, []);
 

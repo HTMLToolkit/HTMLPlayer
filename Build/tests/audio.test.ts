@@ -1,5 +1,4 @@
 import { HTMLAudioBackend } from "../src/platform/audio/backends/HTMLBackend";
-import { WebAudioBackend } from "../src/platform/audio/backends/WebAudioBackend";
 import { describe, it, expect, beforeEach, afterEach, jest } from "@jest/globals";
 
 describe("HTMLAudioBackend", () => {
@@ -51,41 +50,6 @@ describe("HTMLAudioBackend", () => {
   });
 
   it.skip("should handle invalid URL load", async () => {
-    await expect(backend.load("invalid://url")).rejects.toThrow();
-  });
-});
-
-describe("WebAudioBackend", () => {
-  let backend: WebAudioBackend;
-
-  beforeEach(() => {
-    backend = new WebAudioBackend();
-  });
-
-  afterEach(() => {
-    backend.dispose();
-  });
-
-  it("should create without errors", () => {
-    expect(backend).toBeDefined();
-  });
-
-  it("should have correct default values", () => {
-    expect(backend.getCurrentTime()).toBe(0);
-    expect(backend.getDuration()).toBe(0);
-  });
-
-  it("should set volume", () => {
-    backend.setVolume(0.5);
-  });
-
-  it("should register callbacks", () => {
-    backend.onTimeUpdate(() => {});
-    backend.onEnded(() => {});
-    backend.onError(() => {});
-  });
-
-  it("should throw on invalid URL load", async () => {
     await expect(backend.load("invalid://url")).rejects.toThrow();
   });
 });

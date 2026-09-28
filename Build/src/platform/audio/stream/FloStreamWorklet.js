@@ -4,6 +4,8 @@ class FloStreamProcessor extends AudioWorkletProcessor {
   constructor() {
     super();
     this.channels = CHANNEL_CAP;
+    this.ctxRate = sampleRate || 44100;
+    this.srcRate = this.ctxRate;
     this.data = new Float32Array(0);
     this.frames = 0;
     this.writePos = 0;
@@ -15,6 +17,10 @@ class FloStreamProcessor extends AudioWorkletProcessor {
     this.port.onmessage = (event) => {
       this.handleMessage(event.data);
     };
+  }
+
+  get resampleStep() {
+    return this.rate * (this.srcRate / this.ctxRate);
   }
 
   ensureCapacity(extraSamples) {
@@ -31,6 +37,7 @@ class FloStreamProcessor extends AudioWorkletProcessor {
     switch (msg.type) {
       case "configure": {
         this.channels = Math.min(CHANNEL_CAP, Math.max(1, msg.channels | 0));
+        this.srcRate = msg.sampleRate > 0 ? msg.sampleRate : this.srcRate;
         break;
       }
       case "append": {
@@ -98,7 +105,7 @@ class FloStreamProcessor extends AudioWorkletProcessor {
         if (ch === 0) outL[i] = mixed;
         else if (outR) outR[i] = mixed;
       }
-      this.playhead += this.rate;
+      this.playhead += this.resampleStep;
     }
 
     if (this.playing && this.endOfStream && this.playhead + 1 >= this.frames) {

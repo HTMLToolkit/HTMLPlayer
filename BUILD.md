@@ -79,8 +79,27 @@ if (isTauri) {
 | `npm run preview`     | Preview production build           |
 | `npm run lint`        | Check for TypeScript errors        |
 | `npm run test`        | Run tests                          |
+| `npm run build:wasm`  | Build the Symphonia WASM decoder    |
 | `npm run count-lines` | Count lines of code                |
 | `npm run i18n-check`  | Check i18n coverage                |
+
+### Symphonia WASM Decoder
+
+Stored audio (anything not flo) is decoded by Symphonia compiled to WebAssembly, so playback is independent of the browser's native codec support (ALAC in Chrome, for example).
+
+Prerequisites:
+
+- [Rust](https://rustup.rs/) with the `wasm32-unknown-unknown` target: `rustup target add wasm32-unknown-unknown`
+- [wasm-pack](https://rustwasm.github.io/wasm-pack/installer/): `cargo install wasm-pack`
+
+Build the decoder into `Build/src/platform/audio/wasm/symphonia/`:
+
+```bash
+cd Build
+npm run build:wasm
+```
+
+The generated JS/wasm artifacts are gitignored and rebuilt by CI (`.github/workflows/build.yml`) before the unit and E2E gates run, so a plain `npm run build` from a fresh checkout requires this step to have run first. The Rust source lives in `crates/symphonia-wasm/`.
 
 ### i18n-izer.js
 

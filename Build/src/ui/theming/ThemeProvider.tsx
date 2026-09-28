@@ -8,7 +8,7 @@ import React, {
   type ReactNode,
 } from "react";
 import { ThemeEngine } from "./ThemeEngine";
-import { setThemeEngine } from "./index";
+import { getThemeEngine, setThemeEngine } from "./index";
 import { throwError } from "../../helpers/logger";
 import type { ThemeMode } from "./events";
 import type {
@@ -165,4 +165,29 @@ export const useThemingContext = (): ThemingContextValue => {
     return throwError("useThemingContext must be used within ThemeProvider");
   }
   return context;
+};
+
+export const useThemingContextOrGlobal = (): ThemingContextValue => {
+  const context = useContext(ThemingContext);
+  if (context) return context;
+
+  const engine = getThemeEngine();
+  if (!engine) {
+    return throwError(
+      "useTheming must be used within ThemeProvider or after the theme engine is initialized",
+    );
+  }
+
+  return {
+    state: engine.getState(),
+    palettes: engine.getPalettes(),
+    iconSets: engine.getIconSets(),
+    wallpapers: engine.getWallpapers(),
+    setPalette: (name) => engine.setPalette(name),
+    setIconSet: (id) => engine.setIconSet(id),
+    setWallpaper: (name) => engine.setWallpaper(name),
+    setMode: (mode) => engine.setMode(mode),
+    resolveIcon: (name) => engine.resolveIcon(name),
+    getWallpaperComponent: () => engine.getWallpaperComponent(),
+  };
 };

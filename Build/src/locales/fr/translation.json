@@ -348,6 +348,12 @@
   },
   "allSongs": "Toutes les chansons",
   "moreOptions": "Plus d'options",
+  "rating": {
+    "like": "J'aime",
+    "removeLike": "Ne plus aimer",
+    "dislike": "Je n'aime pas",
+    "removeDislike": "Réinitialiser l'avis"
+  },
   "sort": {
     "name": "Nom",
     "artist": "Artiste",

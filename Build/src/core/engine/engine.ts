@@ -151,6 +151,7 @@ export class KomorebiEngine {
     this.queue.jumpToIndex(trackIndex >= 0 ? trackIndex : null);
     this.emitTrackChange(previousTrack, track);
 
+    this.cancelScheduledTransition();
     this.stateMachine.transition("loading");
     this.currentError = null;
     this.events.emit("loading", { track });
@@ -630,19 +631,47 @@ export class KomorebiEngine {
     this.stateMachine.transition("transitioning");
 
     const nextTrack = this.queue.getNextTrack(this.settings.smartShuffle);
-    if (!nextTrack) return;
+    if (!nextTrack) {
+      if (this.stateMachine.canTransition("ready")) {
+        this.stateMachine.transition("ready");
+      }
+      return;
+    }
 
-    const delay =
-      this.scheduler.getMode() === "gapless" ? 100 : this.settings.crossfade;
+    const mode = this.scheduler.getMode();
+    const isCrossfade = mode === "crossfade" && this.settings.crossfade > 0;
+    const delay = isCrossfade
+      ? 0
+      : mode === "gapless"
+        ? 100
+        : this.settings.crossfade;
 
     this.scheduledTransitionId = window.setTimeout(() => {
       this.scheduledTransitionId = null;
-      this.executeTransition(nextTrack);
+      void this.executeTransition(nextTrack);
     }, delay);
   }
 
   private async executeTransition(nextTrack: Track): Promise<void> {
     const currentTrack = this.queue.getCurrentTrack();
+    const isCrossfade =
+      this.scheduler.getMode() === "crossfade" &&
+      this.settings.crossfade > 0 &&
+      this.backend.beginCrossfade !== undefined;
+
+    if (isCrossfade) {
+      const crossfaded = await this.tryCrossfade(nextTrack);
+      if (crossfaded) {
+        if (currentTrack) {
+          this.events.emit("ended", { track: currentTrack });
+        }
+        if (this.stateMachine.canTransition("playing")) {
+          this.stateMachine.transition("playing");
+          this.emitStateChange();
+        }
+        return;
+      }
+    }
 
     await this.loadAndPlay(nextTrack);
 
@@ -653,6 +682,36 @@ export class KomorebiEngine {
     if (this.stateMachine.canTransition("playing")) {
       this.stateMachine.transition("playing");
     }
+  }
+
+  private async tryCrossfade(nextTrack: Track): Promise<boolean> {
+    let url: string;
+    try {
+      const target = await this.resolveSource(nextTrack);
+      url = target.url;
+      if (typeof url !== "string" || url.length === 0) return false;
+    } catch {
+      return false;
+    }
+
+    const ok = await this.backend.beginCrossfade?.(url, nextTrack, {
+      durationMs: this.settings.crossfade,
+      shape: this.scheduler.getCrossfade().getCurve(),
+    });
+
+    if (!ok) return false;
+
+    const previousTrack = this.queue.getCurrentTrack();
+    const trackIndex = this.queue
+      .getTracks()
+      .findIndex((candidate) => candidate.id === nextTrack.id);
+    this.queue.jumpToIndex(trackIndex >= 0 ? trackIndex : null);
+    this.emitTrackChange(previousTrack, nextTrack);
+    this.prefetchSentinel = false;
+    this.duration = this.backend.getDuration() ?? nextTrack.duration;
+    this.events.emit("durationchange", { duration: this.duration });
+    this.prefetchUpcoming(nextTrack);
+    return true;
   }
 
   private cancelScheduledTransition(): void {
@@ -667,6 +726,10 @@ export class KomorebiEngine {
   }
 
   private handleTrackEnded(): void {
+    if (this.stateMachine.isTransitioning()) {
+      return;
+    }
+
     const track = this.queue.getCurrentTrack();
     if (track) {
       this.events.emit("ended", { track: track });
@@ -675,10 +738,6 @@ export class KomorebiEngine {
     if (this.settings.repeat === "one") {
       this.seek(0);
       this.play();
-      return;
-    }
-
-    if (this.stateMachine.isTransitioning()) {
       return;
     }
 

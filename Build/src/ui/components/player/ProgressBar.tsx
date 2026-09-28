@@ -1,18 +1,16 @@
 import { useCallback } from "react";
 import { useDragControl } from "../../../ui/hooks";
+import { useKomorebiStore } from "../../../store";
+import { selectCurrentTime } from "../../../store";
 import styles from "./Player.module.css";
 
 interface ProgressBarProps {
-  currentTime: number;
   duration: number;
   onSeek: (time: number) => void;
 }
 
-export function ProgressBar({
-  currentTime,
-  duration,
-  onSeek,
-}: ProgressBarProps) {
+export function ProgressBar({ duration, onSeek }: ProgressBarProps) {
+  const currentTime = useKomorebiStore(selectCurrentTime);
   const onMove = useCallback(
     (fraction: number) => {
       if (duration) onSeek(fraction * duration);
@@ -20,7 +18,7 @@ export function ProgressBar({
     [duration, onSeek],
   );
 
-  const { ref, isDragging, handleClick, handleMouseDown, handleTouchStart } =
+  const { ref, isDragging, handleMouseDown, handleTouchStart } =
     useDragControl(onMove);
 
   const formatTime = (seconds: number) => {
@@ -47,7 +45,6 @@ export function ProgressBar({
       <div
         className={`${styles.progressBar} ${isDragging ? styles.dragging : ""}`}
         ref={ref}
-        onClick={handleClick}
         onMouseDown={handleMouseDown}
         onTouchStart={handleTouchStart}
       >

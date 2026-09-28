@@ -65,6 +65,8 @@ body {
 
 html {
   overflow-y: auto;
+  background: var(--themegradient);
+  background-attachment: fixed;
 }
 
 #root {

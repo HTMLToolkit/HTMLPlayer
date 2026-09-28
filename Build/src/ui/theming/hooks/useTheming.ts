@@ -1,9 +1,9 @@
-import { useThemingContext } from "../ThemeProvider";
+import { useThemingContextOrGlobal } from "../ThemeProvider";
 import type { ThemeMode } from "../events";
 import type { Palette, IconSet, Wallpaper } from "../types";
 
 export const useTheming = () => {
-  const context = useThemingContext();
+  const context = useThemingContextOrGlobal();
 
   return {
     state: context.state,

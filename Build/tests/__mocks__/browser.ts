@@ -1,6 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
+import { ReadableStream } from "node:stream/web";
+
 declare const global: any;
+
+if (!global.ReadableStream) {
+  global.ReadableStream = ReadableStream;
+}
 
 const MockGainNode: any = {
   gain: { value: 1 },

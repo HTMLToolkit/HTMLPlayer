@@ -45,6 +45,23 @@ function isStoredTrack(value: unknown): value is StoredTrack {
   return typeof value.hasStoredAudio === "boolean";
 }
 
+interface ReconstructedUrl {
+  fingerprint: string;
+  url: string;
+}
+
+const reconstructedUrls = new Map<string, ReconstructedUrl>();
+
+function fingerprintAudioData(data: ArrayBuffer): string {
+  const bytes = new Uint8Array(data);
+  const sampleLength = Math.min(bytes.length, 512);
+  let hash = bytes.length >>> 0;
+  for (let i = 0; i < sampleLength; i++) {
+    hash = (hash * 31 + (bytes[i] ?? 0)) >>> 0;
+  }
+  return `${bytes.length}:${hash.toString(16)}`;
+}
+
 export const trackStorage = {
   async saveTrack(track: Track, audioData?: ArrayBuffer): Promise<void> {
     const db = await getDb();
@@ -177,19 +194,26 @@ export const trackStorage = {
     const audioData = await this.getAudioData(track.id);
 
     if (audioData) {
+      const fingerprint = fingerprintAudioData(audioData);
+      const existing = reconstructedUrls.get(track.id);
+
+      if (existing && existing.fingerprint === fingerprint) {
+        return { ...track, url: existing.url };
+      }
+
+      if (existing) {
+        URL.revokeObjectURL(existing.url);
+        reconstructedUrls.delete(track.id);
+      }
+
       const blob = new Blob([audioData], {
         type: track.mimeType || "audio/mpeg",
       });
       const url = URL.createObjectURL(blob);
+      reconstructedUrls.set(track.id, { fingerprint, url });
       logger.info("Reconstructed audio URL from stored data", {
         trackId: track.id,
       });
-
-      if (track.url && track.url.startsWith("blob:")) {
-        try {
-          URL.revokeObjectURL(track.url);
-        } catch {}
-      }
 
       return { ...track, url };
     } else {

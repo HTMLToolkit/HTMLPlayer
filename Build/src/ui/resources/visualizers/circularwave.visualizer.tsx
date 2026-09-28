@@ -1,5 +1,6 @@
 import {
   getByteTimeDomainData,
+  applyTimeDomainSmoothing,
   sample,
   VisualizerType,
 } from "../../../platform/visualizers";
@@ -32,6 +33,7 @@ const circularWave: VisualizerType<CircularWaveSettings> = {
 
     if (dataType !== "time") return;
     getByteTimeDomainData(analyser, timeDataArray);
+    applyTimeDomainSmoothing(canvas, timeDataArray);
 
     ctx.fillStyle = backgroundColor;
     ctx.fillRect(0, 0, canvas.width, canvas.height);

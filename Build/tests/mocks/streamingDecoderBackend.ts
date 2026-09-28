@@ -1,8 +1,12 @@
 import type { AudioGraph } from "../../src/platform/audio/graph";
 import type { Track } from "../../src/core/engine/types";
+import type { StreamDecoderEngine } from "../../src/platform/audio/stream/StreamDecoder.worker";
 
-export class StreamingFloBackend {
-  constructor(private readonly graph?: AudioGraph) {}
+export class StreamingDecoderBackend {
+  constructor(
+    private readonly graph?: AudioGraph,
+    readonly engine: StreamDecoderEngine = "flo",
+  ) {}
 
   load(_url: string, _track?: Track): Promise<void> {
     return Promise.resolve();

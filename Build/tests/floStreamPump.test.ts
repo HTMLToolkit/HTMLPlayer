@@ -220,6 +220,6 @@ describe("FloStreamPump", () => {
 
     await expect(pump.start(0)).resolves.toBeUndefined();
 
-    expect(state.errors[0]?.message).toBe("flo decoder rejected stream data");
+    expect(state.errors[0]?.message).toBe("decoder rejected stream data");
   });
 });

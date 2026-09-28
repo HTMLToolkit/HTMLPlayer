@@ -42,23 +42,37 @@ export class AudioGraph {
     }
   }
 
-  connectMediaElement(audio: HTMLMediaElement): MediaElementAudioSourceNode {
+  connectMediaElement(
+    audio: HTMLMediaElement,
+    slot?: GainNode,
+  ): MediaElementAudioSourceNode {
     const cached = this.mediaElementSources.get(audio);
     if (cached) return cached;
 
     const context = this.ensureContext();
     const source = context.createMediaElementSource(audio);
-    source.connect(this.ensureChainInput());
+    source.connect(slot ?? this.ensureChainInput());
     this.mediaElementSources.set(audio, source);
     return source;
   }
 
-  createBufferSourceNode(buffer: AudioBuffer): AudioBufferSourceNode {
+  createBufferSourceNode(
+    buffer: AudioBuffer,
+    slot?: GainNode,
+  ): AudioBufferSourceNode {
     const context = this.ensureContext();
     const source = context.createBufferSource();
     source.buffer = buffer;
-    source.connect(this.ensureChainInput());
+    source.connect(slot ?? this.ensureChainInput());
     return source;
+  }
+
+  createSlot(): GainNode {
+    const context = this.ensureContext();
+    const slot = context.createGain();
+    slot.gain.value = 1;
+    slot.connect(this.ensureChainInput());
+    return slot;
   }
 
   connectToChain(node: AudioNode): void {
@@ -251,7 +265,6 @@ export class AudioGraph {
   private rebuildFxChain(): void {
     if (!this.chainInput || !this.analyser) return;
 
-    this.chainInput.disconnect();
     this.replayGainNode?.disconnect();
     this.equalizer.disconnect();
     this.getPitchOutputNode()?.disconnect();

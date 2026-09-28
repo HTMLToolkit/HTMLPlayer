@@ -4,6 +4,12 @@
   left: var(--sidebar-width);
   width: calc(100% - var(--sidebar-width) - 15px);
   height: 180px;
+  --foreground: var(--primary-foreground);
+  --foreground-strong: var(--primary-foreground);
+  --foreground-stronger: var(--primary-foreground);
+  --foreground-muted: var(--primary-foreground);
+  --foreground-subtle: var(--primary-foreground);
+  --muted: var(--surface-transparent-2);
   background: var(--menu-background);
   backdrop-filter: blur(30px);
   border-top: 1px solid var(--primary-border-strong);

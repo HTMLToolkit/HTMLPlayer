@@ -42,6 +42,7 @@ export const PlaylistToolbar = memo(function PlaylistToolbar({
           <Button
             variant="outline"
             size="icon-md"
+            aria-label={t("playlist.addPlaylist")}
             className={`${styles.actionButton} action-button-lift`}
           >
             <Icon name="plus" size={16} decorative />

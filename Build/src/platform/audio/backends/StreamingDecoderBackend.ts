@@ -1,14 +1,12 @@
 import { BaseAudioBackend } from "./BaseBackend";
 import { AudioGraph } from "../graph";
 import { clampRate } from "../clamp";
-import {
-  FloStreamPump,
-  createRealStreamingDecoder,
-} from "../stream/FloStreamPump";
+import { StreamDecoderClient } from "../stream/StreamDecoderClient";
 import type {
   FloStreamInfo,
   FloStreamPumpEvents,
 } from "../stream/FloStreamPump";
+import type { StreamDecoderEngine } from "../stream/StreamDecoder.worker";
 import type { Track } from "../../../core/engine/types";
 
 const TIME_UPDATE_MS = 100;
@@ -32,11 +30,13 @@ const loadWorkletModule = (ctx: AudioContext): Promise<void> => {
   return pending;
 };
 
-export class StreamingFloBackend extends BaseAudioBackend {
+export class StreamingDecoderBackend extends BaseAudioBackend {
   private readonly graph: AudioGraph;
+  private readonly engine: StreamDecoderEngine;
   private readonly ownsGraph: boolean;
+  private outputGain: GainNode | null = null;
   private currentUrl = "";
-  private pump: FloStreamPump | null = null;
+  private stream: StreamDecoderClient | null = null;
   private workletNode: AudioWorkletNode | null = null;
   private channels = 2;
   private sampleRate = 44100;
@@ -48,14 +48,16 @@ export class StreamingFloBackend extends BaseAudioBackend {
   private receivedAudio = false;
   private receivedInfo = false;
   private pumpFailure: Error | null = null;
+  private resumeIntent = false;
   private pendingChunks: Float32Array[] = [];
   private timeUpdateTimer: number | null = null;
   private flushTimer: number | null = null;
   private streamGeneration = 0;
 
-  constructor(graph?: AudioGraph) {
+  constructor(graph?: AudioGraph, engine: StreamDecoderEngine = "flo") {
     super();
     this.graph = graph ?? new AudioGraph();
+    this.engine = engine;
     this.ownsGraph = !graph;
   }
 
@@ -65,6 +67,7 @@ export class StreamingFloBackend extends BaseAudioBackend {
     this.duration = track?.duration ?? 0;
     this.pausedAt = 0;
     this.playing = false;
+    this.resumeIntent = false;
     this.receivedAudio = false;
     this.receivedInfo = false;
     this.pumpFailure = null;
@@ -76,20 +79,20 @@ export class StreamingFloBackend extends BaseAudioBackend {
     this.startFlushTimer();
 
     const generation = this.streamGeneration;
-    this.pump = this.createPump(generation);
+    const stream = this.ensureStream();
 
-    await this.pump.start(0);
+    await stream.start(this.currentUrl, 0);
     if (generation !== this.streamGeneration) return;
     if (this.pumpFailure) {
       throw this.pumpFailure;
     }
     if (!this.receivedAudio && !this.receivedInfo) {
-      throw new Error("flo stream contained no audio");
+      throw new Error(`${this.engine} stream contained no audio`);
     }
   }
 
   async play(): Promise<void> {
-    if (!this.workletNode || !this.pump) return;
+    if (!this.workletNode || !this.stream) return;
     if (this.duration > 0 && this.pausedAt + 0.05 >= this.duration) {
       this.emitEnded();
       return;
@@ -101,6 +104,7 @@ export class StreamingFloBackend extends BaseAudioBackend {
     if (!this.playing) return;
     this.pausedAt = clamp(this.getCurrentTime(), 0, this.duration);
     this.playing = false;
+    this.resumeIntent = false;
     this.postWorklet({ type: "pause" });
     this.stopTimeUpdateTimer();
   }
@@ -109,25 +113,36 @@ export class StreamingFloBackend extends BaseAudioBackend {
     this.cancelCurrentStream();
     this.pausedAt = 0;
     this.playing = false;
+    this.resumeIntent = false;
     this.stopTimers();
     this.emitTimeUpdate(0);
   }
 
   seek(time: number): void {
-    const wasPlaying = this.playing;
+    const wasPlaying = this.playing || this.resumeIntent;
     this.cancelCurrentStream();
     const clamped = clamp(time, 0, this.duration);
     this.pausedAt = clamped;
     this.playing = false;
+    this.resumeIntent = wasPlaying;
     this.stopTimeUpdateTimer();
     this.emitTimeUpdate(clamped);
 
-    if (this.duration <= 0 || this.sampleRate <= 0) return;
+    if (this.duration <= 0 || this.sampleRate <= 0) {
+      this.resumeIntent = false;
+      return;
+    }
     void this.restartStream(clamped, wasPlaying);
   }
 
   setVolume(volume: number): void {
     this.graph.setVolume(volume);
+  }
+
+  setOutputGain(value: number): void {
+    if (this.outputGain) {
+      this.outputGain.gain.value = value;
+    }
   }
 
   setPlaybackRate(rate: number): void {
@@ -141,7 +156,8 @@ export class StreamingFloBackend extends BaseAudioBackend {
 
   getCurrentTime(): number {
     if (this.playing) {
-      const elapsed = this.getGraphTime() - this.startTime;
+      const elapsed =
+        (this.getGraphTime() - this.startTime) * this.playbackRate;
       return clamp(elapsed, 0, this.duration);
     }
     return clamp(this.pausedAt, 0, this.duration);
@@ -163,24 +179,27 @@ export class StreamingFloBackend extends BaseAudioBackend {
       this.workletNode = null;
     }
     this.stopTimers();
+    this.stream?.dispose();
+    this.stream = null;
     if (this.ownsGraph) {
       this.graph.dispose();
     }
     super.dispose();
   }
 
-  private createPump(generation: number): FloStreamPump {
+  private ensureStream(): StreamDecoderClient {
+    if (this.stream) return this.stream;
     const events: FloStreamPumpEvents = {
-      onInfo: (info) => this.handleInfo(info, generation),
-      onChunk: (chunk) => this.handleChunk(chunk, generation),
-      onEnd: () => this.handleStreamEnd(generation),
-      onError: (error) => this.handleStreamError(error, generation),
+      onInfo: (info) => this.handleInfo(info, this.streamGeneration),
+      onChunk: (chunk) => this.handleChunk(chunk, this.streamGeneration),
+      onEnd: () => this.handleStreamEnd(this.streamGeneration),
+      onError: (error) => this.handleStreamError(error, this.streamGeneration),
     };
-    return new FloStreamPump({
-      url: this.currentUrl,
-      decoder: createRealStreamingDecoder(),
+    this.stream = new StreamDecoderClient({
+      engine: this.engine,
       events,
     });
+    return this.stream;
   }
 
   private async restartStream(
@@ -188,18 +207,23 @@ export class StreamingFloBackend extends BaseAudioBackend {
     resumingPlayback: boolean,
   ): Promise<void> {
     const generation = ++this.streamGeneration;
-    this.pump = this.createPump(generation);
+    const stream = this.ensureStream();
 
-    await this.pump.start(Math.floor(time * this.sampleRate));
+    await stream.start(this.currentUrl, Math.floor(time * this.sampleRate));
     if (generation !== this.streamGeneration) return;
     if (this.pumpFailure) {
       this.emitError(this.pumpFailure);
       return;
     }
 
-    this.postWorklet({ type: "configure", channels: this.channels });
+    this.postWorklet({
+      type: "configure",
+      channels: this.channels,
+      sampleRate: this.sampleRate,
+    });
     this.flushPendingChunks();
     if (resumingPlayback) {
+      this.resumeIntent = false;
       this.startPlayback(time);
     }
   }
@@ -222,7 +246,11 @@ export class StreamingFloBackend extends BaseAudioBackend {
     if (info.total_samples && info.total_samples > 0) {
       this.duration = Number(info.total_samples) / this.sampleRate;
     }
-    this.postWorklet({ type: "configure", channels: this.channels });
+    this.postWorklet({
+      type: "configure",
+      channels: this.channels,
+      sampleRate: this.sampleRate,
+    });
   }
 
   private handleChunk(chunk: Float32Array, generation: number): void {
@@ -283,16 +311,16 @@ export class StreamingFloBackend extends BaseAudioBackend {
       }
     };
     node.port.onmessage = message;
-    this.graph.connectToChain(node);
+    if (!this.outputGain) {
+      this.outputGain = this.graph.createSlot();
+    }
+    node.connect(this.outputGain);
     this.workletNode = node;
   }
 
   private cancelCurrentStream(): void {
     this.streamGeneration++;
-    if (this.pump) {
-      this.pump.cancel();
-      this.pump = null;
-    }
+    this.stream?.cancel();
     this.pendingChunks = [];
     this.postWorklet({ type: "flush" });
   }
@@ -333,8 +361,4 @@ export class StreamingFloBackend extends BaseAudioBackend {
       this.flushTimer = null;
     }
   }
-}
-
-export function createStreamingFloBackend(): StreamingFloBackend {
-  return new StreamingFloBackend();
 }

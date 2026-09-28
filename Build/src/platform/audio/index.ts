@@ -14,6 +14,13 @@ export interface IAudioBackend {
   seek(time: number): void;
   setVolume(volume: number): void;
   setPlaybackRate(rate: number): void;
+  setOutputGain?(value: number): void;
+  beginCrossfade?(
+    url: string,
+    track: Track | undefined,
+    options: { durationMs: number; shape: "linear" | "equalpower" },
+  ): Promise<boolean>;
+  cancelCrossfade?(): void;
   getAnalyser?: () => AnalyserNode | null;
   setPitch?(semitones: number): void | Promise<void>;
   setReplayGain?(gainDb: number | null): void;
@@ -26,16 +33,4 @@ export interface IAudioBackend {
   onError(callback: (error: Error) => void): void;
   offError(callback: (error: Error) => void): void;
   dispose(): void;
-}
-
-export type AudioBackendType = "html" | "webaudio" | "hybrid" | "custom";
-
-export interface AudioBackendOptions {
-  type: AudioBackendType;
-  preload?: boolean;
-  preloadCount?: number;
-}
-
-export interface AudioBackendFactory {
-  create(options?: Partial<AudioBackendOptions>): IAudioBackend;
 }

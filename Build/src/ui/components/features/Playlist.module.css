@@ -153,7 +153,8 @@
 .songCount {
   margin-left: auto;
   font-size: 0.75rem;
-  color: var(--foreground-muted);
+  color: inherit;
+  opacity: 0.7;
 }
 
 .allSongsItem {

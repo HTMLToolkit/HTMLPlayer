@@ -1,5 +1,6 @@
 import {
   getByteTimeDomainData,
+  applyTimeDomainSmoothing,
   sample,
   VisualizerType,
 } from "../../../platform/visualizers";
@@ -24,15 +25,17 @@ const oceanWaves: VisualizerType<OceanWavesSettings> = {
     settings = {},
   ) {
     const {
-      lineColor = "rgba(0, 150, 255, 0.8)",
-      backgroundColor = "rgba(0, 50, 100, 0.2)",
+      lineColor = "rgba(120, 215, 255, 0.95)",
+      backgroundColor = "rgb(4, 34, 76)",
       lineWidth = 4,
       curveDepth = 10,
     } = settings;
 
     if (dataType !== "time") return;
     getByteTimeDomainData(analyser, timeDataArray);
+    applyTimeDomainSmoothing(canvas, timeDataArray);
 
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.fillStyle = backgroundColor;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 

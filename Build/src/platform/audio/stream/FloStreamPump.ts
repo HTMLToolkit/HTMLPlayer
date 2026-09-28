@@ -1,4 +1,4 @@
-import { WasmStreamingDecoder } from "@audiflo/libflo";
+import initFlo, { WasmStreamingDecoder } from "@audiflo/libflo";
 
 export interface FloStreamInfo {
   sample_rate: number;
@@ -11,7 +11,12 @@ export interface FloStreamDecoderProtocol {
   feed(chunk: Uint8Array): boolean;
   get_info(): FloStreamInfo | null;
   has_error(): boolean;
+  error_message?(): string | null;
   next_frame(): Float32Array | null;
+  end_of_input?(): void;
+  is_pending?(): boolean;
+  is_finished?(): boolean;
+  budget_exhausted?(): boolean;
   free?(): void;
 }
 
@@ -124,7 +129,9 @@ export class FloStreamPump {
         if (value.length > 0) {
           const accepted = this.decoder.feed(value);
           if (!accepted || this.decoder.has_error()) {
-            this.fail(new Error("flo decoder rejected stream data"));
+            const message =
+              this.decoder.error_message?.() ?? "decoder rejected stream data";
+            this.fail(new Error(message));
             return;
           }
           this.drain();
@@ -133,7 +140,8 @@ export class FloStreamPump {
       }
 
       if (this.cancelled) return;
-      this.drain();
+      this.decoder.end_of_input?.();
+      await this.drainUntilFinished();
       if (this.cancelled) return;
       this.firstAudioReady?.();
       this.events.onEnd?.();
@@ -141,6 +149,28 @@ export class FloStreamPump {
       if (!this.cancelled) {
         this.fail(error as Error);
       }
+    }
+  }
+
+  private async drainUntilFinished(): Promise<void> {
+    for (;;) {
+      const before = this.framesDecoded;
+      this.drain();
+      if (this.cancelled) return;
+      if (this.decoder.has_error()) {
+        const message =
+          this.decoder.error_message?.() ?? "decoder rejected stream data";
+        this.fail(new Error(message));
+        return;
+      }
+
+      const noProgress = this.framesDecoded === before;
+      const wantsMoreWork = this.decoder.budget_exhausted?.() ?? false;
+      const wantsMoreInput = this.decoder.is_pending?.() ?? false;
+      if (noProgress && (wantsMoreInput || !wantsMoreWork)) {
+        return;
+      }
+      await this.yieldToMain();
     }
   }
 
@@ -155,7 +185,7 @@ export class FloStreamPump {
       }
 
       const chunk = this.decoder.next_frame();
-      if (chunk === null || chunk.length === 0) break;
+      if (chunk == null || chunk.length === 0) break;
 
       if (this.channels === 0) {
         this.framesDecoded += 1;
@@ -206,5 +236,26 @@ export class FloStreamPump {
   }
 }
 
-export const createRealStreamingDecoder = (): FloStreamDecoderProtocol =>
-  new WasmStreamingDecoder();
+let floWasmReady: Promise<void> | null = null;
+
+export const ensureFloWasmLoaded = (): Promise<void> => {
+  if (!floWasmReady) {
+    floWasmReady = initFlo().then(
+      () => undefined,
+      (error) => {
+        floWasmReady = null;
+        throw new Error(`flo wasm init failed: ${String(error)}`);
+      },
+    );
+  }
+  return floWasmReady;
+};
+
+export const createRealStreamingDecoder = (): FloStreamDecoderProtocol => {
+  if (!floWasmReady) {
+    throw new Error(
+      "flo wasm module not initialized; await ensureFloWasmLoaded() first",
+    );
+  }
+  return new WasmStreamingDecoder();
+};
