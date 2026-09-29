@@ -1,12 +1,12 @@
 import { Equalizer } from "./equalizer";
 import { clampVolume } from "./clamp";
+import { gainDbToLinear } from "./replayGain";
 import { createLogger } from "../../helpers/logger";
 
 const logger = createLogger("audioGraph");
 
 const ANALYSER_FFT_SIZE = 2048;
 const MAX_PITCH_SEMITONES = 48;
-const MAX_REPLAY_GAIN_DB = 60;
 
 export class AudioGraph {
   private context: AudioContext | null = null;
@@ -93,16 +93,7 @@ export class AudioGraph {
   setReplayGain(gainDb: number | null): void {
     this.replayGainDb = gainDb;
 
-    const linear =
-      gainDb === null || !Number.isFinite(gainDb)
-        ? 1
-        : Math.pow(
-            10,
-            Math.max(
-              -MAX_REPLAY_GAIN_DB,
-              Math.min(MAX_REPLAY_GAIN_DB, gainDb),
-            ) / 20,
-          );
+    const linear = gainDbToLinear(gainDb);
 
     if (this.replayGainNode) {
       this.replayGainNode.gain.value = linear;
@@ -220,16 +211,7 @@ export class AudioGraph {
     masterGain.gain.value = this.volume;
 
     const replayGainNode = context.createGain();
-    replayGainNode.gain.value =
-      this.replayGainDb === null
-        ? 1
-        : Math.pow(
-            10,
-            Math.max(
-              -MAX_REPLAY_GAIN_DB,
-              Math.min(MAX_REPLAY_GAIN_DB, this.replayGainDb),
-            ) / 20,
-          );
+    replayGainNode.gain.value = gainDbToLinear(this.replayGainDb);
 
     chainInput.connect(replayGainNode);
     replayGainNode.connect(analyser);

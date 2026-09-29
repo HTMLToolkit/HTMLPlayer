@@ -1,11 +1,21 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { ReadableStream } from "node:stream/web";
+import { webcrypto } from "node:crypto";
 
 declare const global: any;
 
 if (!global.ReadableStream) {
   global.ReadableStream = ReadableStream;
+}
+
+if (!global.crypto) {
+  global.crypto = webcrypto;
+} else if (!global.crypto.subtle) {
+  Object.defineProperty(global.crypto, "subtle", {
+    value: webcrypto.subtle,
+    configurable: true,
+  });
 }
 
 const MockGainNode: any = {

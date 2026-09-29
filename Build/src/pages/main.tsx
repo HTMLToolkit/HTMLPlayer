@@ -1,6 +1,6 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
-import { logger } from "../helpers/logger";
+import { broadcastThemeCSS } from "../platform/pip/broadcastTheme";
 import IndexPage from "./_index";
 import "../global.css";
 import { Toaster } from "sonner";
@@ -38,11 +38,7 @@ const App: React.FC = () => {
   return (
     <React.StrictMode>
       <I18nextProvider i18n={i18nInstance}>
-        <ThemeProvider
-          onThemeChange={(data) =>
-            logger.info(`Theme changed: ${data.type} = ${data.value}`)
-          }
-        >
+        <ThemeProvider onThemeChange={() => broadcastThemeCSS()}>
           <IndexPage />
         </ThemeProvider>
         <Toaster

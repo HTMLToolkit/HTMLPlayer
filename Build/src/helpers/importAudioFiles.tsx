@@ -1,5 +1,6 @@
 import { toast } from "sonner";
 import { logger } from "./logger";
+import { createDuplicateDetector } from "../platform/library/duplicateDetector";
 import {
   createMetadataExtractor,
   createFloMetadataExtractor,
@@ -108,15 +109,18 @@ export async function importAudioFiles(
   audioFiles: Array<{ file: File | null } | File>,
   addSong: (song: Track, file: File) => Promise<void>,
   t: Translate,
+  getExistingTracks?: () => Track[],
 ) {
   if (!audioFiles || audioFiles.length === 0) return;
 
   const BATCH_SIZE = 10;
   let successCount = 0;
   let errorCount = 0;
+  let duplicateCount = 0;
   let currentBatch = 1;
   const totalBatches = Math.ceil(audioFiles.length / BATCH_SIZE);
   const albumArtManager = createAlbumArtManager();
+  const duplicateDetector = createDuplicateDetector();
 
   for (let i = 0; i < audioFiles.length; i += BATCH_SIZE) {
     const batch = audioFiles.slice(i, i + BATCH_SIZE);
@@ -193,6 +197,21 @@ export async function importAudioFiles(
           mimeType: processedMimeType,
         };
 
+        if (
+          getExistingTracks &&
+          (await duplicateDetector.isConfirmedDuplicate(
+            processedFile,
+            song,
+            getExistingTracks(),
+          ))
+        ) {
+          duplicateCount++;
+          if (typeof audioFile === "object" && "file" in audioFile) {
+            audioFile.file = null;
+          }
+          continue;
+        }
+
         await addSong(song, processedFile);
 
         if (typeof audioFile === "object" && "file" in audioFile) {
@@ -218,6 +237,9 @@ export async function importAudioFiles(
   toast.dismiss();
   if (successCount > 0) {
     toast.success(t("filePicker.successImport", { count: successCount }));
+  }
+  if (duplicateCount > 0) {
+    toast.info(t("filePicker.duplicatesSkipped", { count: duplicateCount }));
   }
   if (errorCount > 0) {
     toast.error(t("filePicker.failedImport", { count: errorCount }));

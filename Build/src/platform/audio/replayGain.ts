@@ -17,6 +17,20 @@ const DEFAULT_CONFIG: ReplayGainConfig = {
   mode: "auto",
 };
 
+export const MAX_REPLAY_GAIN_DB = 60;
+
+export function gainDbToLinear(
+  gainDb: number | null | undefined,
+  preampDb = 0,
+): number {
+  if (gainDb == null || !Number.isFinite(gainDb)) return 1;
+  const db = Math.max(
+    -MAX_REPLAY_GAIN_DB,
+    Math.min(MAX_REPLAY_GAIN_DB, gainDb + preampDb),
+  );
+  return Math.pow(10, db / 20);
+}
+
 export class ReplayGainAnalyzer {
   private config: ReplayGainConfig = DEFAULT_CONFIG;
   private audioContext: AudioContext | null = null;
@@ -87,12 +101,7 @@ export class ReplayGainAnalyzer {
   }
 
   calculateVolume(replayGain: ReplayGainInfo | undefined): number {
-    if (!replayGain?.trackGain) {
-      return 1;
-    }
-
-    const gain = replayGain.trackGain + this.config.preampGain;
-    return Math.pow(10, gain / 20);
+    return gainDbToLinear(replayGain?.trackGain, this.config.preampGain);
   }
 
   createGainNode(

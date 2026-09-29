@@ -42,9 +42,7 @@ const plugins = [
         .replace(/__INLINED_ICON__/g, JSON.stringify(iconBase64))
         .replace(
           /__INLINED_MESSAGES__/g,
-          isSingleFile
-            ? JSON.stringify({ en: enMessages, fr: frMessages })
-            : "null"
+          JSON.stringify({ en: enMessages, fr: frMessages })
         );
     },
   },
@@ -252,9 +250,7 @@ export default defineConfig({
   define: {
     __ENABLE_PWA_LOGIC__: isWeb && !isSingleFile,
     __IS_SINGLE_FILE__: isSingleFile,
-    __INLINED_MESSAGES__: isSingleFile
-      ? { en: enMessages, fr: frMessages }
-      : null,
+    __INLINED_MESSAGES__: { en: enMessages, fr: frMessages },
     __INLINED_ICON__: JSON.stringify(iconBase64),
   },
 

@@ -462,7 +462,12 @@ export const MainContent = ({
       await prepareAndStoreSong(song, file);
       addSong(song);
     };
-    await importAudioFiles(audioFiles, wrappedAddSong, t);
+    await importAudioFiles(
+      audioFiles,
+      wrappedAddSong,
+      t,
+      () => library.getState().songs,
+    );
   };
 
   const handleAddMusic = async () => {

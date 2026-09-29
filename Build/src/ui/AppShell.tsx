@@ -158,16 +158,25 @@ function AppShellContent({ komorebi }: AppShellProps) {
     komorebi.addSong(stored);
   };
 
-  useFileHandler(handleAddSong, t, importAudioFiles, komorebi.isReady);
+  const existingTracks = () => komorebi.library.getState().songs;
+  const handleImport = (
+    files: File[],
+    onAddSong: (song: Track, file: File) => Promise<void>,
+    translate: (key: string, options?: Record<string, unknown>) => string,
+  ) => importAudioFiles(files, onAddSong, translate, existingTracks);
+
+  useFileHandler(handleAddSong, t, handleImport, komorebi.isReady);
 
   useShareTarget((result) => {
     if (result.files.length > 0) {
       toast.success(
         t("shareTarget.filesReceived", { count: result.files.length }),
       );
-      importAudioFiles(result.files, handleAddSong, t).then(() => {
-        clearHandledShares();
-      });
+      importAudioFiles(result.files, handleAddSong, t, existingTracks).then(
+        () => {
+          clearHandledShares();
+        },
+      );
     }
     if (result.title || result.text || result.url) {
       const sharedContent = result.title || result.text || result.url;

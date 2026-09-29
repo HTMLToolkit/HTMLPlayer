@@ -8,34 +8,60 @@ export interface DuplicateGroup {
   duplicates: Track[];
 }
 
+export function trackSignature(song: {
+  title: string;
+  artist: string;
+  album: string;
+}): string {
+  return `${song.title.toLowerCase()}|${song.artist.toLowerCase()}|${song.album.toLowerCase()}`;
+}
+
 export class DuplicateDetector {
-  private hashCache: Map<string, string> = new Map();
-
-  async computeHash(file: Blob): Promise<string> {
-    const buffer = await file.arrayBuffer();
-    let hash = 0;
-
-    const view = new Uint8Array(buffer);
-    for (let i = 0; i < view.length; i++) {
-      hash = ((hash << 5) - hash + (view[i] ?? 0)) | 0;
+  private async computeSha256Hex(buffer: ArrayBuffer): Promise<string> {
+    if (
+      !("crypto" in globalThis) ||
+      !globalThis.crypto ||
+      !globalThis.crypto.subtle
+    ) {
+      throw new Error("Web Crypto API is not available to compute file hash.");
     }
 
-    return hash.toString(16);
+    const digest = await globalThis.crypto.subtle.digest("SHA-256", buffer);
+    const bytes = new Uint8Array(digest);
+
+    let hex = "";
+    for (let i = 0; i < bytes.length; i++) {
+      hex += (bytes[i] ?? 0).toString(16).padStart(2, "0");
+    }
+
+    return hex;
+  }
+
+  private async readBlob(blob: Blob): Promise<ArrayBuffer> {
+    if (typeof blob.arrayBuffer === "function") {
+      return blob.arrayBuffer();
+    }
+
+    const reader = new FileReader();
+    return await new Promise<ArrayBuffer>((resolve, reject) => {
+      reader.onload = () => resolve(reader.result as ArrayBuffer);
+      reader.onerror = () =>
+        reject(reader.error ?? new Error("Failed to read blob"));
+      reader.readAsArrayBuffer(blob);
+    });
+  }
+
+  async computeHash(file: Blob): Promise<string> {
+    return this.computeSha256Hex(await this.readBlob(file));
   }
 
   async computePartialHash(
     file: Blob,
     sampleSize = 1024 * 1024,
   ): Promise<string> {
-    const buffer = await file.slice(0, sampleSize).arrayBuffer();
-    let hash = 0;
-
-    const view = new Uint8Array(buffer);
-    for (let i = 0; i < view.length; i++) {
-      hash = ((hash << 5) - hash + (view[i] ?? 0)) | 0;
-    }
-
-    return hash.toString(16);
+    return this.computeSha256Hex(
+      await this.readBlob(file.slice(0, sampleSize)),
+    );
   }
 
   async findDuplicates(
@@ -81,11 +107,42 @@ export class DuplicateDetector {
     return duplicates;
   }
 
+  async isConfirmedDuplicate(
+    file: Blob,
+    song: Pick<Track, "title" | "artist" | "album">,
+    candidates: Track[],
+    usePartial = true,
+  ): Promise<boolean> {
+    const signature = trackSignature(song);
+
+    for (const track of candidates) {
+      if (trackSignature(track) !== signature) continue;
+      if (!track.url.startsWith("blob:")) continue;
+
+      try {
+        const existingBlob = await (await fetch(track.url)).blob();
+        const fileHash = usePartial
+          ? await this.computePartialHash(file)
+          : await this.computeHash(file);
+        const existingHash = usePartial
+          ? await this.computePartialHash(existingBlob)
+          : await this.computeHash(existingBlob);
+        if (fileHash === existingHash) return true;
+      } catch (error) {
+        logger.error(`Failed to hash existing track ${track.id}:`, {
+          error: String(error),
+        });
+      }
+    }
+
+    return false;
+  }
+
   findDuplicatesByMetadata(tracks: Track[]): DuplicateGroup[] {
     const signatureToTracks: Map<string, Track[]> = new Map();
 
     for (const track of tracks) {
-      const signature = `${track.title.toLowerCase()}|${track.artist.toLowerCase()}|${track.album.toLowerCase()}`;
+      const signature = trackSignature(track);
       const existing = signatureToTracks.get(signature) || [];
       existing.push(track);
       signatureToTracks.set(signature, existing);
@@ -103,10 +160,6 @@ export class DuplicateDetector {
     }
 
     return duplicates;
-  }
-
-  clearCache(): void {
-    this.hashCache.clear();
   }
 }
 

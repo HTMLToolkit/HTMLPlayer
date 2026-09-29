@@ -98,6 +98,18 @@
 
         // Statically replaced by the custom plugin
         const inlined = __INLINED_MESSAGES__;
+        const messages =
+          inlined && Array.isArray(inlined[lang]) ? inlined[lang] : null;
+
+        if (messages && messages.length > 0) {
+          updateText(messages);
+          let index = 0;
+          setInterval(() => {
+            if (!loadingText) return;
+            index = (index + 1) % messages.length;
+            loadingText.textContent = messages[index];
+          }, 2000);
+        }
       })();
     </script>
 
