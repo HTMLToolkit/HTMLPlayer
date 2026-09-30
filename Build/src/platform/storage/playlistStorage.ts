@@ -1,78 +1,48 @@
 import type { Playlist, PlaylistFolder } from "../../core/engine/types";
 import { isPlaylistItem, isPlainObject } from "../../core/engine/validators";
-import { getDb, STORES } from "./unifiedDB";
+import { getDb, STORES, tx, req } from "./db";
 
 export const playlistStorage = {
   async savePlaylists(playlists: (Playlist | PlaylistFolder)[]): Promise<void> {
-    const db = await getDb();
-    const tx = db.transaction(STORES.PLAYLISTS, "readwrite");
-    const store = tx.objectStore(STORES.PLAYLISTS);
-
-    store.clear();
-    for (const playlist of playlists) {
-      store.put(playlist);
-    }
-
-    return new Promise((resolve, reject) => {
-      tx.oncomplete = () => resolve();
-      tx.onerror = () => reject(tx.error);
+    await tx(STORES.PLAYLISTS, "readwrite", (transaction) => {
+      const store = transaction.objectStore(STORES.PLAYLISTS);
+      store.clear();
+      return Promise.all(playlists.map((playlist) => req(store.put(playlist))));
     });
   },
 
   async loadPlaylists(): Promise<(Playlist | PlaylistFolder)[]> {
     const db = await getDb();
-    const tx = db.transaction(STORES.PLAYLISTS, "readonly");
-    const store = tx.objectStore(STORES.PLAYLISTS);
-
-    return new Promise((resolve, reject) => {
-      const req = store.getAll();
-      req.onsuccess = () => {
-        const raw = req.result;
-        const playlists = Array.isArray(raw) ? raw.filter(isPlaylistItem) : [];
-        resolve(playlists);
-      };
-      req.onerror = () => reject(req.error);
-    });
+    const transaction = db.transaction([STORES.PLAYLISTS], "readonly");
+    const raw = await req<unknown[]>(
+      transaction.objectStore(STORES.PLAYLISTS).getAll(),
+    );
+    return Array.isArray(raw) ? raw.filter(isPlaylistItem) : [];
   },
 };
 
 export const favoritesStorage = {
   async saveFavorites(favorites: string[]): Promise<void> {
-    const db = await getDb();
-    const tx = db.transaction(STORES.FAVORITES, "readwrite");
-    const store = tx.objectStore(STORES.FAVORITES);
-
-    store.clear();
-    for (const id of favorites) {
-      store.put({ id });
-    }
-
-    return new Promise((resolve, reject) => {
-      tx.oncomplete = () => resolve();
-      tx.onerror = () => reject(tx.error);
+    await tx(STORES.FAVORITES, "readwrite", (transaction) => {
+      const store = transaction.objectStore(STORES.FAVORITES);
+      store.clear();
+      return Promise.all(favorites.map((id) => req(store.put({ id }))));
     });
   },
 
   async loadFavorites(): Promise<string[]> {
     const db = await getDb();
-    const tx = db.transaction(STORES.FAVORITES, "readonly");
-    const store = tx.objectStore(STORES.FAVORITES);
-
-    return new Promise((resolve, reject) => {
-      const req = store.getAll();
-      req.onsuccess = () => {
-        const results = req.result;
-        const ids = Array.isArray(results)
-          ? results
-              .filter(
-                (r): r is { id: string } =>
-                  isPlainObject(r) && typeof r.id === "string",
-              )
-              .map((r) => r.id)
-          : [];
-        resolve(ids);
-      };
-      req.onerror = () => reject(req.error);
-    });
+    const transaction = db.transaction([STORES.FAVORITES], "readonly");
+    const raw = await req<unknown[]>(
+      transaction.objectStore(STORES.FAVORITES).getAll(),
+    );
+    return Array.isArray(raw)
+      ? raw
+          .filter(
+            (record): record is { id: string } =>
+              isPlainObject(record) && typeof record.id === "string",
+          )
+          .map((record) => record.id)
+      : [];
   },
 };

@@ -27,7 +27,6 @@ i18nInstance
     debug: true,
     supportedLngs: Object.keys(languageNames),
     resources: bundledResources,
-    lng: "en",
     fallbackLng: "en",
     interpolation: {
       escapeValue: false,

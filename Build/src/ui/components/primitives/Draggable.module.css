@@ -6,9 +6,7 @@
   position: relative;
 }
 
-.songPreview,
-.playlistPreview,
-.folderPreview {
+.songPreview {
   padding: 12px 16px;
   background: var(--menu-background);
   border: 2px solid var(--themecolor2);
@@ -44,23 +42,6 @@
   font-size: 12px;
   color: var(--foreground-subtle);
   margin-top: 2px;
-}
-
-.playlistTitle,
-.folderTitle {
-  font-size: 14px;
-  font-weight: 600;
-}
-
-.playlistCount,
-.folderCount {
-  font-size: 12px;
-  color: var(--foreground-subtle);
-  margin-top: 2px;
-}
-
-.dragging {
-  cursor: grabbing !important;
 }
 
 .dragOverlay * {

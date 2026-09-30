@@ -48,11 +48,6 @@ export class SettingsManager implements SettingsActions {
     this.emitSettingsChange({ showLyrics: show });
   }
 
-  setSessionRestore(restore: boolean): void {
-    this.settings.sessionRestore = restore;
-    this.emitSettingsChange({ sessionRestore: restore });
-  }
-
   setLastPlayed(songId: string, playlistId?: string): void {
     this.settings.lastPlayedSongId = songId;
     this.settings.lastPlayedPlaylistId = playlistId;
@@ -94,6 +89,14 @@ export class SettingsManager implements SettingsActions {
 
     if (Object.keys(validUpdates).length > 0) {
       this.emitSettingsChange(validUpdates);
+    }
+  }
+
+  hydrate(updates: Partial<SettingsState>): void {
+    for (const [key, value] of Object.entries(updates)) {
+      if (value !== undefined) {
+        (this.settings as unknown as Record<string, unknown>)[key] = value;
+      }
     }
   }
 

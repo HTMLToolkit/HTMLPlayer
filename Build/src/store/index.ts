@@ -1,5 +1,13 @@
 import { create } from "zustand";
 import type { KomorebiEngine } from "../core/engine/engine";
+import {
+  clampBand,
+  createInitialEqualizerState,
+  EQUALIZER_PRESETS,
+  type EqualizerBand,
+  type EqualizerPreset,
+  type EqualizerState,
+} from "../platform/audio/equalizer";
 import type {
   EngineEventMap,
   EngineState,
@@ -42,6 +50,25 @@ export const EMPTY_ENGINE_STATE: EngineState = {
   error: null,
 };
 
+function matchPreset(bands: EqualizerBand[]): string | null {
+  for (const preset of EQUALIZER_PRESETS) {
+    const matches = preset.bands.every((band, index) => {
+      const current = bands[index];
+      return (
+        current !== undefined &&
+        current.type === band.type &&
+        Math.abs(current.gainDb - band.gainDb) < 0.001 &&
+        Math.abs(current.frequency - band.frequency) < 0.001
+      );
+    });
+    if (matches) return preset.name;
+  }
+  return null;
+}
+
+export { createInitialEqualizerState };
+export type { EqualizerState };
+
 export interface KomorebiStoreState {
   snapshot: EngineState | null;
   songs: Track[];
@@ -54,6 +81,13 @@ export interface KomorebiStoreState {
   setSongs: (songs: Track[]) => void;
   setReady: (ready: boolean) => void;
   setError: (error: string | null) => void;
+  equalizer: EqualizerState;
+  setEqualizerEnabled: (enabled: boolean) => void;
+  setEqualizerBands: (bands: EqualizerBand[]) => void;
+  patchEqualizerBand: (index: number, patch: Partial<EqualizerBand>) => void;
+  applyEqualizerPreset: (preset: EqualizerPreset) => void;
+  resetEqualizer: () => void;
+  hydrateEqualizer: (state: EqualizerState) => void;
 }
 
 export const useKomorebiStore = create<KomorebiStoreState>()((set) => ({
@@ -64,6 +98,63 @@ export const useKomorebiStore = create<KomorebiStoreState>()((set) => ({
   error: null,
   currentTime: 0,
   duration: 0,
+  equalizer: createInitialEqualizerState(),
+
+  setEqualizerEnabled: (enabled) =>
+    set((state) => ({
+      equalizer: { ...state.equalizer, enabled },
+    })),
+
+  setEqualizerBands: (bands) =>
+    set(() => {
+      const clamped = bands.map(clampBand);
+      return {
+        equalizer: {
+          enabled: true,
+          bands: clamped,
+          presetName: matchPreset(clamped),
+        },
+      };
+    }),
+
+  patchEqualizerBand: (index, patch) =>
+    set((state) => {
+      const current = state.equalizer.bands[index];
+      if (!current) return state;
+
+      const bands = state.equalizer.bands.map((band, i) =>
+        i === index ? clampBand({ ...band, ...patch }) : band,
+      );
+
+      return {
+        equalizer: {
+          ...state.equalizer,
+          enabled: true,
+          bands,
+          presetName: matchPreset(bands),
+        },
+      };
+    }),
+
+  applyEqualizerPreset: (preset) =>
+    set(() => ({
+      equalizer: {
+        enabled: true,
+        bands: preset.bands.map(clampBand),
+        presetName: preset.name,
+      },
+    })),
+
+  resetEqualizer: () => set({ equalizer: createInitialEqualizerState() }),
+
+  hydrateEqualizer: (next) =>
+    set(() => ({
+      equalizer: {
+        enabled: next.enabled,
+        presetName: next.presetName,
+        bands: next.bands.map(clampBand),
+      },
+    })),
 
   attachEngine: (engine) => {
     const refresh = (): void => {
@@ -183,3 +274,17 @@ export const selectShuffle = (store: KomorebiStoreState): boolean =>
 export const selectRepeat = (
   store: KomorebiStoreState,
 ): "off" | "one" | "all" => store.snapshot?.settings.repeat ?? "off";
+
+export const selectEqualizer = (store: KomorebiStoreState): EqualizerState =>
+  store.equalizer;
+
+export const selectEqualizerEnabled = (store: KomorebiStoreState): boolean =>
+  store.equalizer.enabled;
+
+export const selectEqualizerBands = (
+  store: KomorebiStoreState,
+): EqualizerBand[] => store.equalizer.bands;
+
+export const selectEqualizerPresetName = (
+  store: KomorebiStoreState,
+): string | null => store.equalizer.presetName;

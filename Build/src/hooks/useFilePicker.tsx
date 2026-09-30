@@ -16,14 +16,16 @@ import { processFiles, type AudioFile } from "../platform/utils/fileValidation";
 
 export type { AudioFile };
 
+const beforeUnloadHandler = (event: BeforeUnloadEvent) => {
+  event.preventDefault();
+  event.returnValue = "";
+};
+
 export function setProcessingState(processing: boolean) {
   if (processing) {
-    window.addEventListener("beforeunload", (e) => {
-      e.preventDefault();
-      e.returnValue = "";
-    });
+    window.addEventListener("beforeunload", beforeUnloadHandler);
   } else {
-    window.removeEventListener("beforeunload", () => {});
+    window.removeEventListener("beforeunload", beforeUnloadHandler);
   }
 }
 

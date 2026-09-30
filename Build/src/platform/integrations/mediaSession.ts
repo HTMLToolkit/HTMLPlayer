@@ -1,5 +1,6 @@
 import { BaseIntegration } from "./base";
 import type { Track } from "../../core/engine/types";
+import { albumArtStorage } from "../storage";
 import { createLogger } from "../../helpers/logger";
 
 const logger = createLogger("mediaSession");
@@ -110,13 +111,21 @@ export class MediaSessionIntegration extends BaseIntegration {
       album: track.album,
     };
 
-    if (track.albumArt) {
+    let albumArtUrl = track.albumArt;
+    if (!albumArtUrl) {
+      albumArtUrl =
+        albumArtStorage.get(track.id) ??
+        (await albumArtStorage.load(track.id)) ??
+        undefined;
+    }
+
+    if (albumArtUrl) {
       try {
-        const response = await fetch(track.albumArt);
+        const response = await fetch(albumArtUrl);
         const blob = await response.blob();
         metadata.artwork = [
           {
-            src: track.albumArt,
+            src: albumArtUrl,
             sizes: "512x512",
             type: blob.type || "image/jpeg",
           },

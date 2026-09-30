@@ -1,5 +1,6 @@
 import i18n from "i18next";
 import { throwError } from "../../helpers/logger";
+import { getDb, STORES, tx, req } from "./db";
 
 export interface KeyboardShortcut {
   id: string;
@@ -15,10 +16,6 @@ export interface KeyboardShortcut {
 export interface ShortcutConfig {
   [actionId: string]: KeyboardShortcut;
 }
-
-const DB_NAME = "HTMLPlayerShortcuts";
-const DB_VERSION = 1;
-const STORE_NAME = "shortcuts";
 
 export const DEFAULT_SHORTCUTS: ShortcutConfig = {
   playPause: {
@@ -110,79 +107,26 @@ export const DEFAULT_SHORTCUTS: ShortcutConfig = {
 };
 
 class ShortcutsIndexedDbHelper {
-  private db: IDBDatabase | null = null;
-
-  async initDB(): Promise<void> {
-    return new Promise((resolve, reject) => {
-      const request = indexedDB.open(DB_NAME, DB_VERSION);
-
-      request.onerror = () => {
-        reject(new Error("Failed to open IndexedDB"));
-      };
-
-      request.onsuccess = (event) => {
-        this.db = (event.target as IDBOpenDBRequest).result;
-        resolve();
-      };
-
-      request.onupgradeneeded = (event) => {
-        const db = (event.target as IDBOpenDBRequest).result;
-
-        if (!db.objectStoreNames.contains(STORE_NAME)) {
-          const store = db.createObjectStore(STORE_NAME, { keyPath: "id" });
-          store.createIndex("action", "action", { unique: true });
-          store.createIndex("category", "category", { unique: false });
-        }
-      };
-    });
-  }
-
-  async ensureDB(): Promise<void> {
-    if (!this.db) {
-      await this.initDB();
-    }
-  }
-
   async getAllShortcuts(): Promise<ShortcutConfig> {
-    await this.ensureDB();
+    const db = await getDb();
+    const transaction = db.transaction([STORES.SHORTCUTS], "readonly");
+    const shortcuts = await req<KeyboardShortcut[]>(
+      transaction.objectStore(STORES.SHORTCUTS).getAll(),
+    );
 
-    return new Promise((resolve, reject) => {
-      if (!this.db) {
-        reject(new Error("Database not initialized"));
-        return;
-      }
+    if (shortcuts.length === 0) {
+      await this.saveAllShortcuts(DEFAULT_SHORTCUTS);
+      return DEFAULT_SHORTCUTS;
+    }
 
-      const transaction = this.db.transaction([STORE_NAME], "readonly");
-      const store = transaction.objectStore(STORE_NAME);
-      const request = store.getAll();
-
-      request.onsuccess = async () => {
-        const shortcuts = request.result;
-        if (shortcuts.length === 0) {
-          try {
-            await this.saveAllShortcuts(DEFAULT_SHORTCUTS);
-            resolve(DEFAULT_SHORTCUTS);
-          } catch {
-            resolve(DEFAULT_SHORTCUTS);
-          }
-        } else {
-          const config: ShortcutConfig = {};
-          shortcuts.forEach((shortcut: KeyboardShortcut) => {
-            config[shortcut.id] = shortcut;
-          });
-          resolve(config);
-        }
-      };
-
-      request.onerror = () => {
-        reject(new Error("Failed to get shortcuts"));
-      };
-    });
+    const config: ShortcutConfig = {};
+    for (const shortcut of shortcuts) {
+      config[shortcut.id] = shortcut;
+    }
+    return config;
   }
 
   async saveShortcut(shortcut: KeyboardShortcut): Promise<void> {
-    await this.ensureDB();
-
     if (!shortcut.id) {
       return throwError("Shortcut must have an id property");
     }
@@ -193,67 +137,28 @@ class ShortcutsIndexedDbHelper {
       return throwError("Shortcut must have an action property");
     }
 
-    return new Promise((resolve, reject) => {
-      if (!this.db) {
-        reject(new Error("Database not initialized"));
-        return;
-      }
-
-      const transaction = this.db.transaction([STORE_NAME], "readwrite");
-      const store = transaction.objectStore(STORE_NAME);
-      const request = store.put(shortcut);
-
-      request.onsuccess = () => {
-        resolve();
-      };
-
-      request.onerror = () => {
-        reject(new Error(i18n.t("settings.shortcuts.failedToSaveGeneral")));
-      };
-    });
+    try {
+      await tx(STORES.SHORTCUTS, "readwrite", (transaction) =>
+        req(transaction.objectStore(STORES.SHORTCUTS).put(shortcut)),
+      );
+    } catch {
+      throw new Error(i18n.t("settings.shortcuts.failedToSaveGeneral"));
+    }
   }
 
   async saveAllShortcuts(shortcuts: ShortcutConfig): Promise<void> {
-    await this.ensureDB();
-
-    return new Promise((resolve, reject) => {
-      if (!this.db) {
-        reject(new Error("Database not initialized"));
-        return;
-      }
-
-      const transaction = this.db.transaction([STORE_NAME], "readwrite");
-      const store = transaction.objectStore(STORE_NAME);
-
-      const clearRequest = store.clear();
-
-      clearRequest.onsuccess = () => {
-        const promises: Promise<void>[] = [];
-
-        Object.values(shortcuts).forEach((shortcut) => {
-          promises.push(
-            new Promise((resolveShortcut, rejectShortcut) => {
-              const addRequest = store.add(shortcut);
-              addRequest.onsuccess = () => resolveShortcut();
-              addRequest.onerror = () =>
-                rejectShortcut(
-                  new Error(
-                    i18n.t("settings.shortcuts.failedToSave") +
-                      ` ${shortcut.id}`,
-                  ),
-                );
-            }),
-          );
-        });
-
-        Promise.all(promises)
-          .then(() => resolve())
-          .catch(reject);
-      };
-
-      clearRequest.onerror = () => {
-        reject(new Error("Failed to clear existing shortcuts"));
-      };
+    await tx(STORES.SHORTCUTS, "readwrite", (transaction) => {
+      const store = transaction.objectStore(STORES.SHORTCUTS);
+      store.clear();
+      return Promise.all(
+        Object.values(shortcuts).map((shortcut) =>
+          req(store.add(shortcut)).catch(() => {
+            throw new Error(
+              i18n.t("settings.shortcuts.failedToSave") + ` ${shortcut.id}`,
+            );
+          }),
+        ),
+      );
     });
   }
 
@@ -262,26 +167,13 @@ class ShortcutsIndexedDbHelper {
   }
 
   async deleteShortcut(shortcutId: string): Promise<void> {
-    await this.ensureDB();
-
-    return new Promise((resolve, reject) => {
-      if (!this.db) {
-        reject(new Error("Database not initialized"));
-        return;
-      }
-
-      const transaction = this.db.transaction([STORE_NAME], "readwrite");
-      const store = transaction.objectStore(STORE_NAME);
-      const request = store.delete(shortcutId);
-
-      request.onsuccess = () => {
-        resolve();
-      };
-
-      request.onerror = () => {
-        reject(new Error("Failed to delete shortcut"));
-      };
-    });
+    try {
+      await tx(STORES.SHORTCUTS, "readwrite", (transaction) =>
+        req(transaction.objectStore(STORES.SHORTCUTS).delete(shortcutId)),
+      );
+    } catch {
+      throw new Error("Failed to delete shortcut");
+    }
   }
 
   async isShortcutConflict(

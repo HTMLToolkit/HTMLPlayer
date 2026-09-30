@@ -1,5 +1,14 @@
-import { LibraryManager } from "../src/platform/library/library";
-import type { Track, Playlist } from "../src/core/engine/types";
+import {
+  findParentFolderId,
+  LibraryManager,
+} from "../src/platform/library/library";
+import type {
+  Track,
+  Playlist,
+  PlaylistFolder,
+  PlaylistItem,
+} from "../src/core/engine/types";
+import { describe, it, expect, beforeEach, jest } from "@jest/globals";
 
 const createTrack = (id: string): Track => ({
   id,
@@ -215,6 +224,81 @@ describe("LibraryManager", () => {
       library.on("favoritechanged", callback);
       library.toggleFavorite("song-1");
       expect(callback).toHaveBeenCalledWith({ songId: "song-1", isFavorite: true });
+    });
+  });
+
+  describe("Hydrate", () => {
+    it("replaces songs, playlists and favorites from storage", () => {
+      library.hydrate({
+        songs: [createTrack("stored-1")],
+        playlists: [{ id: "p1", name: "Stored", songs: [] }],
+        favorites: ["stored-1"],
+      });
+
+      const state = library.getState();
+      expect(state.songs.map((song) => song.id)).toEqual(["stored-1"]);
+      expect(state.playlists).toHaveLength(1);
+      expect(state.favorites).toEqual(["stored-1"]);
+    });
+
+    it("emits songsloaded so non-subscribing readers learn the library changed", () => {
+      const onSongsLoaded = jest.fn();
+      library.on("songsloaded", onSongsLoaded);
+
+      const restored = [createTrack("stored-1"), createTrack("stored-2")];
+      library.hydrate({ songs: restored });
+
+      expect(onSongsLoaded).toHaveBeenCalledTimes(1);
+      expect(onSongsLoaded.mock.calls[0]?.[0]).toEqual(restored);
+    });
+
+    it("leaves state untouched and stays silent without a payload", () => {
+      library.addSong(createTrack("song-1"));
+      const onSongsLoaded = jest.fn();
+      library.on("songsloaded", onSongsLoaded);
+
+      library.hydrate();
+
+      expect(library.getState().songs).toHaveLength(1);
+      expect(onSongsLoaded).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("findParentFolderId", () => {
+    const folder = (id: string, children: PlaylistItem[] = []): PlaylistFolder => ({
+      id,
+      name: id,
+      children,
+    });
+    const playlist = (id: string): Playlist => ({ id, name: id, songs: [] });
+
+    it("returns null for a top-level playlist", () => {
+      expect(findParentFolderId([playlist("a"), playlist("b")], "b")).toBeNull();
+    });
+
+    it("returns null for an unknown id", () => {
+      const tree = [folder("f1", [playlist("a")])];
+      expect(findParentFolderId(tree, "missing")).toBeNull();
+    });
+
+    it("finds a direct parent", () => {
+      const tree = [folder("f1", [playlist("a"), playlist("b")])];
+      expect(findParentFolderId(tree, "b")).toBe("f1");
+    });
+
+    it("finds the immediate parent at depth", () => {
+      const tree = [
+        folder("outer", [folder("middle", [folder("inner", [playlist("deep")])])]),
+      ];
+      expect(findParentFolderId(tree, "deep")).toBe("inner");
+    });
+
+    it("finds the parent past sibling subtrees that do not contain the target", () => {
+      const tree = [
+        folder("alpha", [folder("alpha-child", [folder("a2", [playlist("x")])])]),
+        folder("beta", [folder("beta-child", [playlist("target")])]),
+      ];
+      expect(findParentFolderId(tree, "target")).toBe("beta-child");
     });
   });
 

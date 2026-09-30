@@ -101,22 +101,6 @@ export function SettingsPlayback({ komorebi }: SettingsPlaybackProps) {
           onCheckedChange={(val) => komorebi.setAutoPlayNext(val)}
         />
       </div>
-
-      <div className={styles.settingItem}>
-        <div className={styles.settingInfo}>
-          <label htmlFor="session-restore">
-            {t("settings.playback.sessionRestore")}
-          </label>
-          <p className={styles.settingDescription}>
-            {t("settings.playback.sessionRestoreDesc")}
-          </p>
-        </div>
-        <Switch
-          id="session-restore"
-          checked={komorebi.settings.getSettings().sessionRestore}
-          onCheckedChange={(val) => komorebi.settings.setSessionRestore(val)}
-        />
-      </div>
     </section>
   );
 }

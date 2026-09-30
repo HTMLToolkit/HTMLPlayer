@@ -96,6 +96,53 @@ describe("PreloadManager", () => {
     expect(manager.isLoading("a")).toBe(false);
   });
 
+  it("resolves every concurrent waiter, not just the last one", async () => {
+    let release!: (value: Blob) => void;
+    globalThis.fetch = jest.fn(
+      () =>
+        new Promise<{ ok: boolean; blob: () => Promise<Blob> }>((resolve) => {
+          release = () => resolve({ ok: true, blob: () => Promise.resolve(blobResponse()) });
+        }),
+    ) as unknown as typeof fetch;
+
+    const manager = new PreloadManager();
+    const track = createTrack("a");
+
+    const first = manager.preload(track);
+    const second = manager.preload(track);
+    const third = manager.preload(track);
+
+    release(blobResponse());
+    const urls = await Promise.all([first, second, third]);
+
+    expect(globalThis.fetch).toHaveBeenCalledTimes(1);
+    expect(urls[1]).toBe(urls[0]);
+    expect(urls[2]).toBe(urls[0]);
+    expect(manager.isLoading("a")).toBe(false);
+  });
+
+  it("rejects every concurrent waiter when the load fails", async () => {
+    let fail!: (reason: Error) => void;
+    globalThis.fetch = jest.fn(
+      () =>
+        new Promise<{ ok: boolean; blob: () => Promise<Blob> }>((_resolve, reject) => {
+          fail = reject;
+        }),
+    ) as unknown as typeof fetch;
+
+    const manager = new PreloadManager();
+    const track = createTrack("a");
+
+    const first = manager.preload(track);
+    const second = manager.preload(track);
+
+    fail(new Error("network down"));
+
+    await expect(first).rejects.toThrow("network down");
+    await expect(second).rejects.toThrow("network down");
+    expect(manager.isLoading("a")).toBe(false);
+  });
+
   it("expires cache entries past the ttl", async () => {
     const manager = new PreloadManager({ ttl: 10_000 });
     await manager.preload(createTrack("a"));

@@ -14,6 +14,8 @@ export interface LibraryState {
 
 export interface LibraryActions {
   addSong(song: Track): void;
+  addSongs(songs: Track[]): void;
+  hydrate(partial?: Partial<LibraryState>): void;
   removeSong(songId: string): void;
   updateSong(songId: string, updates: Partial<Track>): void;
   addPlaylist(playlist: Playlist): void;
@@ -39,6 +41,7 @@ export interface LibraryActions {
 
 export interface LibraryEvents {
   on(event: "songadded", callback: (song: Track) => void): void;
+  on(event: "songsloaded", callback: (songs: Track[]) => void): void;
   on(event: "songremoved", callback: (songId: string) => void): void;
   on(event: "songupdated", callback: (song: Track) => void): void;
   on(event: "playlistadded", callback: (playlist: Playlist) => void): void;
@@ -59,6 +62,7 @@ export type LibraryEventType = keyof LibraryEvents;
 
 export interface LibraryEventMap {
   songadded: Track;
+  songsloaded: Track[];
   songremoved: string;
   songupdated: Track;
   playlistadded: Playlist;

@@ -1,3 +1,8 @@
+import {
+  createInitialEqualizerState,
+  type EqualizerState,
+} from "../audio/equalizer";
+
 export type ThemeMode = "light" | "dark" | "auto";
 export type RepeatMode = "off" | "one" | "all";
 export type CrossfadeShape = "none" | "linear" | "equalpower";
@@ -9,13 +14,13 @@ export interface SettingsState {
   compactMode: boolean;
   showAlbumArt: boolean;
   showLyrics: boolean;
-  sessionRestore: boolean;
   lastPlayedSongId?: string;
   lastPlayedPlaylistId?: string;
   language: string;
   discordUserId?: string;
   discordEnabled: boolean;
   erudaEnabled: boolean;
+  equalizer: EqualizerState;
 }
 
 export interface SettingsActions {
@@ -25,7 +30,6 @@ export interface SettingsActions {
   setCompactMode(compact: boolean): void;
   setShowAlbumArt(show: boolean): void;
   setShowLyrics(show: boolean): void;
-  setSessionRestore(restore: boolean): void;
   setLastPlayed(songId: string, playlistId?: string): void;
   setLanguage(language: string): void;
   setDiscordEnabled(enabled: boolean): void;
@@ -59,8 +63,8 @@ export const DEFAULT_SETTINGS: SettingsState = {
   compactMode: false,
   showAlbumArt: true,
   showLyrics: false,
-  sessionRestore: true,
   language: "en",
   discordEnabled: false,
   erudaEnabled: false,
+  equalizer: createInitialEqualizerState(),
 };

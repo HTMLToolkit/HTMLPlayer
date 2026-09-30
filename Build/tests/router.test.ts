@@ -325,7 +325,8 @@ describe("BackendRouter", () => {
     expect(router.getDuration()).toBe(0);
   });
 
-  it("returns no analyser before a live backend exists", () => {
+  it("returns no analyser once the shared graph is disposed", () => {
+    router.dispose();
     expect(router.getAnalyser()).toBeNull();
   });
 

@@ -42,6 +42,28 @@ export class LibraryManager implements LibraryActions {
     this.emit("songadded", song);
   }
 
+  addSongs(songs: Track[]): void {
+    if (songs.length === 0) return;
+
+    const existing = new Set(this.state.songs.map((s) => s.id));
+    const fresh = songs.filter((song) => !existing.has(song.id));
+    if (fresh.length === 0) return;
+
+    this.state.songs.push(...fresh);
+    this.emit("songsloaded", fresh);
+  }
+
+  hydrate(partial?: Partial<LibraryState>): void {
+    if (!partial) return;
+    if (Array.isArray(partial.songs)) this.state.songs = partial.songs;
+    if (Array.isArray(partial.playlists))
+      this.state.playlists = partial.playlists;
+    if (Array.isArray(partial.favorites))
+      this.state.favorites = partial.favorites;
+
+    this.emit("songsloaded", [...this.state.songs]);
+  }
+
   removeSong(songId: string): void {
     const index = this.state.songs.findIndex((s) => s.id === songId);
     if (index === -1) return;
@@ -371,21 +393,31 @@ export function findPlaylistById(
   return null;
 }
 
+/**
+ * Finds the folder that directly contains `id`, or `null` when `id` is a
+ * top-level playlist or is not present in the tree
+ *
+ * @param items Playlist tree to search, at any depth.
+ * @param id Playlist or folder id to locate.
+ * @returns The containing folder's id, or `null` if `id` is a root item or absent.
+ */
 export function findParentFolderId(
   items: (Playlist | PlaylistFolder)[],
   id: string,
 ): string | null {
-  for (const item of items) {
-    if (item.id === id) return null;
-    if ("children" in item) {
-      for (const child of item.children) {
-        if (child.id === id) return item.id;
-        if ("children" in child) {
-          const found = findParentFolderId(item.children, id);
-          if (found) return found;
-        }
+  const search = (
+    nodes: (Playlist | PlaylistFolder)[],
+    parentId: string | null,
+  ): string | null => {
+    for (const node of nodes) {
+      if (node.id === id) return parentId;
+      if ("children" in node && node.children) {
+        const found = search(node.children, node.id);
+        if (found !== null) return found;
       }
     }
-  }
-  return null;
+    return null;
+  };
+
+  return search(items, null);
 }

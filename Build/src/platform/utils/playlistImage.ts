@@ -1,20 +1,25 @@
 import type { Track } from "../../core/engine/types";
+import { albumArtStorage } from "../storage";
 import { createLogger } from "../../helpers/logger";
 
 const logger = createLogger("playlistImage");
 
+async function resolveArtUrl(song: Track): Promise<string> {
+  if (song.albumArt) return song.albumArt;
+  return (await albumArtStorage.load(song.id)) ?? "";
+}
+
 export async function generatePlaylistImage(songs: Track[]): Promise<string> {
+  const candidates = await Promise.all(songs.map(resolveArtUrl));
+  const uniqueArts = [...new Set(candidates.filter(Boolean))].slice(0, 4);
+
+  if (uniqueArts.length === 0) return "";
+
   const canvas = document.createElement("canvas");
   canvas.width = 80;
   canvas.height = 80;
   const ctx = canvas.getContext("2d");
   if (!ctx) return "";
-
-  const uniqueArts = [
-    ...new Set(songs.filter((s) => s.albumArt).map((s) => s.albumArt)),
-  ].slice(0, 4);
-
-  if (uniqueArts.length === 0) return "";
 
   const loadImage = (src: string) =>
     new Promise<HTMLImageElement>((resolve, reject) => {
@@ -26,7 +31,7 @@ export async function generatePlaylistImage(songs: Track[]): Promise<string> {
     });
 
   try {
-    const images = await Promise.all(uniqueArts.map((art) => loadImage(art!)));
+    const images = await Promise.all(uniqueArts.map((art) => loadImage(art)));
     ctx.fillStyle = "#1E3A8A";
     ctx.fillRect(0, 0, 80, 80);
 

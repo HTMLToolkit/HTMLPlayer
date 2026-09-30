@@ -1,3 +1,5 @@
+export type TrackSourceKind = "opfs" | "folderHandle";
+
 export interface Track {
   id: string;
   title: string;
@@ -7,6 +9,9 @@ export interface Track {
   url: string;
   mimeType?: string;
   hasStoredAudio?: boolean;
+  sourceKind?: TrackSourceKind;
+  sourceId?: string;
+  path?: string;
   albumArt?: string;
   hasAlbumArt?: boolean;
   embeddedLyrics?: EmbeddedLyrics[];

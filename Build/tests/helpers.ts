@@ -1,4 +1,4 @@
-import type { Track } from "../../src/core/engine/types";
+import type { Track } from "../src/core/engine/types";
 
 export function createMockTrack(id: string): Track {
   return {

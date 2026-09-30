@@ -3,6 +3,11 @@ import { createLogger } from "../../helpers/logger";
 
 const logger = createLogger("preloader");
 
+interface PreloadWaiter {
+  resolve: (url: string) => void;
+  reject: (error: unknown) => void;
+}
+
 export interface CachedTrack {
   track: Track;
   url: string;
@@ -25,7 +30,7 @@ export class PreloadManager {
   private cache: Map<string, CachedTrack> = new Map();
   private config: PreloadConfig;
   private loading: Set<string> = new Set();
-  private preloadCallbacks: Map<string, (url: string) => void> = new Map();
+  private preloadCallbacks: Map<string, Set<PreloadWaiter>> = new Map();
 
   constructor(config: Partial<PreloadConfig> = {}) {
     this.config = { ...DEFAULT_CONFIG, ...config };
@@ -63,8 +68,11 @@ export class PreloadManager {
     }
 
     if (this.loading.has(track.id)) {
-      return new Promise((resolve) => {
-        this.preloadCallbacks.set(track.id, resolve);
+      return new Promise<string>((resolve, reject) => {
+        const waiters =
+          this.preloadCallbacks.get(track.id) ?? new Set<PreloadWaiter>();
+        waiters.add({ resolve, reject });
+        this.preloadCallbacks.set(track.id, waiters);
       });
     }
 
@@ -82,24 +90,31 @@ export class PreloadManager {
       });
 
       this.evictIfNeeded();
-
-      const callback = this.preloadCallbacks.get(track.id);
-      if (callback) {
-        callback(url);
-        this.preloadCallbacks.delete(track.id);
-      }
+      this.settleWaiters(track.id, { url });
 
       return url;
     } catch (error) {
-      this.loading.delete(track.id);
-      const callback = this.preloadCallbacks.get(track.id);
-      if (callback) {
-        callback(track.url);
-        this.preloadCallbacks.delete(track.id);
-      }
+      this.settleWaiters(track.id, { error });
       throw error;
     } finally {
       this.loading.delete(track.id);
+    }
+  }
+
+  private settleWaiters(
+    trackId: string,
+    outcome: { url: string } | { error: unknown },
+  ): void {
+    const waiters = this.preloadCallbacks.get(trackId);
+    this.preloadCallbacks.delete(trackId);
+    if (!waiters) return;
+
+    for (const waiter of waiters) {
+      if ("url" in outcome) {
+        waiter.resolve(outcome.url);
+      } else {
+        waiter.reject(outcome.error);
+      }
     }
   }
 

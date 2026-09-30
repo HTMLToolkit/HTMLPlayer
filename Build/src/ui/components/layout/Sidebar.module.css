@@ -63,86 +63,6 @@
   margin: 0;
 }
 
-.searchContainer {
-  margin-bottom: var(--spacing-4);
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-3);
-}
-
-.searchIcon {
-  color: var(--primary-foreground);
-}
-
-.searchInput::placeholder {
-  color: var(--primary-foreground);
-}
-
-.playlistList {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-1);
-}
-
-.playlistItem {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-3);
-  padding: var(--spacing-3);
-  background: var(--primary-transparent);
-  border: none;
-  border-radius: var(--radius-lg);
-  color: var(--foreground-stronger);
-  font-family: var(--font-family-base);
-  cursor: pointer;
-  transition: background-color var(--animation-duration-fast) ease;
-  text-align: left;
-  width: 100%;
-  margin-bottom: var(--spacing-2);
-}
-
-.playlistItem:hover {
-  background: var(--primary-transparent-3);
-}
-
-.playlistItem.active {
-  background: var(--primary-transparent-strong);
-  border: 1px solid var(--primary-transparent-5);
-}
-
-.songCount {
-  margin-left: auto;
-  font-size: 0.75rem;
-  color: var(--sidebar-foreground);
-  opacity: 0.7;
-}
-
-.allSongsItem {
-  background: var(--primary-transparent-2);
-  border: 1px solid var(--primary-transparent-strong);
-}
-
-.allSongsItem:hover {
-  background: var(--primary-transparent);
-}
-
-.favoritesItem {
-  background: var(--favorite-transparent-1);
-  border: 1px solid var(--favorite-border);
-}
-
-.favoritesItem:hover {
-  background: var(--favorite-transparent-2);
-}
-
-.noResults {
-  padding: var(--spacing-3);
-  text-align: center;
-  color: var(--primary-foreground);
-  font-size: 0.875rem;
-}
-
 .footer {
   display: flex;
   flex-direction: column;
@@ -155,24 +75,6 @@
   color: var(--primary-foreground);
   height: auto;
   padding: var(--spacing-2) var(--spacing-3);
-}
-
-.addPlaylistButton {
-  background: var(--primary-transparent-3);
-  color: var(--primary-foreground);
-  border: 1px solid var(--primary-transparent-strong);
-  padding: var(--spacing-2) var(--spacing-3);
-  font-size: 0.875rem;
-  height: auto;
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-2);
-  transition: background-color var(--animation-duration-fast) ease;
-}
-
-.addPlaylistButton:hover {
-  background: var(--primary-transparent-strong);
-  border-color: var(--primary-transparent-strong);
 }
 
 .noHover:hover {

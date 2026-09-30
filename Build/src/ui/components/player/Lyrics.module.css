@@ -47,12 +47,6 @@
   flex-shrink: 0;
 }
 
-.lyricsHeaderButtons {
-  display: flex;
-  gap: var(--spacing-2);
-  align-items: center;
-}
-
 .lyricsTitle {
   margin: 0;
   font-size: 0.95rem;

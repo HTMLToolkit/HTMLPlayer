@@ -26,6 +26,7 @@ interface MainContentHeaderProps {
   onDeleteSelected: () => void;
   onDeleteSong: () => void;
   onAddMusic: () => void;
+  onAddFolder?: () => Promise<boolean>;
   onMobileMenuClick: () => void;
   onBackClick: () => void;
   sortDropdownRef: React.Ref<{ close: () => void }>;
@@ -54,6 +55,7 @@ export function MainContentHeader({
   onDeleteSelected,
   onDeleteSong,
   onAddMusic,
+  onAddFolder,
   onMobileMenuClick,
   onBackClick,
   sortDropdownRef,
@@ -161,6 +163,17 @@ export function MainContentHeader({
               >
                 <Icon name="plus" size={16} decorative />
               </Button>
+              {onAddFolder && (
+                <Button
+                  variant="outline"
+                  size="icon-md"
+                  className={`${styles.actionButton} action-button-lift`}
+                  onClick={onAddFolder}
+                  aria-label={t("actions.addFolder")}
+                >
+                  <Icon name="folder" size={16} decorative />
+                </Button>
+              )}
               <div className={styles.desktopOnly}>{viewSwitcher}</div>
             </div>
           </div>

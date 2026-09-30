@@ -7,12 +7,14 @@ import { describe, it, expect, beforeEach, afterEach, jest } from "@jest/globals
 interface FakeAudioNode {
   connect: jest.Mock;
   disconnect: jest.Mock;
+  gain: { value: number };
 }
 
 function createFakeNode(): FakeAudioNode {
   return {
     connect: jest.fn().mockReturnThis(),
     disconnect: jest.fn(),
+    gain: { value: 1 },
   };
 }
 
@@ -25,6 +27,8 @@ interface FakePitchShift {
 
 interface GraphInternals {
   chainInput: FakeAudioNode;
+  replayGainNode: FakeAudioNode | null;
+  eqPreampNode: FakeAudioNode | null;
   analyser: FakeAudioNode;
   pitchShift: FakePitchShift | null;
   pitchSemitones: number;
@@ -33,8 +37,12 @@ interface GraphInternals {
 const graphBypass = (graph: AudioGraph): GraphInternals =>
   graph as unknown as GraphInternals;
 
-function installChain(graph: AudioGraph, semitones: number): FakePitchShift {
+function installChain(
+  graph: AudioGraph,
+  semitones: number,
+): { pitchShift: FakePitchShift; eqPreampNode: FakeAudioNode } {
   const chainInput = createFakeNode();
+  const eqPreampNode = createFakeNode();
   const analyser = createFakeNode();
   const pitchInput = createFakeNode();
   const pitchOutput = createFakeNode();
@@ -48,11 +56,13 @@ function installChain(graph: AudioGraph, semitones: number): FakePitchShift {
 
   const internals = graphBypass(graph);
   internals.chainInput = chainInput;
+  internals.replayGainNode = null;
+  internals.eqPreampNode = eqPreampNode;
   internals.analyser = analyser;
   internals.pitchShift = pitchShift;
   internals.pitchSemitones = semitones;
 
-  return pitchShift;
+  return { pitchShift, eqPreampNode };
 }
 
 const rebuildFxChain = (graph: AudioGraph): void => {
@@ -71,7 +81,7 @@ describe("pitch Fx chain", () => {
   });
 
   it("inserts the pitch shift in the signal path when semitones are non-zero", async () => {
-    const pitchShift = installChain(graph, 6);
+    const { pitchShift, eqPreampNode } = installChain(graph, 6);
     const internals = graphBypass(graph);
 
     await graph.setPitch(6);
@@ -82,22 +92,27 @@ describe("pitch Fx chain", () => {
       pitchShift.input.input,
     );
     expect(pitchShift.output.output.output.connect).toHaveBeenCalledWith(
-      internals.analyser,
+      eqPreampNode,
     );
+    expect(eqPreampNode.connect).toHaveBeenCalledWith(internals.analyser);
     expect(internals.chainInput.connect).not.toHaveBeenCalledWith(
       internals.analyser,
     );
   });
 
   it("bypasses the pitch shift when semitones drop to zero", async () => {
-    const pitchShift = installChain(graph, 4);
+    const { pitchShift, eqPreampNode } = installChain(graph, 4);
     const internals = graphBypass(graph);
 
     await graph.setPitch(0);
 
     expect(graph.getPitchShiftNode()).toBeNull();
     expect(pitchShift.dispose).toHaveBeenCalled();
-    expect(internals.chainInput.connect).toHaveBeenCalledWith(internals.analyser);
+    expect(internals.chainInput.connect).toHaveBeenCalledWith(eqPreampNode);
+    expect(eqPreampNode.connect).toHaveBeenCalledWith(internals.analyser);
+    expect(internals.chainInput.connect).not.toHaveBeenCalledWith(
+      internals.analyser,
+    );
   });
 
   it("rebuilds with an empty stop even when no chain state exists yet", () => {
@@ -143,13 +158,14 @@ describe("analyser parity across backends", () => {
     }
   });
 
-  it("falls back to null for every backend before a live context exists", () => {
+  it("reports no analyser on any backend once the shared graph is disposed", () => {
     const graph = new AudioGraph();
 
     const html = new HTMLAudioBackend(graph);
     const router = new BackendRouter(graph);
 
     try {
+      graph.dispose();
       expect(html.getAnalyser()).toBeNull();
       expect(router.getAnalyser()).toBeNull();
     } finally {

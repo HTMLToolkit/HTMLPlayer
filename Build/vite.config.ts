@@ -206,7 +206,7 @@ const VENDOR_CHUNK_GROUPS: Readonly<Record<string, readonly string[]>> = {
     "react-i18next",
   ],
   "vendor-audio": ["music-metadata", "@web-scrobbler/metadata-filter"],
-  "vendor-utils": ["lodash", "dompurify", "zustand", "sonner"],
+  "vendor-utils": ["dompurify", "zustand", "sonner"],
   "vendor-icons": ["lucide-react"],
   "vendor-flo": ["@audiflo/libflo"],
 };
@@ -236,7 +236,6 @@ export default defineConfig({
 
   resolve: {
     alias: {
-      "@": "/src",
       ...(isWeb && !isSingleFile
         ? {}
         : {

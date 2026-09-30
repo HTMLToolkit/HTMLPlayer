@@ -16,8 +16,14 @@ import { AddToPopover } from "../shared/AddToPopover";
 import { useTranslation } from "react-i18next";
 import { Icon } from "../shared/Icon";
 import { dialogStorage } from "../../../platform/storage";
-import { importAudioFiles } from "../../../helpers/importAudioFiles";
-import { prepareAndStoreSong } from "../../../helpers/addSong";
+import {
+  importAudioFiles,
+  type ImportFileItem,
+} from "../../../helpers/importAudioFiles";
+import {
+  storeImportedSong,
+  type ImportContext,
+} from "../../../helpers/addSong";
 import { Home } from "../features/Home";
 import { useAlbumArt } from "../../../hooks/useAlbumArt";
 import { useNavigation } from "../../navigation";
@@ -231,11 +237,13 @@ const SortableSongItem = React.memo(function SortableSongItem({
 interface MainContentProps {
   komorebi: UseKomorebiReturn;
   onMobileMenuClick?: () => void;
+  onAddFolder?: () => Promise<boolean>;
 }
 
 export const MainContent = ({
   komorebi,
   onMobileMenuClick,
+  onAddFolder,
 }: MainContentProps) => {
   const { t } = useTranslation();
   const { state: navState, goToSongs, goHome } = useNavigation();
@@ -456,10 +464,14 @@ export const MainContent = ({
   };
 
   const handleImportAudioFiles = async (
-    audioFiles: Array<{ file: File } | File>,
+    audioFiles: Array<ImportFileItem | File>,
   ) => {
-    const wrappedAddSong = async (song: Track, file: File) => {
-      await prepareAndStoreSong(song, file);
+    const wrappedAddSong = async (
+      song: Track,
+      file: File,
+      context?: ImportContext,
+    ) => {
+      await storeImportedSong(song, file, context);
       addSong(song);
     };
     await importAudioFiles(
@@ -553,6 +565,7 @@ export const MainContent = ({
         onDeleteSelected={handleDeleteSelectedSongs}
         onDeleteSong={handleDeleteSong}
         onAddMusic={handleAddMusic}
+        onAddFolder={onAddFolder}
         onMobileMenuClick={onMobileMenuClick ?? (() => {})}
         onBackClick={goToSongs}
         sortDropdownRef={sortDropdownRef}
@@ -568,7 +581,11 @@ export const MainContent = ({
       {}
       {isHomeView ? (
         <div className={styles.homeContent}>
-          <Home komorebi={komorebi} onAddMusic={handleAddMusic} />
+          <Home
+            komorebi={komorebi}
+            onAddMusic={handleAddMusic}
+            onAddFolder={onAddFolder}
+          />
         </div>
       ) : (
         <div className={styles.songListWrapper}>

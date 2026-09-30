@@ -2,7 +2,6 @@
 
 - [ ] when the visualizer is open, something UI bugs out and transparency and it flickers sometimes
 - [ ] switching from Home to All Songs and vice versa has a white flash
-- [ ] same for flo stuff we should consolidate where we can and it doesn't create large files
 - [ ] use a proper equalizer component from the web or NPM that works with redux rather than that thing as it's... not a equalizer
 - [ ] so like keeping track of state when user repeatedly does actions (like for example switching songs fast) does nothing and like weirds out state (the eternal problem with this appppppp ugh)
 - [ ] Crossfade doesn't work
@@ -15,9 +14,6 @@
   - [ ] Compact mode
   - [ ] Show Lyrics
   - [ ] Show Album Art
-  - [X] Toggle Lyrics
-  - [X] Toggle Visualizer
-
 - [ ] Lessen delays while reordering
 
 - [ ] Use List Virtualization for song list so that having larger libraries doesn't cause lag on all songs
@@ -37,9 +33,6 @@
 
 - [ ] fix some themes' visibility issues
   - light mode mostly fixed, re-check all
-
-- [ ] proper pitch manipulation
-  - [PitchShift](https://tonejs.github.io/docs/15.1.22/classes/PitchShift.html)?
 
 - [ ] some missed text that's supposed to be in i18n
   - Run `npm run i18n-check` or `node i18n-izer.cjs -I "visualizers"  --ignore-console`

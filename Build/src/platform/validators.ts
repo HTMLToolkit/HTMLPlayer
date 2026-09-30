@@ -1,57 +1,7 @@
-import type { SessionState } from "./utils/session";
-import type { RepeatMode } from "./settings/types";
-import { isPlainObject, isRepeatMode } from "../core/engine/validators";
-import { clampVolume } from "./audio/clamp";
+import { isPlainObject } from "../core/engine/validators";
 
 function isString(value: unknown): value is string {
   return typeof value === "string";
-}
-
-function isFiniteNumber(value: unknown): value is number {
-  return typeof value === "number" && Number.isFinite(value);
-}
-
-function isBoolean(value: unknown): value is boolean {
-  return typeof value === "boolean";
-}
-
-export function sanitizeSessionState(
-  raw: unknown,
-  fallback: SessionState,
-): SessionState {
-  if (typeof raw !== "object" || raw === null || Array.isArray(raw)) {
-    return { ...fallback };
-  }
-
-  const candidate = raw as Record<string, unknown>;
-  const lastPlayedSongId = candidate.lastPlayedSongId;
-  const lastPlayedPlaylistId = candidate.lastPlayedPlaylistId;
-
-  return {
-    lastPlayedSongId:
-      lastPlayedSongId === null || isString(lastPlayedSongId)
-        ? lastPlayedSongId
-        : fallback.lastPlayedSongId,
-    lastPlayedPlaylistId:
-      lastPlayedPlaylistId === null || isString(lastPlayedPlaylistId)
-        ? lastPlayedPlaylistId
-        : fallback.lastPlayedPlaylistId,
-    lastPosition: isFiniteNumber(candidate.lastPosition)
-      ? candidate.lastPosition
-      : fallback.lastPosition,
-    volume: isFiniteNumber(candidate.volume)
-      ? clampVolume(candidate.volume)
-      : fallback.volume,
-    shuffle: isBoolean(candidate.shuffle)
-      ? candidate.shuffle
-      : fallback.shuffle,
-    repeat: isRepeatMode(candidate.repeat)
-      ? (candidate.repeat as RepeatMode)
-      : fallback.repeat,
-    timestamp: isFiniteNumber(candidate.timestamp)
-      ? candidate.timestamp
-      : fallback.timestamp,
-  };
 }
 
 export function sanitizeStringArray(raw: unknown): string[] {

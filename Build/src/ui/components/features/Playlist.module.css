@@ -182,65 +182,6 @@
   font-size: 0.875rem;
 }
 
-.footer {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-2);
-  margin-top: var(--spacing-4);
-}
-
-.addPlaylistButton {
-  background: var(--primary-transparent-2);
-  border: 1px solid var(--primary-transparent-4);
-}
-
-.addPlaylistButton:hover {
-  background: var(--primary-transparent);
-}
-
-.createPlaylistDialog {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background: var(--themecolor4);
-  padding: var(--spacing-4);
-  border-radius: var(--radius-lg);
-  border: 1px solid var(--surface-transparent-1);
-  backdrop-filter: blur(10px);
-  z-index: 1000;
-}
-
-.createPlaylistInput {
-  width: 100%;
-  background: var(--surface-transparent-1);
-  border: 1px solid var(--surface-transparent-2);
-  color: white;
-  padding: var(--spacing-2);
-  border-radius: var(--radius);
-  margin-bottom: var(--spacing-3);
-}
-
-.createPlaylistButtons {
-  display: flex;
-  gap: var(--spacing-2);
-  justify-content: flex-end;
-}
-
-.createPlaylistButtons button {
-  padding: var(--spacing-2) var(--spacing-4);
-  border-radius: var(--radius);
-  border: 1px solid var(--surface-transparent-2);
-  background: var(--surface-transparent-1);
-  color: white;
-  cursor: pointer;
-  transition: background-color var(--animation-duration-fast) ease;
-}
-
-.createPlaylistButtons button:hover {
-  background: var(--surface-transparent-2);
-}
-
 .moreButton {
   opacity: 0.6;
   transition: opacity var(--animation-duration-fast) ease;

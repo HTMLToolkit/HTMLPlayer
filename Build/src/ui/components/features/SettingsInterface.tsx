@@ -20,6 +20,7 @@ import { clearAllCaches } from "../../../platform/storage";
 import { toast } from "sonner";
 import { useState } from "react";
 import { ResetDialogsDialog } from "../primitives/ResetDialogsDialog";
+import { ExportsDialog } from "../primitives/ExportsDialog";
 import styles from "./Settings.module.css";
 import type { SettingsManager } from "../../../platform/settings/settings";
 
@@ -38,6 +39,7 @@ export function SettingsInterface({
   const { wallpapers, setWallpaper } = useWallpaper();
 
   const [resetDialogOpen, setResetDialogOpen] = useState(false);
+  const [exportsOpen, setExportsOpen] = useState(false);
 
   let languages: string[] = [];
   if (Array.isArray(i18n.options.supportedLngs)) {
@@ -295,6 +297,24 @@ export function SettingsInterface({
           open={resetDialogOpen}
           onOpenChange={setResetDialogOpen}
         />
+      </div>
+
+      <div className={styles.settingItem}>
+        <div className={styles.settingInfo}>
+          <label>{t("exports.title")}</label>
+          <p className={styles.settingDescription}>
+            {t("exports.settingsDescription")}
+          </p>
+        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setExportsOpen(true)}
+        >
+          <Icon name="download" size={16} decorative />
+          {t("exports.manage")}
+        </Button>
+        <ExportsDialog open={exportsOpen} onOpenChange={setExportsOpen} />
       </div>
     </section>
   );

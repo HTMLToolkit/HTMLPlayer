@@ -41,26 +41,33 @@ export const useVisualizerCanvas = ({
     const visualizers = getAvailableVisualizers();
     setAvailableVisualizers(visualizers);
 
+    let cancelled = false;
     Promise.all(
       visualizers.map(async (key) => {
         const visualizer = await getVisualizer(key);
         return { key, name: visualizer?.name || key };
       }),
     ).then((results) => {
+      if (cancelled) return;
       setLoadedVisualizerNames(
         new Map(results.map(({ key, name }) => [key, name])),
       );
     });
 
-    if (visualizers.length > 0 && !selectedVisualizerKey) {
-      if (visualizers.includes(DEFAULT_VISUALIZER_KEY)) {
-        setSelectedVisualizerKey(DEFAULT_VISUALIZER_KEY);
-      } else {
-        const firstVisualizer = visualizers[0];
-        if (firstVisualizer) setSelectedVisualizerKey(firstVisualizer);
-      }
-    }
-  }, [selectedVisualizerKey]);
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (selectedVisualizerKey || availableVisualizers.length === 0) return;
+
+    setSelectedVisualizerKey(
+      availableVisualizers.includes(DEFAULT_VISUALIZER_KEY)
+        ? DEFAULT_VISUALIZER_KEY
+        : (availableVisualizers[0] ?? ""),
+    );
+  }, [availableVisualizers, selectedVisualizerKey]);
 
   useEffect(() => {
     if (!selectedVisualizerKey) return;

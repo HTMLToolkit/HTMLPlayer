@@ -2,7 +2,6 @@ import { Equalizer } from "./equalizer";
 import { clampVolume } from "./clamp";
 import { gainDbToLinear } from "./replayGain";
 import { createLogger } from "../../helpers/logger";
-
 const logger = createLogger("audioGraph");
 
 const ANALYSER_FFT_SIZE = 2048;
@@ -12,6 +11,7 @@ export class AudioGraph {
   private context: AudioContext | null = null;
   private chainInput: GainNode | null = null;
   private replayGainNode: GainNode | null = null;
+  private eqPreampNode: GainNode | null = null;
   private analyser: AnalyserNode | null = null;
   private masterGain: GainNode | null = null;
   private volume = 1;
@@ -165,6 +165,24 @@ export class AudioGraph {
     this.rebuildFxChain();
   }
 
+  updateEqualizer(): void {
+    if (this.equalizer.isEnabled()) {
+      try {
+        this.equalizer.build(this.ensureContext());
+      } catch (error) {
+        logger.warn("Equalizer unavailable:", { error: String(error) });
+        return;
+      }
+    }
+
+    const preamp = this.eqPreampNode;
+    if (!preamp) return;
+
+    preamp.gain.value = this.equalizer.isEnabled()
+      ? gainDbToLinear(-this.equalizer.getHeadroomDb())
+      : 1;
+  }
+
   getEqualizer(): Equalizer {
     return this.equalizer;
   }
@@ -179,6 +197,7 @@ export class AudioGraph {
     this.equalizer.disconnect();
     this.chainInput?.disconnect();
     this.replayGainNode?.disconnect();
+    this.eqPreampNode?.disconnect();
     this.analyser?.disconnect();
     this.masterGain?.disconnect();
 
@@ -191,6 +210,7 @@ export class AudioGraph {
 
     this.chainInput = null;
     this.replayGainNode = null;
+    this.eqPreampNode = null;
     this.analyser = null;
     this.masterGain = null;
     this.toneModule = null;
@@ -213,14 +233,19 @@ export class AudioGraph {
     const replayGainNode = context.createGain();
     replayGainNode.gain.value = gainDbToLinear(this.replayGainDb);
 
+    const eqPreampNode = context.createGain();
+    eqPreampNode.gain.value = 1;
+
     chainInput.connect(replayGainNode);
-    replayGainNode.connect(analyser);
+    replayGainNode.connect(eqPreampNode);
+    eqPreampNode.connect(analyser);
     analyser.connect(masterGain);
     masterGain.connect(context.destination);
 
     this.context = context;
     this.chainInput = chainInput;
     this.replayGainNode = replayGainNode;
+    this.eqPreampNode = eqPreampNode;
     this.analyser = analyser;
     this.masterGain = masterGain;
 
@@ -245,9 +270,10 @@ export class AudioGraph {
   }
 
   private rebuildFxChain(): void {
-    if (!this.chainInput || !this.analyser) return;
+    if (!this.chainInput || !this.analyser || !this.eqPreampNode) return;
 
     this.replayGainNode?.disconnect();
+    this.eqPreampNode.disconnect();
     this.equalizer.disconnect();
     this.getPitchOutputNode()?.disconnect();
 
@@ -264,11 +290,22 @@ export class AudioGraph {
 
     const eqNodes = this.equalizer.nodes;
     if (this.equalizer.isEnabled() && eqNodes.length > 0) {
-      tail.connect(eqNodes[0]!);
-      tail = eqNodes[eqNodes.length - 1]!;
+      this.eqPreampNode.gain.value = gainDbToLinear(
+        -this.equalizer.getHeadroomDb(),
+      );
+    } else {
+      this.eqPreampNode.gain.value = 1;
     }
 
-    tail.connect(this.analyser);
+    tail.connect(this.eqPreampNode);
+    let eqTail: AudioNode = this.eqPreampNode;
+
+    for (const node of eqNodes) {
+      eqTail.connect(node);
+      eqTail = node;
+    }
+
+    eqTail.connect(this.analyser);
   }
 
   private removePitchShift(): void {

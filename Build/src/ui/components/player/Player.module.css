@@ -6,7 +6,6 @@
   height: 180px;
   --foreground: var(--primary-foreground);
   --foreground-strong: var(--primary-foreground);
-  --foreground-stronger: var(--primary-foreground);
   --foreground-muted: var(--primary-foreground);
   --foreground-subtle: var(--primary-foreground);
   --muted: var(--surface-transparent-2);

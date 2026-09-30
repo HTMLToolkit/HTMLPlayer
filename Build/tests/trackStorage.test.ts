@@ -1,6 +1,15 @@
 import { describe, it, expect, jest, beforeEach, afterEach } from "@jest/globals";
 import { trackStorage } from "../src/platform/storage/trackStorage";
+import { loadAudio } from "../src/platform/storage/opfs";
 import type { Track } from "../src/core/engine/types";
+
+jest.mock("../src/platform/storage/opfs", () => ({
+  loadAudio: jest.fn(),
+  deleteAudio: jest.fn(),
+  saveAudio: jest.fn(),
+}));
+
+const mockedLoadAudio = jest.mocked(loadAudio);
 
 const makeTrack = (id: string, mimeType = "audio/mpeg"): Track => ({
   id,
@@ -18,9 +27,10 @@ describe("trackStorage.reconstructUrl", () => {
 
   beforeEach(() => {
     urls = [];
-    jest
-      .spyOn(trackStorage, "getAudioData")
-      .mockResolvedValue(new Uint8Array([1, 2, 3]).buffer);
+    mockedLoadAudio.mockReset();
+    mockedLoadAudio.mockResolvedValue(
+      new Blob([new Uint8Array([1, 2, 3])]),
+    );
     Object.defineProperty(URL, "createObjectURL", {
       configurable: true,
       value: jest.fn(() => {
@@ -47,6 +57,7 @@ describe("trackStorage.reconstructUrl", () => {
 
     expect(first.url).toBe(second.url);
     expect(URL.createObjectURL).toHaveBeenCalledTimes(1);
+    expect(mockedLoadAudio).toHaveBeenCalledTimes(1);
     expect(URL.revokeObjectURL).not.toHaveBeenCalled();
   });
 
@@ -60,21 +71,42 @@ describe("trackStorage.reconstructUrl", () => {
 
     expect(first.url).toBe(second.url);
     expect(URL.createObjectURL).toHaveBeenCalledTimes(1);
+    expect(mockedLoadAudio).toHaveBeenCalledTimes(1);
   });
 
-  it("creates a new URL and revokes the old one when stored audio changes", async () => {
+  it("creates a new URL and revokes the old one when the cache is invalidated", async () => {
     const track = makeTrack("changed-id");
     const first = await trackStorage.reconstructUrl(track);
 
-    const newData = new Uint8Array([9, 9, 9, 9]).buffer;
-    jest
-      .spyOn(trackStorage, "getAudioData")
-      .mockResolvedValue(newData);
+    trackStorage.revokeAudioUrl(track.id);
+    mockedLoadAudio.mockResolvedValue(
+      new Blob([new Uint8Array([9, 9, 9, 9])]),
+    );
 
     const second = await trackStorage.reconstructUrl(track);
 
     expect(first.url).not.toBe(second.url);
     expect(URL.createObjectURL).toHaveBeenCalledTimes(2);
     expect(URL.revokeObjectURL).toHaveBeenCalledWith(first.url);
+  });
+
+  it("leaves a non-stored track untouched", async () => {
+    const track = makeTrack("stream-id");
+    track.hasStoredAudio = false;
+
+    const result = await trackStorage.reconstructUrl(track);
+
+    expect(result.url).toBe("");
+    expect(mockedLoadAudio).not.toHaveBeenCalled();
+  });
+
+  it("returns the track unchanged when OPFS has no audio", async () => {
+    mockedLoadAudio.mockResolvedValue(null);
+    const track = makeTrack("missing-id");
+
+    const result = await trackStorage.reconstructUrl(track);
+
+    expect(result.url).toBe("");
+    expect(URL.createObjectURL).not.toHaveBeenCalled();
   });
 });

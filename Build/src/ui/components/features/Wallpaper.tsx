@@ -1,4 +1,4 @@
-import React, { Suspense, useEffect, useRef } from "react";
+import React, { Suspense } from "react";
 import { useWallpaper, useTheming } from "../../theming/hooks/useTheming";
 
 interface WallpaperRendererProps {
@@ -12,11 +12,6 @@ const WallpaperRenderer: React.FC<WallpaperRendererProps> = ({
 }) => {
   const { currentWallpaper, getWallpaperComponent } = useWallpaper();
   const { isLoading } = useTheming();
-  const wallpaperKeyRef = useRef(0);
-
-  useEffect(() => {
-    wallpaperKeyRef.current += 1;
-  }, [currentWallpaper?.name, currentWallpaper]);
 
   if (isLoading) {
     return (
@@ -101,7 +96,7 @@ const WallpaperRenderer: React.FC<WallpaperRendererProps> = ({
     >
       {wallpaperComponent &&
         React.createElement(wallpaperComponent, {
-          key: `wallpaper-${wallpaperKeyRef.current}`,
+          key: currentWallpaper?.name ?? "none",
           currentSong,
           playbackState,
         })}

@@ -52,6 +52,7 @@ export const Sidebar = memo(function SidebarImpl({
     const settings = komorebi.settings;
     const libraryEvents = [
       "songadded",
+      "songsloaded",
       "songremoved",
       "songupdated",
       "playlistadded",

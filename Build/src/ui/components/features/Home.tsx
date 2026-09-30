@@ -13,6 +13,7 @@ import { selectCurrentTrack, useKomorebiStore } from "../../../store";
 interface HomeProps {
   komorebi: UseKomorebiReturn;
   onAddMusic: () => Promise<void>;
+  onAddFolder?: () => Promise<boolean>;
 }
 
 const SongCardItem = React.memo<{ song: Track; onPlay: (song: Track) => void }>(
@@ -81,7 +82,11 @@ const PlaylistCardItem = React.memo<{
   );
 });
 
-export const Home: React.FC<HomeProps> = ({ komorebi, onAddMusic }) => {
+export const Home: React.FC<HomeProps> = ({
+  komorebi,
+  onAddMusic,
+  onAddFolder,
+}) => {
   const { t } = useTranslation();
   const { library, songs: komorebiSongs, playSong, getFavorites } = komorebi;
   const { goToSongs } = useNavigation();
@@ -258,10 +263,18 @@ export const Home: React.FC<HomeProps> = ({ komorebi, onAddMusic }) => {
                 </Button>
               </>
             ) : (
-              <Button onClick={onAddMusic}>
-                <Icon name="upload" size={16} decorative />
-                {t("home.uploadMusic")}
-              </Button>
+              <div className={styles.heroActions}>
+                <Button onClick={onAddMusic}>
+                  <Icon name="upload" size={16} decorative />
+                  {t("home.uploadMusic")}
+                </Button>
+                {onAddFolder && (
+                  <Button variant="outline" onClick={onAddFolder}>
+                    <Icon name="folder" size={16} decorative />
+                    {t("home.importFolder")}
+                  </Button>
+                )}
+              </div>
             )}
           </div>
         </div>

@@ -8,6 +8,7 @@ import React, {
 } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
+import { createLogger } from "../../../helpers/logger";
 import { Icon } from "../shared/Icon";
 import { Button } from "../primitives/Button";
 import { generatePlaylistImage } from "../../../platform/utils/playlistImage";
@@ -16,6 +17,24 @@ import { PlaylistItem } from "../primitives/PlaylistItem";
 import { FolderItem } from "../primitives/FolderItem";
 import { ConfirmDialog, type DialogType } from "../primitives/ConfirmDialog";
 import { PlaylistToolbar } from "./PlaylistToolbar";
+import { M3uImportDialog } from "./M3uImportDialog";
+import {
+  useM3uImport,
+  type M3uImportOutcome,
+} from "../../../hooks/useM3uImport";
+import type { M3uMatchMode } from "../../../platform/storage/m3uImport";
+import {
+  commonFolderSourceId,
+  exportPlaylistToM3u,
+} from "../../../platform/storage/m3uExport";
+import { exportStorage } from "../../../platform/storage/exportStorage";
+import { getDirectoryHandleById } from "../../../platform/storage/directoryStore";
+import {
+  ensureWritePermission,
+  pickWritableDirectory,
+  writeTextFileToDirectory,
+} from "../../../platform/storage/directoryHandle";
+import { playlistFileName } from "../../../platform/library/m3u";
 import type { UseKomorebiReturn } from "../../../hooks/useKomorebi";
 import type { Playlist, PlaylistFolder } from "../../../core/engine/types";
 import styles from "./Playlist.module.css";
@@ -24,6 +43,17 @@ interface PlaylistViewProps {
   library: UseKomorebiReturn["library"];
   playSong: UseKomorebiReturn["playSong"];
   version: number;
+}
+
+const logger = createLogger("playlistView");
+
+function downloadBlob(blob: Blob, fileName: string): void {
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.download = fileName;
+  anchor.click();
+  URL.revokeObjectURL(url);
 }
 
 export const PlaylistView = memo(function PlaylistView({
@@ -48,6 +78,12 @@ export const PlaylistView = memo(function PlaylistView({
   const [availableFolders, setAvailableFolders] = useState<
     { folder: PlaylistFolder; path: string[] }[]
   >([]);
+
+  const [m3uFile, setM3uFile] = useState<File | null>(null);
+  const [m3uDialogOpen, setM3uDialogOpen] = useState(false);
+  const [m3uOutcome, setM3uOutcome] = useState<M3uImportOutcome | null>(null);
+  const { importPlaylist, remapUnresolved, isImporting } =
+    useM3uImport(library);
 
   const playlistListRef = useRef<HTMLDivElement | null>(null);
 
@@ -261,34 +297,69 @@ export const PlaylistView = memo(function PlaylistView({
   );
 
   const handleExport = useCallback(
-    (playlist: Playlist, format: "json" | "m3u") => {
+    async (playlist: Playlist, format: "json" | "m3u") => {
       if (format === "json") {
-        const blob = new Blob([JSON.stringify(playlist, null, 2)], {
-          type: "application/json",
-        });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = `${playlist.name}.json`;
-        a.click();
-        URL.revokeObjectURL(url);
-      } else {
-        const content = [
-          "#EXTM3U",
-          ...playlist.songs.map(
-            (s) =>
-              `#EXTINF:${Math.round(s.duration || 0)},${s.artist} - ${s.title}\n${s.url || ""}`,
-          ),
-        ].join("\n");
-        const blob = new Blob([content], { type: "audio/x-mpegurl" });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = `${playlist.name}.m3u`;
-        a.click();
-        URL.revokeObjectURL(url);
+        downloadBlob(
+          new Blob([JSON.stringify(playlist, null, 2)], {
+            type: "application/json",
+          }),
+          `${playlist.name}.json`,
+        );
+        toast.success(t("playlist.exported"));
+        return;
       }
-      toast.success(t("playlist.exported"));
+
+      const { text, entryCount, skipped } = exportPlaylistToM3u(playlist);
+      if (entryCount === 0) {
+        toast.error(t("playlist.m3u.exportEmpty"));
+        return;
+      }
+
+      const fileName = playlistFileName(playlist.name);
+      const sourceId = commonFolderSourceId(playlist);
+      const startIn = sourceId ? await getDirectoryHandleById(sourceId) : null;
+
+      const destination = await pickWritableDirectory(startIn ?? undefined);
+      if (!destination) {
+        toast.error(t("playlist.m3u.exportCancelled"));
+        return;
+      }
+      if (!(await ensureWritePermission(destination))) {
+        toast.error(t("playlist.m3u.exportPermissionDenied"));
+        return;
+      }
+
+      try {
+        await writeTextFileToDirectory(destination, fileName, text);
+      } catch (error) {
+        logger.warn("Failed to write playlist into folder", {
+          fileName,
+          folder: destination.name,
+          error: String(error),
+        });
+        toast.error(t("playlist.m3u.exportFailed"));
+        return;
+      }
+
+      try {
+        await exportStorage.save(fileName, text);
+      } catch (error) {
+        logger.warn("Failed to save export copy to OPFS", {
+          error: String(error),
+        });
+      }
+
+      if (skipped.length > 0) {
+        toast.warning(
+          t("playlist.m3u.exportSkipped", { count: skipped.length }),
+        );
+      }
+      toast.success(
+        t("playlist.m3u.exportedToFolder", {
+          name: fileName,
+          folder: destination.name,
+        }),
+      );
     },
     [t],
   );
@@ -299,24 +370,49 @@ export const PlaylistView = memo(function PlaylistView({
     input.accept = ".json,.m3u,.m3u8";
     input.onchange = async (e) => {
       const file = (e.target as HTMLInputElement).files?.[0];
-      if (file) {
+      if (!file) return;
+
+      if (file.name.endsWith(".json")) {
         try {
           const text = await file.text();
-          if (file.name.endsWith(".json")) {
-            const playlist: Playlist = JSON.parse(text);
-            if (playlist.name) {
-              playlist.id = `playlist-${Date.now()}`;
-              library.addPlaylist(playlist);
-              toast.success(t("playlist.imported", { name: playlist.name }));
-            }
-          } else toast.info("M3U import not yet supported");
+          const playlist: Playlist = JSON.parse(text);
+          if (playlist.name) {
+            playlist.id = `playlist-${Date.now()}`;
+            library.addPlaylist(playlist);
+            toast.success(t("playlist.imported", { name: playlist.name }));
+          }
         } catch {
           toast.error(t("playlist.importFailed"));
         }
+        return;
       }
+
+      setM3uFile(file);
+      setM3uOutcome(null);
+      setM3uDialogOpen(true);
     };
     input.click();
   }, [library, t]);
+
+  const handleM3uImport = useCallback(
+    async (mode: M3uMatchMode) => {
+      if (!m3uFile) return;
+      const outcome = await importPlaylist(m3uFile, mode);
+      if (outcome) setM3uOutcome(outcome);
+    },
+    [importPlaylist, m3uFile],
+  );
+
+  const handleM3uRemap = useCallback(
+    async (candidatePath: string) =>
+      m3uOutcome ? remapUnresolved(m3uOutcome, candidatePath) : false,
+    [m3uOutcome, remapUnresolved],
+  );
+
+  const handleM3uDrop = useCallback(() => {
+    setM3uOutcome(null);
+    setM3uDialogOpen(false);
+  }, []);
 
   const renderPlaylistItem = useCallback(
     (item: Playlist | PlaylistFolder, depth = 0): React.ReactElement | null => {
@@ -424,6 +520,17 @@ export const PlaylistView = memo(function PlaylistView({
         item={dialogItem}
         folders={availableFolders}
         onConfirm={handleDialogConfirm}
+      />
+
+      <M3uImportDialog
+        open={m3uDialogOpen}
+        onOpenChange={setM3uDialogOpen}
+        file={m3uFile}
+        isImporting={isImporting}
+        outcome={m3uOutcome}
+        onImport={handleM3uImport}
+        onRemap={handleM3uRemap}
+        onDrop={handleM3uDrop}
       />
     </div>
   );

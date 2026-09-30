@@ -13,6 +13,7 @@ export {
   DialogHeader,
   DialogTitle,
 } from "./Dialog";
+export { ExportsDialog } from "./ExportsDialog";
 export { DraggableProvider, type DragItem, type DropZone } from "./Draggable";
 export {
   DropdownMenu,

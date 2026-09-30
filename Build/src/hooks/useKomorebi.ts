@@ -10,7 +10,6 @@ import type {
 import type { IAudioBackend } from "../platform/audio";
 import { BackendRouter } from "../platform/audio/backends";
 import { PreloadManager } from "../platform/audio/preloader";
-import type { Equalizer } from "../platform/audio/equalizer";
 import {
   createMediaSessionIntegration,
   createDiscordIntegration,
@@ -19,10 +18,16 @@ import {
 import { LibraryManager } from "../platform/library/library";
 import { libraryPersistence } from "../platform/library/persistence";
 import { trackStorage } from "../platform/storage/trackStorage";
+import { settingsStorage } from "../platform/storage/settingsStorage";
+import { ensureStoragePersistent } from "../platform/storage/opfs";
 import { SettingsManager } from "../platform/settings/settings";
 import type { SettingsState } from "../platform/settings/types";
 import { engineSettingsPersistence } from "../platform/settings/enginePersistence";
+import { syncAllDirectories } from "../platform/storage/folderImporter";
+import { storeImportedSong } from "../helpers/addSong";
+import i18n from "i18next";
 import { createLogger } from "../helpers/logger";
+import { sanitizeEqualizerState } from "../platform/audio/equalizer";
 import {
   useKomorebiStore,
   EMPTY_ENGINE_STATE,
@@ -43,15 +48,17 @@ import {
   selectSongs,
   selectTempo,
   selectVolume,
+  type EqualizerState,
 } from "../store";
 
 const logger = createLogger("useKomorebi");
+
+const EQUALIZER_SAVE_DEBOUNCE_MS = 400;
 
 export interface UseKomorebiOptions {
   autoPlay?: boolean;
   persistLibrary?: boolean;
 }
-
 export interface UseKomorebiReturn {
   engine: KomorebiEngine;
   library: LibraryManager;
@@ -94,8 +101,6 @@ export interface UseKomorebiReturn {
   setRepeat: (mode: "off" | "one" | "all") => void;
   setAutoPlayNext: (enabled: boolean) => void;
   getAnalyser: () => AnalyserNode | null;
-  getEqualizer: () => Equalizer | null;
-  setEqualizerEnabled: (enabled: boolean) => void;
   toggleShuffle: () => void;
   toggleRepeat: () => void;
 
@@ -166,6 +171,7 @@ export function useKomorebi(
   const playlistsSaveTimerRef = useRef<number | null>(null);
   const settingsRef = useRef<SettingsManager | null>(null);
   const initializedRef = useRef(false);
+  const equalizerRestoredRef = useRef(false);
 
   if (!initializedRef.current) {
     const backend = new BackendRouter();
@@ -231,6 +237,7 @@ export function useKomorebi(
       useKomorebiStore.getState().setSongs([...library.getState().songs]);
     };
     library.on("songadded", pushLibraryToStore);
+    library.on("songsloaded", pushLibraryToStore);
     library.on("songremoved", pushLibraryToStore);
     library.on("songupdated", pushLibraryToStore);
     library.on("playlistadded", pushLibraryToStore);
@@ -320,8 +327,39 @@ export function useKomorebi(
       ) {
         updateDiscordPresence(engine.getState().currentTrack);
       }
+      if (!settingsReady) return;
+      settingsStorage.save(changes).catch((error: unknown) => {
+        logger.error("Failed to persist settings:", {
+          error: String(error),
+        });
+      });
     };
     settingsRef.current?.on("settingschange", handleSettingsChange);
+
+    let settingsReady = false;
+    void settingsStorage
+      .load()
+      .then((saved) => {
+        if (saved && settingsRef.current) {
+          settingsRef.current.hydrate(saved);
+        }
+
+        const storedEqualizer = sanitizeEqualizerState(
+          settingsRef.current?.getSettings().equalizer,
+        );
+        if (storedEqualizer) {
+          useKomorebiStore.getState().hydrateEqualizer(storedEqualizer);
+        }
+      })
+      .catch((error: unknown) => {
+        logger.error("Failed to restore settings:", {
+          error: String(error),
+        });
+      })
+      .finally(() => {
+        settingsReady = true;
+        equalizerRestoredRef.current = true;
+      });
 
     const initialTrack = engine.getState().currentTrack;
     void mediaSession.updateMetadata(initialTrack);
@@ -332,15 +370,7 @@ export function useKomorebi(
       try {
         const savedLibrary = await libraryPersistence.loadFullLibrary();
         if (savedLibrary) {
-          for (const song of savedLibrary.songs) {
-            const reconstructed = await trackStorage.reconstructUrl(song);
-            library.addSong(reconstructed);
-          }
-          library.seedPlaylists(savedLibrary.playlists);
-          savedLibrary.favorites.forEach((id) => {
-            const song = library.getSong(id);
-            if (song) library.toggleFavorite(id);
-          });
+          library.hydrate(savedLibrary);
         }
       } catch (err) {
         logger.error("Failed to load library:", { error: String(err) });
@@ -348,13 +378,35 @@ export function useKomorebi(
     };
 
     loadLibrary().then(() => {
-      useKomorebiStore.getState().setReady(true);
       pushLibraryToStore();
+      useKomorebiStore.getState().setReady(true);
+      void runDirectorySync();
     });
+
+    const runDirectorySync = async () => {
+      try {
+        await syncAllDirectories({
+          t: (key, options) => i18n.t(key, options),
+          addSong: async (song, file, context) => {
+            const stored = await storeImportedSong(song, file, context);
+            library.addSongs([stored]);
+            await libraryPersistence.saveSong(stored);
+          },
+          getExistingTracks: () => library.getState().songs,
+          removeSong: (songId) => library.removeSong(songId),
+          silent: true,
+        });
+      } catch (error) {
+        logger.error("Failed to sync folders:", { error: String(error) });
+      }
+    };
+
+    void ensureStoragePersistent();
 
     return () => {
       detachEngine();
       library.off("songadded", pushLibraryToStore);
+      library.off("songsloaded", pushLibraryToStore);
       library.off("songremoved", pushLibraryToStore);
       library.off("songupdated", pushLibraryToStore);
       library.off("playlistadded", pushLibraryToStore);
@@ -594,16 +646,43 @@ export function useKomorebi(
     return engineRef.current?.getAnalyser() ?? null;
   }, []);
 
-  const getEqualizer = useCallback(() => {
-    const backend = backendRef.current;
-    return backend instanceof BackendRouter ? backend.getEqualizer() : null;
-  }, []);
+  useEffect(() => {
+    const applyEqualizer = (next: EqualizerState): void => {
+      const backend = backendRef.current;
+      if (!(backend instanceof BackendRouter)) return;
 
-  const setEqualizerEnabled = useCallback((enabled: boolean) => {
-    const backend = backendRef.current;
-    if (backend instanceof BackendRouter) {
-      backend.setEqualizer(enabled);
-    }
+      const equalizer = backend.getEqualizer();
+      const wasEnabled = equalizer.isEnabled();
+      equalizer.setBands(next.bands);
+
+      if (wasEnabled !== next.enabled) {
+        backend.setEqualizer(next.enabled);
+      } else {
+        backend.updateEqualizer();
+      }
+    };
+
+    let saveTimer: number | null = null;
+    const scheduleSave = (state: EqualizerState): void => {
+      if (saveTimer !== null) clearTimeout(saveTimer);
+      saveTimer = window.setTimeout(() => {
+        saveTimer = null;
+        settingsRef.current?.updateSettings({ equalizer: state });
+      }, EQUALIZER_SAVE_DEBOUNCE_MS);
+    };
+
+    applyEqualizer(useKomorebiStore.getState().equalizer);
+
+    const unsubscribe = useKomorebiStore.subscribe((state, prev) => {
+      if (state.equalizer === prev.equalizer) return;
+      applyEqualizer(state.equalizer);
+      if (equalizerRestoredRef.current) scheduleSave(state.equalizer);
+    });
+
+    return () => {
+      if (saveTimer !== null) clearTimeout(saveTimer);
+      unsubscribe();
+    };
   }, []);
 
   const toggleShuffle = useCallback(() => {
@@ -712,8 +791,6 @@ export function useKomorebi(
     setRepeat,
     setAutoPlayNext,
     getAnalyser,
-    getEqualizer,
-    setEqualizerEnabled,
     toggleShuffle,
     toggleRepeat,
 

@@ -7,6 +7,8 @@ import {
   Component,
   type ReactNode,
   type ErrorInfo,
+  type ChangeEvent,
+  type InputHTMLAttributes,
 } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
@@ -26,7 +28,13 @@ import { useFileHandler } from "../hooks/useFileHandler";
 import { useShareTarget } from "../hooks/useShareTarget";
 import { clearHandledShares } from "../platform/integrations/shareTarget";
 import { importAudioFiles } from "../helpers/importAudioFiles";
-import { prepareAndStoreSong } from "../helpers/addSong";
+import { storeImportedSong, type ImportContext } from "../helpers/addSong";
+import {
+  importFolder,
+  importDataTransfer,
+  importFolderFiles,
+} from "../platform/storage/folderImporter";
+import { isDirectoryPickerSupported } from "../platform/storage/directoryHandle";
 import {
   switchToAutoMode,
   switchToDarkMode,
@@ -138,6 +146,10 @@ const UpdatePromptComponent = lazy(
   () => import("./components/shared/UpdatePrompt"),
 );
 
+const WEBKIT_DIRECTORY_ATTRIBUTE = {
+  webkitdirectory: "",
+} as InputHTMLAttributes<HTMLInputElement>;
+
 interface AppShellProps {
   komorebi: UseKomorebiReturn;
 }
@@ -149,21 +161,69 @@ function AppShellContent({ komorebi }: AppShellProps) {
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [, setThemeMode] = useState<ThemeMode>("auto");
   const playerRef = useRef<PlayerRef>(null);
+  const folderInputRef = useRef<HTMLInputElement>(null);
   const currentSong = useKomorebiStore(selectCurrentTrack);
   const isPlaying = useKomorebiStore(selectIsPlaying);
 
-  const handleAddSong = async (song: Track, file?: File) => {
+  const handleAddSong = async (
+    song: Track,
+    file?: File,
+    context?: ImportContext,
+  ) => {
     if (!file) return;
-    const stored = await prepareAndStoreSong(song, file);
+    const stored = await storeImportedSong(song, file, context);
     komorebi.addSong(stored);
   };
 
   const existingTracks = () => komorebi.library.getState().songs;
-  const handleImport = (
+  const handleImport = async (
     files: File[],
-    onAddSong: (song: Track, file: File) => Promise<void>,
+    onAddSong: (
+      song: Track,
+      file: File,
+      context?: ImportContext,
+    ) => Promise<void>,
     translate: (key: string, options?: Record<string, unknown>) => string,
-  ) => importAudioFiles(files, onAddSong, translate, existingTracks);
+  ): Promise<void> => {
+    await importAudioFiles(files, onAddSong, translate, existingTracks);
+  };
+
+  const handleAddFolder = async (): Promise<boolean> => {
+    if (!isDirectoryPickerSupported()) {
+      folderInputRef.current?.click();
+      return true;
+    }
+    const result = await importFolder({
+      t,
+      addSong: handleAddSong,
+      getExistingTracks: existingTracks,
+      removeSong: (songId) => komorebi.removeSong(songId),
+    });
+    return result !== null;
+  };
+
+  const handleFolderInputChange = async (
+    event: ChangeEvent<HTMLInputElement>,
+  ): Promise<void> => {
+    const files = Array.from(event.target.files ?? []);
+    event.target.value = "";
+    if (files.length === 0) return;
+    await importFolderFiles(files, {
+      t,
+      addSong: handleAddSong,
+      getExistingTracks: existingTracks,
+      removeSong: (songId) => komorebi.removeSong(songId),
+    });
+  };
+
+  const handleDropFiles = (dataTransfer: DataTransfer): Promise<void> => {
+    return importDataTransfer(dataTransfer, {
+      t,
+      addSong: handleAddSong,
+      getExistingTracks: existingTracks,
+      removeSong: (songId) => komorebi.removeSong(songId),
+    }).then(() => undefined);
+  };
 
   useFileHandler(handleAddSong, t, handleImport, komorebi.isReady);
 
@@ -241,12 +301,44 @@ function AppShellContent({ komorebi }: AppShellProps) {
       }
     };
     loadThemeMode();
+  }, [t]);
 
+  useEffect(() => {
+    if (!komorebi.isReady) return;
     const loadingScreen = document.getElementById("loading-screen");
     if (loadingScreen) {
-      setTimeout(() => loadingScreen.remove(), 1100);
+      loadingScreen.remove();
     }
-  }, [t]);
+  }, [komorebi.isReady]);
+
+  useEffect(() => {
+    const hasFilePayload = (event: DragEvent): boolean =>
+      Boolean(event.dataTransfer?.types?.includes("Files"));
+
+    const handleDragOver = (event: DragEvent): void => {
+      if (!komorebi.isReady || !hasFilePayload(event)) return;
+      event.preventDefault();
+    };
+
+    const handleDrop = (event: DragEvent): void => {
+      if (!komorebi.isReady) return;
+      const dataTransfer = event.dataTransfer;
+      if (!dataTransfer || !hasFilePayload(event)) return;
+      event.preventDefault();
+      handleDropFiles(dataTransfer).catch((error: unknown) => {
+        logger.error("Failed to import dropped files:", {
+          error: String(error),
+        });
+      });
+    };
+
+    window.addEventListener("dragover", handleDragOver);
+    window.addEventListener("drop", handleDrop);
+    return () => {
+      window.removeEventListener("dragover", handleDragOver);
+      window.removeEventListener("drop", handleDrop);
+    };
+  }, [komorebi.isReady, handleDropFiles]);
 
   return (
     <HelpGuideProvider>
@@ -271,6 +363,7 @@ function AppShellContent({ komorebi }: AppShellProps) {
             <MainContent
               komorebi={komorebi}
               onMobileMenuClick={() => setIsMobileSidebarOpen(true)}
+              onAddFolder={handleAddFolder}
             />
             <Player ref={playerRef} komorebi={komorebi} />
           </div>
@@ -278,6 +371,14 @@ function AppShellContent({ komorebi }: AppShellProps) {
         <Suspense fallback={null}>
           <UpdatePromptComponent />
         </Suspense>
+        <input
+          ref={folderInputRef}
+          type="file"
+          multiple
+          style={{ display: "none" }}
+          onChange={handleFolderInputChange}
+          {...WEBKIT_DIRECTORY_ATTRIBUTE}
+        />
       </DraggableProvider>
     </HelpGuideProvider>
   );

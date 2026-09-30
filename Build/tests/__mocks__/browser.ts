@@ -18,14 +18,40 @@ if (!global.crypto) {
   });
 }
 
-const MockGainNode: any = {
-  gain: { value: 1 },
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  connect(..._args: any[]): any {
-    return this;
-  },
-  disconnect(): void {},
-};
+function createMockParam(value: number): any {
+  return {
+    value,
+    setValueAtTime(): void {},
+    setTargetAtTime(): void {},
+    linearRampToValueAtTime(): void {},
+    exponentialRampToValueAtTime(): void {},
+    cancelScheduledValues(): void {},
+  };
+}
+
+function createMockGainNode(): any {
+  return {
+    gain: createMockParam(1),
+    connect(): any {
+      return this;
+    },
+    disconnect(): void {},
+  };
+}
+
+function createMockBiquadFilterNode(type = "peaking"): any {
+  return {
+    type,
+    frequency: createMockParam(350),
+    gain: createMockParam(0),
+    Q: createMockParam(1),
+    detune: createMockParam(0),
+    connect(): any {
+      return this;
+    },
+    disconnect(): void {},
+  };
+}
 
 function MockAudioContext(this: any): void {
   this.sampleRate = 44100;
@@ -38,7 +64,26 @@ MockAudioContext.prototype.close = function(): Promise<void> {
 };
 
 MockAudioContext.prototype.createGain = function(): any {
-  return MockGainNode;
+  return createMockGainNode();
+};
+
+MockAudioContext.prototype.createBiquadFilter = function(type?: string): any {
+  return createMockBiquadFilterNode(type);
+};
+
+MockAudioContext.prototype.createAnalyser = function(): any {
+  return {
+    fftSize: 0,
+    smoothingTimeConstant: 0,
+    frequencyBinCount: 0,
+    getByteFrequencyData(): void {},
+    getFloatFrequencyData(): void {},
+    getByteTimeDomainData(): void {},
+    connect(): any {
+      return this;
+    },
+    disconnect(): void {},
+  };
 };
 
 MockAudioContext.prototype.createBuffer = function(

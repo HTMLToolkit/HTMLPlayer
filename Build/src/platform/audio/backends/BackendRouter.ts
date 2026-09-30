@@ -230,6 +230,10 @@ export class BackendRouter extends BaseAudioBackend {
     this.graph.setEqualizer(enabled);
   }
 
+  updateEqualizer(): void {
+    this.graph.updateEqualizer();
+  }
+
   getCurrentTime(): number {
     return this.current.getCurrentTime();
   }

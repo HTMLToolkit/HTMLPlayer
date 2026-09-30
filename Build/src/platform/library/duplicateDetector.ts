@@ -1,4 +1,4 @@
-import type { Track } from "../../core/engine/types";
+import type { Track, TrackSourceKind } from "../../core/engine/types";
 import { createLogger } from "../../helpers/logger";
 
 const logger = createLogger("duplicateDetector");
@@ -14,6 +14,34 @@ export function trackSignature(song: {
   album: string;
 }): string {
   return `${song.title.toLowerCase()}|${song.artist.toLowerCase()}|${song.album.toLowerCase()}`;
+}
+
+export function normalizeSourcePath(path: string | undefined): string {
+  if (!path) return "";
+  return path.replace(/\\/g, "/").replace(/^\.\//, "").replace(/^\/+/, "");
+}
+
+export function findTrackBySourcePath(
+  candidates: Track[],
+  target: {
+    sourceKind?: TrackSourceKind;
+    sourceId?: string;
+    path?: string;
+  },
+): Track | null {
+  const targetPath = normalizeSourcePath(target.path);
+  if (!targetPath) return null;
+
+  for (const track of candidates) {
+    if (normalizeSourcePath(track.path) !== targetPath) continue;
+    if ((track.sourceKind ?? "opfs") !== (target.sourceKind ?? "opfs")) {
+      continue;
+    }
+    if ((track.sourceId ?? "") !== (target.sourceId ?? "")) continue;
+    return track;
+  }
+
+  return null;
 }
 
 export class DuplicateDetector {
@@ -107,12 +135,12 @@ export class DuplicateDetector {
     return duplicates;
   }
 
-  async isConfirmedDuplicate(
+  async findDuplicateTrack(
     file: Blob,
     song: Pick<Track, "title" | "artist" | "album">,
     candidates: Track[],
     usePartial = true,
-  ): Promise<boolean> {
+  ): Promise<Track | null> {
     const signature = trackSignature(song);
 
     for (const track of candidates) {
@@ -127,7 +155,7 @@ export class DuplicateDetector {
         const existingHash = usePartial
           ? await this.computePartialHash(existingBlob)
           : await this.computeHash(existingBlob);
-        if (fileHash === existingHash) return true;
+        if (fileHash === existingHash) return track;
       } catch (error) {
         logger.error(`Failed to hash existing track ${track.id}:`, {
           error: String(error),
@@ -135,7 +163,19 @@ export class DuplicateDetector {
       }
     }
 
-    return false;
+    return null;
+  }
+
+  async isConfirmedDuplicate(
+    file: Blob,
+    song: Pick<Track, "title" | "artist" | "album">,
+    candidates: Track[],
+    usePartial = true,
+  ): Promise<boolean> {
+    return (
+      (await this.findDuplicateTrack(file, song, candidates, usePartial)) !==
+      null
+    );
   }
 
   findDuplicatesByMetadata(tracks: Track[]): DuplicateGroup[] {

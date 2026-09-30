@@ -2,15 +2,6 @@
   display: inline-flex;
 }
 
-.triggerIcon {
-  color: var(--foreground);
-  transition: transform var(--animation-duration-normal) ease;
-}
-
-.triggerIcon:hover {
-  transform: rotate(90deg);
-}
-
 .sheetContent {
   width: 100%;
   max-width: var(--settings-sheet-max-width);
@@ -240,18 +231,6 @@
   width: 10rem;
 }
 
-.actionButton {
-  flex-shrink: 0;
-  gap: var(--spacing-2);
-  border-radius: var(--radius-md);
-}
-
-.buttonGroup {
-  display: flex;
-  gap: var(--spacing-3);
-  flex-shrink: 0;
-}
-
 .resetButton {
   gap: var(--spacing-2);
   border-radius: var(--radius-md);
@@ -350,10 +329,6 @@
   color: var(--primary);
 }
 
-:global(.dark) .triggerIcon {
-  color: var(--foreground);
-}
-
 .settingItem * {
   color: inherit;
 }
@@ -368,61 +343,6 @@
 
 .settingItem .settingValue {
   color: var(--muted-foreground) !important;
-}
-
-.shortcutsList {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-2);
-  margin-top: var(--spacing-4);
-}
-
-.shortcutItem {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: var(--spacing-3) var(--spacing-4);
-  background: var(--surface-transparent-05);
-  border-radius: var(--radius);
-  border: 1px solid var(--border);
-  transition:
-    background-color var(--animation-duration-fast) ease,
-    border-color var(--animation-duration-fast) ease;
-}
-
-.shortcutItem:hover {
-  background: var(--surface-transparent-1);
-  border-color: var(--primary-border);
-}
-
-.shortcutInfo {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-1);
-}
-
-.shortcutInfo label {
-  font-weight: 500;
-  color: var(--foreground);
-  font-size: 0.875rem;
-}
-
-.shortcutKey {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 60px;
-  padding: var(--spacing-1) var(--spacing-2);
-  background: var(--background);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  font-family: var(--font-mono, "Consolas", monospace);
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: var(--foreground);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  box-shadow: 0 1px 2px var(--shadow);
 }
 
 .shortcutConfigPanel {
@@ -508,36 +428,98 @@
   font-weight: 500;
 }
 
-.equalizerControls {
-  display: flex;
+.equalizerCard {
+  composes: settingItem;
   flex-direction: column;
-  gap: var(--spacing-3);
-  margin-bottom: var(--spacing-8);
+  align-items: stretch;
+  gap: var(--spacing-4);
 }
 
-.equalizerBands {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(8rem, 1fr));
-  gap: var(--spacing-3);
-}
-
-.equalizerBand {
+.equalizerHeader {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: var(--spacing-2);
-  padding: var(--spacing-3);
-  background: var(--card);
-  border-radius: var(--radius-md);
+  justify-content: space-between;
+  gap: var(--spacing-4);
 }
 
-.equalizerSlider {
-  width: 100%;
+.equalizerHeaderText {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
   min-width: 0;
 }
 
-.equalizerFrequency {
-  font-size: 0.75rem;
+.equalizerTitle {
+  font-weight: 500;
+  color: var(--foreground);
+  font-size: 0.9375rem;
+}
+
+.equalizerSubtitle {
+  font-size: 0.875rem;
   color: var(--muted-foreground);
+  line-height: 1.4;
+}
+
+.equalizerPresetRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-4);
+}
+
+.equalizerPresetLabel {
+  font-weight: 500;
+  color: var(--foreground);
+  font-size: 0.9375rem;
+  cursor: pointer;
+}
+
+.equalizerGraphFrame {
+  width: 100%;
+  min-width: 0;
+  padding: var(--spacing-2);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.equalizerGraph {
+  display: block;
+  touch-action: none;
+}
+
+.equalizerReadout {
+  display: flex;
+  align-items: baseline;
+  gap: var(--spacing-2);
+  margin: 0;
+  min-height: 1.25rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.equalizerReadoutLabel {
+  font-size: 0.875rem;
   font-weight: 600;
+  color: var(--foreground);
+}
+
+.equalizerReadoutValue {
+  font-family: var(--font-family-base);
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--themecolor);
+}
+
+.equalizerReadoutMeta {
+  font-size: 0.7rem;
+  color: var(--muted-foreground);
+}
+
+.equalizerHint {
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+  line-height: 1.4;
+  margin: 0;
 }

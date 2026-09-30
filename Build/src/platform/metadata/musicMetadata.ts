@@ -122,20 +122,6 @@ export class MusicMetadataExtractor extends BaseMetadataExtractor {
       };
 
       const gapless: GaplessInfo = {};
-      if (
-        (format as unknown as Record<string, unknown>).encoderDelay !==
-        undefined
-      ) {
-        gapless.encoderDelay = (format as unknown as Record<string, unknown>)
-          .encoderDelay as number;
-      }
-      if (
-        (format as unknown as Record<string, unknown>).encoderPadding !==
-        undefined
-      ) {
-        gapless.encoderPadding = (format as unknown as Record<string, unknown>)
-          .encoderPadding as number;
-      }
 
       const replayGain: ReplayGainInfo = {};
       const record = common as unknown as Record<string, ReplayGainRatio>;

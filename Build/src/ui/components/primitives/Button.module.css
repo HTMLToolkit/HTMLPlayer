@@ -97,7 +97,6 @@
   .primary {
     background: var(--primary);
     color: var(--primary-foreground);
-    --spinner-color: var(--primary-foreground);
   }
 
   .primary:hover:not(:disabled) {
@@ -111,7 +110,6 @@
   .secondary {
     background: var(--secondary);
     color: var(--secondary-foreground);
-    --spinner-color: var(--secondary-foreground);
   }
 
   .secondary:hover:not(:disabled) {
@@ -125,7 +123,6 @@
   .destructive {
     background: var(--error);
     color: var(--error-foreground);
-    --spinner-color: var(--error-foreground);
   }
 
   .destructive:hover:not(:disabled) {
@@ -140,7 +137,6 @@
     background: transparent;
     border-color: var(--border);
     color: var(--foreground);
-    --spinner-color: var(--primary);
   }
 
   .outline:hover:not(:disabled) {
@@ -154,7 +150,6 @@
   .ghost {
     background: transparent;
     color: var(--foreground);
-    --spinner-color: var(--primary);
   }
 
   .ghost:hover:not(:disabled) {
@@ -171,7 +166,6 @@
     height: auto;
     padding: 0;
     text-decoration: none;
-    --spinner-color: var(--primary);
   }
 
   .link:hover:not(:disabled) {

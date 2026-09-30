@@ -54,11 +54,6 @@ describe("SettingsManager", () => {
       settings.setShowLyrics(true);
       expect(settings.getSettings().showLyrics).toBe(true);
     });
-
-    it("should set session restore", () => {
-      settings.setSessionRestore(false);
-      expect(settings.getSettings().sessionRestore).toBe(false);
-    });
   });
 
   describe("Language and localization", () => {

@@ -26,7 +26,7 @@ export class StreamingDecoderBackend {
 
   setPlaybackRate(_rate: number): void {}
 
-  setPitch(_semitones: number): void {}
+  setOutputGain(_value: number): void {}
 
   setReplayGain(_gainDb: number | null): void {}
 

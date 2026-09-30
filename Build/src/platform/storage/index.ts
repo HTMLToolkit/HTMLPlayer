@@ -3,9 +3,12 @@ import { WebStorageBackend } from "./webStorage";
 import { DesktopStorageBackend } from "./desktopStorage";
 
 export { albumArtStorage } from "./albumArt";
+export { exportStorage, type SavedExport } from "./exportStorage";
 export { dialogStorage } from "./dialogs";
-export { audioStorage, type AudioData } from "./audio";
+export { settingsStorage } from "./settingsStorage";
+export { trackStorage } from "./trackStorage";
 export { getDb, STORES, closeDb } from "./db";
+export { directoryStore } from "./directoryStore";
 
 export async function clearAllCaches(): Promise<void> {
   if ("caches" in window) {

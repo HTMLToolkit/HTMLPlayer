@@ -10,20 +10,13 @@
     var(--themecolor2) 50%,
     transparent
   );
-  --themecolor3-transparent: color-mix(
-    in srgb,
-    var(--themecolor3) 50%,
-    transparent
-  );
 
   --menu-background: color-mix(in srgb, var(--themecolor2) 35%, transparent);
 
   --foreground-strong: color-mix(in srgb, var(--foreground) 90%, transparent);
-  --foreground-stronger: var(--foreground);
   --foreground-muted: color-mix(in srgb, var(--foreground) 75%, transparent);
   --foreground-subtle: color-mix(in srgb, var(--foreground) 80%, transparent);
 
-  --surface-foreground: var(--foreground);
   --surface-transparent-05: color-mix(
     in srgb,
     var(--foreground) 5%,
@@ -50,12 +43,6 @@
 
   --primary-border: color-mix(in srgb, var(--primary) 30%, transparent);
   --primary-border-strong: color-mix(in srgb, var(--primary) 40%, transparent);
-  --primary-border-stronger: color-mix(
-    in srgb,
-    var(--primary) 50%,
-    transparent
-  );
-  --primary-border-active: color-mix(in srgb, var(--primary) 60%, transparent);
 
   --secondary-foreground: #ffffff;
 
@@ -66,21 +53,8 @@
   );
   --sidebar-bg-hover: color-mix(in srgb, var(--themecolor2) 60%, transparent);
 
-  --favorite-transparent-1: color-mix(
-    in srgb,
-    var(--favorite) 15%,
-    transparent
-  );
-  --favorite-transparent-2: color-mix(
-    in srgb,
-    var(--favorite) 25%,
-    transparent
-  );
-  --favorite-border: color-mix(in srgb, var(--favorite) 30%, transparent);
-
   --danger-transparent-1: color-mix(in srgb, var(--danger) 15%, transparent);
   --danger-transparent-2: color-mix(in srgb, var(--danger) 25%, transparent);
-  --danger-border: color-mix(in srgb, var(--danger) 30%, transparent);
 
   --card-foreground: var(--foreground);
   --popup-foreground: var(--foreground);
