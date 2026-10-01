@@ -288,8 +288,8 @@ export class AudioGraph {
       }
     }
 
-    const eqNodes = this.equalizer.nodes;
-    if (this.equalizer.isEnabled() && eqNodes.length > 0) {
+    const eqNodes = this.equalizer.isEnabled() ? this.equalizer.nodes : [];
+    if (eqNodes.length > 0) {
       this.eqPreampNode.gain.value = gainDbToLinear(
         -this.equalizer.getHeadroomDb(),
       );

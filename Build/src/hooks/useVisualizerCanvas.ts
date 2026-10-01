@@ -3,6 +3,7 @@ import { logger } from "../helpers/logger";
 import {
   getVisualizer,
   getAvailableVisualizers,
+  getVisualizerDisplayName,
   VisualizerType,
   VisualizerSettings,
   clearVisualizerState,
@@ -40,23 +41,9 @@ export const useVisualizerCanvas = ({
   useEffect(() => {
     const visualizers = getAvailableVisualizers();
     setAvailableVisualizers(visualizers);
-
-    let cancelled = false;
-    Promise.all(
-      visualizers.map(async (key) => {
-        const visualizer = await getVisualizer(key);
-        return { key, name: visualizer?.name || key };
-      }),
-    ).then((results) => {
-      if (cancelled) return;
-      setLoadedVisualizerNames(
-        new Map(results.map(({ key, name }) => [key, name])),
-      );
-    });
-
-    return () => {
-      cancelled = true;
-    };
+    setLoadedVisualizerNames(
+      new Map(visualizers.map((key) => [key, getVisualizerDisplayName(key)])),
+    );
   }, []);
 
   useEffect(() => {

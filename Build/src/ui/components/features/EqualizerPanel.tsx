@@ -241,10 +241,7 @@ export const EqualizerPanel: React.FC = () => {
             >
               {t("settings.audio.preset")}
             </label>
-            <Select
-              value={presetValue || undefined}
-              onValueChange={handlePreset}
-            >
+            <Select value={presetValue} onValueChange={handlePreset}>
               <SelectTrigger id="equalizer-preset">
                 <SelectValue placeholder={t("settings.audio.presetCustom")} />
               </SelectTrigger>

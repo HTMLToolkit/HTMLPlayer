@@ -3,6 +3,7 @@ import { QueueManager } from "../src/core/engine/queue";
 import { Scheduler, CrossfadeScheduler, GaplessScheduler } from "../src/core/engine/scheduler";
 import { KomorebiEngine, IAudioBackend } from "../src/core/engine/engine";
 import type { Track, Playlist } from "../src/core/engine/types";
+import { describe, it, jest, expect, beforeEach, afterEach } from "@jest/globals";
 
 const createMockTrack = (id: string, duration = 180): Track => ({
   id,
@@ -233,16 +234,38 @@ describe("GaplessScheduler", () => {
     expect(scheduler.isEnabled()).toBe(true);
   });
 
-  it("should get start offset from track", () => {
+  it("converts encoder delay from samples to seconds", () => {
     const track = createMockTrack("a", 180);
+    track.encoding = { sampleRate: 1000 };
     track.gapless = { encoderDelay: 100, encoderPadding: 50 };
-    expect(scheduler.getStartOffset(track)).toBe(100);
+    expect(scheduler.getStartOffset(track)).toBeCloseTo(0.1, 10);
   });
 
-  it("should calculate play end with offset", () => {
+  it("converts encoder padding to seconds when ending playback", () => {
     const track = createMockTrack("a", 180);
+    track.encoding = { sampleRate: 1000 };
     track.gapless = { encoderDelay: 0, encoderPadding: 50 };
-    expect(scheduler.calculatePlayEnd(track)).toBe(130);
+    expect(scheduler.calculatePlayEnd(track)).toBeCloseTo(179.95, 10);
+  });
+
+  it("falls back to the configured offset when gapless info is absent", () => {
+    const track = createMockTrack("a", 180);
+    scheduler.setConfig({ startOffset: 0.25, endOffset: 0.5 });
+
+    expect(scheduler.getStartOffset(track)).toBe(0.25);
+    expect(scheduler.getEndOffset(track)).toBe(0.5);
+    expect(scheduler.calculatePlayEnd(track)).toBeCloseTo(179.5, 10);
+  });
+
+  it("falls back to the configured offset when the sample rate is unusable", () => {
+    const track = createMockTrack("a", 180);
+    track.encoding = { sampleRate: 0 };
+    track.gapless = { encoderDelay: 100, encoderPadding: 50 };
+    scheduler.setConfig({ startOffset: 0, endOffset: 0 });
+
+    expect(scheduler.getStartOffset(track)).toBe(0);
+    expect(scheduler.getEndOffset(track)).toBe(0);
+    expect(scheduler.calculatePlayEnd(track)).toBe(180);
   });
 });
 

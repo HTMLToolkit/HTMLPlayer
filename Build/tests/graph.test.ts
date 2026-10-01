@@ -77,6 +77,32 @@ describe("AudioGraph", () => {
     expect(equalizer.nodes).toHaveLength(BAND_COUNT);
   });
 
+  it("bypasses the band filters when the equalizer is disabled", () => {
+    const graphWithContext = new AudioGraph();
+    const equalizer = graphWithContext.getEqualizer();
+
+    graphWithContext.setEqualizer(true);
+    equalizer.setBandGain(2, -9);
+    graphWithContext.updateEqualizer();
+
+    equalizer.setBandGain(2, 9);
+    graphWithContext.updateEqualizer();
+
+    const eqPreampNode = (
+      graphWithContext as unknown as {
+        eqPreampNode: { gain: { value: number } };
+      }
+    ).eqPreampNode;
+    expect(eqPreampNode.gain.value).toBeLessThan(1);
+
+    graphWithContext.setEqualizer(false);
+
+    expect(equalizer.isEnabled()).toBe(false);
+    expect(eqPreampNode.gain.value).toBe(1);
+
+    graphWithContext.dispose();
+  });
+
   it("updateEqualizer applies band edits to the live chain", () => {
     graph.setEqualizer(true);
     const equalizer = graph.getEqualizer();

@@ -154,9 +154,8 @@ export const Lyrics = ({
 
   useEffect(() => {
     if (!visible) return;
-    if (artist && title) {
-      fetchLyrics(artist, title);
-    }
+    if (!artist || !title) return;
+    fetchLyrics(artist, title);
   }, [visible, artist, title, fetchLyrics]);
 
   const normalizeEntry = useCallback((entry?: EmbeddedLyrics) => {

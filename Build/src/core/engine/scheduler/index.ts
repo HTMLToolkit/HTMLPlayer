@@ -128,12 +128,38 @@ export class GaplessScheduler {
     return this.config.enabled;
   }
 
+  private samplesToSeconds(
+    samples: number | undefined,
+    fallback: number,
+    sampleRate: number | undefined,
+  ): number {
+    if (typeof samples !== "number" || !Number.isFinite(samples)) {
+      return fallback;
+    }
+    if (
+      typeof sampleRate !== "number" ||
+      !Number.isFinite(sampleRate) ||
+      sampleRate <= 0
+    ) {
+      return fallback;
+    }
+    return samples / sampleRate;
+  }
+
   getStartOffset(track: Track): number {
-    return track.gapless?.encoderDelay ?? this.config.startOffset;
+    return this.samplesToSeconds(
+      track.gapless?.encoderDelay,
+      this.config.startOffset,
+      track.encoding?.sampleRate,
+    );
   }
 
   getEndOffset(track: Track): number {
-    return track.gapless?.encoderPadding ?? this.config.endOffset;
+    return this.samplesToSeconds(
+      track.gapless?.encoderPadding,
+      this.config.endOffset,
+      track.encoding?.sampleRate,
+    );
   }
 
   shouldPreload(currentTime: number, duration: number): boolean {

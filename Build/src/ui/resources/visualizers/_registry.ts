@@ -188,6 +188,73 @@ const visualizerModules = {
     import("./weather.visualizer").then((m) => m.default as VisualizerType),
 } as Record<string, () => Promise<VisualizerType>>;
 
+const visualizerDisplayNames: Record<string, string> = {
+  abstractart: "Abstract Art",
+  architecturalblueprint: "Architectural Blueprint",
+  bargraph: "Bar Graph",
+  biologicalcell: "Biological Cell",
+  circuitboard: "Circuit Board",
+  circularspectrogram: "Circular Spectrogram",
+  circularwave: "Circular Wave",
+  cityscape: "Dynamic Cityscape",
+  constellation: "Constellation Spectrogram",
+  cosmicpulse: "Cosmic Pulse",
+  crystal: "Crystal Formation",
+  crystalv2: "Crystalline Formation",
+  dna: "DNA Helix Spectrogram",
+  dnav2: "DNA Helix",
+  firespectrum: "Fire Spectrum",
+  flower: "Flower Spectrogram",
+  fluid: "Fluid Dynamics",
+  fluidwave: "Fluid Wave",
+  fractal: "Fractal Tree",
+  fracture: "Fracture Spectrogram",
+  fracturedcircle: "Fractured Circle",
+  fracturedprism: "Fractured Prism",
+  frequencyflower: "Frequency Flower",
+  frequencymesh: "Frequency Mesh",
+  frequencystars: "Frequency Stars",
+  galaxy: "Galaxy Formation",
+  galaxyv2: "Galaxy Spectrogram v2",
+  geometricpulse: "Geometric Pulse",
+  interference: "Wave Interference Spectrogram",
+  kaleidoscope: "Kaleidoscope",
+  kaleidoscopespectrogram: "Kaleidoscope Spectrogram",
+  layeredripplevoronoi: "Layered Ripple Voronoi",
+  liquidmetal: "Liquid Metal",
+  matrixrain: "Matrix Rain",
+  nebula: "Cosmic Nebula",
+  neonwave: "Neon Wave",
+  neural: "Neural Network Visualization",
+  neurospectogram: "Neural Network Spectrogram",
+  oceanwaves: "Ocean Waves",
+  organic: "Organic Growth Spectrogram",
+  oscilloscope: "Oscilloscope",
+  particlefield: "Particle Field",
+  pixeldust: "Pixel Dust",
+  pulsingorbs: "Pulsing Orbs",
+  quantum: "Quantum Field",
+  rainbowspiral: "Rainbow Spiral",
+  ribbondance: "Ribbon Dance",
+  sacredgeometry: "Sacred Geometry",
+  spectrumripple: "Spectrum Ripple",
+  spiralspectogram: "Spiral Spectrogram",
+  spiralv2: "Spiral Spectrogram v2",
+  starfield: "Star Field",
+  tesselation: "Tessellation Spectrogram",
+  topwater: "Top-Down Water Spectrogram",
+  voltaicarcs: "Voltaic Arcs",
+  voronoi: "Voronoi Spectrum",
+  vortex: "Vortex Spectrogram",
+  water: "3D Water Spectrogram",
+  waterfall: "Waterfall",
+  waveformrings: "Waveform Rings",
+  waveformspectrum: "Waveform Spectrum",
+  waveformtunnel: "Waveform Tunnel",
+  waveinterference: "Wave Interference Spectrogram",
+  weather: "Weather Pattern Spectrogram",
+};
+
 export function visualizerModuleLoaders(): Record<
   string,
   () => Promise<VisualizerType>
@@ -197,4 +264,8 @@ export function visualizerModuleLoaders(): Record<
 
 export function visualizerModuleNames(): string[] {
   return Object.keys(visualizerModules);
+}
+
+export function visualizerDisplayName(key: string): string | undefined {
+  return visualizerDisplayNames[key];
 }

@@ -1,5 +1,8 @@
 import { createLogger } from "../../helpers/logger";
-import { visualizerModuleLoaders } from "../../ui/resources/visualizers/_registry";
+import {
+  visualizerDisplayName,
+  visualizerModuleLoaders,
+} from "../../ui/resources/visualizers/_registry";
 
 const logger = createLogger("visualizerLoader");
 
@@ -182,6 +185,10 @@ export function getAvailableVisualizers(): string[] {
   return Object.keys(visualizerModuleLoaders())
     .map((path) => path.split("/").pop()?.replace(".visualizer.tsx", ""))
     .filter(Boolean) as string[];
+}
+
+export function getVisualizerDisplayName(key: string): string {
+  return visualizerDisplayName(key) ?? key;
 }
 
 export const spectrogramTypes: SpectrogramTypes = {};

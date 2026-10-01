@@ -2,7 +2,6 @@
 
 - [ ] when the visualizer is open, something UI bugs out and transparency and it flickers sometimes
 - [ ] switching from Home to All Songs and vice versa has a white flash
-- [ ] use a proper equalizer component from the web or NPM that works with redux rather than that thing as it's... not a equalizer
 - [ ] so like keeping track of state when user repeatedly does actions (like for example switching songs fast) does nothing and like weirds out state (the eternal problem with this appppppp ugh)
 - [ ] Crossfade doesn't work
 

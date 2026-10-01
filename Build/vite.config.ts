@@ -22,6 +22,8 @@ const isSingleFile = process.env.SINGLE_FILE === "true";
 const isDesktop = buildTarget === "desktop";
 const isWeb = buildTarget === "web";
 
+const BASE_PATH = isDesktop ? "/" : "/beta/HTMLPlayer/";
+
 const iconBase64 = isSingleFile
   ? `data:image/png;base64,${fs.readFileSync(path.resolve(import.meta.dirname, "public/icon-any.png")).toString("base64")}`
   : null;
@@ -46,7 +48,7 @@ const plugins = [
         );
     },
   },
-].filter(Boolean);
+  ].filter(Boolean);
 
 if (isWeb && !isSingleFile) {
   plugins.push(
@@ -177,10 +179,7 @@ if (isWeb && !isSingleFile) {
         ],
       },
       devOptions: {
-        enabled: true,
-        type: "module",
-        navigateFallback: "index.html",
-        navigateFallbackAllowlist: [/^\/beta\/HTMLPlayer/],
+        enabled: false,
       },
     })
   );
@@ -231,7 +230,7 @@ function manualChunks(id: string): string | undefined {
 export default defineConfig({
   root: isDesktop ? "" : "./",
   appType: "spa",
-  base: isDesktop ? "/" : "/beta/HTMLPlayer/",
+  base: BASE_PATH,
   plugins,
 
   resolve: {
