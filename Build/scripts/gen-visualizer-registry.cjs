@@ -39,13 +39,6 @@ const lines = [
   "/* Regenerate with: npm run generate:visualizers */",
   'import type { VisualizerType } from "../../../platform/visualizers/visualizerLoader";',
   "",
-  "/*",
-  " * Explicit dynamic imports per visualizer. Do not replace with",
-  " * import.meta.glob: Vite 8 (rolldown) tree-shakes the glob output as pure",
-  " * (https://github.com/vitejs/vite/issues/21876), silently emptying the",
-  " * module map. An in-source literal survives because every member is",
-  " * reachable through dynamic keys.",
-  " */",
   "const visualizerModules = {",
 ];
 

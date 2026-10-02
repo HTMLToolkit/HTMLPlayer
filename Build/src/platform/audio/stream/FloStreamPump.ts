@@ -36,6 +36,7 @@ export interface FloStreamPumpEvents {
   onChunk?(chunk: Float32Array): void;
   onEnd?(): void;
   onError?(error: Error): void;
+  onPressureChange?(shouldPause: boolean): void;
 }
 
 const defaultFetcher: FloStreamFetcher = (url, signal) =>
@@ -54,6 +55,8 @@ export class FloStreamPump {
   private skipTarget = 0;
   private failure: Error | null = null;
   private firstAudioReady: (() => void) | null = null;
+  private paused = false;
+  private resumeSignal: (() => void) | null = null;
 
   constructor(options: {
     url: string;
@@ -90,9 +93,31 @@ export class FloStreamPump {
 
   cancel(): void {
     this.cancelled = true;
+    this.paused = false;
+    this.resumeSignal?.();
+    this.resumeSignal = null;
     this.firstAudioReady?.();
     this.controller.abort();
     this.decoder.free?.();
+  }
+
+  pause(): void {
+    this.paused = true;
+  }
+
+  resume(): void {
+    if (!this.paused) return;
+    this.paused = false;
+    const signal = this.resumeSignal;
+    this.resumeSignal = null;
+    signal?.();
+  }
+
+  private waitWhilePaused(): Promise<void> {
+    if (!this.paused || this.cancelled) return Promise.resolve();
+    return new Promise<void>((resolve) => {
+      this.resumeSignal = resolve;
+    });
   }
 
   private async run(): Promise<void> {
@@ -115,6 +140,11 @@ export class FloStreamPump {
     const reader = response.body.getReader();
     try {
       for (;;) {
+        if (this.cancelled) {
+          await this.silenceReader(reader);
+          return;
+        }
+        await this.waitWhilePaused();
         if (this.cancelled) {
           await this.silenceReader(reader);
           return;
@@ -155,6 +185,8 @@ export class FloStreamPump {
   private async drainUntilFinished(): Promise<void> {
     for (;;) {
       const before = this.framesDecoded;
+      await this.waitWhilePaused();
+      if (this.cancelled) return;
       this.drain();
       if (this.cancelled) return;
       if (this.decoder.has_error()) {

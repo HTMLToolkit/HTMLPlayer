@@ -11,16 +11,21 @@ import styles from "./UpdatePrompt.module.css";
 
 gsap.registerPlugin(useGSAP);
 
+const DEFAULT_CHECK_INTERVAL_MS = 60 * 60 * 1000;
+
 interface UpdatePromptProps {
   checkInterval?: number;
 }
 
 export function UpdatePrompt({
-  checkInterval = 60 * 60 * 1000,
+  checkInterval = DEFAULT_CHECK_INTERVAL_MS,
 }: UpdatePromptProps) {
   const { t } = useTranslation();
   const [dismissed, setDismissed] = useState(false);
   const promptRef = useRef<HTMLDivElement>(null);
+  const registrationRef = useRef<ServiceWorkerRegistration | undefined>(
+    undefined,
+  );
 
   useGSAP(
     () => {
@@ -44,18 +49,24 @@ export function UpdatePrompt({
       registration: ServiceWorkerRegistration | undefined,
     ) {
       logger.info("SW registered", { swUrl });
-
-      if (registration && checkInterval > 0) {
-        setInterval(() => {
-          logger.info("Checking for SW updates...");
-          registration.update();
-        }, checkInterval);
-      }
+      registrationRef.current = registration;
     },
     onRegisterError(error: Error) {
       logger.error("SW registration error:", { error: error.message });
     },
   });
+
+  useEffect(() => {
+    if (checkInterval <= 0) return;
+
+    const tick = () => {
+      logger.info("Checking for SW updates...");
+      void registrationRef.current?.update().catch(() => {});
+    };
+
+    const id = window.setInterval(tick, checkInterval);
+    return () => window.clearInterval(id);
+  }, [checkInterval]);
 
   useEffect(() => {
     if (needRefresh) {

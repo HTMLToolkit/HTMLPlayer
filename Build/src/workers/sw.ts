@@ -1,6 +1,22 @@
 import { precacheAndRoute, createHandlerBoundToURL } from "workbox-precaching";
 import { registerRoute, NavigationRoute } from "workbox-routing";
 
+interface ServiceWorkerScope {
+  addEventListener(
+    type: "message",
+    listener: (event: MessageEvent) => void,
+  ): void;
+  skipWaiting(): Promise<void>;
+}
+
+const scope = self as unknown as ServiceWorkerScope;
+
+scope.addEventListener("message", (event) => {
+  if (event.data && event.data.type === "SKIP_WAITING") {
+    void scope.skipWaiting();
+  }
+});
+
 // @ts-ignore
 precacheAndRoute(self.__WB_MANIFEST);
 

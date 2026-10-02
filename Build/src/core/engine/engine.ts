@@ -20,7 +20,11 @@ import { AsyncOp } from "./asyncOp";
 import { assertNever } from "./invariants";
 import type { IAudioBackend } from "../../platform/audio";
 import type { PreloadManager } from "../../platform/audio/preloader";
-import { clampRate, clampVolume } from "../../platform/audio/clamp";
+import {
+  clampCrossfade as clampCrossfadeSeconds,
+  clampRate,
+  clampVolume,
+} from "../../platform/audio/clamp";
 
 export interface IAudioEngineConfig {
   crossfade: {
@@ -36,6 +40,8 @@ export interface IAudioEngineConfig {
   trackResolver?: (track: Track) => Promise<Track>;
   preloadManager?: PreloadManager;
 }
+
+const SECONDS_TO_MS = 1000;
 
 export const DEFAULT_ENGINE_SETTINGS: EngineSettings = {
   volume: 1,
@@ -415,7 +421,8 @@ export class KomorebiEngine {
     });
   }
 
-  setCrossfade(duration: number): void {
+  setCrossfade(durationSeconds: number): void {
+    const duration = clampCrossfadeSeconds(durationSeconds);
     this.settings.crossfade = duration;
     this.scheduler.setCrossfadeConfig({ enabled: duration > 0, duration });
     this.events.emit("settingschange", { settings: { crossfade: duration } });
@@ -644,7 +651,7 @@ export class KomorebiEngine {
       ? 0
       : mode === "gapless"
         ? 100
-        : this.settings.crossfade;
+        : this.settings.crossfade * SECONDS_TO_MS;
 
     this.scheduledTransitionId = window.setTimeout(() => {
       this.scheduledTransitionId = null;
@@ -695,7 +702,7 @@ export class KomorebiEngine {
     }
 
     const ok = await this.backend.beginCrossfade?.(url, nextTrack, {
-      durationMs: this.settings.crossfade,
+      durationMs: this.settings.crossfade * SECONDS_TO_MS,
       shape: this.scheduler.getCrossfade().getCurve(),
     });
 

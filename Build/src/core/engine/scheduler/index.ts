@@ -13,7 +13,7 @@ export type TransitionCurve = "linear" | "equalpower";
 export class CrossfadeScheduler {
   private config: CrossfadeConfig = {
     enabled: false,
-    duration: 3000,
+    duration: 3,
     shape: "equalpower",
   };
 
@@ -31,26 +31,21 @@ export class CrossfadeScheduler {
     return this.config.enabled && this.config.duration > 0;
   }
 
-  calculateTriggerTime(
-    trackDuration: number,
-    currentTime: number,
-  ): number | null {
+  calculateTriggerTime(trackDuration: number): number | null {
     if (!this.isEnabled()) return null;
 
-    const durationSeconds = this.config.duration / 1000;
+    const durationSeconds = this.config.duration;
     if (trackDuration <= durationSeconds) return null;
 
-    const triggerTime = trackDuration - durationSeconds;
-    if (currentTime >= triggerTime) {
-      return triggerTime;
-    }
-    return triggerTime;
+    return trackDuration - durationSeconds;
   }
 
-  shouldTrigger(currentTime: number, duration: number): boolean {
+  shouldTrigger(currentTime: number, trackDuration: number): boolean {
     if (!this.isEnabled()) return false;
 
-    const triggerPoint = duration - this.config.duration;
+    const triggerPoint = this.calculateTriggerTime(trackDuration);
+    if (triggerPoint === null) return false;
+
     return currentTime >= triggerPoint;
   }
 
@@ -228,19 +223,13 @@ export class Scheduler {
     }
   }
 
-  getTransitionParams(
-    currentTime: number,
-    track: Track,
-  ): {
+  getTransitionParams(track: Track): {
     triggerTime: number;
     duration: number;
   } | null {
     switch (this.currentMode) {
       case "crossfade":
-        const triggerTime = this.crossfade.calculateTriggerTime(
-          track.duration,
-          currentTime,
-        );
+        const triggerTime = this.crossfade.calculateTriggerTime(track.duration);
         return triggerTime !== null
           ? { triggerTime, duration: this.crossfade.getConfig().duration }
           : null;

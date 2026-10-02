@@ -15,11 +15,12 @@ interface WorkerCancelMessage {
 }
 
 interface WorkerEventMessage {
-  type: "info" | "chunk" | "end" | "error";
+  type: "info" | "chunk" | "end" | "error" | "pressure";
   streamId: number;
   info?: FloStreamInfo;
   data?: Float32Array;
   message?: string;
+  shouldPause?: boolean;
 }
 
 export interface StreamDecoderClientOptions {
@@ -35,6 +36,7 @@ export class StreamDecoderClient {
   private resolveStart: (() => void) | null = null;
   private startPromise: Promise<void> | null = null;
   private disposed = false;
+  private pressureEvents: ((shouldPause: boolean) => void) | null = null;
 
   constructor(options: StreamDecoderClientOptions) {
     this.engine = options.engine;
@@ -69,11 +71,17 @@ export class StreamDecoderClient {
       };
       this.worker.postMessage(message);
     }
+    this.pressureEvents = null;
     this.settleStart();
+  }
+
+  setPressureHandler(handler: ((shouldPause: boolean) => void) | null): void {
+    this.pressureEvents = handler;
   }
 
   dispose(): void {
     this.disposed = true;
+    this.pressureEvents = null;
     this.settleStart();
     if (this.worker) {
       this.worker.terminate();
@@ -128,6 +136,11 @@ export class StreamDecoderClient {
           new Error(message.message ?? "stream decode failed"),
         );
         this.settleStart();
+        return;
+      case "pressure":
+        if (typeof message.shouldPause === "boolean") {
+          this.pressureEvents?.(message.shouldPause);
+        }
         return;
     }
   }

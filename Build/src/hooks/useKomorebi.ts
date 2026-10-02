@@ -170,25 +170,32 @@ export function useKomorebi(
   const libraryRef = useRef<LibraryManager | null>(null);
   const playlistsSaveTimerRef = useRef<number | null>(null);
   const settingsRef = useRef<SettingsManager | null>(null);
-  const initializedRef = useRef(false);
   const equalizerRestoredRef = useRef(false);
 
-  if (!initializedRef.current) {
+  const autoPlayRef = useRef(options.autoPlay ?? true);
+
+  const ensureSession = useCallback(() => {
+    if (engineRef.current) {
+      return {
+        engine: engineRef.current,
+        backend: backendRef.current!,
+        library: libraryRef.current!,
+        settings: settingsRef.current!,
+      };
+    }
+
     const backend = new BackendRouter();
     const engine = new KomorebiEngine(backend, {
       crossfade: { enabled: false, duration: 0, shape: "linear" },
       gapless: { enabled: true },
       smartShuffle: true,
-      autoPlayNext: options.autoPlay ?? true,
+      autoPlayNext: autoPlayRef.current,
       trackResolver: (track) => trackStorage.reconstructUrl(track),
       preloadManager: new PreloadManager(),
     });
-    engineRef.current = engine;
-    backendRef.current = backend;
-
     restoreEngineSettings(engine);
 
-    libraryRef.current = new LibraryManager();
+    const library = new LibraryManager();
     const initialSettings: Partial<SettingsState> = {};
     if (typeof localStorage !== "undefined") {
       const storedWallpaper = localStorage.getItem("selected-wallpaper");
@@ -196,9 +203,17 @@ export function useKomorebi(
         initialSettings.wallpaper = storedWallpaper;
       }
     }
-    settingsRef.current = new SettingsManager(initialSettings);
-    initializedRef.current = true;
-  }
+    const settings = new SettingsManager(initialSettings);
+
+    engineRef.current = engine;
+    backendRef.current = backend;
+    libraryRef.current = library;
+    settingsRef.current = settings;
+
+    return { engine, backend, library, settings };
+  }, []);
+
+  const session = ensureSession();
 
   const snapshot = useKomorebiStore(selectSnapshot);
   const state = snapshot ?? EMPTY_ENGINE_STATE;
@@ -221,9 +236,7 @@ export function useKomorebi(
   const shuffle = useKomorebiStore(selectShuffle);
 
   useEffect(() => {
-    const engine = engineRef.current;
-    const library = libraryRef.current;
-    if (!engine || !library) return;
+    const { engine, library, settings } = ensureSession();
 
     const detachEngine = useKomorebiStore.getState().attachEngine(engine);
 
@@ -334,7 +347,7 @@ export function useKomorebi(
         });
       });
     };
-    settingsRef.current?.on("settingschange", handleSettingsChange);
+    settings.on("settingschange", handleSettingsChange);
 
     let settingsReady = false;
     void settingsStorage
@@ -405,6 +418,12 @@ export function useKomorebi(
 
     return () => {
       detachEngine();
+      engine.dispose();
+      engineRef.current = null;
+      backendRef.current = null;
+      libraryRef.current = null;
+      settingsRef.current = null;
+
       library.off("songadded", pushLibraryToStore);
       library.off("songsloaded", pushLibraryToStore);
       library.off("songremoved", pushLibraryToStore);
@@ -419,10 +438,9 @@ export function useKomorebi(
       engine.off("trackchange", handleTrackChange);
       engine.off("statechange", syncMediaSession);
       engine.off("durationchange", syncMediaSession);
-      settingsRef.current?.off("settingschange", handleSettingsChange);
+      settings.off("settingschange", handleSettingsChange);
       mediaSession.dispose();
       discord.dispose();
-      backendRef.current?.dispose();
     };
   }, []);
 
@@ -750,9 +768,9 @@ export function useKomorebi(
   }, []);
 
   return {
-    engine: engineRef.current!,
-    library: libraryRef.current!,
-    settings: settingsRef.current!,
+    engine: session.engine,
+    library: session.library,
+    settings: session.settings,
 
     isReady,
     isLoading,

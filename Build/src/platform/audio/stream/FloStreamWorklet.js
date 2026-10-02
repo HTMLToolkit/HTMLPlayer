@@ -1,4 +1,8 @@
 const CHANNEL_CAP = 2;
+const INITIAL_CAPACITY_FRAMES = 16384;
+const DEFAULT_HIGH_WATERMARK_SECONDS = 2;
+const DEFAULT_LOW_WATERMARK_SECONDS = 1;
+const HARD_CAP_SECONDS = 4;
 
 class FloStreamProcessor extends AudioWorkletProcessor {
   constructor() {
@@ -6,14 +10,23 @@ class FloStreamProcessor extends AudioWorkletProcessor {
     this.channels = CHANNEL_CAP;
     this.ctxRate = sampleRate || 44100;
     this.srcRate = this.ctxRate;
-    this.data = new Float32Array(0);
-    this.frames = 0;
-    this.writePos = 0;
-    this.playhead = 0;
+    this.capacity = INITIAL_CAPACITY_FRAMES;
+    this.data = new Float32Array(this.capacity * this.channels);
+    this.writeFrame = 0;
+    this.readFrame = 0;
+    this.playPos = 0;
     this.rate = 1;
     this.playing = false;
     this.endOfStream = false;
     this.endedSent = false;
+    this.highWatermarkFrames = Math.round(
+      DEFAULT_HIGH_WATERMARK_SECONDS * this.srcRate,
+    );
+    this.lowWatermarkFrames = Math.round(
+      DEFAULT_LOW_WATERMARK_SECONDS * this.srcRate,
+    );
+    this.hardCapFrames = Math.round(HARD_CAP_SECONDS * this.srcRate);
+    this.paused = false;
     this.port.onmessage = (event) => {
       this.handleMessage(event.data);
     };
@@ -23,30 +36,94 @@ class FloStreamProcessor extends AudioWorkletProcessor {
     return this.rate * (this.srcRate / this.ctxRate);
   }
 
-  ensureCapacity(extraSamples) {
-    const needed = this.writePos + extraSamples;
-    if (needed <= this.data.length) return;
-    let size = this.data.length * 2 || 16384;
+  get bufferedFrames() {
+    return this.writeFrame - this.readFrame;
+  }
+
+  ensureWriteCapacity(frames) {
+    const needed = this.bufferedFrames + frames;
+    if (needed <= this.capacity) return;
+    let size = this.capacity || INITIAL_CAPACITY_FRAMES;
     while (size < needed) size *= 2;
-    const next = new Float32Array(size);
-    next.set(this.data.subarray(0, this.writePos), 0);
+
+    const next = new Float32Array(size * this.channels);
+    const live = this.bufferedFrames;
+    const start = this.readFrame % this.capacity;
+    let copied = 0;
+    while (copied < live) {
+      const offset = (start + copied) % this.capacity;
+      const run = Math.min(live - copied, this.capacity - offset);
+      const src = offset * this.channels;
+      next.set(
+        this.data.subarray(src, src + run * this.channels),
+        (this.readFrame + copied) * this.channels,
+      );
+      copied += run;
+    }
     this.data = next;
+    this.capacity = size;
   }
 
   handleMessage(msg) {
     switch (msg.type) {
       case "configure": {
-        this.channels = Math.min(CHANNEL_CAP, Math.max(1, msg.channels | 0));
+        const channels = Math.min(CHANNEL_CAP, Math.max(1, msg.channels | 0));
+        if (channels !== this.channels) {
+          this.reset();
+          this.channels = channels;
+          this.data = new Float32Array(this.capacity * this.channels);
+        }
         this.srcRate = msg.sampleRate > 0 ? msg.sampleRate : this.srcRate;
+        this.hardCapFrames = Math.round(HARD_CAP_SECONDS * this.srcRate);
+        this.highWatermarkFrames = Math.min(
+          this.highWatermarkFrames,
+          this.hardCapFrames,
+        );
+        this.lowWatermarkFrames = Math.min(
+          this.lowWatermarkFrames,
+          this.highWatermarkFrames,
+        );
+        if (msg.highWatermarkSeconds > 0) {
+          this.highWatermarkFrames = Math.round(
+            msg.highWatermarkSeconds * this.srcRate,
+          );
+        }
+        if (msg.lowWatermarkSeconds > 0) {
+          this.lowWatermarkFrames = Math.round(
+            msg.lowWatermarkSeconds * this.srcRate,
+          );
+        }
         break;
       }
       case "append": {
         const chunk = msg.data;
         if (!chunk || chunk.length === 0) break;
-        this.ensureCapacity(chunk.length);
-        this.data.set(chunk, this.writePos);
-        this.writePos += chunk.length;
-        this.frames += chunk.length / this.channels;
+        const frames = Math.floor(chunk.length / this.channels);
+        if (frames === 0) break;
+        if (this.bufferedFrames + frames > this.hardCapFrames) {
+          this.port.postMessage({
+            type: "overflow",
+            frames: this.bufferedFrames + frames,
+            cap: this.hardCapFrames,
+          });
+        }
+        this.ensureWriteCapacity(frames);
+        let write = this.writeFrame % this.capacity;
+        let read = 0;
+        while (read < chunk.length) {
+          const runFrames = Math.min(
+            frames - read / this.channels,
+            this.capacity - write,
+          );
+          const count = runFrames * this.channels;
+          this.data.set(
+            chunk.subarray(read, read + count),
+            write * this.channels,
+          );
+          read += count;
+          write = (write + runFrames) % this.capacity;
+        }
+        this.writeFrame += frames;
         break;
       }
       case "endOfStream": {
@@ -67,13 +144,7 @@ class FloStreamProcessor extends AudioWorkletProcessor {
         break;
       }
       case "flush": {
-        this.data = new Float32Array(0);
-        this.writePos = 0;
-        this.frames = 0;
-        this.playhead = 0;
-        this.endOfStream = false;
-        this.endedSent = false;
-        this.playing = false;
+        this.reset();
         break;
       }
       default:
@@ -81,38 +152,64 @@ class FloStreamProcessor extends AudioWorkletProcessor {
     }
   }
 
+  reset() {
+    this.writeFrame = 0;
+    this.readFrame = 0;
+    this.playPos = 0;
+    this.endOfStream = false;
+    this.endedSent = false;
+    this.playing = false;
+  }
+
   writeOutput(output) {
     const outL = output[0];
     const outR = output[1];
     const framesOut = outL.length;
     const channels = this.channels;
+    const capacity = this.capacity;
+    const step = this.resampleStep;
 
     for (let i = 0; i < framesOut; i++) {
-      const pos = this.playhead;
-      const idx = Math.floor(pos);
-      if (idx + 1 >= this.frames) {
+      const floor = Math.floor(this.playPos);
+      if (floor + 1 >= this.writeFrame) {
         outL.fill(0, i);
         if (outR) outR.fill(0, i);
         break;
       }
-      const frac = pos - idx;
-      const base = idx * channels;
+      const frac = this.playPos - floor;
+      const base = (floor % capacity) * channels;
+      const nextBase = ((floor + 1) % capacity) * channels;
       for (let ch = 0; ch < CHANNEL_CAP; ch++) {
         const srcCh = channels === 1 ? 0 : ch;
-        const v0 = this.data[base + srcCh] ?? 0;
-        const v1 = this.data[base + channels + srcCh] ?? 0;
+        const v0 = this.data[base + srcCh];
+        const v1 = this.data[nextBase + srcCh];
         const mixed = v0 + (v1 - v0) * frac;
         if (ch === 0) outL[i] = mixed;
         else if (outR) outR[i] = mixed;
       }
-      this.playhead += this.resampleStep;
+      this.playPos += step;
     }
+    this.readFrame = Math.floor(this.playPos);
 
-    if (this.playing && this.endOfStream && this.playhead + 1 >= this.frames) {
-      if (!this.endedSent) {
-        this.endedSent = true;
-        this.port.postMessage({ type: "ended" });
-      }
+    this.syncBackpressure();
+
+    const drained =
+      this.readFrame >= this.writeFrame ||
+      (this.endOfStream && this.readFrame + 1 >= this.writeFrame);
+    if (this.playing && drained && !this.endedSent) {
+      this.endedSent = true;
+      this.port.postMessage({ type: "ended" });
+    }
+  }
+
+  syncBackpressure() {
+    const buffered = this.bufferedFrames;
+    if (!this.paused && buffered >= this.highWatermarkFrames) {
+      this.paused = true;
+      this.port.postMessage({ type: "level", paused: true });
+    } else if (this.paused && buffered <= this.lowWatermarkFrames) {
+      this.paused = false;
+      this.port.postMessage({ type: "level", paused: false });
     }
   }
 

@@ -1,9 +1,10 @@
-# To get started with Dependabot version updates, you'll need to specify which
-# https://docs.github.com/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file
-
 version: 2
 updates:
-  - package-ecosystem: "npm" 
-    directory: "/Build" 
+  - package-ecosystem: "npm"
+    directory: "/Build"
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "cargo"
+    directory: "/crates/symphonia-wasm"
     schedule:
       interval: "weekly"

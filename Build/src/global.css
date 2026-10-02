@@ -136,11 +136,6 @@ html {
   }
 }
 
-::view-transition-old(root),
-::view-transition-new(root) {
-  background: var(--themegradient);
-}
-
 html[data-vt-direction="forward"]::view-transition-old(root) {
   --vt-slide-offset: -60px;
   animation:

@@ -5,6 +5,7 @@ import { Icon } from "../shared/Icon";
 import { EqualizerPanel } from "./EqualizerPanel";
 import { isSafari } from "../../../platform/utils/safari";
 import styles from "./Settings.module.css";
+import { MAX_CROSSFADE_SECONDS } from "../../../platform/audio/clamp";
 import type { UseKomorebiReturn } from "../../../hooks/useKomorebi";
 
 interface SettingsAudioProps {
@@ -119,7 +120,7 @@ export function SettingsAudio({ komorebi }: SettingsAudioProps) {
                   komorebi.setCrossfade(val[0] ?? 0);
                 }
               }}
-              max={10}
+              max={MAX_CROSSFADE_SECONDS}
               step={1}
               className={styles.slider}
               disabled={komorebi.gapless}

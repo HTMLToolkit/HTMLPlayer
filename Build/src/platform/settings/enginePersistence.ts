@@ -3,6 +3,7 @@ import { isPlainObject, isRepeatMode } from "../../core/engine/validators";
 import {
   clampVolume as sharedClampVolume,
   clampRate as sharedClampRate,
+  clampCrossfade as sharedClampCrossfade,
 } from "../audio/clamp";
 import { createLogger } from "../../helpers/logger";
 import { deserializeVersionedJson, serializeVersioned } from "../validators";
@@ -31,6 +32,11 @@ function clampNonNegative(value: unknown): number | undefined {
   return Math.max(0, value);
 }
 
+function clampCrossfadeSeconds(value: unknown): number | undefined {
+  if (typeof value !== "number" || !Number.isFinite(value)) return undefined;
+  return sharedClampCrossfade(value);
+}
+
 function toOptionalBoolean(value: unknown): boolean | undefined {
   return typeof value === "boolean" ? value : undefined;
 }
@@ -40,7 +46,7 @@ export function sanitizeEngineSettings(raw: unknown): Partial<EngineSettings> {
 
   const candidate = raw as Record<string, unknown>;
   const volume = clampVolume(candidate.volume);
-  const crossfade = clampNonNegative(candidate.crossfade);
+  const crossfade = clampCrossfadeSeconds(candidate.crossfade);
   const crossfadeBeforeGapless = clampNonNegative(
     candidate.crossfadeBeforeGapless,
   );

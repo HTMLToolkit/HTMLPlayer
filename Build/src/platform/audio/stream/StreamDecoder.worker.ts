@@ -24,6 +24,12 @@ interface StreamCancelMessage {
   streamId: number;
 }
 
+interface StreamPressureMessage {
+  type: "pressure";
+  streamId: number;
+  shouldPause: boolean;
+}
+
 interface ActiveStream {
   streamId: number;
   pump: FloStreamPump;
@@ -118,6 +124,13 @@ const startStream = async (message: StreamStartMessage): Promise<void> => {
         message: error.message,
       });
     },
+    onPressureChange: (shouldPause) => {
+      post({
+        type: "pressure",
+        streamId: message.streamId,
+        shouldPause,
+      });
+    },
   };
 
   const pump = new FloStreamPump({
@@ -130,10 +143,20 @@ const startStream = async (message: StreamStartMessage): Promise<void> => {
 };
 
 scope.onmessage = (event: MessageEvent) => {
-  const message = event.data as StreamStartMessage | StreamCancelMessage | null;
+  const message = event.data as
+    StreamStartMessage | StreamCancelMessage | StreamPressureMessage | null;
   if (!message) return;
   if (message.type === "cancel") {
     cancelStream(message.streamId);
+    return;
+  }
+  if (message.type === "pressure") {
+    if (!activeStream || activeStream.streamId !== message.streamId) return;
+    if (message.shouldPause) {
+      activeStream.pump.pause();
+    } else {
+      activeStream.pump.resume();
+    }
     return;
   }
   void startStream(message);

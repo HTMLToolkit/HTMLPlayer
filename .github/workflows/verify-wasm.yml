@@ -1,0 +1,38 @@
+name: Verify WASM artifacts
+
+on:
+  pull_request:
+    paths:
+      - "crates/symphonia-wasm/**"
+      - "Build/src/platform/audio/wasm/**"
+      - ".github/actions/**"
+      - "rust-toolchain.toml"
+  workflow_dispatch:
+
+concurrency:
+  group: "verify-wasm-${{ github.ref }}"
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: Build/package-lock.json
+
+      - name: Install dependencies
+        working-directory: Build
+        run: npm ci
+
+      - name: Setup WASM toolchain
+        uses: ./.github/actions/setup-wasm
+
+      - name: Verify committed WASM artifacts
+        uses: ./.github/actions/verify-wasm

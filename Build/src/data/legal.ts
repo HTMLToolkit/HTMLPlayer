@@ -47,7 +47,7 @@ vulnerabilities in your browser or Discord.`,
     {
       heading: "6. Data Sharing",
       content:
-        "HTMLPlayer does not sell, trade, or share personal information with third parties, except through authorized use of Discord features.",
+        "HTMLPlayer does not sell, trade, or share personal information with third parties, except through authorized use of Discord features as written above.",
     },
     {
       heading: "7. Updates to Privacy Policy",
@@ -69,7 +69,7 @@ export const termsOfService: LegalDocument = {
     {
       heading: "1. Acceptance of Terms",
       content:
-        'By using HTMLPlayer (the "App"), you agree to these Terms of Service. If you do not agree, do not use the App.',
+        'By using HTMLPlayer (the "App"), you agree to these Terms of Service. If you do not agree, do not use the App, simple.',
     },
     {
       heading: "2. Use of the App",

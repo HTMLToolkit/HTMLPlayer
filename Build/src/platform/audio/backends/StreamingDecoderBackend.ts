@@ -8,6 +8,9 @@ import type {
 } from "../stream/FloStreamPump";
 import type { StreamDecoderEngine } from "../stream/StreamDecoder.worker";
 import type { Track } from "../../../core/engine/types";
+import { createLogger } from "../../../helpers/logger";
+
+const logger = createLogger("StreamingDecoderBackend");
 
 const TIME_UPDATE_MS = 100;
 const FLUSH_MS = 120;
@@ -50,6 +53,7 @@ export class StreamingDecoderBackend extends BaseAudioBackend {
   private pumpFailure: Error | null = null;
   private resumeIntent = false;
   private pendingChunks: Float32Array[] = [];
+  private pausedByPressure = false;
   private timeUpdateTimer: number | null = null;
   private flushTimer: number | null = null;
   private streamGeneration = 0;
@@ -195,10 +199,14 @@ export class StreamingDecoderBackend extends BaseAudioBackend {
       onEnd: () => this.handleStreamEnd(this.streamGeneration),
       onError: (error) => this.handleStreamError(error, this.streamGeneration),
     };
-    this.stream = new StreamDecoderClient({
+    const client = new StreamDecoderClient({
       engine: this.engine,
       events,
     });
+    client.setPressureHandler((shouldPause) => {
+      this.pausedByPressure = shouldPause;
+    });
+    this.stream = client;
     return this.stream;
   }
 
@@ -272,6 +280,14 @@ export class StreamingDecoderBackend extends BaseAudioBackend {
     this.emitError(error);
   }
 
+  private handleWorkletLevel(shouldPause: boolean): void {
+    if (this.pausedByPressure === shouldPause) return;
+    this.pausedByPressure = shouldPause;
+    if (!shouldPause) {
+      this.flushPendingChunks();
+    }
+  }
+
   private handleWorkletEnded(): void {
     if (!this.playing) return;
     this.pausedAt = this.duration;
@@ -281,7 +297,8 @@ export class StreamingDecoderBackend extends BaseAudioBackend {
   }
 
   private flushPendingChunks(): void {
-    if (!this.workletNode || this.pendingChunks.length === 0) return;
+    if (!this.workletNode || this.pausedByPressure) return;
+    if (this.pendingChunks.length === 0) return;
     const chunks = this.pendingChunks.splice(0);
     for (const chunk of chunks) {
       this.postWorklet({ type: "append", data: chunk });
@@ -305,9 +322,14 @@ export class StreamingDecoderBackend extends BaseAudioBackend {
       outputChannelCount: [WORKLET_OUTPUT_CHANNELS],
     });
     const message = (event: MessageEvent) => {
-      const data = event.data as { type?: string } | null;
-      if (data && data.type === "ended") {
+      const data = event.data as { type?: string; paused?: boolean } | null;
+      if (!data) return;
+      if (data.type === "ended") {
         this.handleWorkletEnded();
+      } else if (data.type === "level") {
+        this.handleWorkletLevel(Boolean(data.paused));
+      } else if (data.type === "overflow") {
+        logger.warn("flo stream buffer overflow", data);
       }
     };
     node.port.onmessage = message;
@@ -321,6 +343,7 @@ export class StreamingDecoderBackend extends BaseAudioBackend {
   private cancelCurrentStream(): void {
     this.streamGeneration++;
     this.stream?.cancel();
+    this.pausedByPressure = false;
     this.pendingChunks = [];
     this.postWorklet({ type: "flush" });
   }

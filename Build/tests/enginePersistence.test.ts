@@ -4,6 +4,7 @@ import {
   sanitizeEngineSettings,
 } from "../src/platform/settings/enginePersistence";
 import type { EngineSettings } from "../src/core/engine/types";
+import { MAX_CROSSFADE_SECONDS } from "../src/platform/audio/clamp";
 
 const DEFAULT: EngineSettings = {
   volume: 1,
@@ -104,6 +105,22 @@ describe("engineSettingsPersistence", () => {
       pitch: -12,
       crossfade: 0,
     });
+  });
+
+  it("sanitizeEngineSettings bounds crossfade to the supported second range", () => {
+    const cleaned = sanitizeEngineSettings({
+      crossfade: 9999,
+    } as unknown as Record<string, unknown>);
+
+    expect(cleaned).toEqual({ crossfade: MAX_CROSSFADE_SECONDS });
+  });
+
+  it("preserves an in-range crossfade expressed in seconds", () => {
+    const cleaned = sanitizeEngineSettings({
+      crossfade: 6,
+    } as unknown as Record<string, unknown>);
+
+    expect(cleaned).toEqual({ crossfade: 6 });
   });
 
   it("sanitizeEngineSettings drops wrong-typed and unknown fields", () => {

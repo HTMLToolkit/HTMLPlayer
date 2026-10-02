@@ -1,0 +1,25 @@
+name: Setup WASM toolchain
+description: >-
+  Installs the pinned Rust toolchain, wasm target, and wasm-pack needed to
+  build the symphonia-wasm crate.
+
+runs:
+  using: composite
+  steps:
+    - name: Install Rust toolchain (wasm32)
+      uses: dtolnay/rust-toolchain@stable
+      with:
+        targets: wasm32-unknown-unknown
+
+    - name: Install wasm-pack
+      uses: jetli/wasm-pack-action@v0.4.0
+      with:
+        version: "0.15.0"
+
+    # Cached against the lockfile so editing lib.rs reuses every dependency build
+    - name: Restore Cargo build cache
+      uses: actions/cache@v4
+      with:
+        path: crates/symphonia-wasm/target
+        key: wasm-${{ runner.os }}-${{ hashFiles('crates/symphonia-wasm/Cargo.lock') }}
+        restore-keys: wasm-${{ runner.os }}-

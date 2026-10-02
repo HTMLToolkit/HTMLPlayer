@@ -1,11 +1,11 @@
 # Bugs
 
 - [ ] when the visualizer is open, something UI bugs out and transparency and it flickers sometimes
-- [ ] switching from Home to All Songs and vice versa has a white flash
-- [ ] so like keeping track of state when user repeatedly does actions (like for example switching songs fast) does nothing and like weirds out state (the eternal problem with this appppppp ugh)
 - [ ] Crossfade doesn't work
 
 ---
+
+- [ ] so like keeping track of state when user repeatedly does actions (like for example switching songs fast) does nothing and like weirds out state (the eternal problem with this appppppp ugh)
 
 - [ ] Add tour to inline
 
@@ -22,7 +22,6 @@
 
 - [ ] Fix Help menu
   - [ ] On Home menu, when pressing Help, use different help guide
-  - [X] Disable keyboard shortcuts while in help menu to prevent conflict
 
 - [ ] Fix top bar on mobile
 
