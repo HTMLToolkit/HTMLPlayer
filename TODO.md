@@ -4,8 +4,6 @@
 
 - [ ] Open Search should open a global search modal overlay, similar to Spotlight Search
 
-- [X?] making a homepage of sorts instead of directly songlist, so that it doesn't feel like you can't remove songs from all songs (even though like the name suggests, it's *All* Songs, and so you can't)
-
 - [X] Add TS/TSX support and wallpapers for interactivity
   - [X] Start with built-in wallpapers using TS/TSX components, loaded via a wallpaper loader (similar to themeLoader)
   - [ ] Use sandboxed iframe with postMessage for API access to HTMLPlayer internals (playback state, settings, etc.)
@@ -83,6 +81,9 @@
 ## Either now or future versions
 
 - [ ] Add subsonic API support
+
+- [ ] M3U playlist import (`.m3u`/`.m3u8`) via a dedicated library
+  - `Playlist.tsx` currently shows a "M3U import not yet supported" toast
 
 - [ ] 🔼 a Whisper based, fully in browser, Live Lyrics thing
 

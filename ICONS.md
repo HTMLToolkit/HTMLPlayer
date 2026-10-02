@@ -175,7 +175,7 @@ export const libraryConfig = {
 
 ```tsx
 import { Icon } from "../components/Icon";
-import { IconRegistryProvider } from "../helpers/iconLoader";
+import { IconRegistryProvider } from "../ui/iconLoader";
 
 // Wrap your subtree once so useIconRegistry & <Icon> can resolve sets.
 <IconRegistryProvider defaultSetId="lucide" rememberSelection>
@@ -230,7 +230,7 @@ Icon sets are **independent** from theme CSS files:
 Access the icon registry programmatically:
 
 ```typescript
-import { useIconRegistry } from "../helpers/iconLoader";
+import { useIconRegistry } from "../ui/iconLoader";
 
 const { currentSet, setIconSet, iconSets, getIconDefinition, loadIcon } =
   useIconRegistry();

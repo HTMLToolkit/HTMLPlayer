@@ -1,0 +1,202 @@
+.playlistContainer {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow-y: auto;
+  scrollbar-width: extra-thin;
+}
+
+.searchContainer {
+  margin-bottom: var(--spacing-4);
+  display: flex;
+  gap: var(--spacing-2);
+  align-items: center;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+.actionButton {
+  background: var(--surface-transparent-1);
+  border: 1px solid var(--surface-transparent-2);
+  color: var(--primary-foreground);
+  font-weight: 500;
+}
+
+.actionButton:hover {
+  background: var(--surface-transparent-2);
+  border-color: var(--primary-border-strong);
+}
+
+.actionButton:focus-visible {
+  outline: 2px solid var(--themecolor2);
+  outline-offset: 2px;
+}
+
+.playlistList {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1);
+  overflow-y: auto;
+  overflow-x: hidden;
+  max-width: 100%;
+}
+
+.playlistItemContainer {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  margin-bottom: var(--spacing-2);
+}
+
+.playlistItemMain {
+  flex: 1;
+  min-width: 0;
+}
+
+.playlistItem {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  white-space: normal;
+  font-weight: 400;
+  font-size: inherit;
+  gap: var(--spacing-3);
+  padding: var(--spacing-3);
+  background: var(--primary-transparent);
+  border: 1px solid transparent;
+  border-radius: var(--radius-lg);
+  color: var(--primary-foreground);
+  font-family: var(--font-family-base);
+  cursor: pointer;
+  transition:
+    background-color var(--animation-duration-fast) ease,
+    border-color var(--animation-duration-fast) ease;
+  text-align: left;
+  width: 100%;
+  margin-bottom: var(--spacing-2);
+  position: relative;
+}
+
+.playlistNameWrapper {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+}
+
+.playlistNameText {
+  font: inherit;
+  color: inherit;
+}
+
+.playlistImage {
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  border-radius: var(--radius);
+  background: linear-gradient(
+    135deg,
+    var(--themecolor2) 0%,
+    var(--themecolor4) 100%
+  );
+  overflow: hidden;
+}
+
+.playlistImage img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.playlistDropZone {
+  display: block;
+  border-radius: var(--radius-lg);
+  transition:
+    background-color var(--animation-duration-fast) ease,
+    border-color var(--animation-duration-fast) ease,
+    transform var(--animation-duration-fast) ease,
+    box-shadow var(--animation-duration-fast) ease;
+  width: 100%;
+  flex: 1;
+}
+.playlistDropZone[data-droppable="true"] {
+  background: var(--primary-transparent-3);
+  border: 2px dashed var(--themecolor2);
+  transform: scale(1.1);
+  box-shadow: 0 4px 16px var(--primary-transparent-2);
+  border: 1px solid var(--themecolor2);
+}
+
+.playlistItem:hover {
+  background: var(--primary-transparent-2);
+}
+
+.playlistItem.active {
+  background: var(--primary-transparent-4);
+  border: 1px solid var(--primary-border-strong);
+}
+
+.folderItem {
+  cursor: pointer;
+}
+
+.chevron {
+  transition: transform var(--animation-duration-fast) ease;
+  color: var(--foreground-muted);
+}
+
+.chevronOpen {
+  transform: rotate(180deg);
+}
+
+.songCount {
+  margin-left: auto;
+  font-size: 0.75rem;
+  color: inherit;
+  opacity: 0.7;
+}
+
+.allSongsItem {
+  background: var(--primary-transparent-2);
+  border: 1px solid var(--primary-transparent-4);
+}
+
+.allSongsItem:hover {
+  background: var(--primary-transparent);
+}
+
+.favoritesItem {
+  background: var(--danger-transparent-1);
+  border: 1px solid var(--danger-transparent-3);
+}
+
+.favoritesItem:hover {
+  background: var(--danger-transparent-2);
+}
+
+.noResults {
+  padding: var(--spacing-3);
+  text-align: center;
+  color: var(--foreground-muted);
+  font-size: 0.875rem;
+}
+
+.moreButton {
+  opacity: 0.6;
+  transition: opacity var(--animation-duration-fast) ease;
+  color: var(--primary-foreground);
+}
+
+.moreButton:hover {
+  opacity: 1;
+  background: var(--surface-transparent-2);
+}
+
+.deleteMenuItem {
+  color: var(--danger-solid);
+}
+
+.playlistItemContainer:hover .moreButton {
+  opacity: 1;
+}

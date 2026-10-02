@@ -1,0 +1,87 @@
+.container {
+  min-height: 100vh;
+  padding: var(--spacing-4, 1.5rem);
+  padding-bottom: var(--spacing-8, 4rem);
+  background-color: var(--background);
+  color: var(--foreground);
+  box-sizing: border-box;
+  overflow-y: auto;
+}
+
+.backLink {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-2, 0.5rem);
+  color: var(--primary);
+  text-decoration: none;
+  font-size: 0.875rem;
+  margin-bottom: var(--spacing-6, 2rem);
+  transition: opacity 0.15s ease;
+}
+
+.backLink:hover {
+  opacity: 0.8;
+}
+
+.content {
+  max-width: 65ch;
+  margin: 0 auto;
+  line-height: 1.7;
+}
+
+.title {
+  font-size: 2rem;
+  font-weight: 600;
+  color: var(--foreground-strong);
+  margin-bottom: var(--spacing-3, 1rem);
+  line-height: 1.2;
+}
+
+.effectiveDate {
+  font-size: 0.875rem;
+  color: var(--foreground-subtle);
+  margin-bottom: var(--spacing-8, 3rem);
+}
+
+.section {
+  margin-bottom: var(--spacing-6, 2rem);
+}
+
+.sectionHeading {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--foreground-strong);
+  margin-bottom: var(--spacing-2, 0.5rem);
+}
+
+.paragraph {
+  color: var(--foreground);
+}
+
+.list {
+  margin: 0;
+  padding-left: var(--spacing-6, 1.5rem);
+  color: var(--foreground);
+}
+
+.list li {
+  margin-bottom: var(--spacing-1, 0.25rem);
+}
+
+.list li::marker {
+  color: var(--foreground-muted);
+}
+
+@media (max-width: 640px) {
+  .container {
+    padding: var(--spacing-3, 1rem);
+  }
+
+  .title {
+    font-size: 1.5rem;
+  }
+
+  .sectionHeading {
+    font-size: 1.125rem;
+  }
+}

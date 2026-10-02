@@ -1,6 +1,22 @@
 import { precacheAndRoute, createHandlerBoundToURL } from "workbox-precaching";
 import { registerRoute, NavigationRoute } from "workbox-routing";
 
+interface ServiceWorkerScope {
+  addEventListener(
+    type: "message",
+    listener: (event: MessageEvent) => void,
+  ): void;
+  skipWaiting(): Promise<void>;
+}
+
+const scope = self as unknown as ServiceWorkerScope;
+
+scope.addEventListener("message", (event) => {
+  if (event.data && event.data.type === "SKIP_WAITING") {
+    void scope.skipWaiting();
+  }
+});
+
 // @ts-ignore
 precacheAndRoute(self.__WB_MANIFEST);
 
@@ -35,7 +51,6 @@ registerRoute(
           );
         }
       } else {
-        // fallback for older/single share implementations
         const file = formData.get("audio");
         if (
           file &&
@@ -73,10 +88,12 @@ registerRoute(
         self.location.origin,
       );
       return Response.redirect(redirectUrl.href, 303);
-    } catch (e: any) {
-      return new Response("Failed to process share: " + (e?.message || e), {
-        status: 400,
-      });
+    } catch (e: unknown) {
+      return new Response(
+        "Failed to process share: " +
+          (e instanceof Error ? e.message : String(e)),
+        { status: 400 },
+      );
     }
   },
   "POST",
