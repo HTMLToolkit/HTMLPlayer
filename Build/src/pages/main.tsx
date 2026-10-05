@@ -12,9 +12,17 @@ import HttpApi from "i18next-http-backend";
 import LanguageDetector from "i18next-browser-languagedetector";
 import { languageNames } from "../types/supportedLanguages";
 import { bundledResources } from "../helpers/i18nManual";
+import { logEnvironmentReport } from "../platform/diagnostics/environmentReport";
+import { declarePlaybackSession } from "../platform/audio/session/audioSession";
 
 const isSingleFile = __IS_SINGLE_FILE__;
 const i18nInstance = i18n;
+
+declarePlaybackSession();
+
+void logEnvironmentReport().catch((error: unknown) => {
+  console.warn("Environment report failed", error);
+});
 
 if (!isSingleFile) {
   i18nInstance.use(HttpApi);

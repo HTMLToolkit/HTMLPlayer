@@ -27,15 +27,12 @@ import {
 import { Home } from "../features/Home";
 import { useAlbumArt } from "../../../hooks/useAlbumArt";
 import { useNavigation } from "../../navigation";
+import { queueForNavigation, songsForNavigation } from "../../navigation/scope";
 import { MainContentHeader } from "./MainContentHeader";
 import type { Track, Playlist } from "../../../core/engine/types";
 import type { UseKomorebiReturn } from "../../../hooks/useKomorebi";
 import type { PersistentDropdownMenuRef } from "../primitives/PersistentDropdownMenu";
-import {
-  selectCurrentPlaylist,
-  selectCurrentTrack,
-  useKomorebiStore,
-} from "../../../store";
+import { selectCurrentTrack, useKomorebiStore } from "../../../store";
 
 function formatDuration(seconds: number): string {
   const mins = Math.floor(seconds / 60);
@@ -250,11 +247,6 @@ export const MainContent = ({
   const { songs, library } = komorebi;
 
   const currentTrack = useKomorebiStore(selectCurrentTrack);
-  const engineCurrentPlaylist = useKomorebiStore(selectCurrentPlaylist);
-
-  const currentPlaylist = engineCurrentPlaylist
-    ? (library.getPlaylist(engineCurrentPlaylist.id) ?? engineCurrentPlaylist)
-    : null;
 
   const libraryState: MusicLibrary = React.useMemo(
     () => ({
@@ -264,6 +256,8 @@ export const MainContent = ({
     }),
     [songs, library],
   );
+
+  const favorites = libraryState.favorites;
 
   const [songSearchQuery, setSongSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState<
@@ -306,24 +300,40 @@ export const MainContent = ({
     [library],
   );
 
-  React.useEffect(() => {
-    if (currentPlaylist) {
-      setSortBy(null);
-      setSortOrder("asc");
-    }
-  }, [currentPlaylist?.id]);
+  const viewKey = [
+    navState.view,
+    navState.artist ?? "",
+    navState.album ?? "",
+    navState.playlistId ?? "",
+  ].join(":");
 
-  const songsToDisplay = React.useMemo(() => {
-    if (navState.view === "artist" && navState.artist) {
-      return songs.filter((song: Track) => song.artist === navState.artist);
-    } else if (navState.view === "album" && navState.album) {
-      return songs.filter((song: Track) => song.album === navState.album);
-    } else if (currentPlaylist) {
-      return currentPlaylist.songs;
-    } else {
-      return songs;
-    }
-  }, [navState.view, navState.artist, navState.album, currentPlaylist, songs]);
+  React.useEffect(() => {
+    setSortBy(null);
+    setSortOrder("asc");
+  }, [viewKey]);
+
+  const navigationScope = React.useMemo(
+    () => ({
+      songs,
+      favorites,
+      getPlaylist: (playlistId: string) => library.getPlaylist(playlistId),
+    }),
+    [songs, favorites, library],
+  );
+
+  const songsToDisplay = React.useMemo(
+    () => songsForNavigation(navState, navigationScope),
+    [navState, navigationScope],
+  );
+
+  const viewQueue = React.useMemo(
+    () =>
+      queueForNavigation(navState, navigationScope, {
+        allSongs: t("allSongs"),
+        favorites: t("favorites.favorites"),
+      }),
+    [navState, navigationScope, t],
+  );
 
   const filteredSongs = React.useMemo(() => {
     const query = songSearchQuery.toLowerCase();
@@ -383,9 +393,9 @@ export const MainContent = ({
 
   const handleSongClick = useCallback(
     (song: Track) => {
-      playSong(song, currentPlaylist || undefined);
+      playSong(song, viewQueue);
     },
-    [playSong, currentPlaylist],
+    [playSong, viewQueue],
   );
 
   const handleRating = useCallback(
@@ -498,6 +508,23 @@ export const MainContent = ({
     setSelectedSongs([]);
   }, []);
 
+  const toggleSelectMode = useCallback(() => {
+    if (isSelectSongsActive) {
+      exitSelectMode();
+    } else {
+      setIsSelectSongsActive(true);
+    }
+  }, [isSelectSongsActive, exitSelectMode]);
+
+  React.useEffect(() => {
+    setSelectedSongs((prev) => {
+      if (prev.length === 0) return prev;
+      const live = new Set(songs.map((song: Track) => song.id));
+      const next = prev.filter((id) => live.has(id));
+      return next.length === prev.length ? prev : next;
+    });
+  }, [songs]);
+
   const handleSelectAllSongs = useCallback(() => {
     setIsSelectSongsActive(true);
     setSelectedSongs((prev) =>
@@ -559,6 +586,8 @@ export const MainContent = ({
         onSortOrderChange={setSortOrder}
         selectedSongs={selectedSongs}
         sortedSongsCount={sortedSongs.length}
+        isSelectSongsActive={isSelectSongsActive}
+        onToggleSelectMode={toggleSelectMode}
         onSelectAll={handleSelectAllSongs}
         onExitSelectMode={exitSelectMode}
         onAddToPlaylist={handleAddToPlaylist}
@@ -614,7 +643,7 @@ export const MainContent = ({
                 createPlaylist={createPlaylist}
                 addToPlaylist={addToPlaylist}
                 playSong={playSong}
-                isInPlaylist={!!currentPlaylist}
+                isInPlaylist={navState.view === "playlist"}
                 removeSong={removeSong}
               />
             ))}

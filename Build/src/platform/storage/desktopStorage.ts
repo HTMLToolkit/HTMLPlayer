@@ -1,7 +1,7 @@
 import { BaseStorageBackend, PlatformType } from "./base";
 import type { Track } from "../../core/engine/types";
 import { createLogger } from "../../helpers/logger";
-
+import { importableExtensionNames } from "../audio/formats";
 const logger = createLogger("desktopStorage");
 
 export class DesktopStorageBackend extends BaseStorageBackend {
@@ -18,16 +18,7 @@ export class DesktopStorageBackend extends BaseStorageBackend {
         filters: [
           {
             name: "Audio",
-            extensions: [
-              "mp3",
-              "flac",
-              "ogg",
-              "wav",
-              "m4a",
-              "aac",
-              "wma",
-              "flo",
-            ],
+            extensions: [...importableExtensionNames()],
           },
         ],
       });

@@ -158,6 +158,7 @@
     "channels": "Channels",
     "bitDepth": "Bit Depth",
     "container": "Container",
+    "fileExtension": "File Extension",
     "profile": "Codec Profile",
     "lossless": "Lossless",
     "gapless": "Gapless Playback",

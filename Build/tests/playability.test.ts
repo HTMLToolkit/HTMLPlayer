@@ -72,31 +72,36 @@ describe("codecPlayabilityFailure", () => {
     document.createElement = originalCreateElement;
   });
 
-  it("flags alac as unsupported when canPlayType is empty", () => {
+  const mockCanPlayType = (result: string) => {
     document.createElement = (tag: string) => {
       const element = originalCreateElement(tag);
       if (tag === "audio") {
-        Object.defineProperty(element, "canPlayType", {
-          value: () => "",
-        });
+        Object.defineProperty(element, "canPlayType", { value: () => result });
       }
       return element;
     };
-    const failure = codecPlayabilityFailure("alac");
+  };
+
+  it("plays alac from stored bytes even when the element cannot decode it", () => {
+    mockCanPlayType("");
+    expect(codecPlayabilityFailure("alac", { hasStoredAudio: true })).toBeNull();
+  });
+
+  it("flags alac as unsupported when there are no stored bytes", () => {
+    mockCanPlayType("");
+    const failure = codecPlayabilityFailure("alac", { hasStoredAudio: false });
     expect(failure).not.toBeNull();
     expect(failure?.codecName).toBe("Apple Lossless (ALAC)");
   });
 
+  it("flags dsd as unsupported because no backend implements it", () => {
+    mockCanPlayType("");
+    expect(codecPlayabilityFailure("dsd", { hasStoredAudio: true })).not.toBeNull();
+    expect(codecPlayabilityFailure("dsd", { hasStoredAudio: false })).not.toBeNull();
+  });
+
   it("allows alac when the browser declares support", () => {
-    document.createElement = (tag: string) => {
-      const element = originalCreateElement(tag);
-      if (tag === "audio") {
-        Object.defineProperty(element, "canPlayType", {
-          value: () => "maybe",
-        });
-      }
-      return element;
-    };
+    mockCanPlayType("maybe");
     expect(codecPlayabilityFailure("alac")).toBeNull();
   });
 

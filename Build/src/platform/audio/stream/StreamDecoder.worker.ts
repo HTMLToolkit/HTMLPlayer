@@ -124,13 +124,6 @@ const startStream = async (message: StreamStartMessage): Promise<void> => {
         message: error.message,
       });
     },
-    onPressureChange: (shouldPause) => {
-      post({
-        type: "pressure",
-        streamId: message.streamId,
-        shouldPause,
-      });
-    },
   };
 
   const pump = new FloStreamPump({

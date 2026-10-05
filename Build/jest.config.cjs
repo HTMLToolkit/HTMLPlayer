@@ -6,11 +6,14 @@ module.exports = {
   },
   roots: ["<rootDir>/tests"],
   testMatch: ["**/*.test.ts", "**/*.spec.ts"],
+  testPathIgnorePatterns: ["/node_modules/", "<rootDir>/tests/integration/"],
   moduleFileExtensions: ["ts", "tsx", "js", "jsx", "json"],
   transform: {
     "^.+\\.tsx?$": ["ts-jest", { useESM: true }],
   },
   moduleNameMapper: {
+    "decoderWorkerFactory$": "<rootDir>/tests/mocks/decoderWorkerFactory.ts",
+    "floWorkletSource$": "<rootDir>/tests/mocks/rawModule.ts",
     "^.*/platform/visualizers$": "<rootDir>/tests/mocks/platformVisualizers.ts",
     "^@audiflo/libflo$": "<rootDir>/tests/mocks/audifloLibflo.ts",
     "StreamingDecoderBackend$": "<rootDir>/tests/mocks/streamingDecoderBackend.ts",

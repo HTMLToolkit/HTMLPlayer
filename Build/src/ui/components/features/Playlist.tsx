@@ -35,6 +35,7 @@ import {
   writeTextFileToDirectory,
 } from "../../../platform/storage/directoryHandle";
 import { playlistFileName } from "../../../platform/library/m3u";
+import { useNavigation } from "../../navigation";
 import type { UseKomorebiReturn } from "../../../hooks/useKomorebi";
 import type { Playlist, PlaylistFolder } from "../../../core/engine/types";
 import styles from "./Playlist.module.css";
@@ -61,6 +62,7 @@ export const PlaylistView = memo(function PlaylistView({
   playSong,
 }: PlaylistViewProps) {
   const { t } = useTranslation();
+  const { goToPlaylist, goToSongs, goToFavorites } = useNavigation();
   const libraryState = library.getState();
   const songs = libraryState.songs;
   const [playlistSearchQuery, setPlaylistSearchQuery] = useState("");
@@ -255,21 +257,34 @@ export const PlaylistView = memo(function PlaylistView({
 
   const handlePlaylistSelect = useCallback(
     (playlist: Playlist) => {
+      goToPlaylist(playlist.id);
       const song = playlist.songs[0];
       if (song) playSong(song, playlist);
     },
-    [playSong],
+    [playSong, goToPlaylist],
   );
 
   const handleAllSongsClick = useCallback(() => {
+    goToSongs();
     const allSongs: Playlist = {
       id: "all-songs",
       name: t("allSongs"),
-      songs: songs,
+      songs,
     };
     const song = allSongs.songs[0];
     if (song) playSong(song, allSongs);
-  }, [songs, playSong, t]);
+  }, [songs, playSong, goToSongs, t]);
+
+  const handleFavoritesClick = useCallback(() => {
+    goToFavorites();
+    const favoriteSongs: Playlist = {
+      id: "favorites",
+      name: t("favorites.favorites"),
+      songs: songs.filter((s) => libraryState.favorites.includes(s.id)),
+    };
+    const song = favoriteSongs.songs[0];
+    if (song) playSong(song, favoriteSongs);
+  }, [songs, libraryState.favorites, playSong, goToFavorites, t]);
 
   const handleShare = useCallback(
     (playlist: Playlist) => {
@@ -491,13 +506,7 @@ export const PlaylistView = memo(function PlaylistView({
         <Button
           variant="ghost"
           className={`${styles.playlistItem} ${styles.favoritesItem}`}
-          onClick={() =>
-            handlePlaylistSelect({
-              id: "favorites",
-              name: t("favorites.favorites"),
-              songs: songs.filter((s) => libraryState.favorites.includes(s.id)),
-            })
-          }
+          onClick={handleFavoritesClick}
         >
           <Icon name="heart" size={16} decorative />
           {t("favorites.favorites")}

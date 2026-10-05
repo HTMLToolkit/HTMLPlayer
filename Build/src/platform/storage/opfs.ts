@@ -25,6 +25,41 @@ function isDirectory(
 let rootPromise: Promise<FileSystemDirectoryHandle> | null = null;
 const dirCache = new Map<string, Promise<FileSystemDirectoryHandle>>();
 
+export type OpfsUnavailableReason =
+  "no-navigator" | "insecure-context" | "unsupported";
+
+export type OpfsAvailability =
+  | { available: true }
+  | { available: false; reason: OpfsUnavailableReason; message: string };
+
+export function opfsAvailability(): OpfsAvailability {
+  if (typeof navigator === "undefined") {
+    return {
+      available: false,
+      reason: "no-navigator",
+      message: "OPFS is unavailable because there is no navigator.",
+    };
+  }
+
+  if (typeof navigator.storage?.getDirectory !== "function") {
+    if (typeof isSecureContext === "boolean" && !isSecureContext) {
+      return {
+        available: false,
+        reason: "insecure-context",
+        message: `OPFS requires a secure context, and ${location.origin} is not one. Open the app over HTTPS, or via http://localhost, instead of a plain-HTTP LAN address.`,
+      };
+    }
+    return {
+      available: false,
+      reason: "unsupported",
+      message:
+        "This browser does not implement navigator.storage.getDirectory (OPFS).",
+    };
+  }
+
+  return { available: true };
+}
+
 function navigatorStorage(): StorageManager | null {
   if (typeof navigator === "undefined") return null;
   const storage = navigator.storage;
@@ -34,12 +69,18 @@ function navigatorStorage(): StorageManager | null {
 
 function getRoot(): Promise<FileSystemDirectoryHandle> {
   if (rootPromise) return rootPromise;
-  const storage = navigatorStorage();
-  if (!storage) {
-    rootPromise = Promise.reject(new Error("OPFS not supported"));
+
+  const availability = opfsAvailability();
+  if (!availability.available) {
+    logger.error("Cannot use OPFS", {
+      reason: availability.reason,
+      origin: location.origin,
+    });
+    rootPromise = Promise.reject(new Error(availability.message));
     return rootPromise;
   }
-  rootPromise = storage.getDirectory();
+
+  rootPromise = navigatorStorage()!.getDirectory();
   return rootPromise;
 }
 

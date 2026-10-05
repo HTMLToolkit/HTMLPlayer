@@ -158,6 +158,7 @@
     "channels": "Canaux",
     "bitDepth": "Profondeur de bits",
     "container": "Conteneur",
+    "fileExtension": "Extension du fichier",
     "profile": "Profil du codec",
     "lossless": "Sans perte",
     "gapless": "Lecture sans coupure",

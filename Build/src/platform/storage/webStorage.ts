@@ -1,7 +1,7 @@
 import { BaseStorageBackend, PlatformType } from "./base";
 import type { Track } from "../../core/engine/types";
 import { createLogger } from "../../helpers/logger";
-
+import { importableExtensions } from "../audio/formats";
 const logger = createLogger("webStorage");
 
 export class WebStorageBackend extends BaseStorageBackend {
@@ -15,7 +15,7 @@ export class WebStorageBackend extends BaseStorageBackend {
       const input = document.createElement("input");
       input.type = "file";
       input.multiple = true;
-      input.accept = "audio/*,.flac,.fla,.ogg,.mp3,.m4a,.wav,.aac,.wma";
+      input.accept = importableExtensions().join(",");
 
       input.onchange = () => {
         if (input.files) {

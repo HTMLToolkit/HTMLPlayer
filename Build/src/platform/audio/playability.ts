@@ -1,20 +1,12 @@
+import {
+  canPlayWithHtmlAudio,
+  chooseBackendFor,
+  getFormatByCodec,
+} from "./formats";
 import type { Track } from "../../core/engine/types";
 
 const SNIFF_HEAD_SIZE = 262144;
 const SNIFF_TAIL_SIZE = 262144;
-
-const CODEC_DISPLAY: Record<string, string> = {
-  alac: "Apple Lossless (ALAC)",
-  dsd: "DSD",
-  dsf: "DSD",
-  dff: "DSD",
-};
-
-const UNSUPPORTED_CODECS = new Set(["alac", "dsd", "dsf", "dff"]);
-
-const CODEC_BROWSER_MIME: Record<string, string> = {
-  alac: 'audio/mp4; codecs="alac"',
-};
 
 export interface AudioDescriptor {
   container: "mpeg" | "flac" | "wav" | "mp4" | "ogg" | "aiff" | "unknown";
@@ -24,12 +16,6 @@ export interface AudioDescriptor {
 export interface CodecFailure {
   codecName: string;
   browser: string;
-}
-
-function browserCanPlayMime(spec: string): boolean {
-  if (typeof document === "undefined") return true;
-  const probe = document.createElement("audio");
-  return probe.canPlayType(spec) !== "";
 }
 
 function asAscii(bytes: Uint8Array, offset: number, length: number): string {
@@ -119,26 +105,36 @@ function detectBrowserName(): string {
   return "this browser";
 }
 
-export function codecPlayabilityFailure(codec: string): CodecFailure | null {
-  const normalized = codec.toLowerCase();
-  if (!UNSUPPORTED_CODECS.has(normalized)) return null;
+export function codecPlayabilityFailure(
+  codec: string,
+  options: { hasStoredAudio?: boolean } = {},
+): CodecFailure | null {
+  const format = getFormatByCodec(codec.toLowerCase());
+  if (!format) return null;
 
-  const mimeSpec = CODEC_BROWSER_MIME[normalized];
-  if (mimeSpec && browserCanPlayMime(mimeSpec)) return null;
+  const backend = chooseBackendFor(format, {
+    hasStoredAudio: options.hasStoredAudio ?? true,
+  });
+  if (backend !== "html") return null;
+  if (canPlayWithHtmlAudio(format)) return null;
 
   return {
-    codecName: CODEC_DISPLAY[normalized] ?? normalized,
+    codecName: format.label,
     browser: detectBrowserName(),
   };
 }
 
 export function trackCodecFailure(track: Track): CodecFailure | null {
   const codec = track.encoding?.codec;
-  return codec ? codecPlayabilityFailure(codec) : null;
+  if (!codec) return null;
+  return codecPlayabilityFailure(codec, {
+    hasStoredAudio: track.hasStoredAudio === true,
+  });
 }
 
 export async function sniffAudioFailure(
   url: string,
+  options: { hasStoredAudio?: boolean } = {},
 ): Promise<CodecFailure | null> {
   try {
     const response = await fetch(url);
@@ -151,7 +147,7 @@ export async function sniffAudioFailure(
 
     const descriptor = describeAudio(bytes);
     if (!descriptor.audioCodec) return null;
-    return codecPlayabilityFailure(descriptor.audioCodec);
+    return codecPlayabilityFailure(descriptor.audioCodec, options);
   } catch {
     return null;
   }

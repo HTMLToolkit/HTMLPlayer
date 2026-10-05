@@ -2,7 +2,7 @@ const CHANNEL_CAP = 2;
 const INITIAL_CAPACITY_FRAMES = 16384;
 const DEFAULT_HIGH_WATERMARK_SECONDS = 2;
 const DEFAULT_LOW_WATERMARK_SECONDS = 1;
-const HARD_CAP_SECONDS = 4;
+const HARD_CAP_SECONDS = 8;
 
 class FloStreamProcessor extends AudioWorkletProcessor {
   constructor() {
@@ -27,6 +27,8 @@ class FloStreamProcessor extends AudioWorkletProcessor {
     );
     this.hardCapFrames = Math.round(HARD_CAP_SECONDS * this.srcRate);
     this.paused = false;
+    this.wasBelowLow = false;
+    this.overflowReported = false;
     this.port.onmessage = (event) => {
       this.handleMessage(event.data);
     };
@@ -74,15 +76,11 @@ class FloStreamProcessor extends AudioWorkletProcessor {
           this.data = new Float32Array(this.capacity * this.channels);
         }
         this.srcRate = msg.sampleRate > 0 ? msg.sampleRate : this.srcRate;
-        this.hardCapFrames = Math.round(HARD_CAP_SECONDS * this.srcRate);
-        this.highWatermarkFrames = Math.min(
-          this.highWatermarkFrames,
-          this.hardCapFrames,
-        );
-        this.lowWatermarkFrames = Math.min(
-          this.lowWatermarkFrames,
-          this.highWatermarkFrames,
-        );
+        if (msg.hardCapSeconds > 0) {
+          this.hardCapFrames = Math.round(msg.hardCapSeconds * this.srcRate);
+        } else {
+          this.hardCapFrames = Math.round(HARD_CAP_SECONDS * this.srcRate);
+        }
         if (msg.highWatermarkSeconds > 0) {
           this.highWatermarkFrames = Math.round(
             msg.highWatermarkSeconds * this.srcRate,
@@ -93,6 +91,14 @@ class FloStreamProcessor extends AudioWorkletProcessor {
             msg.lowWatermarkSeconds * this.srcRate,
           );
         }
+        this.highWatermarkFrames = Math.min(
+          this.highWatermarkFrames,
+          this.hardCapFrames,
+        );
+        this.lowWatermarkFrames = Math.min(
+          this.lowWatermarkFrames,
+          this.highWatermarkFrames,
+        );
         break;
       }
       case "append": {
@@ -101,11 +107,14 @@ class FloStreamProcessor extends AudioWorkletProcessor {
         const frames = Math.floor(chunk.length / this.channels);
         if (frames === 0) break;
         if (this.bufferedFrames + frames > this.hardCapFrames) {
-          this.port.postMessage({
-            type: "overflow",
-            frames: this.bufferedFrames + frames,
-            cap: this.hardCapFrames,
-          });
+          if (!this.overflowReported) {
+            this.overflowReported = true;
+            this.port.postMessage({
+              type: "overflow",
+              frames: this.bufferedFrames + frames,
+              cap: this.hardCapFrames,
+            });
+          }
         }
         this.ensureWriteCapacity(frames);
         let write = this.writeFrame % this.capacity;
@@ -159,6 +168,9 @@ class FloStreamProcessor extends AudioWorkletProcessor {
     this.endOfStream = false;
     this.endedSent = false;
     this.playing = false;
+    this.paused = false;
+    this.wasBelowLow = false;
+    this.overflowReported = false;
   }
 
   writeOutput(output) {
@@ -193,10 +205,8 @@ class FloStreamProcessor extends AudioWorkletProcessor {
 
     this.syncBackpressure();
 
-    const drained =
-      this.readFrame >= this.writeFrame ||
-      (this.endOfStream && this.readFrame + 1 >= this.writeFrame);
-    if (this.playing && drained && !this.endedSent) {
+    const drained = this.readFrame + 1 >= this.writeFrame;
+    if (this.playing && this.endOfStream && drained && !this.endedSent) {
       this.endedSent = true;
       this.port.postMessage({ type: "ended" });
     }
@@ -204,13 +214,18 @@ class FloStreamProcessor extends AudioWorkletProcessor {
 
   syncBackpressure() {
     const buffered = this.bufferedFrames;
+    if (buffered <= this.hardCapFrames) {
+      this.overflowReported = false;
+    }
+    const belowLow = buffered <= this.lowWatermarkFrames;
     if (!this.paused && buffered >= this.highWatermarkFrames) {
       this.paused = true;
-      this.port.postMessage({ type: "level", paused: true });
-    } else if (this.paused && buffered <= this.lowWatermarkFrames) {
+      this.port.postMessage({ type: "level", paused: true, buffered });
+    } else if (belowLow && (this.paused || !this.wasBelowLow)) {
       this.paused = false;
-      this.port.postMessage({ type: "level", paused: false });
+      this.port.postMessage({ type: "level", paused: false, buffered });
     }
+    this.wasBelowLow = belowLow;
   }
 
   process(_inputs, outputs) {
@@ -223,6 +238,7 @@ class FloStreamProcessor extends AudioWorkletProcessor {
     if (!this.playing) {
       outL.fill(0);
       if (outR) outR.fill(0);
+      this.syncBackpressure();
       return true;
     }
 

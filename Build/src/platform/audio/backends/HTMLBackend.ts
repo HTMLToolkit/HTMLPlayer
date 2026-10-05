@@ -41,7 +41,9 @@ export class HTMLAudioBackend extends BaseAudioBackend {
   async load(url: string, track?: Track): Promise<void> {
     const failure =
       (track ? trackCodecFailure(track) : null) ??
-      (await sniffAudioFailure(url));
+      (await sniffAudioFailure(url, {
+        hasStoredAudio: track?.hasStoredAudio === true,
+      }));
     if (failure) {
       throw new Error(
         `Cannot play "${track?.title ?? "this track"}": ${failure.codecName} is not supported by ${failure.browser}. Convert the file to FLAC, MP3, or AAC, or use Safari.`,

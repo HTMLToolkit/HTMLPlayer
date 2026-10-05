@@ -21,6 +21,7 @@ interface StoredTrackRecord {
   sourceKind?: TrackSourceKind;
   sourceId?: string;
   path?: string;
+  fileName?: string;
   hasAlbumArt?: boolean;
   embeddedLyrics?: Track["embeddedLyrics"];
   encoding?: Track["encoding"];
@@ -41,6 +42,7 @@ function toStoredTrackRecord(track: Track): StoredTrackRecord {
     sourceKind: track.sourceKind,
     sourceId: track.sourceId,
     path: track.path,
+    fileName: track.fileName,
     hasAlbumArt: track.hasAlbumArt,
     embeddedLyrics: track.embeddedLyrics,
     encoding: track.encoding,
@@ -113,6 +115,11 @@ async function fingerprintBlob(blob: Blob): Promise<string> {
     hash = (hash * 31 + (bytes[i] ?? 0)) >>> 0;
   }
   return `${blob.size}:${hash.toString(16)}`;
+}
+
+function withAudioMimeType(track: Track, blob: Blob): Blob {
+  if (blob.type || !track.mimeType) return blob;
+  return blob.slice(0, blob.size, track.mimeType);
 }
 
 async function createBlobUrl(track: Track, blob: Blob): Promise<string | null> {
@@ -211,7 +218,7 @@ export const trackStorage = {
 
   async resolveOpfsAudio(track: Track): Promise<string | null> {
     const blob = await loadAudio(track.id);
-    return blob ? createBlobUrl(track, blob) : null;
+    return blob ? createBlobUrl(track, withAudioMimeType(track, blob)) : null;
   },
 
   async resolveFolderHandleAudio(track: Track): Promise<string | null> {
@@ -219,7 +226,7 @@ export const trackStorage = {
     const directory = await directoryStore.get(track.sourceId);
     if (!directory) return null;
     const blob = await resolveFileAtPath(directory.handle, track.path);
-    return blob ? createBlobUrl(track, blob) : null;
+    return blob ? createBlobUrl(track, withAudioMimeType(track, blob)) : null;
   },
 
   revokeAudioUrl(songId: string): void {

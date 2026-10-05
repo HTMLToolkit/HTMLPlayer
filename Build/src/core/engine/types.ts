@@ -12,6 +12,7 @@ export interface Track {
   sourceKind?: TrackSourceKind;
   sourceId?: string;
   path?: string;
+  fileName?: string;
   albumArt?: string;
   hasAlbumArt?: boolean;
   embeddedLyrics?: EmbeddedLyrics[];

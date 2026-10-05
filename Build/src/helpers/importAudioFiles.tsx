@@ -1,5 +1,10 @@
 import { toast } from "sonner";
-import { logger } from "./logger";
+import {
+  identifyFormat,
+  isImportableFile,
+  metadataExtractorFor,
+} from "../platform/audio/formats";
+import { describeError, logger } from "./logger";
 import {
   createDuplicateDetector,
   findTrackBySourcePath,
@@ -10,7 +15,7 @@ import {
   compressAlbumArt,
   generateUniqueId,
 } from "../platform/metadata";
-import { albumArtStorage } from "../platform/storage";
+import { albumArtStorage, opfsAvailability } from "../platform/storage";
 import { dataUrlToBlob } from "../platform/storage/albumArt";
 import {
   AlbumArtManager,
@@ -18,7 +23,10 @@ import {
   DiscogsProvider,
 } from "../platform/providers";
 import type { ImportContext } from "./addSong";
-import type { ExtractedMetadata } from "../platform/metadata";
+import type {
+  ExtractedMetadata,
+  MetadataExtractor,
+} from "../platform/metadata";
 import type { Track } from "../core/engine/types";
 
 export type Translate = (
@@ -44,12 +52,29 @@ export interface ImportAudioResult {
   songs: Array<Track | null>;
 }
 
-function getMetadataExtractor(file: File) {
-  const ext = file.name.split(".").pop()?.toLowerCase();
-  if (ext === "flo") {
-    return createFloMetadataExtractor();
+function describeImportSource(item: ImportFileItem | File): string {
+  if ("file" in item) return item.file?.name ?? item.path ?? "<unknown file>";
+  return item.name;
+}
+
+function getMetadataExtractor(file: File): MetadataExtractor | null {
+  switch (metadataExtractorFor(identifyFormat(file.name, file.type))) {
+    case "flo":
+      return createFloMetadataExtractor();
+    case "music-metadata":
+      return createMetadataExtractor();
+    case "none":
+      return null;
   }
-  return createMetadataExtractor();
+}
+
+function untaggedMetadata(file: File): ExtractedMetadata {
+  return {
+    title: file.name.replace(/\.[^/.]+$/, ""),
+    artist: "Unknown Artist",
+    album: "Unknown Album",
+    duration: 0,
+  };
 }
 
 function createAlbumArtManager(): AlbumArtManager {
@@ -101,7 +126,9 @@ async function extractAudioMetadata(
   albumArt: string | undefined;
 }> {
   const extractor = getMetadataExtractor(file);
-  const metadata = await extractor.extractMetadata(file);
+  const metadata = extractor
+    ? await extractor.extractMetadata(file)
+    : untaggedMetadata(file);
 
   let albumArt = metadata.albumArt;
   if (albumArt) {
@@ -158,6 +185,24 @@ export async function importAudioFiles(
     null,
   );
 
+  const storage = opfsAvailability();
+  if (!storage.available) {
+    logger.error("Cannot import songs", {
+      reason: storage.reason,
+      detail: storage.message,
+      fileCount: audioFiles.length,
+    });
+    toast.error(t("common.error"), {
+      description: storage.message,
+    });
+    return {
+      successCount: 0,
+      errorCount: audioFiles.length,
+      duplicateCount,
+      songs: resolvedSongs,
+    };
+  }
+
   const pending: Array<{ item: ImportFileItem | File; index: number }> = [];
   for (let index = 0; index < audioFiles.length; index++) {
     const item = audioFiles[index]!;
@@ -180,6 +225,8 @@ export async function importAudioFiles(
       if ("file" in item) item.file = null;
       continue;
     }
+
+    if (!isImportableFile(sourceFile)) continue;
 
     pending.push({ item, index });
   }
@@ -265,6 +312,7 @@ export async function importAudioFiles(
           gapless: metadata.gapless,
           replayGain: metadata.replayGain,
           mimeType: processedMimeType,
+          fileName: file.name,
         };
 
         if (context?.sourceKind) {
@@ -304,11 +352,10 @@ export async function importAudioFiles(
 
         successCount++;
       } catch (error) {
-        if (error instanceof Error) {
-          logger.error("Failed to process song:", { error: error.message });
-        } else {
-          logger.error("Failed to process song");
-        }
+        logger.error("Failed to process song", {
+          file: describeImportSource(audioFile),
+          error: describeError(error),
+        });
         errorCount++;
       }
     }

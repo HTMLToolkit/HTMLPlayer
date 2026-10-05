@@ -45,3 +45,4 @@ export function getAudioLoader(): BaseStorageBackend {
 }
 
 export { BaseStorageBackend, type PlatformType };
+export { opfsAvailability, type OpfsAvailability } from "./opfs";

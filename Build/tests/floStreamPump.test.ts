@@ -6,6 +6,8 @@ interface FakeDecoder {
   get_info(): { sample_rate: number; channels: number; bit_depth: number } | null;
   has_error(): boolean;
   next_frame(): Float32Array | null;
+  is_finished(): boolean;
+  error_message?(): string | null;
   free?(): void;
 }
 
@@ -28,6 +30,9 @@ const makeDecoder = (blocks: number, cumulativeDemands: number[]) => {
   let next = 0;
 
   const decoder: FakeDecoder = {
+    is_finished(): boolean {
+      return next >= blocks;
+    },
     feed(): boolean {
       feeds++;
       const demand = cumulativeDemands[feeds - 1];
@@ -94,6 +99,22 @@ const collect = () => {
     }, 1);
   });
   return { state, endedPromise };
+};
+
+const settle = (ms: number): Promise<void> =>
+  new Promise((resolve) => setTimeout(resolve, ms));
+
+const waitFor = async (
+  predicate: () => boolean,
+  timeoutMs = 2000,
+): Promise<void> => {
+  const deadline = Date.now() + timeoutMs;
+  while (!predicate()) {
+    if (Date.now() > deadline) {
+      throw new Error("timed out waiting for condition");
+    }
+    await settle(5);
+  }
 };
 
 describe("FloStreamPump", () => {
@@ -198,9 +219,52 @@ describe("FloStreamPump", () => {
     expect(state.errors[0]?.message).toContain("404");
   });
 
-  it("surfaces decoder rejection of fed data as an error", async () => {
+  it("treats a feed() that declines input as backpressure, not a failure", async () => {
+    const decoder = makeDecoder(3, [3]);
+    const innerFeed = decoder.feed.bind(decoder);
+    let feeds = 0;
+    decoder.feed = (chunk: Uint8Array) => {
+      feeds++;
+      innerFeed(chunk);
+      return feeds !== 1;
+    };
+    const fetcher = makeFetcher([
+      new Uint8Array([1, 2, 3, 4]),
+      new Uint8Array([5]),
+    ]);
+    const { state, endedPromise } = collect();
+
+    const pump = new FloStreamPump({
+      url: "blob:fake",
+      decoder,
+      events: {
+        onInfo: () => undefined,
+        onChunk: (chunk) => state.chunks.push(chunk),
+        onEnd: () => {
+          state.ended = true;
+        },
+        onError: (error) => state.errors.push(error),
+      },
+      fetcher,
+    });
+
+    await expect(pump.start(0)).resolves.toBeUndefined();
+
+    expect(state.errors).toHaveLength(0);
+
+    await endedPromise;
+
+    expect(state.chunks.length).toBe(3);
+    const totalFrames = state.chunks.reduce(
+      (sum, chunk) => sum + chunk.length / CHANNELS,
+      0,
+    );
+    expect(totalFrames).toBe(FRAMES_PER_BLOCK * 3);
+  });
+
+  it("surfaces a decoder error flag as a stream failure", async () => {
     const decoder = makeDecoder(1, [1]);
-    decoder.feed = () => false;
+    decoder.has_error = () => true;
     const fetcher = makeFetcher([new Uint8Array([1])]);
     const { state } = collect();
 
@@ -220,6 +284,213 @@ describe("FloStreamPump", () => {
 
     await expect(pump.start(0)).resolves.toBeUndefined();
 
-    expect(state.errors[0]?.message).toBe("decoder rejected stream data");
+    expect(state.chunks).toHaveLength(0);
+    expect(state.errors[0]?.message).toBe("decoder reported an error");
+  });
+
+  it("prefers the decoder's own error detail when it exposes one", async () => {
+    const decoder = makeDecoder(1, [1]);
+    decoder.has_error = () => true;
+    const detailed: FakeDecoder = Object.assign(decoder, {
+      error_message: () => "alac: invalid frame at 0x1f40",
+    });
+    const fetcher = makeFetcher([new Uint8Array([1])]);
+    const { state } = collect();
+
+    const pump = new FloStreamPump({
+      url: "blob:fake",
+      decoder: detailed,
+      events: {
+        onInfo: () => undefined,
+        onChunk: (chunk) => state.chunks.push(chunk),
+        onEnd: () => {
+          state.ended = true;
+        },
+        onError: (error) => state.errors.push(error),
+      },
+      fetcher,
+    });
+
+    await expect(pump.start(0)).resolves.toBeUndefined();
+
+    expect(state.errors[0]?.message).toBe("alac: invalid frame at 0x1f40");
+  });
+
+  it("does not treat an idle drain as end of input while the decoder is unfinished", async () => {
+    const blocks = 4;
+    let inputEnded = false;
+    let idleRoundsLeft = 2;
+    let next = 0;
+
+    const decoder: FakeDecoder = {
+      feed: () => true,
+      get_info: () => ({
+        sample_rate: 48000,
+        channels: CHANNELS,
+        bit_depth: 16,
+      }),
+      has_error: () => false,
+      next_frame: () => {
+        if (!inputEnded) return null;
+        if (idleRoundsLeft > 0) {
+          idleRoundsLeft--;
+          return null;
+        }
+        if (next >= blocks) return null;
+        const block = new Float32Array(FRAMES_PER_BLOCK * CHANNELS);
+        block.fill(next);
+        next++;
+        return block;
+      },
+      is_finished: () => next >= blocks,
+      end_of_input: () => {
+        inputEnded = true;
+      },
+      free: () => undefined,
+    };
+
+    const fetcher = makeFetcher([new Uint8Array([1, 2, 3, 4])]);
+    const { state, endedPromise } = collect();
+
+    const pump = new FloStreamPump({
+      url: "blob:fake",
+      decoder,
+      events: {
+        onInfo: () => undefined,
+        onChunk: (chunk) => state.chunks.push(chunk),
+        onEnd: () => {
+          state.ended = true;
+        },
+        onError: (error) => state.errors.push(error),
+      },
+      fetcher,
+    });
+
+    await expect(pump.start(0)).resolves.toBeUndefined();
+    await endedPromise;
+
+    expect(state.errors).toHaveLength(0);
+    expect(state.chunks).toHaveLength(blocks);
+    expect(state.ended).toBe(true);
+  });
+
+  it("stops an end-of-stream drain that never reports itself finished", async () => {
+    let drainRounds = 0;
+    const decoder: FakeDecoder = {
+      feed: () => true,
+      get_info: () => ({
+        sample_rate: 48000,
+        channels: CHANNELS,
+        bit_depth: 16,
+      }),
+      has_error: () => false,
+      next_frame: () => {
+        drainRounds++;
+        return null;
+      },
+      is_finished: () => false,
+      end_of_input: () => undefined,
+      free: () => undefined,
+    };
+
+    const fetcher = makeFetcher([new Uint8Array([1])]);
+    const { state, endedPromise } = collect();
+
+    const pump = new FloStreamPump({
+      url: "blob:fake",
+      decoder,
+      events: {
+        onInfo: () => undefined,
+        onChunk: (chunk) => state.chunks.push(chunk),
+        onEnd: () => {
+          state.ended = true;
+        },
+        onError: (error) => state.errors.push(error),
+      },
+      fetcher,
+    });
+
+    await expect(pump.start(0)).resolves.toBeUndefined();
+    await endedPromise;
+
+    expect(state.ended).toBe(true);
+    expect(drainRounds).toBeLessThan(500);
+  });
+
+  it("stops decoding while paused and resumes without dropping frames", async () => {
+    const maxBlocks = 1000;
+    const smallBlock = 8;
+    let produced = 0;
+    const decoder: FakeDecoder = {
+      feed: () => true,
+      get_info: () => ({
+        sample_rate: 48000,
+        channels: CHANNELS,
+        bit_depth: 16,
+      }),
+      has_error: () => false,
+      next_frame: () => {
+        if (produced >= maxBlocks) return null;
+        const block = new Float32Array(smallBlock * CHANNELS);
+        block.fill(produced);
+        produced++;
+        return block;
+      },
+      free: () => undefined,
+    };
+    const fetcher = jest.fn(async () => ({
+      ok: true,
+      status: 200,
+      body: new ReadableStream<Uint8Array>({
+        pull(controller) {
+          controller.enqueue(new Uint8Array([1]));
+        },
+      }),
+    }));
+
+    const chunks: Float32Array[] = [];
+    const errors: Error[] = [];
+    let pump: FloStreamPump | null = null;
+    let pauseRequested = false;
+
+    pump = new FloStreamPump({
+      url: "blob:fake",
+      decoder,
+      events: {
+        onInfo: () => undefined,
+        onChunk: (chunk) => {
+          chunks.push(chunk);
+          if (chunks.length === 2 && pump) {
+            pauseRequested = true;
+            pump.pause();
+          }
+        },
+        onEnd: () => {
+          throw new Error("endless stream must not report end");
+        },
+        onError: (error) => errors.push(error),
+      },
+      fetcher,
+    });
+
+    await pump.start(0);
+    await waitFor(() => pauseRequested);
+    await settle(120);
+
+    const whilePaused = chunks.length;
+    expect(whilePaused).toBeGreaterThan(0);
+    expect(whilePaused).toBeLessThan(maxBlocks);
+
+    await settle(150);
+    expect(chunks.length).toBe(whilePaused);
+
+    pump.resume();
+    await waitFor(() => chunks.length > whilePaused);
+    pump.cancel();
+
+    expect(errors).toHaveLength(0);
+    expect(chunks.map((chunk) => chunk[0])).toEqual(
+      chunks.map((_chunk, index) => index),
+    );
   });
 });

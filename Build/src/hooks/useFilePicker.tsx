@@ -12,9 +12,10 @@ import {
   DialogTitle,
 } from "../ui/components/primitives/Dialog";
 import { ThemeProvider } from "../ui/theming";
-import { processFiles, type AudioFile } from "../platform/utils/fileValidation";
-
-export type { AudioFile };
+import {
+  importableExtensions,
+  isImportableFile,
+} from "../platform/audio/formats";
 
 const beforeUnloadHandler = (event: BeforeUnloadEvent) => {
   event.preventDefault();
@@ -29,7 +30,7 @@ export function setProcessingState(processing: boolean) {
   }
 }
 
-export function pickAudioFiles(): Promise<AudioFile[]> {
+export function pickAudioFiles(): Promise<File[]> {
   return new Promise((resolve) => {
     const ReactUppyWrapper = () => {
       const { t } = useTranslation();
@@ -39,17 +40,7 @@ export function pickAudioFiles(): Promise<AudioFile[]> {
             autoProceed: false,
             restrictions: {
               maxNumberOfFiles: null,
-              allowedFileTypes: [
-                ".mp3",
-                ".wav",
-                ".m4a",
-                ".flac",
-                ".aif",
-                ".aiff",
-                ".ogg",
-                ".flo",
-                "audio/*",
-              ],
+              allowedFileTypes: [...importableExtensions()],
             },
           }),
       );
@@ -75,16 +66,16 @@ export function pickAudioFiles(): Promise<AudioFile[]> {
       }, []);
 
       useEffect(() => {
-        const audioFiles: AudioFile[] = [];
+        const audioFiles: File[] = [];
 
         const onFileAdded = (
           file: UppyFile<Record<string, unknown>, Record<string, unknown>>,
         ) => {
-          const processed = processFiles([file.data as File]);
-          if (processed.length === 0) {
-            uppy.removeFile(file.id);
+          const audio = file.data as File;
+          if (isImportableFile(audio)) {
+            audioFiles.push(audio);
           } else {
-            audioFiles.push(...processed);
+            uppy.removeFile(file.id);
           }
         };
 

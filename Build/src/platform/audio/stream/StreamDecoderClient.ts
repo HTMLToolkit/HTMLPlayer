@@ -1,5 +1,6 @@
 import type { FloStreamInfo, FloStreamPumpEvents } from "./FloStreamPump";
 import type { StreamDecoderEngine } from "./StreamDecoder.worker";
+import { createDecoderWorker } from "./decoderWorkerFactory";
 
 interface WorkerStartMessage {
   type: "start";
@@ -15,12 +16,17 @@ interface WorkerCancelMessage {
 }
 
 interface WorkerEventMessage {
-  type: "info" | "chunk" | "end" | "error" | "pressure";
+  type: "info" | "chunk" | "end" | "error";
   streamId: number;
   info?: FloStreamInfo;
   data?: Float32Array;
   message?: string;
-  shouldPause?: boolean;
+}
+
+interface WorkerPressureMessage {
+  type: "pressure";
+  streamId: number;
+  shouldPause: boolean;
 }
 
 export interface StreamDecoderClientOptions {
@@ -36,7 +42,6 @@ export class StreamDecoderClient {
   private resolveStart: (() => void) | null = null;
   private startPromise: Promise<void> | null = null;
   private disposed = false;
-  private pressureEvents: ((shouldPause: boolean) => void) | null = null;
 
   constructor(options: StreamDecoderClientOptions) {
     this.engine = options.engine;
@@ -71,17 +76,21 @@ export class StreamDecoderClient {
       };
       this.worker.postMessage(message);
     }
-    this.pressureEvents = null;
     this.settleStart();
   }
 
-  setPressureHandler(handler: ((shouldPause: boolean) => void) | null): void {
-    this.pressureEvents = handler;
+  setPressure(shouldPause: boolean): void {
+    if (!this.worker) return;
+    const message: WorkerPressureMessage = {
+      type: "pressure",
+      streamId: this.streamId,
+      shouldPause,
+    };
+    this.worker.postMessage(message);
   }
 
   dispose(): void {
     this.disposed = true;
-    this.pressureEvents = null;
     this.settleStart();
     if (this.worker) {
       this.worker.terminate();
@@ -91,10 +100,7 @@ export class StreamDecoderClient {
 
   private ensureWorker(): Worker {
     if (this.worker) return this.worker;
-    const worker = new Worker(
-      new URL("./StreamDecoder.worker.ts", import.meta.url),
-      { type: "module" },
-    );
+    const worker = createDecoderWorker();
     worker.onmessage = (event: MessageEvent) => this.handleMessage(event);
     worker.onerror = (event: ErrorEvent) => {
       this.events.onError?.(
@@ -136,11 +142,6 @@ export class StreamDecoderClient {
           new Error(message.message ?? "stream decode failed"),
         );
         this.settleStart();
-        return;
-      case "pressure":
-        if (typeof message.shouldPause === "boolean") {
-          this.pressureEvents?.(message.shouldPause);
-        }
         return;
     }
   }

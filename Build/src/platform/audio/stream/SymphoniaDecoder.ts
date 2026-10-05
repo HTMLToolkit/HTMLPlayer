@@ -13,9 +13,7 @@ export interface SymphoniaDecoderHandle {
     codec: string;
   } | null;
   next_frame(): Float32Array | null;
-  is_pending(): boolean;
   is_finished(): boolean;
-  budget_exhausted(): boolean;
   free(): void;
 }
 
@@ -110,16 +108,8 @@ class SymphoniaDecoder implements FloStreamDecoderProtocol {
     return frame;
   }
 
-  is_pending(): boolean {
-    return this.guard(() => this.wasm.is_pending());
-  }
-
   is_finished(): boolean {
     return this.guard(() => this.wasm.is_finished());
-  }
-
-  budget_exhausted(): boolean {
-    return this.guard(() => this.wasm.budget_exhausted());
   }
 
   free(): void {

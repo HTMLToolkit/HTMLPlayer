@@ -3,6 +3,7 @@ import { HTMLAudioBackend } from "./HTMLBackend";
 import { StreamingDecoderBackend } from "./StreamingDecoderBackend";
 import { AudioGraph } from "../graph";
 import { isSafari } from "../../utils/safari";
+import { chooseBackendFor, identifyFormat, type BackendKind } from "../formats";
 import type { IAudioBackend } from "../index";
 import type { Track } from "../../../core/engine/types";
 
@@ -12,19 +13,20 @@ export interface BackendRouterBackends {
   symphonia: IAudioBackend;
 }
 
-export type BackendKind = "flo" | "html" | "symphonia";
+export type { BackendKind };
 
 export function chooseBackendKind(track?: Track, url?: string): BackendKind {
-  if (track) {
-    if (track.mimeType === "audio/x-flo") {
-      return "flo";
-    }
-    if (track.hasStoredAudio && !isSafari()) {
-      return "symphonia";
-    }
-    return "html";
+  if (!track) {
+    return url?.includes(".flo") ? "flo" : "html";
   }
-  return url?.includes(".flo") ? "flo" : "html";
+
+  const nameHint = track.url || track.title;
+  const format = identifyFormat(nameHint, track.mimeType ?? "");
+
+  return chooseBackendFor(format, {
+    hasStoredAudio: track.hasStoredAudio === true,
+    isSafariRuntime: isSafari(),
+  });
 }
 
 export class BackendRouter extends BaseAudioBackend {

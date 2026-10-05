@@ -17,6 +17,7 @@ jest.mock("../src/platform/storage/albumArt", () => ({
 
 jest.mock("../src/platform/storage", () => ({
   albumArtStorage: { save: jest.fn(async () => "art-id") },
+  opfsAvailability: jest.fn(() => ({ available: true })),
 }));
 
 jest.mock("../src/platform/providers", () => ({

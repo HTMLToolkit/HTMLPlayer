@@ -20,6 +20,8 @@ interface MainContentHeaderProps {
   onSortOrderChange: (order: "asc" | "desc") => void;
   selectedSongs: string[];
   sortedSongsCount: number;
+  isSelectSongsActive: boolean;
+  onToggleSelectMode: () => void;
   onSelectAll: () => void;
   onExitSelectMode: () => void;
   onAddToPlaylist: () => void;
@@ -49,6 +51,8 @@ export function MainContentHeader({
   onSortOrderChange,
   selectedSongs,
   sortedSongsCount,
+  isSelectSongsActive,
+  onToggleSelectMode,
   onSelectAll,
   onExitSelectMode,
   onAddToPlaylist,
@@ -146,8 +150,10 @@ export function MainContentHeader({
                 onSortOrderChange={onSortOrderChange}
               />
               <SelectSongsMenu
+                isActive={isSelectSongsActive}
                 selectedCount={selectedSongs.length}
                 totalCount={sortedSongsCount}
+                onToggleSelectMode={onToggleSelectMode}
                 onSelectAll={onSelectAll}
                 onExitSelectMode={onExitSelectMode}
                 onAddToPlaylist={onAddToPlaylist}

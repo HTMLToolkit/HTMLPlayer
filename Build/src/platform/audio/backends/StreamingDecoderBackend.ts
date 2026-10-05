@@ -7,6 +7,7 @@ import type {
   FloStreamPumpEvents,
 } from "../stream/FloStreamPump";
 import type { StreamDecoderEngine } from "../stream/StreamDecoder.worker";
+import floWorkletSource from "../stream/floWorkletSource";
 import type { Track } from "../../../core/engine/types";
 import { createLogger } from "../../../helpers/logger";
 
@@ -16,20 +17,47 @@ const TIME_UPDATE_MS = 100;
 const FLUSH_MS = 120;
 const WORKLET_NAME = "flo-stream-output";
 const WORKLET_OUTPUT_CHANNELS = 2;
+const HIGH_WATERMARK_SECONDS = 2;
+const LOW_WATERMARK_SECONDS = 1;
+const HARD_CAP_SECONDS = 8;
 
 const clamp = (value: number, min: number, max: number): number =>
   Math.max(min, Math.min(max, value));
 
+const chunkFrames = (chunk: Float32Array, channels: number): number =>
+  Math.floor(chunk.length / Math.max(1, channels));
+
+const clampToDuration = (value: number, duration: number): number =>
+  duration > 0 ? clamp(value, 0, duration) : Math.max(0, value);
+
 const workletModuleCache = new WeakMap<BaseAudioContext, Promise<void>>();
 
-const loadWorkletModule = (ctx: AudioContext): Promise<void> => {
-  let pending = workletModuleCache.get(ctx);
-  if (!pending) {
-    pending = ctx.audioWorklet.addModule(
-      new URL("../stream/FloStreamWorklet.js", import.meta.url).href,
-    );
-    workletModuleCache.set(ctx, pending);
-  }
+const describeWorkletLoadFailure = (error: unknown): string =>
+  [
+    "Could not load the streaming output worklet from its inlined Blob URL.",
+    "Browsers refuse an AudioWorklet module load from a Blob URL when the",
+    "document has an opaque origin, which is what a Chromium `file://` page",
+    "has, so the single-file build cannot stream-decode there. Serve the app",
+    "over http://localhost or HTTPS to restore it.",
+    `Underlying error: ${String(error)}`,
+  ].join(" ");
+
+const loadWorkletModule = async (ctx: AudioContext): Promise<void> => {
+  const cached = workletModuleCache.get(ctx);
+  if (cached) return cached;
+
+  const source = URL.createObjectURL(
+    new Blob([floWorkletSource], { type: "text/javascript" }),
+  );
+  const pending = ctx.audioWorklet
+    .addModule(source)
+    .catch((error: unknown) => {
+      workletModuleCache.delete(ctx);
+      throw new Error(describeWorkletLoadFailure(error));
+    })
+    .finally(() => URL.revokeObjectURL(source));
+
+  workletModuleCache.set(ctx, pending);
   return pending;
 };
 
@@ -54,6 +82,9 @@ export class StreamingDecoderBackend extends BaseAudioBackend {
   private resumeIntent = false;
   private pendingChunks: Float32Array[] = [];
   private pausedByPressure = false;
+  private bufferedFrames = 0;
+  private decodeComplete = false;
+  private endOfStreamSent = false;
   private timeUpdateTimer: number | null = null;
   private flushTimer: number | null = null;
   private streamGeneration = 0;
@@ -106,7 +137,7 @@ export class StreamingDecoderBackend extends BaseAudioBackend {
 
   pause(): void {
     if (!this.playing) return;
-    this.pausedAt = clamp(this.getCurrentTime(), 0, this.duration);
+    this.pausedAt = clampToDuration(this.getCurrentTime(), this.duration);
     this.playing = false;
     this.resumeIntent = false;
     this.postWorklet({ type: "pause" });
@@ -125,7 +156,7 @@ export class StreamingDecoderBackend extends BaseAudioBackend {
   seek(time: number): void {
     const wasPlaying = this.playing || this.resumeIntent;
     this.cancelCurrentStream();
-    const clamped = clamp(time, 0, this.duration);
+    const clamped = clampToDuration(time, this.duration);
     this.pausedAt = clamped;
     this.playing = false;
     this.resumeIntent = wasPlaying;
@@ -162,9 +193,9 @@ export class StreamingDecoderBackend extends BaseAudioBackend {
     if (this.playing) {
       const elapsed =
         (this.getGraphTime() - this.startTime) * this.playbackRate;
-      return clamp(elapsed, 0, this.duration);
+      return clampToDuration(elapsed, this.duration);
     }
-    return clamp(this.pausedAt, 0, this.duration);
+    return clampToDuration(this.pausedAt, this.duration);
   }
 
   getDuration(): number {
@@ -203,11 +234,8 @@ export class StreamingDecoderBackend extends BaseAudioBackend {
       engine: this.engine,
       events,
     });
-    client.setPressureHandler((shouldPause) => {
-      this.pausedByPressure = shouldPause;
-    });
     this.stream = client;
-    return this.stream;
+    return client;
   }
 
   private async restartStream(
@@ -224,11 +252,7 @@ export class StreamingDecoderBackend extends BaseAudioBackend {
       return;
     }
 
-    this.postWorklet({
-      type: "configure",
-      channels: this.channels,
-      sampleRate: this.sampleRate,
-    });
+    this.postConfigure();
     this.flushPendingChunks();
     if (resumingPlayback) {
       this.resumeIntent = false;
@@ -254,11 +278,7 @@ export class StreamingDecoderBackend extends BaseAudioBackend {
     if (info.total_samples && info.total_samples > 0) {
       this.duration = Number(info.total_samples) / this.sampleRate;
     }
-    this.postWorklet({
-      type: "configure",
-      channels: this.channels,
-      sampleRate: this.sampleRate,
-    });
+    this.postConfigure();
   }
 
   private handleChunk(chunk: Float32Array, generation: number): void {
@@ -271,6 +291,14 @@ export class StreamingDecoderBackend extends BaseAudioBackend {
 
   private handleStreamEnd(generation: number): void {
     if (generation !== this.streamGeneration) return;
+    this.decodeComplete = true;
+    this.signalEndOfStreamWhenFlushed();
+  }
+
+  private signalEndOfStreamWhenFlushed(): void {
+    if (!this.decodeComplete || this.endOfStreamSent) return;
+    if (this.pendingChunks.length > 0) return;
+    this.endOfStreamSent = true;
     this.postWorklet({ type: "endOfStream" });
   }
 
@@ -280,9 +308,15 @@ export class StreamingDecoderBackend extends BaseAudioBackend {
     this.emitError(error);
   }
 
-  private handleWorkletLevel(shouldPause: boolean): void {
-    if (this.pausedByPressure === shouldPause) return;
+  private handleWorkletLevel(shouldPause: boolean, buffered?: number): void {
+    if (buffered !== undefined) {
+      this.bufferedFrames = buffered;
+    }
+    const wasPaused = this.pausedByPressure;
     this.pausedByPressure = shouldPause;
+    if (wasPaused !== shouldPause) {
+      this.stream?.setPressure(shouldPause);
+    }
     if (!shouldPause) {
       this.flushPendingChunks();
     }
@@ -299,10 +333,35 @@ export class StreamingDecoderBackend extends BaseAudioBackend {
   private flushPendingChunks(): void {
     if (!this.workletNode || this.pausedByPressure) return;
     if (this.pendingChunks.length === 0) return;
-    const chunks = this.pendingChunks.splice(0);
-    for (const chunk of chunks) {
+    const budget = Math.max(
+      0,
+      this.highWatermarkFrames() - this.bufferedFrames,
+    );
+    if (budget <= 0) return;
+    let sent = 0;
+    while (this.pendingChunks.length > 0 && sent < budget) {
+      const chunk = this.pendingChunks.shift()!;
+      const frames = chunkFrames(chunk, this.channels);
+      sent += frames;
+      this.bufferedFrames += frames;
       this.postWorklet({ type: "append", data: chunk });
     }
+    this.signalEndOfStreamWhenFlushed();
+  }
+
+  private highWatermarkFrames(): number {
+    return Math.round(HIGH_WATERMARK_SECONDS * this.sampleRate);
+  }
+
+  private postConfigure(): void {
+    this.postWorklet({
+      type: "configure",
+      channels: this.channels,
+      sampleRate: this.sampleRate,
+      highWatermarkSeconds: HIGH_WATERMARK_SECONDS,
+      lowWatermarkSeconds: LOW_WATERMARK_SECONDS,
+      hardCapSeconds: HARD_CAP_SECONDS,
+    });
   }
 
   private postWorklet(message: object): void {
@@ -322,14 +381,22 @@ export class StreamingDecoderBackend extends BaseAudioBackend {
       outputChannelCount: [WORKLET_OUTPUT_CHANNELS],
     });
     const message = (event: MessageEvent) => {
-      const data = event.data as { type?: string; paused?: boolean } | null;
+      const data = event.data as {
+        type?: string;
+        paused?: boolean;
+        buffered?: number;
+        frames?: number;
+        cap?: number;
+      } | null;
       if (!data) return;
       if (data.type === "ended") {
         this.handleWorkletEnded();
       } else if (data.type === "level") {
-        this.handleWorkletLevel(Boolean(data.paused));
+        this.handleWorkletLevel(Boolean(data.paused), data.buffered);
       } else if (data.type === "overflow") {
-        logger.warn("flo stream buffer overflow", data);
+        logger.warn(
+          `${this.engine} output ring exceeded cap: ${data.frames ?? 0} frames buffered against ${data.cap ?? 0}`,
+        );
       }
     };
     node.port.onmessage = message;
@@ -342,9 +409,15 @@ export class StreamingDecoderBackend extends BaseAudioBackend {
 
   private cancelCurrentStream(): void {
     this.streamGeneration++;
+    if (this.pausedByPressure) {
+      this.stream?.setPressure(false);
+    }
     this.stream?.cancel();
     this.pausedByPressure = false;
     this.pendingChunks = [];
+    this.bufferedFrames = 0;
+    this.decodeComplete = false;
+    this.endOfStreamSent = false;
     this.postWorklet({ type: "flush" });
   }
 

@@ -216,7 +216,59 @@ describe("PreloadManager", () => {
     expect(manager.isLoaded("a")).toBe(false);
     expect(manager.getCacheSize()).toBe(0);
   });
+
+  it("fetches the resolved url instead of the stored one", async () => {
+    const manager = new PreloadManager(
+      {},
+      { resolveTrack: async (track) => ({ ...track, url: "blob:live" }) },
+    );
+    const track = { ...createTrack("a"), url: "blob:revoked" };
+
+    await manager.preload(track);
+
+    expect(globalThis.fetch).toHaveBeenCalledWith("blob:live");
+    expect(globalThis.fetch).not.toHaveBeenCalledWith("blob:revoked");
+  });
+
+  it("caches under the requested id even when the resolver returns a copy", async () => {
+    const manager = new PreloadManager(
+      {},
+      { resolveTrack: async (track) => ({ ...track, url: "blob:live" }) },
+    );
+
+    await manager.preload(createTrack("a"));
+
+    expect(manager.isLoaded("a")).toBe(true);
+    expect(manager.getUrl("a")).toBe("blob:0");
+  });
+
+  it("preloads upcoming tracks through the resolver", async () => {
+    const resolveTrack = jest.fn(async (track: Track) => track);
+    const manager = new PreloadManager({}, { resolveTrack });
+    const tracks = [createTrack("a"), createTrack("b"), createTrack("c")];
+
+    manager.preloadNext(tracks, 0);
+
+    await waitForResolverCalls(resolveTrack, 2);
+    expect(resolveTrack).toHaveBeenCalledTimes(2);
+    expect((resolveTrack.mock.calls as Array<[Track]>).map(([t]) => t.id)).toEqual(
+      ["b", "c"],
+    );
+  });
 });
+
+async function waitForResolverCalls(
+  resolveTrack: jest.Mock<(track: Track) => Promise<Track>>,
+  expected: number,
+): Promise<void> {
+  for (let attempt = 0; attempt < 50; attempt++) {
+    if (resolveTrack.mock.calls.length >= expected) return;
+    await new Promise((resolve) => setTimeout(resolve, 0));
+  }
+  throw new Error(
+    `expected ${expected} resolver calls, saw ${resolveTrack.mock.calls.length}`,
+  );
+}
 
 function createMockBackend(): IAudioBackend {
   return {

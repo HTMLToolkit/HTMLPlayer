@@ -15,9 +15,7 @@ const makeFakeHandle = (): SymphoniaDecoderHandle => {
     error_message: jest.fn(() => null as string | null),
     get_info: jest.fn(() => null),
     next_frame: jest.fn(() => null as Float32Array | null),
-    is_pending: jest.fn(() => false),
     is_finished: jest.fn(() => false),
-    budget_exhausted: jest.fn(() => false),
     free: jest.fn(),
   };
   return handle;
@@ -86,20 +84,14 @@ describe("createSymphoniaStreamingDecoder", () => {
     expect(decoder.next_frame()).toBeNull();
   });
 
-  it("forwards streaming state alongside null frames", () => {
+  it("reports the finished flag that gates end of stream", () => {
     const handle = makeFakeHandle();
-    handle.is_pending.mockReturnValue(true);
     handle.is_finished.mockReturnValue(true);
-    handle.budget_exhausted.mockReturnValue(true);
 
     const decoder = createSymphoniaStreamingDecoder(fakeModuleOf(handle));
 
-    expect(decoder.is_pending()).toBe(true);
     expect(decoder.is_finished()).toBe(true);
-    expect(decoder.budget_exhausted()).toBe(true);
-    expect((handle.is_pending as jest.Mock).mock.calls).toHaveLength(1);
     expect((handle.is_finished as jest.Mock).mock.calls).toHaveLength(1);
-    expect((handle.budget_exhausted as jest.Mock).mock.calls).toHaveLength(1);
   });
 
   it("throws when constructed before wasm initialization", () => {

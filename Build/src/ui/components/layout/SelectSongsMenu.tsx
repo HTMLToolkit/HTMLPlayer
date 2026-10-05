@@ -5,8 +5,10 @@ import PersistentDropdownMenu from "../primitives/PersistentDropdownMenu";
 import styles from "./MainContent.module.css";
 
 interface SelectSongsMenuProps {
+  isActive: boolean;
   selectedCount: number;
   totalCount: number;
+  onToggleSelectMode: () => void;
   onSelectAll: () => void;
   onExitSelectMode: () => void;
   onAddToPlaylist: () => void;
@@ -14,8 +16,10 @@ interface SelectSongsMenuProps {
 }
 
 export function SelectSongsMenu({
+  isActive,
   selectedCount,
   totalCount,
+  onToggleSelectMode,
   onSelectAll,
   onExitSelectMode,
   onAddToPlaylist,
@@ -32,6 +36,8 @@ export function SelectSongsMenu({
           size="icon-md"
           className={`${styles.actionButton} action-button-lift`}
           aria-label={t("actions.selectSongs")}
+          aria-pressed={isActive}
+          onClick={onToggleSelectMode}
         >
           <Icon name="listChecks" size={16} decorative />
         </Button>

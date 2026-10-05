@@ -20,6 +20,10 @@ export interface PreloadConfig {
   ttl: number;
 }
 
+export interface PreloadOptions {
+  resolveTrack?: (track: Track) => Promise<Track>;
+}
+
 const DEFAULT_CONFIG: PreloadConfig = {
   preloadCount: 2,
   maxCacheSize: 5,
@@ -31,9 +35,14 @@ export class PreloadManager {
   private config: PreloadConfig;
   private loading: Set<string> = new Set();
   private preloadCallbacks: Map<string, Set<PreloadWaiter>> = new Map();
+  private readonly resolveTrack?: (track: Track) => Promise<Track>;
 
-  constructor(config: Partial<PreloadConfig> = {}) {
+  constructor(
+    config: Partial<PreloadConfig> = {},
+    options: PreloadOptions = {},
+  ) {
     this.config = { ...DEFAULT_CONFIG, ...config };
+    this.resolveTrack = options.resolveTrack;
   }
 
   setConfig(config: Partial<PreloadConfig>): void {
@@ -79,7 +88,8 @@ export class PreloadManager {
     this.loading.add(track.id);
 
     try {
-      const response = await fetch(track.url);
+      const source = this.resolveTrack ? await this.resolveTrack(track) : track;
+      const response = await fetch(source.url);
       const blob = await response.blob();
       const url = URL.createObjectURL(blob);
 

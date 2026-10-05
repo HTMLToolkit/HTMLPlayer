@@ -158,6 +158,7 @@ export class GaplessScheduler {
   }
 
   shouldPreload(currentTime: number, duration: number): boolean {
+    if (!Number.isFinite(duration) || duration <= 0) return false;
     const preloadTime = 10;
     return duration - currentTime <= preloadTime;
   }
@@ -168,6 +169,7 @@ export class GaplessScheduler {
   }
 
   shouldTransition(currentTime: number, track: Track): boolean {
+    if (!Number.isFinite(track.duration) || track.duration <= 0) return false;
     const playEnd = this.calculatePlayEnd(track);
     const threshold = 0.1;
     return currentTime >= playEnd - threshold;

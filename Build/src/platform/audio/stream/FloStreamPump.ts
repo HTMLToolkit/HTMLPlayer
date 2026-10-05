@@ -11,13 +11,11 @@ export interface FloStreamDecoderProtocol {
   feed(chunk: Uint8Array): boolean;
   get_info(): FloStreamInfo | null;
   has_error(): boolean;
-  error_message?(): string | null;
   next_frame(): Float32Array | null;
+  is_finished(): boolean;
+  free(): void;
   end_of_input?(): void;
-  is_pending?(): boolean;
-  is_finished?(): boolean;
-  budget_exhausted?(): boolean;
-  free?(): void;
+  error_message?(): string | null;
 }
 
 export interface FloStreamResponse {
@@ -36,8 +34,11 @@ export interface FloStreamPumpEvents {
   onChunk?(chunk: Float32Array): void;
   onEnd?(): void;
   onError?(error: Error): void;
-  onPressureChange?(shouldPause: boolean): void;
 }
+
+const DECODER_ERROR_MESSAGE = "decoder reported an error";
+
+const MAX_STALLED_DRAIN_ROUNDS = 64;
 
 const defaultFetcher: FloStreamFetcher = (url, signal) =>
   fetch(url, { signal }) as Promise<FloStreamResponse>;
@@ -56,6 +57,7 @@ export class FloStreamPump {
   private failure: Error | null = null;
   private firstAudioReady: (() => void) | null = null;
   private paused = false;
+  private stalledDrainRounds = 0;
   private resumeSignal: (() => void) | null = null;
 
   constructor(options: {
@@ -157,11 +159,9 @@ export class FloStreamPump {
         if (done) break;
 
         if (value.length > 0) {
-          const accepted = this.decoder.feed(value);
-          if (!accepted || this.decoder.has_error()) {
-            const message =
-              this.decoder.error_message?.() ?? "decoder rejected stream data";
-            this.fail(new Error(message));
+          this.decoder.feed(value);
+          if (this.decoder.has_error()) {
+            this.fail(this.decodeError());
             return;
           }
           this.drain();
@@ -190,24 +190,31 @@ export class FloStreamPump {
       this.drain();
       if (this.cancelled) return;
       if (this.decoder.has_error()) {
-        const message =
-          this.decoder.error_message?.() ?? "decoder rejected stream data";
-        this.fail(new Error(message));
+        this.fail(this.decodeError());
         return;
       }
-
-      const noProgress = this.framesDecoded === before;
-      const wantsMoreWork = this.decoder.budget_exhausted?.() ?? false;
-      const wantsMoreInput = this.decoder.is_pending?.() ?? false;
-      if (noProgress && (wantsMoreInput || !wantsMoreWork)) {
-        return;
+      if (this.decoder.is_finished()) return;
+      if (this.framesDecoded === before) {
+        if (this.paused) {
+          this.stalledDrainRounds = 0;
+        } else if (++this.stalledDrainRounds >= MAX_STALLED_DRAIN_ROUNDS) {
+          return;
+        }
+      } else {
+        this.stalledDrainRounds = 0;
       }
       await this.yieldToMain();
     }
   }
 
+  private decodeError(): Error {
+    const detail = this.decoder.error_message?.();
+    return new Error(detail || DECODER_ERROR_MESSAGE);
+  }
+
   private drain(): void {
     for (;;) {
+      if (this.paused || this.cancelled) break;
       if (this.channels === 0) {
         const info = this.decoder.get_info();
         if (info && info.channels > 0) {

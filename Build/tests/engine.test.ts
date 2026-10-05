@@ -276,10 +276,32 @@ describe("GaplessScheduler", () => {
     track.encoding = { sampleRate: 0 };
     track.gapless = { encoderDelay: 100, encoderPadding: 50 };
     scheduler.setConfig({ startOffset: 0, endOffset: 0 });
-
     expect(scheduler.getStartOffset(track)).toBe(0);
     expect(scheduler.getEndOffset(track)).toBe(0);
     expect(scheduler.calculatePlayEnd(track)).toBe(180);
+  });
+
+  it("does not transition on the first time update when duration is unknown", () => {
+    const track = createMockTrack("a", 0);
+    expect(scheduler.shouldTransition(0, track)).toBe(false);
+  });
+
+  it("still transitions at the end of a track with a known duration", () => {
+    const track = createMockTrack("a", 180);
+    expect(scheduler.shouldTransition(179.8, track)).toBe(false);
+    expect(scheduler.shouldTransition(179.9, track)).toBe(true);
+  });
+
+  it("does not treat a non-finite duration as an instant transition", () => {
+    const track = createMockTrack("a", Number.NaN);
+    expect(scheduler.shouldTransition(0, track)).toBe(false);
+  });
+
+  it("does not preload against an unknown duration", () => {
+    expect(scheduler.shouldPreload(0, 0)).toBe(false);
+    expect(scheduler.shouldPreload(0, Number.POSITIVE_INFINITY)).toBe(false);
+    expect(scheduler.shouldPreload(0, 180)).toBe(false);
+    expect(scheduler.shouldPreload(175, 180)).toBe(true);
   });
 });
 

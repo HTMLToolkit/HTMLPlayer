@@ -22,6 +22,7 @@ import { AddToPopover } from "./AddToPopover";
 import { useTranslation } from "react-i18next";
 import { Icon } from "./Icon";
 import { dialogStorage } from "../../../platform/storage";
+import { fileExtensionLabel } from "../../../platform/audio/formats/registry";
 import type { Track, Playlist } from "../../../core/engine/types";
 
 interface SongActionsDropdownProps {
@@ -162,6 +163,14 @@ export const SongActionsDropdown = ({
     { label: t("common.album"), value: song.album },
     { label: t("common.duration"), value: formatTime(song.duration) },
   ];
+
+  const extensionValue = fileExtensionLabel(song.fileName);
+  if (extensionValue) {
+    primaryEntries.push({
+      label: t("songInfo.fileExtension"),
+      value: extensionValue,
+    });
+  }
 
   const codecValue =
     formatCodec(song.encoding?.codec) ?? t("songInfo.notAvailable");

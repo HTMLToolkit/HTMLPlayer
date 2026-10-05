@@ -1,8 +1,9 @@
 import { createLogger } from "../../helpers/logger";
+import { importablePathPattern } from "../audio/formats";
 
 const logger = createLogger("directoryHandle");
 
-export const SUPPORTED_AUDIO_RE = /\.(mp3|flac|ogg|wav|m4a|aac|wma|flo)$/i;
+export const SUPPORTED_AUDIO_RE = importablePathPattern();
 export const MAX_WALK_DEPTH = 15;
 
 export interface FsWritable {

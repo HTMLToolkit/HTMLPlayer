@@ -1,4 +1,4 @@
-import { processFiles } from "../utils/fileValidation";
+import { isImportableFile } from "../audio/formats";
 import { sanitizeStringArray } from "../validators";
 import { createLogger } from "../../helpers/logger";
 
@@ -66,8 +66,7 @@ export function setupFileHandler(
           continue;
         }
 
-        const valid = processFiles([file]);
-        if (valid.length > 0) {
+        if (isImportableFile(file)) {
           files.push(file);
           markProcessed(file);
           successCount++;

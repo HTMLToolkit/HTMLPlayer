@@ -41,6 +41,26 @@ export const createLogger = (scope: string) => {
   };
 };
 
+export const describeError = (error: unknown): string => {
+  if (error instanceof Error) {
+    const message = typeof error.message === "string" ? error.message : "";
+    const head = message ? `${error.name}: ${message}` : error.name;
+    const stack = typeof error.stack === "string" ? error.stack : "";
+
+    if (stack.length === 0) return head;
+    return stack.startsWith(head) ? stack : `${head}\n${stack}`;
+  }
+
+  if (typeof error === "string") return error;
+
+  try {
+    const serialized = JSON.stringify(error);
+    if (serialized && serialized !== "{}") return serialized;
+  } catch {}
+
+  return String(error);
+};
+
 export const throwError = (
   message: string,
   data?: Record<string, unknown>,

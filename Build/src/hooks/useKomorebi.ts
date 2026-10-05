@@ -191,7 +191,10 @@ export function useKomorebi(
       smartShuffle: true,
       autoPlayNext: autoPlayRef.current,
       trackResolver: (track) => trackStorage.reconstructUrl(track),
-      preloadManager: new PreloadManager(),
+      preloadManager: new PreloadManager(
+        {},
+        { resolveTrack: (track) => trackStorage.reconstructUrl(track) },
+      ),
     });
     restoreEngineSettings(engine);
 

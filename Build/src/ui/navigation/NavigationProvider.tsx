@@ -47,6 +47,16 @@ const NavigationContext = createContext<NavigationContextValue | null>(null);
 
 const HISTORY_LIMIT = 50;
 
+function isSameNavigation(a: NavigationState, b: NavigationState): boolean {
+  return (
+    a.view === b.view &&
+    a.artist === b.artist &&
+    a.album === b.album &&
+    a.playlistId === b.playlistId &&
+    a.searchQuery === b.searchQuery
+  );
+}
+
 export function NavigationProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<NavigationState>(initialState);
   const [history, setHistory] = useState<NavigationState[]>([initialState]);
@@ -82,6 +92,7 @@ export function NavigationProvider({ children }: { children: ReactNode }) {
 
   const navigate = useCallback(
     (newState: NavigationState) => {
+      if (isSameNavigation(state, newState)) return;
       runWithViewTransition("forward", () => {
         setState(newState);
         setHistory((prev) => {
@@ -95,7 +106,7 @@ export function NavigationProvider({ children }: { children: ReactNode }) {
         setHistoryIndex((prev) => Math.min(prev + 1, HISTORY_LIMIT - 1));
       });
     },
-    [historyIndex, runWithViewTransition],
+    [historyIndex, runWithViewTransition, state],
   );
 
   const goHome = useCallback(() => navigate({ view: "home" }), [navigate]);
