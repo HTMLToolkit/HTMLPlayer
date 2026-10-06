@@ -9,7 +9,6 @@ import {
 import { useTranslation } from "react-i18next";
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
-import { isSafari } from "../../../platform/utils/safari";
 import { prefersReducedMotion } from "../../../helpers/reducedMotion";
 import { Visualizer } from "./Visualizer";
 import { Lyrics } from "./Lyrics";
@@ -149,7 +148,6 @@ export const Player = forwardRef<PlayerRef, PlayerProps>(
       if (currentSong && settingsState.showLyrics) setShowLyrics(true);
     }, [currentSong, settingsState.showLyrics]);
 
-    const isOnSafari = isSafari();
     const isHomeView = navState.view === "home";
 
     if (!currentSong) {
@@ -227,7 +225,6 @@ export const Player = forwardRef<PlayerRef, PlayerProps>(
               isFavorite={isFavorite}
               showVisualizer={showVisualizer}
               showLyrics={showLyrics}
-              isOnSafari={isOnSafari}
               onFavorite={handleFavorite}
               onVisualizerToggle={handleVisualizerToggle}
               onLyricsToggle={handleLyricsToggle}

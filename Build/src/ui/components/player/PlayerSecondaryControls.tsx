@@ -18,7 +18,6 @@ interface PlayerSecondaryControlsProps {
   isFavorite: boolean;
   showVisualizer: boolean;
   showLyrics: boolean;
-  isOnSafari: boolean;
   onFavorite: () => void;
   onVisualizerToggle: () => void;
   onLyricsToggle: () => void;
@@ -32,7 +31,6 @@ export const PlayerSecondaryControls = ({
   isFavorite,
   showVisualizer,
   showLyrics,
-  isOnSafari,
   onFavorite,
   onVisualizerToggle,
   onLyricsToggle,
@@ -58,18 +56,16 @@ export const PlayerSecondaryControls = ({
         <Icon name="heart" size={16} decorative />
       </Button>
 
-      {!isOnSafari && (
-        <Button
-          variant="ghost"
-          size="icon-sm"
-          className={`${styles.secondaryButton} ${showVisualizer ? styles.active : ""}`}
-          onClick={onVisualizerToggle}
-          title={t("player.visualizer")}
-          data-tour="visualizer-button"
-        >
-          <Icon name="barChart3" size={16} decorative />
-        </Button>
-      )}
+      <Button
+        variant="ghost"
+        size="icon-sm"
+        className={`${styles.secondaryButton} ${showVisualizer ? styles.active : ""}`}
+        onClick={onVisualizerToggle}
+        title={t("player.visualizer")}
+        data-tour="visualizer-button"
+      >
+        <Icon name="barChart3" size={16} decorative />
+      </Button>
 
       <Button
         variant="ghost"
