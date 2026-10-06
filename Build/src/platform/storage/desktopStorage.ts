@@ -1,7 +1,10 @@
 import { BaseStorageBackend, PlatformType } from "./base";
 import type { Track } from "../../core/engine/types";
 import { createLogger } from "../../helpers/logger";
-import { importableExtensionNames } from "../audio/formats";
+import {
+  importableExtensionNames,
+  importablePathPattern,
+} from "../audio/formats";
 const logger = createLogger("desktopStorage");
 
 export class DesktopStorageBackend extends BaseStorageBackend {
@@ -62,10 +65,7 @@ export class DesktopStorageBackend extends BaseStorageBackend {
       const files: File[] = [];
       for (const entry of entries) {
         const e = entry as { name?: string; isFile?: boolean };
-        if (
-          e.isFile &&
-          e.name?.match(/\.(mp3|flac|ogg|wav|m4a|aac|wma|flo)$/i)
-        ) {
+        if (e.isFile && e.name && importablePathPattern().test(e.name)) {
           try {
             const { readFile } = await import("@tauri-apps/plugin-fs");
             const data = await readFile(`${result}/${e.name}`);

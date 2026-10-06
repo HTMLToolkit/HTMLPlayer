@@ -1,0 +1,4 @@
+[submodule "Build/vendor/music-metadata"]
+	path = Build/vendor/music-metadata
+	url = https://github.com/NellowTCS/music-metadata.git
+	branch = fix/ogg-flac-duration

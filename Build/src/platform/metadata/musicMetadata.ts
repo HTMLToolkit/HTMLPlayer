@@ -7,10 +7,19 @@ import type {
   ReplayGainInfo,
 } from "../../core/engine/types";
 import { createLogger, describeError } from "../../helpers/logger";
+import { identifyFormat } from "../audio/formats";
 
 const logger = createLogger("musicMetadata");
 
 const PARSE_OPTIONS = { duration: true } as const;
+
+function withResolvedMimeType(file: File | Blob): Blob {
+  if (!(file instanceof File)) return file;
+  const mimeType = identifyFormat(file.name, file.type)?.mimeTypes[0];
+  return mimeType && mimeType !== file.type
+    ? new File([file], file.name, { type: mimeType })
+    : file;
+}
 
 function describeFile(file: File | Blob): Record<string, string | number> {
   return {
@@ -44,7 +53,10 @@ export class MusicMetadataExtractor extends BaseMetadataExtractor {
   async extractMetadata(file: File | Blob): Promise<ExtractedMetadata> {
     try {
       const musicMetadata = await import("music-metadata");
-      const metadata = await musicMetadata.parseBlob(file, PARSE_OPTIONS);
+      const metadata = await musicMetadata.parseBlob(
+        withResolvedMimeType(file),
+        PARSE_OPTIONS,
+      );
 
       const common = metadata.common;
       const format = metadata.format;
@@ -177,7 +189,10 @@ export class MusicMetadataExtractor extends BaseMetadataExtractor {
   async extractAlbumArt(file: File | Blob): Promise<string | undefined> {
     try {
       const musicMetadata = await import("music-metadata");
-      const metadata = await musicMetadata.parseBlob(file, PARSE_OPTIONS);
+      const metadata = await musicMetadata.parseBlob(
+        withResolvedMimeType(file),
+        PARSE_OPTIONS,
+      );
 
       if (metadata.common.picture && metadata.common.picture.length > 0) {
         const pic = metadata.common.picture[0]!;

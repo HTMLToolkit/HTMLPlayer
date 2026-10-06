@@ -12,6 +12,7 @@ module.exports = {
     "^.+\\.tsx?$": ["ts-jest", { useESM: true }],
   },
   moduleNameMapper: {
+    "^music-metadata$": "<rootDir>/vendor/music-metadata/dist/core.js",
     "decoderWorkerFactory$": "<rootDir>/tests/mocks/decoderWorkerFactory.ts",
     "floWorkletSource$": "<rootDir>/tests/mocks/rawModule.ts",
     "^.*/platform/visualizers$": "<rootDir>/tests/mocks/platformVisualizers.ts",

@@ -235,6 +235,10 @@ export default defineConfig({
 
   resolve: {
     alias: {
+      "music-metadata": path.resolve(
+        import.meta.dirname,
+        "vendor/music-metadata/dist/core.js",
+      ),
       ...(isWeb && !isSingleFile
         ? {}
         : {
@@ -252,7 +256,7 @@ export default defineConfig({
     __INLINED_ICON__: JSON.stringify(iconBase64),
   },
 
-  esbuild: {
+  oxc: {
     target: isDesktop ? "es2021" : "esnext",
   },
 

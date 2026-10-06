@@ -21,6 +21,11 @@
     "isolatedModules": true,
     "noEmit": true,
     "jsx": "react-jsx",
+    "paths": {
+      "music-metadata": [
+        "./vendor/music-metadata/dist/core.d.ts"
+      ]
+    },
     "types": [
       "vite",
       "vite/client",

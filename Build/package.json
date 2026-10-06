@@ -26,6 +26,8 @@
     "count-lines": "cloc . --exclude-dir=node_modules,build,dist --exclude-ext=lock,json",
     "i18n-check": "node i18n-izer.cjs --ignore-console",
     "generate:visualizers": "node scripts/gen-visualizer-registry.cjs",
+    "build:vendor": "tsc -p vendor/music-metadata/lib/tsconfig.json --typeRoots ./node_modules/@types --rootDir vendor/music-metadata/lib --outDir vendor/music-metadata/dist",
+    "postinstall": "npm run build:vendor",
     "update": "npm-check-updates -i"
   },
   "dependencies": {
@@ -67,7 +69,7 @@
     "i18next-http-backend": "^4.0.2",
     "lucide-react": "^0.577.0",
     "m3u-parser-generator": "^5.0.2",
-    "music-metadata": "^11.16.0",
+    "music-metadata": "file:vendor/music-metadata",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
     "react-i18next": "^17.0.15",

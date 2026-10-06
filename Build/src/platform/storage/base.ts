@@ -1,4 +1,5 @@
 import type { Track } from "../../core/engine/types";
+import { identifyFormat } from "../audio/formats";
 
 export type PlatformType = "web" | "desktop" | "mobile";
 
@@ -30,18 +31,7 @@ export abstract class BaseStorageBackend
   abstract loadTracks(files: File[]): Promise<Track[]>;
 
   protected getMimeType(filename: string): string {
-    const ext = filename.split(".").pop()?.toLowerCase();
-    const mimeTypes: Record<string, string> = {
-      mp3: "audio/mpeg",
-      flac: "audio/flac",
-      ogg: "audio/ogg",
-      wav: "audio/wav",
-      m4a: "audio/mp4",
-      aac: "audio/aac",
-      wma: "audio/x-ms-wma",
-      flo: "audio/x-flo",
-    };
-    return mimeTypes[ext || ""] || "audio/mpeg";
+    return identifyFormat(filename, "")?.mimeTypes[0] ?? "audio/mpeg";
   }
 
   protected filesToFileList(files: File[]): FileList {
