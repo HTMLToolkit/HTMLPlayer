@@ -12,9 +12,24 @@ runs:
         targets: wasm32-unknown-unknown
 
     - name: Install wasm-pack
-      uses: jetli/wasm-pack-action@v0.4.0
-      with:
-        version: "0.15.0"
+      shell: bash
+      run: |
+        set -euo pipefail
+        VERSION="0.15.0"
+        case "$RUNNER_OS-$RUNNER_ARCH" in
+          Linux-X64)   TARGET="x86_64-unknown-linux-musl" ;;
+          Linux-ARM64) TARGET="aarch64-unknown-linux-musl" ;;
+          macOS-X64)   TARGET="x86_64-apple-darwin" ;;
+          macOS-ARM64) TARGET="aarch64-apple-darwin" ;;
+          *) echo "::error::Unsupported runner: $RUNNER_OS/$RUNNER_ARCH"; exit 1 ;;
+        esac
+        mkdir -p "$RUNNER_TEMP/wasm-pack"
+        curl -fsSL -o "$RUNNER_TEMP/wasm-pack.tar.gz" \
+          "https://github.com/wasm-bindgen/wasm-pack/releases/download/v${VERSION}/wasm-pack-v${VERSION}-${TARGET}.tar.gz"
+        tar -xzf "$RUNNER_TEMP/wasm-pack.tar.gz" -C "$RUNNER_TEMP/wasm-pack"
+        BIN="$(find "$RUNNER_TEMP/wasm-pack" -type f -name wasm-pack | head -1)"
+        "$BIN" --version
+        echo "$(dirname "$BIN")" >> "$GITHUB_PATH"
 
     # Cached against the lockfile so editing lib.rs reuses every dependency build
     - name: Restore Cargo build cache
