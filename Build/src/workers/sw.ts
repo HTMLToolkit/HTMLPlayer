@@ -20,15 +20,17 @@ scope.addEventListener("message", (event) => {
 // @ts-ignore
 precacheAndRoute(self.__WB_MANIFEST);
 
+const BASE_URL = import.meta.env.BASE_URL;
+
 const handler = createHandlerBoundToURL("index.html");
 const navigationRoute = new NavigationRoute(handler, {
-  allowlist: [/^\/beta\/HTMLPlayer\//],
+  allowlist: [new RegExp(`^${BASE_URL}`)],
 });
 registerRoute(navigationRoute);
 
 registerRoute(
   ({ url, request }) => {
-    return url.pathname === "/beta/HTMLPlayer/" && request.method === "POST";
+    return url.pathname === BASE_URL && request.method === "POST";
   },
   async ({ event }) => {
     try {
@@ -84,7 +86,7 @@ registerRoute(
         }
       }
       const redirectUrl = new URL(
-        "/beta/HTMLPlayer/?share-received=true",
+        `${BASE_URL}?share-received=true`,
         self.location.origin,
       );
       return Response.redirect(redirectUrl.href, 303);

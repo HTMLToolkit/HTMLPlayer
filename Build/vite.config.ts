@@ -8,12 +8,8 @@ import { VitePWA } from "vite-plugin-pwa";
 import { viteSingleFile } from "vite-plugin-singlefile";
 import wasm from "vite-plugin-wasm";
 
-import enMessages from "./src/locales/en/loading-messages-en.json" with {
-  type: "json",
-};
-import frMessages from "./src/locales/fr/loading-messages-fr.json" with {
-  type: "json",
-};
+import enMessages from "./src/locales/en/loading-messages-en.json" with { type: "json" };
+import frMessages from "./src/locales/fr/loading-messages-fr.json" with { type: "json" };
 
 const host = process.env.TAURI_DEV_HOST;
 const buildTarget = process.env.BUILD_TARGET || "web";
@@ -22,7 +18,13 @@ const isSingleFile = process.env.SINGLE_FILE === "true";
 const isDesktop = buildTarget === "desktop";
 const isWeb = buildTarget === "web";
 
-const BASE_PATH = isDesktop ? "/" : "/beta/HTMLPlayer/";
+// Deployments that are not served from the /beta/HTMLPlayer/ prefix (Netlify
+// deploy previews, local static hosting) override this with BASE_PATH=/.
+const RAW_BASE_PATH =
+  process.env.BASE_PATH ?? (isDesktop ? "/" : "/beta/HTMLPlayer/");
+const BASE_PATH = RAW_BASE_PATH.endsWith("/")
+  ? RAW_BASE_PATH
+  : `${RAW_BASE_PATH}/`;
 
 const iconBase64 = isSingleFile
   ? `data:image/png;base64,${fs.readFileSync(path.resolve(import.meta.dirname, "public/icon-any.png")).toString("base64")}`
@@ -44,11 +46,11 @@ const plugins = [
         .replace(/__INLINED_ICON__/g, JSON.stringify(iconBase64))
         .replace(
           /__INLINED_MESSAGES__/g,
-          JSON.stringify({ en: enMessages, fr: frMessages })
+          JSON.stringify({ en: enMessages, fr: frMessages }),
         );
     },
   },
-  ].filter(Boolean);
+].filter(Boolean);
 
 if (isWeb && !isSingleFile) {
   plugins.push(
@@ -61,7 +63,7 @@ if (isWeb && !isSingleFile) {
       filename: "sw.ts",
       injectRegister: "script",
       injectManifest: {
-        maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, 
+        maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
         swSrc: "./src/workers/sw.ts",
       },
 
@@ -72,14 +74,14 @@ if (isWeb && !isSingleFile) {
         description:
           "A modern music player interface with playlists, song management, visualizers, and offline support.",
         categories: ["music", "audio", "entertainment", "tools"],
-        start_url: "/beta/HTMLPlayer/",
-        scope: "/beta/HTMLPlayer/",
+        start_url: BASE_PATH,
+        scope: BASE_PATH,
         display: "standalone",
         theme_color: "#00bfff",
         background_color: "#00bfff",
         orientation: "any",
         share_target: {
-          action: "/beta/HTMLPlayer/",
+          action: BASE_PATH,
           method: "POST",
           enctype: "multipart/form-data",
           params: {
@@ -91,7 +93,7 @@ if (isWeb && !isSingleFile) {
                 name: "audio",
                 accept: [
                   "audio/*",
-                  "application/octet-stream", 
+                  "application/octet-stream",
                   ".flo",
                   ".mp3",
                   ".wav",
@@ -108,7 +110,7 @@ if (isWeb && !isSingleFile) {
         },
         file_handlers: [
           {
-            action: "/beta/HTMLPlayer/",
+            action: BASE_PATH,
             accept: {
               "application/octet-stream": [".flo"],
               "audio/mpeg": [".mp3"],
@@ -181,7 +183,7 @@ if (isWeb && !isSingleFile) {
       devOptions: {
         enabled: false,
       },
-    })
+    }),
   );
 }
 
@@ -294,7 +296,7 @@ export default defineConfig({
     emptyOutDir: true,
     ...(isWeb &&
       !isSingleFile && {
-        chunkSizeWarningLimit: 1000, 
+        chunkSizeWarningLimit: 1000,
         rollupOptions: {
           input: {
             main: "./index.html",
@@ -307,7 +309,7 @@ export default defineConfig({
         },
       }),
     ...(isSingleFile && {
-      assetsInlineLimit: 100000000, 
+      assetsInlineLimit: 100000000,
       chunkSizeWarningLimit: 100000,
       rollupOptions: {
         output: {
@@ -324,7 +326,7 @@ export default defineConfig({
   ...(isSingleFile && {
     worker: {
       format: "iife",
-      plugins: () => [wasm()], 
+      plugins: () => [wasm()],
       rollupOptions: {
         output: {
           codeSplitting: false,

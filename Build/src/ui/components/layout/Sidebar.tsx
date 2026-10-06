@@ -255,7 +255,10 @@ export const Sidebar = memo(function SidebarImpl({
                   variant="outline"
                   size="sm"
                   onClick={() =>
-                    window.open("/beta/HTMLPlayer/privacy.html", "_blank")
+                    window.open(
+                      `${import.meta.env.BASE_URL}privacy.html`,
+                      "_blank",
+                    )
                   }
                 >
                   {t("about.privacy")}
@@ -264,7 +267,10 @@ export const Sidebar = memo(function SidebarImpl({
                   variant="outline"
                   size="sm"
                   onClick={() =>
-                    window.open("/beta/HTMLPlayer/terms.html", "_blank")
+                    window.open(
+                      `${import.meta.env.BASE_URL}terms.html`,
+                      "_blank",
+                    )
                   }
                 >
                   {t("about.terms")}
