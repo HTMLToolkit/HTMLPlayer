@@ -42,6 +42,24 @@ describe("format registry", () => {
     expect(identifyFormat("track.bin", "audio/ogg")?.id).toBe("ogg-vorbis");
   });
 
+  it("resolves an ambiguous bare Ogg MIME using the parsed codec hint", () => {
+    expect(identifyFormat("sample3", "audio/ogg", "Opus")?.id).toBe("opus");
+    expect(identifyFormat("sample3", "audio/ogg", "Vorbis I")?.id).toBe(
+      "ogg-vorbis",
+    );
+  });
+
+  it("lets the codec hint override a misleading extension", () => {
+    expect(identifyFormat("recording.ogg", "", "Opus")?.id).toBe("opus");
+  });
+
+  it("falls back to extension and MIME when the codec hint is unknown", () => {
+    expect(identifyFormat("track.ogg", "audio/ogg", "MPEG 4 Audio")?.id).toBe(
+      "ogg-vorbis",
+    );
+    expect(identifyFormat("track.mp3", "audio/mpeg", "")?.id).toBe("mp3");
+  });
+
   it("gives every format a unique id", () => {
     const ids = AUDIO_FORMATS.map((format) => format.id);
     expect(new Set(ids).size).toBe(ids.length);

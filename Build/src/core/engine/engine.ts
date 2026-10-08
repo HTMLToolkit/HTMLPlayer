@@ -25,6 +25,9 @@ import {
   clampRate,
   clampVolume,
 } from "../../platform/audio/clamp";
+import { createLogger } from "../../helpers/logger";
+
+const logger = createLogger("engine");
 
 export interface IAudioEngineConfig {
   crossfade: {
@@ -678,6 +681,14 @@ export class KomorebiEngine {
         }
         return;
       }
+      logger.warn("Crossfade failed, falling back to hard transition", {
+        track: nextTrack.title,
+      });
+    } else {
+      logger.debug("Hard transition scheduled", {
+        mode: this.scheduler.getMode(),
+        crossfade: this.settings.crossfade,
+      });
     }
 
     await this.loadAndPlay(nextTrack);

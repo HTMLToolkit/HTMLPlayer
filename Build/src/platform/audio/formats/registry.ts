@@ -296,7 +296,13 @@ export function normalizeMime(mimeType: string): string {
 export function identifyFormat(
   fileName: string,
   mimeType: string,
+  codecHint?: string,
 ): AudioFormat | undefined {
+  if (codecHint) {
+    const byCodec = getFormatByCodec(codecHint);
+    if (byCodec) return byCodec;
+  }
+
   const extension = extensionOf(fileName);
   if (extension) {
     const byExtension = BY_EXTENSION.get(extension);

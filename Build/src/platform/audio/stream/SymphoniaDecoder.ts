@@ -14,6 +14,7 @@ export interface SymphoniaDecoderHandle {
   } | null;
   next_frame(): Float32Array | null;
   is_finished(): boolean;
+  budget_exhausted(): boolean;
   free(): void;
 }
 
@@ -112,6 +113,10 @@ class SymphoniaDecoder implements FloStreamDecoderProtocol {
     return this.guard(() => this.wasm.is_finished());
   }
 
+  budget_exhausted(): boolean {
+    return this.guard(() => this.wasm.budget_exhausted());
+  }
+
   free(): void {
     this.guard(() => {
       this.wasm.free();
@@ -121,5 +126,4 @@ class SymphoniaDecoder implements FloStreamDecoderProtocol {
 
 export const createSymphoniaStreamingDecoder = (
   module: SymphoniaWasmModule | null = null,
-): FloStreamDecoderProtocol =>
-  new SymphoniaDecoder(module ?? initializedModule());
+): SymphoniaDecoder => new SymphoniaDecoder(module ?? initializedModule());

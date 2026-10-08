@@ -1,6 +1,7 @@
 import {
   BackendRouter,
   chooseBackendKind,
+  crossfadePartnerKinds,
 } from "../src/platform/audio/backends/BackendRouter";
 import type { IAudioBackend } from "../src/platform/audio";
 import type { Track } from "../src/core/engine/types";
@@ -140,10 +141,96 @@ describe("chooseBackendKind", () => {
     );
   });
 
+  it("routes a stored Opus track to html using the parsed codec", () => {
+    const track = makeTrack({
+      hasStoredAudio: true,
+      mimeType: "audio/ogg",
+      fileName: "sample3",
+      encoding: { codec: "Opus", sampleRate: 48000, channels: 2 },
+    });
+
+    expect(chooseBackendKind(track)).toBe("html");
+    expect(chooseBackendKind(makeTrack({ ...track, encoding: undefined }))).toBe(
+      "symphonia",
+    );
+  });
+
+  it("keeps a stored Vorbis track on Symphonia despite the codec hint", () => {
+    const track = makeTrack({
+      hasStoredAudio: true,
+      mimeType: "audio/ogg",
+      fileName: "sample3",
+      encoding: { codec: "Vorbis I", sampleRate: 44100, channels: 2 },
+    });
+
+    expect(chooseBackendKind(track)).toBe("symphonia");
+  });
+
   it("falls back to the url when no track is given", () => {
     expect(chooseBackendKind(undefined, "http://x/y.flo")).toBe("flo");
     expect(chooseBackendKind(undefined, "http://x/y.mp3")).toBe("html");
     expect(chooseBackendKind(undefined, undefined)).toBe("html");
+  });
+});
+
+describe("crossfadePartnerKinds", () => {
+  it("prefers the mapped backend, then the live backend, then html", () => {
+    expect(
+      crossfadePartnerKinds(
+        makeTrack({ hasStoredAudio: true, mimeType: "audio/flac" }),
+        "blob:flac-url",
+        "html",
+      ),
+    ).toEqual(["symphonia", "html"]);
+    expect(
+      crossfadePartnerKinds(
+        makeTrack({ hasStoredAudio: true, mimeType: "audio/flac" }),
+        "blob:flac-url",
+        "flo",
+      ),
+    ).toEqual(["symphonia", "flo", "html"]);
+  });
+
+  it("tries html as a fallback even when the mapped backend matches the live one", () => {
+    expect(
+      crossfadePartnerKinds(
+        makeTrack({ hasStoredAudio: true, mimeType: "audio/mpeg" }),
+        "blob:mp3-url",
+        "symphonia",
+      ),
+    ).toEqual(["symphonia", "html"]);
+  });
+
+  it("carries an ogg track (ambiguous vorbis/opus) to html when symphonia is live", () => {
+    expect(
+      crossfadePartnerKinds(
+        makeTrack({ hasStoredAudio: true, mimeType: "audio/ogg", title: "mix" }),
+        "blob:mix-url",
+        "symphonia",
+      ),
+    ).toEqual(["symphonia", "html"]);
+  });
+
+  it("collapses to a single kind on Safari", () => {
+    withSafariUa(() => {
+      expect(
+        crossfadePartnerKinds(
+          makeTrack({ hasStoredAudio: true, mimeType: "audio/mpeg" }),
+          "blob:mp3-url",
+          "html",
+        ),
+      ).toEqual(["html"]);
+    });
+  });
+
+  it("keeps flo first for flo tracks regardless of the live backend", () => {
+    expect(
+      crossfadePartnerKinds(
+        makeTrack({ mimeType: "audio/x-flo" }),
+        "blob:flo-url",
+        "symphonia",
+      ),
+    ).toEqual(["flo", "symphonia", "html"]);
   });
 });
 

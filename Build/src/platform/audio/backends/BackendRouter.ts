@@ -6,6 +6,9 @@ import { isSafari } from "../../utils/safari";
 import { chooseBackendFor, identifyFormat, type BackendKind } from "../formats";
 import type { IAudioBackend } from "../index";
 import type { Track } from "../../../core/engine/types";
+import { createLogger } from "../../../helpers/logger";
+
+const logger = createLogger("backendRouter");
 
 export interface BackendRouterBackends {
   html: IAudioBackend;
@@ -20,13 +23,26 @@ export function chooseBackendKind(track?: Track, url?: string): BackendKind {
     return url?.includes(".flo") ? "flo" : "html";
   }
 
-  const nameHint = track.url || track.title;
-  const format = identifyFormat(nameHint, track.mimeType ?? "");
+  const nameHint = track.fileName || track.url || track.title;
+  const format = identifyFormat(
+    nameHint,
+    track.mimeType ?? "",
+    track.encoding?.codec,
+  );
 
   return chooseBackendFor(format, {
     hasStoredAudio: track.hasStoredAudio === true,
     isSafariRuntime: isSafari(),
   });
+}
+
+export function crossfadePartnerKinds(
+  track: Track | undefined,
+  url: string | undefined,
+  currentKind: BackendKind,
+): BackendKind[] {
+  const mappedKind = chooseBackendKind(track, url);
+  return [...new Set<BackendKind>([mappedKind, currentKind, "html"])];
 }
 
 export class BackendRouter extends BaseAudioBackend {
@@ -121,22 +137,44 @@ export class BackendRouter extends BaseAudioBackend {
   ): Promise<boolean> {
     this.cancelCrossfade();
 
-    const kind = chooseBackendKind(track, url);
-    const partner = this.createPartner(kind);
-    if (!partner || !this.current.setOutputGain) return Promise.resolve(false);
+    const kinds = crossfadePartnerKinds(track, url, this.currentKind());
+
+    const currentHasOutputGain = Boolean(this.current.setOutputGain);
+    if (!currentHasOutputGain) {
+      logger.warn("Crossfade declined", { kinds, currentHasOutputGain });
+      return Promise.resolve(false);
+    }
+
+    let partner: IAudioBackend | null = null;
+    let kind: BackendKind | null = null;
+    for (const candidate of kinds) {
+      const attempt = this.createPartner(candidate);
+      if (attempt) {
+        partner = attempt;
+        kind = candidate;
+        break;
+      }
+    }
+    if (!partner || !kind) {
+      logger.warn("Crossfade declined", { kinds, currentHasOutputGain });
+      return Promise.resolve(false);
+    }
 
     const outgoing = this.current;
     const startTime = performance.now();
     const durationMs = Math.max(50, options.durationMs);
     const shape = options.shape;
 
-    partner.setVolume(this.volume);
-    partner.setPlaybackRate(this.playbackRate);
-    partner.setPitch?.(this.pitch);
-    partner.setReplayGain?.(this.replayGain);
-    partner.setOutputGain?.(0);
-    partner.onTimeUpdate((time) => this.emitTimeUpdate(time));
-    partner.onError((error) => this.emitError(error));
+    const configurePartner = (target: IAudioBackend): void => {
+      target.setVolume(this.volume);
+      target.setPlaybackRate(this.playbackRate);
+      target.setPitch?.(this.pitch);
+      target.setReplayGain?.(this.replayGain);
+      target.setOutputGain?.(0);
+      target.onTimeUpdate((time) => this.emitTimeUpdate(time));
+      target.onError((error) => this.emitError(error));
+    };
+    configurePartner(partner);
 
     outgoing.offEnded(this.forwardEnded);
 
@@ -144,6 +182,7 @@ export class BackendRouter extends BaseAudioBackend {
 
     const finish = (): void => {
       if (this.crossfadePartner !== partner) return;
+      if (!partner || !kind) return;
       outgoing.offTimeUpdate(this.forwardTimeUpdate);
       outgoing.offEnded(this.forwardEnded);
       outgoing.offError(this.forwardError);
@@ -161,6 +200,7 @@ export class BackendRouter extends BaseAudioBackend {
       if (this.crossfadePartner !== partner || this.crossfadeTimeout === null) {
         return;
       }
+      if (!partner) return;
       const progress = Math.min(
         1,
         (performance.now() - startTime) / durationMs,
@@ -183,30 +223,61 @@ export class BackendRouter extends BaseAudioBackend {
       }
     };
 
+    const abandon = (): void => {
+      if (this.crossfadePartner) {
+        this.crossfadePartner.dispose();
+        this.crossfadePartner = null;
+      }
+      outgoing.offEnded(this.forwardEnded);
+      outgoing.onEnded(this.forwardEnded);
+    };
+
     return (async () => {
-      try {
-        await partner.load(url, track);
-        if (this.crossfadePartner !== partner) {
-          partner.dispose();
-          return false;
+      for (const candidate of kinds) {
+        if (kind !== candidate) {
+          partner?.dispose();
+          const attempt = this.createPartner(candidate);
+          if (!attempt) break;
+          partner = attempt;
+          kind = candidate;
+          this.crossfadePartner = partner;
+          configurePartner(partner);
         }
-        await partner.play();
-        if (this.crossfadePartner !== partner) {
-          partner.dispose();
-          return false;
-        }
-      } catch {
-        if (this.crossfadePartner === partner) {
+
+        try {
+          await partner!.load(url, track);
+          if (this.crossfadePartner !== partner) {
+            partner!.dispose();
+            return false;
+          }
+          partner!.setOutputGain?.(0);
+          await partner!.play();
+          if (this.crossfadePartner !== partner) {
+            partner!.dispose();
+            return false;
+          }
+        } catch (error) {
+          if (kinds[kinds.length - 1] === candidate) {
+            logger.warn("Crossfade partner load/play failed", {
+              kind: candidate,
+              error: String(error),
+            });
+            break;
+          }
+          partner?.dispose();
+          partner = null;
           this.crossfadePartner = null;
-          outgoing.offEnded(this.forwardEnded);
-          outgoing.onEnded(this.forwardEnded);
+          continue;
         }
-        partner.dispose();
-        return false;
+
+        logger.debug("Crossfade engaged", { kind, durationMs });
+        this.crossfadeTimeout = window.setTimeout(step, 0);
+        return true;
       }
 
-      this.crossfadeTimeout = window.setTimeout(step, 0);
-      return true;
+      abandon();
+      logger.warn("Crossfade failed, no partner available", { kinds });
+      return false;
     })();
   }
 
@@ -251,6 +322,13 @@ export class BackendRouter extends BaseAudioBackend {
   private readonly forwardTimeUpdate = (time: number) => {
     this.emitTimeUpdate(time);
   };
+
+  private currentKind(): BackendKind {
+    if (this.current === this.htmlBackend) return "html";
+    if (this.current === this.floBackend) return "flo";
+    if (this.current === this.symphoniaBackend) return "symphonia";
+    return "html";
+  }
 
   private createPartner(kind: BackendKind): IAudioBackend | null {
     if (kind === "flo") {
