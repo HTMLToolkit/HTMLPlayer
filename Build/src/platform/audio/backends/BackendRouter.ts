@@ -6,7 +6,7 @@ import { isSafari } from "../../utils/safari";
 import { chooseBackendFor, identifyFormat, type BackendKind } from "../formats";
 import type { IAudioBackend } from "../index";
 import type { Track } from "../../../core/engine/types";
-import { createLogger } from "../../../helpers/logger";
+import { createLogger, describeError } from "../../../helpers/logger";
 
 const logger = createLogger("backendRouter");
 
@@ -82,8 +82,20 @@ export class BackendRouter extends BaseAudioBackend {
       case "symphonia":
         try {
           await this.switchTo(this.symphoniaBackend, url, track);
-        } catch {
-          await this.switchTo(this.htmlBackend, url, track);
+        } catch (symphoniaError) {
+          logger.warn("Symphonia backend rejected the track", {
+            kind: "symphonia",
+            track: track?.title,
+            error: describeError(symphoniaError),
+          });
+          try {
+            await this.switchTo(this.htmlBackend, url, track);
+          } catch (htmlError) {
+            throw new Error(
+              `backend load failed: symphonia rejected the track, then html failed: ${String(htmlError)}`,
+              { cause: symphoniaError },
+            );
+          }
         }
         break;
       case "html":
@@ -191,6 +203,12 @@ export class BackendRouter extends BaseAudioBackend {
       outgoing.setOutputGain?.(0);
       this.current = partner;
       this.replacePrimary(kind, partner);
+      logger.debug("Using backend", {
+        kind: this.kindOf(partner),
+        switched: true,
+        via: "crossfade",
+        track: track?.title,
+      });
       this.crossfadePartner = null;
       this.crossfadeTimeout = null;
       outgoing.dispose();
@@ -323,11 +341,15 @@ export class BackendRouter extends BaseAudioBackend {
     this.emitTimeUpdate(time);
   };
 
-  private currentKind(): BackendKind {
-    if (this.current === this.htmlBackend) return "html";
-    if (this.current === this.floBackend) return "flo";
-    if (this.current === this.symphoniaBackend) return "symphonia";
+  private kindOf(backend: IAudioBackend): BackendKind {
+    if (backend === this.htmlBackend) return "html";
+    if (backend === this.floBackend) return "flo";
+    if (backend === this.symphoniaBackend) return "symphonia";
     return "html";
+  }
+
+  private currentKind(): BackendKind {
+    return this.kindOf(this.current);
   }
 
   private createPartner(kind: BackendKind): IAudioBackend | null {
@@ -373,7 +395,9 @@ export class BackendRouter extends BaseAudioBackend {
     url: string,
     track?: Track,
   ): Promise<void> {
-    if (backend !== this.current) {
+    const kind = this.kindOf(backend);
+    const switched = backend !== this.current;
+    if (switched) {
       this.current.offTimeUpdate(this.forwardTimeUpdate);
       this.current.offEnded(this.forwardEnded);
       this.current.offError(this.forwardError);
@@ -387,6 +411,13 @@ export class BackendRouter extends BaseAudioBackend {
     backend.setPlaybackRate(this.playbackRate);
     backend.setPitch?.(this.pitch);
     backend.setReplayGain?.(this.replayGain);
+
+    logger.debug("Using backend", {
+      kind,
+      switched,
+      track: track?.title,
+      url,
+    });
 
     await backend.load(url, track);
   }

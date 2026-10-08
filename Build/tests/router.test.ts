@@ -6,6 +6,38 @@ import {
 import type { IAudioBackend } from "../src/platform/audio";
 import type { Track } from "../src/core/engine/types";
 
+jest.mock("../src/helpers/logger", () => {
+  const actual = jest.requireActual("../src/helpers/logger");
+  const mockLog = {
+    debug: jest.fn(),
+    info: jest.fn(),
+    warn: jest.fn(),
+    error: jest.fn(),
+  };
+  return {
+    ...actual,
+    createLogger: () => mockLog,
+  };
+});
+
+const routerLog = (
+  jest.requireMock("../src/helpers/logger") as {
+    createLogger: () => {
+      debug: jest.Mock;
+      info: jest.Mock;
+      warn: jest.Mock;
+      error: jest.Mock;
+    };
+  }
+).createLogger();
+
+beforeEach(() => {
+  routerLog.debug.mockClear();
+  routerLog.info.mockClear();
+  routerLog.warn.mockClear();
+  routerLog.error.mockClear();
+});
+
 class StubBackend implements IAudioBackend {
   calls: Array<{ url: string; track: Track | undefined }> = [];
   volume = 1;
@@ -334,20 +366,28 @@ describe("BackendRouter", () => {
 
   it("falls back through Symphonia to HTML", async () => {
     symphonia.failLoad = true;
-    const track = makeTrack({ hasStoredAudio: true });
+    const track = makeTrack({ hasStoredAudio: true, title: "Opus Track" });
     await router.load("blob:stored-url", track);
 
     expect(symphonia.calls).toHaveLength(1);
     expect(html.calls).toHaveLength(1);
+    expect(routerLog.warn).toHaveBeenCalledWith(
+      "Symphonia backend rejected the track",
+      expect.objectContaining({
+        kind: "symphonia",
+        track: "Opus Track",
+        error: expect.stringContaining("stub load failed: blob:stored-url"),
+      }),
+    );
   });
 
-  it("rethrows the html error when Symphonia and HTML also fail", async () => {
+  it("reports both failures when Symphonia and HTML also fail", async () => {
     symphonia.failLoad = true;
     html.failLoad = true;
     const track = makeTrack({ hasStoredAudio: true });
 
     await expect(router.load("blob:stored-url", track)).rejects.toThrow(
-      "stub load failed: blob:stored-url",
+      /symphonia rejected the track, then html failed: .*stub load failed: blob:stored-url/,
     );
   });
 
@@ -357,6 +397,24 @@ describe("BackendRouter", () => {
 
     await expect(router.load("blob:mp3-url", track)).rejects.toThrow(
       "stub load failed: blob:mp3-url",
+    );
+  });
+
+  it("logs the backend used for each load", async () => {
+    await router.load(
+      "blob:alac-url",
+      makeTrack({ hasStoredAudio: true, mimeType: "audio/mpeg" }),
+    );
+    expect(routerLog.debug).toHaveBeenCalledWith(
+      "Using backend",
+      expect.objectContaining({ kind: "symphonia", switched: true }),
+    );
+
+    routerLog.debug.mockClear();
+    await router.load("blob:mp3-url", makeTrack({ mimeType: "audio/mpeg" }));
+    expect(routerLog.debug).toHaveBeenCalledWith(
+      "Using backend",
+      expect.objectContaining({ kind: "html", switched: true }),
     );
   });
 

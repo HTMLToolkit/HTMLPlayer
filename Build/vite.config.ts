@@ -236,20 +236,37 @@ export default defineConfig({
   plugins,
 
   resolve: {
-    alias: {
-      "music-metadata": path.resolve(
-        import.meta.dirname,
-        "vendor/music-metadata/dist/core.js",
-      ),
+    alias: [
+      {
+        find: "music-metadata",
+        replacement: path.resolve(
+          import.meta.dirname,
+          "vendor/music-metadata/dist/core.js",
+        ),
+      },
       ...(isWeb && !isSingleFile
-        ? {}
-        : {
-            "virtual:pwa-register/react": path.resolve(
-              import.meta.dirname,
-              "src/stubs/virtual-pwa-register-react.ts",
-            ),
-          }),
-    },
+        ? []
+        : [
+            {
+              find: "virtual:pwa-register/react",
+              replacement: path.resolve(
+                import.meta.dirname,
+                "src/stubs/virtual-pwa-register-react.ts",
+              ),
+            },
+          ]),
+      ...(isSingleFile
+        ? [
+            {
+              find: /^\.\/decoderWorkerFactory$/,
+              replacement: path.resolve(
+                import.meta.dirname,
+                "src/platform/audio/stream/decoderWorkerFactoryInline.ts",
+              ),
+            },
+          ]
+        : []),
+    ],
   },
   define: {
     __ENABLE_PWA_LOGIC__: isWeb && !isSingleFile,
