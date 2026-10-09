@@ -1,9 +1,13 @@
 # Bugs
 
 - [ ] when the visualizer is open, something UI bugs out and transparency and it flickers sometimes
-- [ ] Crossfade doesn't work
-
----
+- [ ] iOS/Safari crossfade: worked once, but now the element swap raises a "not allowed to play" error (`NotAllowedError`)
+  - the new audio element never inherits the user-gesture/autoplay grant, so playback stalls after the fade
+  - the ramp was also inaudible on iOS once and rarely triggers; suspect `HTMLBackend.routeAudioElement`
+    - probs swallows the `createSlot`/`connectMediaElement` error (`HTMLBackend.ts:149`), leaving `outputGain` null so gain changes are no-ops
+  - macOS Safari uses the same html path, so check it too
+- [ ] Visualizer overlay `left` bug on mobile: both media queries position the overlay wrong (`Player.module.css:443` and `Player.module.css:602`)
+- [ ] Crossfade doesn't work (general; desktop Chrome path was reworked, needs reengineering everywhere to be agnostic and perfect everywhere)
 
 - [ ] so like keeping track of state when user repeatedly does actions (like for example switching songs fast) does nothing and like weirds out state (the eternal problem with this appppppp ugh)
 

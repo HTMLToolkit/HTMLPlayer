@@ -55,7 +55,7 @@ All source code in `src/` is **shared**. Platform-specific logic should use runt
 
 ```typescript
 // Platform detection
-const isTauri = typeof window !== 'undefined' && '__TAURI__' in window;
+const isTauri = typeof window !== "undefined" && "__TAURI__" in window;
 
 if (isTauri) {
   // Use Tauri APIs
@@ -66,22 +66,22 @@ if (isTauri) {
 
 ## Available Scripts
 
-| Script                | Description                       |
-|-----------------------|-----------------------------------|
-| `npm run dev`         | Start web dev server (default)     |
-| `npm run dev:web`     | Start web dev server explicitly    |
-| `npm run dev:desktop` | Start desktop dev server           |
-| `npm run build`       | Build for web (default)            |
-| `npm run build:web`   | Build for web/PWA                  |
-| `npm run build:desktop`| Build for desktop (Tauri)         |
-| `npm run tauri`       | Run Tauri CLI                      |
-| `npm start`           | Serve built web app locally        |
-| `npm run preview`     | Preview production build           |
-| `npm run lint`        | Check for TypeScript errors        |
-| `npm run test`        | Run tests                          |
-| `npm run build:wasm`  | Build the Symphonia WASM decoder    |
-| `npm run count-lines` | Count lines of code                |
-| `npm run i18n-check`  | Check i18n coverage                |
+| Script                  | Description                      |
+| ----------------------- | -------------------------------- |
+| `npm run dev`           | Start web dev server (default)   |
+| `npm run dev:web`       | Start web dev server explicitly  |
+| `npm run dev:desktop`   | Start desktop dev server         |
+| `npm run build`         | Build for web (default)          |
+| `npm run build:web`     | Build for web/PWA                |
+| `npm run build:desktop` | Build for desktop (Tauri)        |
+| `npm run tauri`         | Run Tauri CLI                    |
+| `npm start`             | Serve built web app locally      |
+| `npm run preview`       | Preview production build         |
+| `npm run lint`          | Check for TypeScript errors      |
+| `npm run test`          | Run tests                        |
+| `npm run build:wasm`    | Build the Symphonia WASM decoder |
+| `npm run count-lines`   | Count lines of code              |
+| `npm run i18n-check`    | Check i18n coverage              |
 
 ### Symphonia WASM Decoder
 

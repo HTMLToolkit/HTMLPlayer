@@ -57,7 +57,7 @@ const lucideIcon = (icon: string, title?: string): IconDefinition => ({
 const icons: IconDefinitionMap = {
   play: lucideIcon("Play", "Play"),
   pause: lucideIcon("Pause", "Pause"),
-  menu: lucideIcon("Menu")
+  menu: lucideIcon("Menu"),
 };
 
 export default icons;
