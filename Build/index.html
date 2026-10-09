@@ -3,7 +3,6 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <!-- Fallback Metadata -->
     <meta
       name="description"
       content="A modern music player interface with playlists, song management, and an amazing visualizer."
@@ -44,19 +43,19 @@
     </script>
 
     <link href="./src/global.css" rel="stylesheet" />
-    <!-- Default theme loaded first for instant styling and first load -->
     <link
-      href="./src/themes/Themes/Blue/Blue.theme.css"
+      href="./src/ui/resources/themes/Palettes/Blue/Blue.theme.css"
       rel="stylesheet"
       id="theme-link"
     />
 
-    <!-- Load user's saved theme and dark mode preference ASAP -->
     <script>
       (function () {
         // Apply dark mode immediately if needed (before theme switching)
         const savedMode = localStorage.getItem("themeMode") || "auto";
+        let isDark = false;
         if (savedMode === "dark") {
+          isDark = true;
           document.documentElement.classList.add("dark");
         } else if (savedMode === "auto") {
           // Check system preference
@@ -64,16 +63,20 @@
             window.matchMedia &&
             window.matchMedia("(prefers-color-scheme: dark)").matches
           ) {
+            isDark = true;
             document.documentElement.classList.add("dark");
           }
         }
+        // Prevent white flash before theme CSS variables load
+        document.documentElement.style.backgroundColor = isDark
+          ? "#0a192f"
+          : "#f0f9ff";
       })();
     </script>
 
     <title>HTMLPlayer</title>
   </head>
   <body>
-    <!-- Loading screen shown before React loads -->
     <div id="loading-screen" class="loadingScreen">
       <div class="loadingContent">
         <div class="loadingSpinner"></div>
@@ -86,7 +89,6 @@
 
     <div id="root"></div>
 
-    <!-- Load fun loading messages -->
     <script>
       (function () {
         const userLang = (navigator.language || "en").substring(0, 2);
@@ -103,6 +105,18 @@
 
         // Statically replaced by the custom plugin
         const inlined = __INLINED_MESSAGES__;
+        const messages =
+          inlined && Array.isArray(inlined[lang]) ? inlined[lang] : null;
+
+        if (messages && messages.length > 0) {
+          updateText(messages);
+          let index = 0;
+          setInterval(() => {
+            if (!loadingText) return;
+            index = (index + 1) % messages.length;
+            loadingText.textContent = messages[index];
+          }, 2000);
+        }
       })();
     </script>
 

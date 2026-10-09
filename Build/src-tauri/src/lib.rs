@@ -1,4 +1,3 @@
-// Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 
 use discord_rich_presence::{activity::Activity, DiscordIpc, DiscordIpcClient};
 
@@ -47,7 +46,6 @@ fn is_discord_running() -> bool {
         return false;
     }
 
-    // Ignore errors when clearing activity; we only care whether the IPC is reachable.
     let _ = client.clear_activity();
     true
 }

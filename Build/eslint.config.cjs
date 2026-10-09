@@ -19,11 +19,11 @@ module.exports = [
     rules: {
       "react/jsx-uses-react": "off",
       "react/react-in-jsx-scope": "off",
-      "react/jsx-uses-vars": "warn",
+      "react/jsx-uses-vars": "error",
       "react/prop-types": "off",
       "react/display-name": "off",
-      "react/no-unescaped-entities": "warn",
-      "react/jsx-key": "warn",
+      "react/no-unescaped-entities": "error",
+      "react/jsx-key": "error",
     },
     settings: {
       react: {
@@ -47,18 +47,24 @@ module.exports = [
       },
     },
     rules: {
-      // TypeScript-specific rules
-      "@typescript-eslint/no-unused-vars": "warn",
-      "@typescript-eslint/no-explicit-any": "warn",
-      "@typescript-eslint/consistent-type-definitions": ["warn", "interface"],
-      // React rules
+      "@typescript-eslint/no-unused-vars": [
+        "error",
+        {
+          argsIgnorePattern: "^_",
+          varsIgnorePattern: "^_",
+          caughtErrorsIgnorePattern: "^_",
+          ignoreRestSiblings: true,
+        },
+      ],
+      "@typescript-eslint/no-explicit-any": "error",
+      "@typescript-eslint/consistent-type-definitions": ["error", "interface"],
       "react/jsx-uses-react": "off",
       "react/react-in-jsx-scope": "off",
-      "react/jsx-uses-vars": "warn",
+      "react/jsx-uses-vars": "error",
       "react/prop-types": "off",
       "react/display-name": "off",
-      "react/no-unescaped-entities": "warn",
-      "react/jsx-key": "warn",
+      "react/no-unescaped-entities": "error",
+      "react/jsx-key": "error",
     },
     settings: {
       react: {

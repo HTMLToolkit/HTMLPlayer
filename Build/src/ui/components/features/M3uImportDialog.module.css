@@ -1,0 +1,113 @@
+@layer base {
+  .modeList {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-2);
+    margin: 0;
+    padding: 0;
+    border: none;
+  }
+
+  .modeOption {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-1);
+    padding: var(--spacing-3) var(--spacing-4);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background-color: var(--card);
+    cursor: pointer;
+    transition:
+      border-color var(--animation-duration-normal) ease,
+      background-color var(--animation-duration-normal) ease;
+  }
+
+  .modeOption:hover {
+    border-color: color-mix(in srgb, var(--primary) 80%, transparent);
+    background-color: color-mix(in srgb, var(--card) 98%, var(--primary) 2%);
+  }
+
+  .modeOption:has(.modeInput:checked) {
+    border-color: var(--primary);
+    background-color: color-mix(in srgb, var(--card) 95%, var(--primary) 5%);
+  }
+
+  .modeOption:has(.modeInput:focus-visible) {
+    outline: none;
+    box-shadow: var(--shadow-focus);
+  }
+
+  .modeHeader {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-2);
+  }
+
+  .modeTitle {
+    font-weight: 500;
+    color: var(--foreground);
+  }
+
+  .modeInput {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .modeDescription {
+    font-size: 0.875rem;
+    color: var(--muted-foreground);
+  }
+
+  .reportList {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-3);
+    max-height: 18rem;
+    overflow-y: auto;
+  }
+
+  .reportRow {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-1);
+    padding: var(--spacing-3);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+  }
+
+  .reportName {
+    font-weight: 500;
+    color: var(--foreground);
+    overflow-wrap: anywhere;
+  }
+
+  .reportPath {
+    font-family: var(--font-family-base);
+    font-size: 0.8125rem;
+    color: var(--muted-foreground);
+    overflow-wrap: anywhere;
+  }
+
+  .reportReason {
+    font-size: 0.8125rem;
+    color: var(--error);
+  }
+
+  .reportActions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spacing-2);
+    margin-top: var(--spacing-1);
+  }
+
+  .reportEmpty {
+    margin: 0;
+    color: var(--muted-foreground);
+  }
+}

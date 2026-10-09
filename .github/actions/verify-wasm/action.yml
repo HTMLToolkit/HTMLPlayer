@@ -1,0 +1,32 @@
+name: Verify committed WASM artifacts
+description: >-
+  Rebuilds the symphonia-wasm crate and fails if the committed
+  symphonia.d.ts no longer matches the Rust source.
+
+inputs:
+  verify:
+    description: Fail the build when the committed .d.ts is stale.
+    required: false
+    default: "true"
+
+runs:
+  using: composite
+  steps:
+    - name: Build Symphonia WASM decoder
+      working-directory: Build
+      shell: bash
+      run: npm run build:wasm
+
+    - name: Check committed artifacts are up to date
+      if: inputs.verify == 'true'
+      shell: bash
+      run: |
+        set -euo pipefail
+        dir=Build/src/platform/audio/wasm/symphonia
+        if ! git diff --quiet -- "$dir/symphonia.d.ts"; then
+          echo "::error::Committed symphonia.d.ts is stale relative to crates/symphonia-wasm."
+          echo "Run 'npm run build:wasm' in Build/ and commit the result."
+          git --no-pager diff -- "$dir/symphonia.d.ts"
+          exit 1
+        fi
+        echo "Committed WASM type surface matches the Rust source."

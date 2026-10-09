@@ -8,27 +8,28 @@ import { VitePWA } from "vite-plugin-pwa";
 import { viteSingleFile } from "vite-plugin-singlefile";
 import wasm from "vite-plugin-wasm";
 
-// Moved from index.html for single file builds
-import enMessages from "./src/locales/en/loading-messages-en.json";
-import frMessages from "./src/locales/fr/loading-messages-fr.json";
+import enMessages from "./src/locales/en/loading-messages-en.json" with { type: "json" };
+import frMessages from "./src/locales/fr/loading-messages-fr.json" with { type: "json" };
 
-// Check various env things
 const host = process.env.TAURI_DEV_HOST;
 const buildTarget = process.env.BUILD_TARGET || "web";
 
 const isSingleFile = process.env.SINGLE_FILE === "true";
 const isDesktop = buildTarget === "desktop";
 const isWeb = buildTarget === "web";
-const isStackBlitz =
-  process.env.STACKBLITZ === "true" ||
-  !!process.env.SHELL?.includes("jsh") ||
-  !!process.env.VITE_URL?.includes("stackblitz");
+
+// Deployments that are not served from the /beta/HTMLPlayer/ prefix (Netlify
+// deploy previews, local static hosting) override this with BASE_PATH=/.
+const RAW_BASE_PATH =
+  process.env.BASE_PATH ?? (isDesktop ? "/" : "/beta/HTMLPlayer/");
+const BASE_PATH = RAW_BASE_PATH.endsWith("/")
+  ? RAW_BASE_PATH
+  : `${RAW_BASE_PATH}/`;
 
 const iconBase64 = isSingleFile
-  ? `data:image/png;base64,${fs.readFileSync(path.resolve(__dirname, "public/icon-any.png")).toString("base64")}`
+  ? `data:image/png;base64,${fs.readFileSync(path.resolve(import.meta.dirname, "public/icon-any.png")).toString("base64")}`
   : null;
 
-// Conditional plugins based on target
 const plugins = [
   react(),
   wasm(),
@@ -45,20 +46,12 @@ const plugins = [
         .replace(/__INLINED_ICON__/g, JSON.stringify(iconBase64))
         .replace(
           /__INLINED_MESSAGES__/g,
-          isSingleFile
-            ? JSON.stringify({ en: enMessages, fr: frMessages })
-            : "null"
+          JSON.stringify({ en: enMessages, fr: frMessages }),
         );
     },
   },
 ].filter(Boolean);
 
-if (!isStackBlitz) {
-  const topLevelAwait = (await import("vite-plugin-top-level-await")).default;
-  plugins.push(topLevelAwait());
-}
-
-// Only add PWA plugin for web builds and also not for single file builds for obvious reasons
 if (isWeb && !isSingleFile) {
   plugins.push(
     VitePWA({
@@ -70,7 +63,7 @@ if (isWeb && !isSingleFile) {
       filename: "sw.ts",
       injectRegister: "script",
       injectManifest: {
-        maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // 5 MB
+        maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
         swSrc: "./src/workers/sw.ts",
       },
 
@@ -81,14 +74,14 @@ if (isWeb && !isSingleFile) {
         description:
           "A modern music player interface with playlists, song management, visualizers, and offline support.",
         categories: ["music", "audio", "entertainment", "tools"],
-        start_url: "/beta/HTMLPlayer/",
-        scope: "/beta/HTMLPlayer/",
+        start_url: BASE_PATH,
+        scope: BASE_PATH,
         display: "standalone",
         theme_color: "#00bfff",
         background_color: "#00bfff",
         orientation: "any",
         share_target: {
-          action: "/beta/HTMLPlayer/",
+          action: BASE_PATH,
           method: "POST",
           enctype: "multipart/form-data",
           params: {
@@ -100,7 +93,7 @@ if (isWeb && !isSingleFile) {
                 name: "audio",
                 accept: [
                   "audio/*",
-                  "application/octet-stream", // Picks up other files as well, but we handle that anyways
+                  "application/octet-stream",
                   ".flo",
                   ".mp3",
                   ".wav",
@@ -117,7 +110,7 @@ if (isWeb && !isSingleFile) {
         },
         file_handlers: [
           {
-            action: "/beta/HTMLPlayer/",
+            action: BASE_PATH,
             accept: {
               "application/octet-stream": [".flo"],
               "audio/mpeg": [".mp3"],
@@ -188,58 +181,108 @@ if (isWeb && !isSingleFile) {
         ],
       },
       devOptions: {
-        enabled: true,
-        type: "module",
-        navigateFallback: "index.html",
-        navigateFallbackAllowlist: [/^\/beta\/HTMLPlayer/],
+        enabled: false,
       },
-    })
+    }),
   );
+}
+
+const VENDOR_CHUNK_GROUPS: Readonly<Record<string, readonly string[]>> = {
+  "vendor-react": ["react", "react-dom"],
+  "vendor-ui": [
+    "@radix-ui/react-dialog",
+    "@radix-ui/react-dropdown-menu",
+    "@radix-ui/react-select",
+    "@radix-ui/react-separator",
+    "@radix-ui/react-slider",
+    "@radix-ui/react-slot",
+    "@radix-ui/react-switch",
+    "@radix-ui/react-tooltip",
+  ],
+  "vendor-uppy": ["@uppy/core", "@uppy/react", "@uppy/dashboard"],
+  "vendor-i18n": [
+    "i18next",
+    "i18next-browser-languagedetector",
+    "i18next-http-backend",
+    "react-i18next",
+  ],
+  "vendor-audio": ["music-metadata", "@web-scrobbler/metadata-filter"],
+  "vendor-utils": ["dompurify", "zustand", "sonner"],
+  "vendor-icons": ["lucide-react"],
+  "vendor-flo": ["@audiflo/libflo"],
+};
+
+function manualChunks(id: string): string | undefined {
+  const separator = "/node_modules/";
+  const index = id.indexOf(separator);
+  if (index === -1) {
+    if (id.includes("/src/ui/resources/visualizers/")) return "visualizers";
+    return undefined;
+  }
+  const rest = id.slice(index + separator.length);
+  const packageName = rest.startsWith("@")
+    ? rest.split("/").slice(0, 2).join("/")
+    : rest.split("/")[0];
+  for (const [chunk, packages] of Object.entries(VENDOR_CHUNK_GROUPS)) {
+    if (packages.some((name) => packageName === name)) return chunk;
+  }
+  return undefined;
 }
 
 export default defineConfig({
   root: isDesktop ? "" : "./",
   appType: "spa",
-  base: isDesktop ? "/" : "/beta/HTMLPlayer/",
+  base: BASE_PATH,
   plugins,
 
   resolve: {
-    alias: {
-      "@": "/src",
-      // For builds where the PWA plugin is disabled (desktop/single-file),
-      // make `virtual:pwa-register/react` resolve to a no-op stub so Vite
-      // can still bundle the code without the service worker dependency.
+    alias: [
+      {
+        find: "music-metadata",
+        replacement: path.resolve(
+          import.meta.dirname,
+          "vendor/music-metadata/dist/core.js",
+        ),
+      },
       ...(isWeb && !isSingleFile
-        ? {}
-        : {
-            "virtual:pwa-register/react": path.resolve(
-              __dirname,
-              "src/stubs/virtual-pwa-register-react.ts",
-            ),
-          }),
-    },
+        ? []
+        : [
+            {
+              find: "virtual:pwa-register/react",
+              replacement: path.resolve(
+                import.meta.dirname,
+                "src/stubs/virtual-pwa-register-react.ts",
+              ),
+            },
+          ]),
+      ...(isSingleFile
+        ? [
+            {
+              find: /^\.\/decoderWorkerFactory$/,
+              replacement: path.resolve(
+                import.meta.dirname,
+                "src/platform/audio/stream/decoderWorkerFactoryInline.ts",
+              ),
+            },
+          ]
+        : []),
+    ],
   },
   define: {
     __ENABLE_PWA_LOGIC__: isWeb && !isSingleFile,
     __IS_SINGLE_FILE__: isSingleFile,
-    __INLINED_MESSAGES__: isSingleFile
-      ? { en: enMessages, fr: frMessages }
-      : null,
+    __INLINED_MESSAGES__: { en: enMessages, fr: frMessages },
     __INLINED_ICON__: JSON.stringify(iconBase64),
   },
 
-  esbuild: {
+  oxc: {
     target: isDesktop ? "es2021" : "esnext",
   },
 
   optimizeDeps: {
-    esbuildOptions: {
-      target: isDesktop ? "es2021" : "esnext",
-    },
-    exclude: ["@flo-audio/libflo-audio", "@flo-audio/reflo"],
+    exclude: ["@audiflo/libflo"],
   },
 
-  // Platform-specific server config
   server: isDesktop
     ? {
         port: 1420,
@@ -253,7 +296,6 @@ export default defineConfig({
             }
           : undefined,
         watch: {
-          // Tell vite to ignore watching `src-tauri`
           ignored: ["**/src-tauri/**"],
         },
       }
@@ -262,7 +304,6 @@ export default defineConfig({
         allowedHosts: true,
       },
 
-  // Prevent vite from obscuring rust errors (desktop only)
   clearScreen: isDesktop ? false : undefined,
 
   build: {
@@ -270,119 +311,26 @@ export default defineConfig({
     sourcemap: true,
     outDir: "./dist",
     emptyOutDir: true,
-    // Web builds need chunk splitting for better caching
-    // Desktop builds can be simpler since it's all bundled
     ...(isWeb &&
       !isSingleFile && {
-        chunkSizeWarningLimit: 1000, // Increase warning limit to 1000kb
+        chunkSizeWarningLimit: 1000,
         rollupOptions: {
+          input: {
+            main: "./index.html",
+            privacy: "./privacy.html",
+            terms: "./terms.html",
+          },
           output: {
-            manualChunks: {
-              // Vendor chunks for large libraries
-              "vendor-react": ["react", "react-dom"],
-              "vendor-ui": [
-                "@radix-ui/react-dialog",
-                "@radix-ui/react-dropdown-menu",
-                "@radix-ui/react-select",
-                "@radix-ui/react-separator",
-                "@radix-ui/react-slider",
-                "@radix-ui/react-slot",
-                "@radix-ui/react-switch",
-                "@radix-ui/react-tooltip",
-              ],
-              "vendor-uppy": ["@uppy/core", "@uppy/react"],
-              "vendor-i18n": [
-                "i18next",
-                "i18next-browser-languagedetector",
-                "i18next-http-backend",
-                "react-i18next",
-              ],
-              "vendor-audio": [
-                "music-metadata",
-                "@web-scrobbler/metadata-filter",
-              ],
-              "vendor-utils": ["lodash", "dompurify", "zustand", "sonner"],
-              "vendor-icons": ["lucide-react"],
-              "vendor-flo": ["@flo-audio/libflo-audio", "@flo-audio/reflo"],
-
-              // Visualizers chunk - group all visualizers together
-              visualizers: [
-                "./src/visualizers/abstractart.visualizer.tsx",
-                "./src/visualizers/architecturalblueprint.visualizer.tsx",
-                "./src/visualizers/bargraph.visualizer.tsx",
-                "./src/visualizers/biologicalcell.visualizer.tsx",
-                "./src/visualizers/circuitboard.visualizer.tsx",
-                "./src/visualizers/circularspectrogram.visualizer.tsx",
-                "./src/visualizers/circularwave.visualizer.tsx",
-                "./src/visualizers/cityscape.visualizer.tsx",
-                "./src/visualizers/constellation.visualizer.tsx",
-                "./src/visualizers/cosmicpulse.visualizer.tsx",
-                "./src/visualizers/crystal.visualizer.tsx",
-                "./src/visualizers/crystalv2.visualizer.tsx",
-                "./src/visualizers/dna.visualizer.tsx",
-                "./src/visualizers/dnav2.visualizer.tsx",
-                "./src/visualizers/firespectrum.visualizer.tsx",
-                "./src/visualizers/flower.visualizer.tsx",
-                "./src/visualizers/fluid.visualizer.tsx",
-                "./src/visualizers/fluidwave.visualizer.tsx",
-                "./src/visualizers/fractal.visualizer.tsx",
-                "./src/visualizers/fracture.visualizer.tsx",
-                "./src/visualizers/fracturedcircle.visualizer.tsx",
-                "./src/visualizers/fracturedprism.visualizer.tsx",
-                "./src/visualizers/frequencyflower.visualizer.tsx",
-                "./src/visualizers/frequencymesh.visualizer.tsx",
-                "./src/visualizers/frequencystars.visualizer.tsx",
-                "./src/visualizers/galaxy.visualizer.tsx",
-                "./src/visualizers/galaxyv2.visualizer.tsx",
-                "./src/visualizers/geometricpulse.visualizer.tsx",
-                "./src/visualizers/interference.visualizer.tsx",
-                "./src/visualizers/kaleidoscope.visualizer.tsx",
-                "./src/visualizers/kaleidoscopespectrogram.visualizer.tsx",
-                "./src/visualizers/layeredripplevoronoi.visualizer.tsx",
-                "./src/visualizers/liquidmetal.visualizer.tsx",
-                "./src/visualizers/matrixrain.visualizer.tsx",
-                "./src/visualizers/nebula.visualizer.tsx",
-                "./src/visualizers/neonwave.visualizer.tsx",
-                "./src/visualizers/neural.visualizer.tsx",
-                "./src/visualizers/neurospectogram.visualizer.tsx",
-                "./src/visualizers/oceanwaves.visualizer.tsx",
-                "./src/visualizers/organic.visualizer.tsx",
-                "./src/visualizers/oscilloscope.visualizer.tsx",
-                "./src/visualizers/particlefield.visualizer.tsx",
-                "./src/visualizers/pixeldust.visualizer.tsx",
-                "./src/visualizers/pulsingorbs.visualizer.tsx",
-                "./src/visualizers/quantum.visualizer.tsx",
-                "./src/visualizers/rainbowspiral.visualizer.tsx",
-                "./src/visualizers/ribbondance.visualizer.tsx",
-                "./src/visualizers/sacredgeometry.visualizer.tsx",
-                "./src/visualizers/spectrumripple.visualizer.tsx",
-                "./src/visualizers/spiralspectogram.visualizer.tsx",
-                "./src/visualizers/spiralv2.visualizer.tsx",
-                "./src/visualizers/starfield.visualizer.tsx",
-                "./src/visualizers/tesselation.visualizer.tsx",
-                "./src/visualizers/topwater.visualizer.tsx",
-                "./src/visualizers/voltaicarcs.visualizer.tsx",
-                "./src/visualizers/voronoi.visualizer.tsx",
-                "./src/visualizers/vortex.visualizer.tsx",
-                "./src/visualizers/water.visualizer.tsx",
-                "./src/visualizers/waterfall.visualizer.tsx",
-                "./src/visualizers/waveformrings.visualizer.tsx",
-                "./src/visualizers/waveformspectrum.visualizer.tsx",
-                "./src/visualizers/waveformtunnel.visualizer.tsx",
-                "./src/visualizers/waveinterference.visualizer.tsx",
-                "./src/visualizers/weather.visualizer.tsx",
-              ],
-            },
+            manualChunks,
           },
         },
       }),
     ...(isSingleFile && {
-      assetsInlineLimit: 100000000, // force all assets to inline
+      assetsInlineLimit: 100000000,
       chunkSizeWarningLimit: 100000,
       rollupOptions: {
         output: {
-          inlineDynamicImports: true,
-          manualChunks: undefined,
+          codeSplitting: false,
         },
       },
     }),
@@ -395,10 +343,10 @@ export default defineConfig({
   ...(isSingleFile && {
     worker: {
       format: "iife",
-      plugins: () => [wasm()], // Futureproofing
+      plugins: () => [wasm()],
       rollupOptions: {
         output: {
-          inlineDynamicImports: true,
+          codeSplitting: false,
         },
       },
     },

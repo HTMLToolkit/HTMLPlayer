@@ -1,0 +1,56 @@
+import {
+  getByteFrequencyData,
+  sample,
+  VisualizerType,
+} from "../../../platform/visualizers";
+
+interface NebulaSpectrogramSettings {
+  nebulaColor?: string;
+  backgroundColor?: string;
+  radiusScale?: number;
+  pointSize?: number;
+}
+
+const nebulaSpectrogram: VisualizerType<NebulaSpectrogramSettings> = {
+  name: "Cosmic Nebula",
+  dataType: "frequency",
+  draw: function (
+    analyser,
+    canvas,
+    ctx,
+    bufferLength,
+    freqDataArray,
+    dataType,
+    settings = {},
+  ) {
+    const {
+      nebulaColor = "hsla({hue}, 80%, 50%, {alpha})",
+      backgroundColor = "rgb(20, 20, 20)",
+      radiusScale = 200,
+      pointSize = 50,
+    } = settings;
+
+    if (dataType !== "frequency") return;
+    getByteFrequencyData(analyser, freqDataArray);
+
+    ctx.fillStyle = backgroundColor;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    for (let i = 0; i < bufferLength; i++) {
+      const amplitude = sample(freqDataArray, i) / 256.0;
+      const angle = (i * Math.PI * 2) / bufferLength;
+
+      const x = canvas.width / 2 + Math.cos(angle) * (amplitude * radiusScale);
+      const y = canvas.height / 2 + Math.sin(angle) * (amplitude * radiusScale);
+
+      ctx.fillStyle = nebulaColor
+        .replace("{hue}", `${270 + i}`)
+        .replace("{alpha}", `${amplitude * 0.1}`);
+      ctx.beginPath();
+      ctx.arc(x, y, amplitude * pointSize, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  },
+};
+
+export default nebulaSpectrogram;

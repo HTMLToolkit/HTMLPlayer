@@ -23,6 +23,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: v2.0.0
+          submodules: true
 
       - name: Determine subfolder and zip name
         id: set-zip-name
@@ -39,11 +40,19 @@ jobs:
       - name: Use Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: Build/package-lock.json
 
       - name: Install dependencies
         working-directory: Build
-        run: npm i
+        run: npm ci
+
+      - name: Setup WASM toolchain
+        uses: ./.github/actions/setup-wasm
+
+      - name: Build Symphonia WASM decoder
+        uses: ./.github/actions/verify-wasm
 
       - name: Build
         working-directory: Build

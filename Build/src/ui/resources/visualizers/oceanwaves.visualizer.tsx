@@ -1,0 +1,64 @@
+import {
+  getByteTimeDomainData,
+  applyTimeDomainSmoothing,
+  sample,
+  VisualizerType,
+} from "../../../platform/visualizers";
+
+interface OceanWavesSettings {
+  lineColor?: string;
+  backgroundColor?: string;
+  lineWidth?: number;
+  curveDepth?: number;
+}
+
+const oceanWaves: VisualizerType<OceanWavesSettings> = {
+  name: "Ocean Waves",
+  dataType: "time",
+  draw: function (
+    analyser,
+    canvas,
+    ctx,
+    bufferLength,
+    timeDataArray,
+    dataType,
+    settings = {},
+  ) {
+    const {
+      lineColor = "rgba(120, 215, 255, 0.95)",
+      backgroundColor = "rgb(4, 34, 76)",
+      lineWidth = 4,
+      curveDepth = 10,
+    } = settings;
+
+    if (dataType !== "time") return;
+    getByteTimeDomainData(analyser, timeDataArray);
+    applyTimeDomainSmoothing(canvas, timeDataArray);
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = backgroundColor;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    ctx.lineWidth = lineWidth;
+    ctx.strokeStyle = lineColor;
+    ctx.beginPath();
+
+    const sliceWidth = canvas.width / bufferLength;
+    let x = 0;
+
+    for (let i = 0; i < bufferLength; i++) {
+      const v = sample(timeDataArray, i) / 128.0;
+      const y = (v * canvas.height) / 2;
+
+      if (i === 0) ctx.moveTo(x, y);
+      else {
+        ctx.quadraticCurveTo(x - sliceWidth / 2, y - curveDepth, x, y);
+      }
+      x += sliceWidth;
+    }
+
+    ctx.stroke();
+  },
+};
+
+export default oceanWaves;

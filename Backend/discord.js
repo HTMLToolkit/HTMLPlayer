@@ -2,7 +2,6 @@ import axios from "axios";
 
 const DISCORD_API = "https://discord.com/api/v10";
 
-// Exchange code for OAuth token
 export async function exchangeCodeForToken(code) {
   if (!process.env.DISCORD_CLIENT_ID || !process.env.DISCORD_CLIENT_SECRET || !process.env.DISCORD_REDIRECT_URI) {
     throw new Error("Missing Discord environment variables. Check DISCORD_CLIENT_ID, DISCORD_CLIENT_SECRET, and DISCORD_REDIRECT_URI");
@@ -22,23 +21,20 @@ export async function exchangeCodeForToken(code) {
   });
   
   console.log("Token exchange successful, scopes:", res.data.scope);
-  return res.data; // access_token, refresh_token, expires_in
+  return res.data; 
 }
 
-// Get Discord user info
 export async function getUserInfo(token) {
   const res = await axios.get(`${DISCORD_API}/users/@me`, {
     headers: { Authorization: `Bearer ${token}` }
   });
-  return res.data; // user object
+  return res.data; 
 }
 
-// Update Discord custom status (alternative to Rich Presence for web apps)
 export async function setActivity(token, { details, state }) {
   console.log("Setting Discord custom status:", { details, state });
 
   try {
-    // Clear status if both details and state are empty
     if (!details && !state) {
       console.log("Clearing Discord custom status");
       await axios.patch(
@@ -55,7 +51,6 @@ export async function setActivity(token, { details, state }) {
       );
     } else {
       console.log("Setting Discord custom status");
-      // Set custom status with music info
       const statusText = state ? `🎵 ${details} — ${state}` : `🎵 ${details}`;
       
       await axios.patch(
@@ -87,7 +82,6 @@ export async function setActivity(token, { details, state }) {
       message: error.message,
     });
 
-    // Re-throw with details so the caller can present it to the client
     const e = new Error(
       `Discord status update failed: ${status || "unknown"} - ${
         data ? JSON.stringify(data) : error.message

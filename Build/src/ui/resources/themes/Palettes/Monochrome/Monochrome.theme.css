@@ -1,0 +1,69 @@
+:root {
+  --themegradient: linear-gradient(135deg, #ffffff, #cccccc);
+  --themecolor: hsl(0, 0%, 50%);
+  --themecolor2: hsl(0, 0%, 60%);
+  --themecolor3: hsl(0, 0%, 70%);
+  --themecolor4: hsl(0, 0%, 80%);
+
+  --foreground: hsl(0, 0%, 10%);
+
+  --background: hsl(0, 0%, 100%);
+
+  --surface: hsl(0, 0%, 98%);
+
+  --primary: hsl(0, 0%, 50%);
+  --primary-foreground: #000000;
+
+  --secondary: hsl(0, 0%, 70%);
+  --secondary-foreground: #000000;
+
+  --sidebar: hsl(0, 0%, 95%);
+  --sidebar-foreground: hsl(0, 0%, 10%);
+
+  --favorite: hsl(0, 0%, 70%);
+
+  --danger: hsl(0, 0%, 60%);
+
+  --card: hsl(0, 0%, 100%);
+
+  --popup: hsl(0, 0%, 100%);
+
+  --muted: hsl(0, 0%, 85%);
+
+  --error: hsl(0, 100%, 50%);
+}
+
+.dark {
+  --themegradient: linear-gradient(135deg, #000000, #333333);
+  --themecolor: hsl(0, 0%, 40%);
+  --themecolor2: hsl(0, 0%, 50%);
+  --themecolor3: hsl(0, 0%, 20%);
+  --themecolor4: hsl(0, 0%, 10%);
+
+  --foreground: hsl(0, 0%, 95%);
+
+  --background: hsl(0, 0%, 5%);
+
+  --surface: hsl(0, 0%, 10%);
+
+  --primary: hsl(0, 0%, 40%);
+  --primary-foreground: #ffffff;
+
+  --secondary: hsl(0, 0%, 60%);
+  --secondary-foreground: #ffffff;
+
+  --sidebar: hsl(0, 0%, 15%);
+  --sidebar-foreground: hsl(0, 0%, 95%);
+
+  --favorite: hsl(0, 0%, 60%);
+
+  --danger: hsl(0, 0%, 70%);
+
+  --card: hsl(0, 0%, 15%);
+
+  --popup: hsl(0, 0%, 15%);
+
+  --muted: hsl(0, 0%, 25%);
+
+  --error: hsl(0, 100%, 50%);
+}
